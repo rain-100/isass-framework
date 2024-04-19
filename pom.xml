@@ -1152,51 +1152,41 @@
 
     <repositories>
         <repository>
-            <id>alimaven</id>
-            <name>aliyun maven</name>
+            <id>${repository.releases.id}</id>
+            <name>${repository.releases.name}</name>
             <releases>
                 <enabled>true</enabled>
             </releases>
             <snapshots>
                 <enabled>false</enabled>
             </snapshots>
-            <url>https://maven.aliyun.com/repository/public</url>
+            <url>${repository.releases.url}</url>
         </repository>
 
         <repository>
-            <id>center-snapshots</id>
-            <name>center-snapshots</name>
+            <id>${repository.snapshot.id}</id>
+            <name>${repository.snapshot.name}</name>
             <releases>
                 <enabled>false</enabled>
             </releases>
             <snapshots>
                 <enabled>true</enabled>
             </snapshots>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-        </repository>
-
-        <repository>
-            <id>center</id>
-            <name>center</name>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-            <url>https://repo.maven.apache.org/maven2</url>
+            <url>${repository.snapshot.url}</url>
         </repository>
     </repositories>
 
     <distributionManagement>
         <repository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+            <id>${repository.distribution.releases.id}</id>
+            <name>${repository.distribution.releases.name}</name>
+            <url>${repository.distribution.releases.url}</url>
         </repository>
 
         <snapshotRepository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+            <id>${repository.distribution.snapshot.id}</id>
+            <name>${repository.distribution.snapshot.name}</name>
+            <url>${repository.distribution.snapshot.url}</url>
         </snapshotRepository>
     </distributionManagement>
 </project>
