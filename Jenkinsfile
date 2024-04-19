@@ -19,7 +19,7 @@ pipeline {
 
         stage('编译代码') {
             steps {
-                sh "source /etc/profile && mvn -T 1C -U -am clean deploy -DskipTests"
+                sh "source /etc/profile && mvn -T 1C -U -am clean deploy -DskipTests -Ppci-ar"
             }
         }
     }
