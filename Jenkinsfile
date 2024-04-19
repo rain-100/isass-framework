@@ -18,16 +18,6 @@ pipeline {
         }
 
         stage('编译代码') {
-            when {
-                anyOf {
-                    branch 'master'
-                    branch 'dev'
-                    branch 'test'
-                    branch 'uat'
-                    branch 'pre'
-                    branch 'prod'
-                }
-            }
             steps {
                 sh "source /etc/profile && mvn -T 1C -U -am clean deploy -DskipTests"
             }
@@ -36,10 +26,10 @@ pipeline {
 
     post {
         always {
-                deleteDir()
-                echo "[${JOB_NAME}]部署结果[${currentBuild.result}]"
-                echo "作者：${AUTHORS}\n内容：${COMMIT_LOGS}\n变更：${FILE_CHANGES}"
-                sh """curl -X POST -H 'Content-Type: application/json' -d '{"msgtype": "markdown","markdown": {"content": "jenkins：${JOB_NAME}(${currentBuild.result})\\n> 作者：${AUTHORS}\\n> 内容：${COMMIT_LOGS}\\n> 变更：${FILE_CHANGES}\\n> 链接：[jenkins](${BUILD_URL}console)"}}' https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=${WECHAT_TOKEN}"""
+            deleteDir()
+            echo "[${JOB_NAME}]部署结果[${currentBuild.result}]"
+            echo "作者：${AUTHORS}\n内容：${COMMIT_LOGS}\n变更：${FILE_CHANGES}"
+            sh """curl -X POST -H 'Content-Type: application/json' -d '{"msgtype": "markdown","markdown": {"content": "jenkins：${JOB_NAME}(${currentBuild.result})\\n> 作者：${AUTHORS}\\n> 内容：${COMMIT_LOGS}\\n> 变更：${FILE_CHANGES}\\n> 链接：[jenkins](${BUILD_URL}console)"}}' https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=${WECHAT_TOKEN}"""
         }
     }
 }
