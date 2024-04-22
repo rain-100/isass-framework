@@ -314,6 +314,7 @@
         <coordtransform4j.version>1.0.2</coordtransform4j.version>
         <sqlite-jdbc.version>3.34.0</sqlite-jdbc.version>
         <fastjson.version>1.2.83</fastjson.version>
+        <commons-compress.version>1.26.1</commons-compress.version>
     </properties>
 
     <!-- maven功能说明 -->
@@ -743,6 +744,12 @@
                 <groupId>org.apache.poi</groupId>
                 <artifactId>poi-ooxml</artifactId>
                 <version>${poi-ooxml.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-compress</artifactId>
+                <version>${commons-compress.version}</version>
             </dependency>
 
             <dependency>
