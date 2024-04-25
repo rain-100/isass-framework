@@ -200,7 +200,7 @@
         <module>isass-mq-ons</module>
         <module>isass-mq-kafka011</module>
         <module>isass-mq-spring-event</module>
-        <module>isass-deploy</module>
+        <module>isass-packaging</module>
         <module>isass-lowcode-core</module>
         <module>isass-lowcode-generator</module>
         <module>isass-lowcode-spring-boot-starter</module>
@@ -383,7 +383,7 @@
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>isass-deploy</artifactId>
+                <artifactId>isass-packaging</artifactId>
                 <version>${super-core.version}</version>
             </dependency>
 

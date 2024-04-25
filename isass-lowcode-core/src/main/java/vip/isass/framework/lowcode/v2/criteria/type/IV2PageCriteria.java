@@ -170,7 +170,7 @@ package vip.isass.framework.lowcode.v2.criteria.type;
 
 import vip.isass.framework.lowcode.v2.criteria.IV2Criteria;
 import vip.isass.framework.lowcode.v2.entity.IV2Entity;
-import vip.isass.core.page.PageConst;
+import vip.isass.framework.core.page.PageConst;
 
 /**
  * page 分页条件接口

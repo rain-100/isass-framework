@@ -195,12 +195,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.servlet.HandlerMapping;
-import vip.isass.core.log.requestlog.IRequestLogService;
-import vip.isass.core.log.requestlog.RequestLog;
+import requestlog.vip.isass.framework.core.log.IRequestLogService;
+import requestlog.vip.isass.framework.core.log.RequestLog;
 import vip.isass.core.login.LoginUser;
 import vip.isass.core.login.LoginUserUtil;
 import vip.isass.core.support.JsonUtil;
-import vip.isass.core.support.SystemClock;
+import vip.isass.framework.core.support.SystemClock;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletRequest;
@@ -259,17 +259,17 @@ public class RequestLogAop {
     @Around("(" +
 //        "within(*..*Controller) " +
 //        "|| this(vip.isass.core.web.IController)" +
-//        "|| this(vip.isass.core.web.structure.IV2Controller)" +
+//        "|| this(vip.isass.framework.web.structure.IV2Controller)" +
         "@within(org.springframework.web.bind.annotation.RestController)" +
         "|| @within(org.springframework.stereotype.Controller)" +
         ")"
 
-//        "&& !within(vip.isass.core.web.exception.IsassErrorController) " +
+//        "&& !within(vip.isass.framework.web.exception.IsassErrorController) " +
 //        "&& !within(*..swagger*..*) " +
 //        "&& !within(*..knife4j*..*) " +
 
 //        "&& !within(springfox.documentation.swagger.web.ApiResourceController) " +
-//        "&& !within(vip.isass.core.web.exception.IsassErrorController.errorJson) " +
+//        "&& !within(vip.isass.framework.web.exception.IsassErrorController.errorJson) " +
 
 //        "&& (@annotation(org.springframework.web.bind.annotation.RequestMapping)" +
 //        "|| @annotation(org.springframework.web.bind.annotation.GetMapping) " +

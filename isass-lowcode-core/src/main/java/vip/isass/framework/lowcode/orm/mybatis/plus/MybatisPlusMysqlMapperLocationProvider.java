@@ -170,7 +170,7 @@ package vip.isass.framework.lowcode.orm.mybatis.plus;
 
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.stereotype.Component;
-import vip.isass.core.database.mybatisplus.config.IMapperLocationProvider;
+import vip.isass.framework.database.orm.mybatisplus.config.IMapperLocationProvider;
 
 import java.util.Collections;
 import java.util.List;

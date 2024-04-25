@@ -171,8 +171,8 @@ package vip.isass.framework.lowcode.v1.entity;
 import cn.hutool.core.util.StrUtil;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
-import vip.isass.core.sequence.impl.LongSequence;
-import vip.isass.core.sequence.impl.UuidSequence;
+import vip.isass.framework.core.sequence.impl.LongSequence;
+import vip.isass.framework.core.sequence.impl.UuidSequence;
 
 import java.beans.Transient;
 import java.io.Serializable;

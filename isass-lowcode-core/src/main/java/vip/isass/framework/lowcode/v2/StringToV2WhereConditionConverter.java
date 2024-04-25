@@ -170,8 +170,8 @@ package vip.isass.framework.lowcode.v2;
 
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Component;
-import vip.isass.core.serialization.jackson.JsonUtil;
-import vip.isass.core.support.Converter;
+import vip.isass.framework.serialization.jackson.JsonUtil;
+import vip.isass.framework.core.support.Converter;
 import vip.isass.framework.lowcode.v2.criteria.V2WhereCondition;
 
 /**

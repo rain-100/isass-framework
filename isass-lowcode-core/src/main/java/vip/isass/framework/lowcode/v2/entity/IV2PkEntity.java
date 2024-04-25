@@ -170,7 +170,7 @@ package vip.isass.framework.lowcode.v2.entity;
 
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
-import vip.isass.core.sequence.impl.LongSequence;
+import vip.isass.framework.core.sequence.impl.LongSequence;
 
 import java.io.Serializable;
 import java.lang.reflect.ParameterizedType;

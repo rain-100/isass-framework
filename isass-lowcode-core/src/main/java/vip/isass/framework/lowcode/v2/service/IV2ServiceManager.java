@@ -174,7 +174,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Primary;
 import vip.isass.framework.lowcode.v2.criteria.IV2Criteria;
 import vip.isass.framework.lowcode.v2.entity.IV2Entity;
-import vip.isass.core.support.api.ApiOrder;
+import vip.isass.framework.core.support.api.ApiOrder;
 
 import java.io.Serializable;
 import java.util.Collection;

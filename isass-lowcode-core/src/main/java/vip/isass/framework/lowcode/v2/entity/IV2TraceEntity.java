@@ -168,7 +168,7 @@
 
 package vip.isass.framework.lowcode.v2.entity;
 
-import vip.isass.core.sequence.impl.LongSequence;
+import vip.isass.framework.core.sequence.impl.LongSequence;
 
 import java.beans.Transient;
 import java.io.Serializable;

@@ -175,8 +175,8 @@ import com.baomidou.mybatisplus.core.conditions.AbstractWrapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.SneakyThrows;
-import vip.isass.core.serialization.jackson.JsonUtil;
-import vip.isass.core.support.SpringContextUtil;
+import vip.isass.framework.serialization.jackson.JsonUtil;
+import vip.isass.framework.core.support.SpringContextUtil;
 import vip.isass.framework.lowcode.v2.criteria.V2WhereCondition;
 import vip.isass.framework.lowcode.v2.entity.IV2Entity;
 

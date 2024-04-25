@@ -56,7 +56,7 @@ import vip.isass.core.structure.entity.IV2VersionEntity;
 || field.propertyType == "LocalDateTime")
 && field.name != cfg.traceEntity.CREATED_TIME_COLUMN_NAME
 && field.name != cfg.traceEntity.MODIFY_TIME_COLUMN_NAME>
-import vip.isass.core.support.LocalDateTimeUtil;
+import vip.isass.framework.core.support.LocalDateTimeUtil;
 <#break>
 </#if>
 </#list>

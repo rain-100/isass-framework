@@ -1,8 +1,8 @@
 # Auto Configure
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-vip.isass.kernel.net.netty.NettyAutoConfiguration,\
-vip.isass.kernel.net.netty.packet.impl.coder.IsassBinaryPacketEncoder,\
-vip.isass.kernel.net.netty.packet.impl.coder.IsassBinaryPacketDecoder,\
-vip.isass.kernel.net.netty.request.worker.normal.DefaultWorkerPool,\
-vip.isass.kernel.net.netty.request.worker.normal.DefaultWorker,\
-vip.isass.kernel.net.netty.request.handler.DefaultHttpRequestHandler
+vip.isass.framework.net.netty.NettyAutoConfiguration,\
+vip.isass.framework.net.netty.packet.impl.coder.IsassBinaryPacketEncoder,\
+vip.isass.framework.net.netty.packet.impl.coder.IsassBinaryPacketDecoder,\
+vip.isass.framework.net.netty.request.worker.normal.DefaultWorkerPool,\
+vip.isass.framework.net.netty.request.worker.normal.DefaultWorker,\
+vip.isass.framework.net.netty.request.handler.DefaultHttpRequestHandler

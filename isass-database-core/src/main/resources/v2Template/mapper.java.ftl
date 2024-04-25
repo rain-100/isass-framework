@@ -3,7 +3,7 @@
 package ${cfg.mapperPackageName};
 
 import ${cfg.entityDbPackageName}.V2${entity}Db;
-import vip.isass.core.database.mybatisplus.mapper.IMapper;
+import mapper.vip.isass.framework.database.mybatisplus.IMapper;
 
 /**
  * <p>

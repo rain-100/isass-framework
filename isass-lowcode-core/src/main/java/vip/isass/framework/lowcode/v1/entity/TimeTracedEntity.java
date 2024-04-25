@@ -168,7 +168,7 @@
 
 package vip.isass.framework.lowcode.v1.entity;
 
-import vip.isass.core.support.LocalDateTimeUtil;
+import vip.isass.framework.core.support.LocalDateTimeUtil;
 
 import java.time.LocalDateTime;
 

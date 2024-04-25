@@ -170,7 +170,7 @@ package vip.isass.framework.lowcode.v1.criteria;
 
 import cn.hutool.core.util.StrUtil;
 import vip.isass.framework.lowcode.v1.entity.TimeTracedEntity;
-import vip.isass.core.page.PageConst;
+import vip.isass.framework.core.page.PageConst;
 
 /**
  * 基于mysql的条件

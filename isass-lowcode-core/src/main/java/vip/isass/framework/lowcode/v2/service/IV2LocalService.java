@@ -172,13 +172,13 @@ import cn.hutool.core.lang.Assert;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import vip.isass.core.exception.AbsentException;
+import vip.isass.framework.core.exception.AbsentException;
 import vip.isass.framework.lowcode.v2.criteria.IV2Criteria;
 import vip.isass.framework.lowcode.v2.criteria.type.IV2WhereConditionCriteria;
 import vip.isass.framework.lowcode.v2.entity.IV2Entity;
 import vip.isass.framework.lowcode.v2.entity.IV2IdEntity;
 import vip.isass.framework.lowcode.v2.repository.IV2Repository;
-import vip.isass.core.support.api.ApiOrder;
+import vip.isass.framework.core.support.api.ApiOrder;
 
 import java.io.Serializable;
 import java.util.Collection;

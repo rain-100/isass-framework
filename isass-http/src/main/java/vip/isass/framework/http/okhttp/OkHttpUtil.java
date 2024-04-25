@@ -186,7 +186,7 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 import okhttp3.WebSocket;
 import okhttp3.WebSocketListener;
-import vip.isass.core.serialization.jackson.JsonUtil;
+import vip.isass.framework.serialization.jackson.JsonUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
