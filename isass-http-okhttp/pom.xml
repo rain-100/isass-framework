@@ -180,23 +180,26 @@
     </parent>
 
     <!-- 本项目信息 -->
-    <artifactId>isass-net-proxy-upstream</artifactId>
+    <artifactId>isass-http-okhttp</artifactId>
     <version>4.0.0-SNAPSHOT</version>
+
+    <properties>
+    </properties>
 
     <dependencies>
         <dependency>
             <groupId>vip.isass</groupId>
-            <artifactId>isass-net-proxy-core</artifactId>
+            <artifactId>isass-core</artifactId>
         </dependency>
 
         <dependency>
             <groupId>vip.isass</groupId>
-            <artifactId>isass-http-okhttp</artifactId>
+            <artifactId>isass-serialization-jackson</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
         </dependency>
     </dependencies>
 </project>

@@ -206,8 +206,8 @@
         <module>isass-lowcode-spring-boot-starter</module>
         <module>isass-security-auth</module>
         <module>isass-security-spring-boot-starter</module>
-        <module>isass-apidoc-swagger</module>
-        <module>isass-rpc-feign</module>
+        <module>isass-web-swagger</module>
+        <module>isass-http-feign</module>
         <module>isass-net-core</module>
         <module>isass-net-netty</module>
         <module>isass-net-proxy-core</module>
@@ -219,7 +219,7 @@
         <module>isass-serialization-protobuf</module>
         <module>isass-database-elasticsearch</module>
         <module>isass-security-encryption</module>
-        <module>isass-http</module>
+        <module>isass-http-okhttp</module>
         <module>isass-web</module>
     </modules>
 
@@ -419,13 +419,13 @@
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>isass-rpc-feign</artifactId>
+                <artifactId>isass-http-feign</artifactId>
                 <version>${super-core.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>isass-apidoc-swagger</artifactId>
+                <artifactId>isass-web-swagger</artifactId>
                 <version>${super-core.version}</version>
             </dependency>
 
@@ -563,7 +563,7 @@
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>isass-http</artifactId>
+                <artifactId>isass-http-okhttp</artifactId>
                 <version>${super-core.version}</version>
             </dependency>
 
