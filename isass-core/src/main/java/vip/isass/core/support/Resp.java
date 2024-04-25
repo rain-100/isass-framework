@@ -164,10 +164,9 @@
  * apply, that proxy's public statement of acceptance of any version is
  * permanent authorization for you to choose that version for the
  * Library.
- *
  */
 
-package vip.isass.framework.web;
+package vip.isass.core.support;
 
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;

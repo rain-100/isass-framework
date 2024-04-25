@@ -195,7 +195,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.client.RestClientException;
 import vip.isass.core.serialization.jackson.JsonUtil;
-import vip.isass.core.web.Resp;
+import vip.isass.core.support.Resp;
 
 import java.io.IOException;
 import java.io.InputStream;

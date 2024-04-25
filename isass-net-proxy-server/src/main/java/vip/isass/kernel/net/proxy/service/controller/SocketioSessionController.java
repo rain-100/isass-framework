@@ -181,7 +181,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import vip.isass.core.web.Resp;
+import vip.isass.core.support.Resp;
 import vip.isass.kernel.net.core.message.Message;
 import vip.isass.kernel.net.core.session.ISessionService;
 import vip.isass.kernel.net.core.session.SessionBindingInfoChangeReq;

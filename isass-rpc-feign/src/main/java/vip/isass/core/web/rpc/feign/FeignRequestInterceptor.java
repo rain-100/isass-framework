@@ -176,6 +176,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import vip.isass.core.web.security.authentication.jwt.JwtConst;
+import vip.isass.framework.security.auth.matedata.AdditionalRequestHeaderProvider;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Enumeration;

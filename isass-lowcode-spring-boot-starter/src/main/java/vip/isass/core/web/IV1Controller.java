@@ -173,9 +173,16 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-import org.springframework.web.bind.annotation.*;
-import vip.isass.framework.lowcode.v1.entity.IdEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import vip.isass.core.support.Resp;
 import vip.isass.framework.lowcode.v1.criteria.ICriteria;
+import vip.isass.framework.lowcode.v1.entity.IdEntity;
 
 import javax.validation.Valid;
 import java.io.Serializable;
@@ -189,9 +196,9 @@ import java.util.List;
  * <code>@ApiOperation</code> 的 value 的横杠前面需要1个字符，例如查-，增-
  */
 public interface IV1Controller<
-    E,
-    C extends ICriteria<E, C>,
-    S extends IV1Service<E, C>> {
+        E,
+        C extends ICriteria<E, C>,
+        S extends IV1Service<E, C>> {
 
     S getService();
 
@@ -272,7 +279,7 @@ public interface IV1Controller<
 
     @PostMapping("/add-update/{uniqueColumns}")
     @ApiOperation(value = "增改-根据字段-全部实体", position = 11,
-        notes = "根据 uniqueColumns 字段和 entity 对应的值作为查询条件，如果已存在数据，则更新数据，否则新增数据。")
+            notes = "根据 uniqueColumns 字段和 entity 对应的值作为查询条件，如果已存在数据，则更新数据，否则新增数据。")
     @ApiImplicitParam(name = "uniqueColumns", value = "唯一字段名列表，根据此字段判断需要新增或者修改", required = true)
     default Resp<?> addOrUpdate(@RequestBody @Valid E entity,
                                 @PathVariable("uniqueColumns") List<String> uniqueColumns) {
@@ -282,7 +289,7 @@ public interface IV1Controller<
 
     @PostMapping("/add-update/batch/{uniqueColumns}")
     @ApiOperation(value = "增改-根据字段-批量实体", position = 11,
-        notes = "根据 uniqueColumns 字段和 每个 entity 对应的值作为查询条件，如果已存在数据，则更新数据，否则新增数据。")
+            notes = "根据 uniqueColumns 字段和 每个 entity 对应的值作为查询条件，如果已存在数据，则更新数据，否则新增数据。")
     @ApiImplicitParam(name = "uniqueColumns", value = "唯一字段名列表，根据此字段判断需要新增或者修改", required = true)
     default Resp<Integer> addOrUpdateEntities(@RequestBody @Valid List<E> entities,
                                               @PathVariable("uniqueColumns") List<String> uniqueColumns) {

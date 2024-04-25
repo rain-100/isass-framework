@@ -178,7 +178,7 @@ import org.springframework.stereotype.Component;
 import vip.isass.core.exception.UnifiedException;
 import vip.isass.core.exception.code.StatusMessageEnum;
 import vip.isass.core.serialization.jackson.JsonUtil;
-import vip.isass.core.web.Resp;
+import vip.isass.core.support.Resp;
 import vip.isass.core.web.exception.WebStatusMapping;
 
 import java.io.IOException;

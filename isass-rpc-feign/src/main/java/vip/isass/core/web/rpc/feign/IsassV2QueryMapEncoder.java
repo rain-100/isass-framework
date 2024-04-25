@@ -242,7 +242,7 @@ public class IsassV2QueryMapEncoder implements QueryMapEncoder {
             return Collections.emptyMap();
         }
 
-        Map<String, Object> whereConditionMap = CollUtil.newHashMap(whereConditionCriteria.size());
+        Map<String, Object> whereConditionMap = MapUtil.newHashMap(whereConditionCriteria.size());
         AtomicBoolean lastLoopIsOrCondition = new AtomicBoolean(false);
 
         for (Map<String, Object> criteria : whereConditionCriteria) {

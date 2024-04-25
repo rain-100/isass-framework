@@ -169,8 +169,8 @@
 
 package vip.isass.core.web.security.authentication.jwt;
 
-import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Assert;
+import cn.hutool.core.map.MapUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -256,7 +256,7 @@ public class JwtCacheService implements IJwtService {
         }
         List<Integer> version = redisTemplate.opsForValue().multiGet(keys);
 
-        Map<String, Integer> result = CollUtil.newHashMap(terminals.size());
+        Map<String, Integer> result = MapUtil.newHashMap(terminals.size());
 
         for (int i = 0; i < keys.size(); i++) {
             if (version == null) {
