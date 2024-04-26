@@ -12,7 +12,7 @@ import ${cfg.criteriaPackageName}.V2${entity}Criteria;
 import ${cfg.entityPackageName}.V2${entity};
 import ${cfg.package}.${cfg.moduleName}.api.service.${table.serviceName};
 import ${cfg.servicePackageName}.V2${table.serviceImplName};
-import vip.isass.framework.web.structure.IV2Controller;
+import vip.isass.framework.lowcode.springboot.starter.structure.IV2Controller;
 
 /**
  * <p>

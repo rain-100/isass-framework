@@ -9,7 +9,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import ${cfg.entityPackageName}.${entity};
-import vip.isass.framework.lowcode.v1.entity.DbEntity;
+import entity.vip.isass.framework.lowcode.version.v1.DbEntity;
 
 <#list table.fields as field>
 <#include "./segment/isBuildinProperty.ftl">

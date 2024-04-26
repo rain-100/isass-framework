@@ -166,110 +166,38 @@
  * Library.
  */
 
-package vip.isass.framework.web.config;
+package vip.isass.framework.web.springmvc.config;
 
-import cn.hutool.core.io.FileUtil;
-import cn.hutool.core.util.StrUtil;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.Setter;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.support.ResourcePatternUtils;
-import org.springframework.http.MediaType;
-import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-import vip.isass.framework.web.interceptor.IsassHandlerInterceptor;
-
-import javax.annotation.Resource;
-import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
+import org.springframework.context.annotation.Primary;
+import vip.isass.framework.serialization.jackson.JsonUtil;
 
 /**
  * @author Rain
  */
+
+@Getter
+@Setter
 @Configuration
-public class WebConfig implements WebMvcConfigurer {
-
-    @Resource
-    private List<IsassHandlerInterceptor> isassHandlerInterceptors;
+@ConfigurationProperties(prefix = "core.json.object-mapper")
+public class ObjectMapperConfiguration {
 
     /**
-     * 允许跨域的域名，*表示允许任何域名使用
+     * 不能设置为 false，会导致 bug
+     * 例如 UserMobile 是idEntity ,但是没有id字段，在转为json时，{"userId":"1296279169555202049","mobile":"15949388631","id":null}
+     * 会有 ”id“:null，导致翻序列化时，userId被id=null 覆盖，最终实体的userId没有值
      */
-    @Getter
-    @Value("${core.web.allowedOrigins:*}")
-    private String allowedOrigins;
-
-    /**
-     * 允许的方法
-     */
-    @Getter
-    @Value("${core.web.allowedMethods:*}")
-    private String allowedMethods;
-
-    /**
-     * 允许的请求头
-     */
-    @Getter
-    @Value("${core.web.allowedHeaders:*}")
-    private String allowedHeaders;
-
-    @Override
-    public void addInterceptors(InterceptorRegistry registry) {
-        for (IsassHandlerInterceptor interceptor : isassHandlerInterceptors) {
-            registry.addInterceptor(interceptor)
-                .addPathPatterns(interceptor.getPatterns() == null
-                    ? Collections.singletonList("/**")
-                    : interceptor.getPatterns());
-        }
-    }
+    private boolean usingNotNullObjectMapper = true;
 
     @Bean
-    public WebMvcConfigurer corsConfigurer() {
-        return new WebMvcConfigurer() {
-            @Override
-            public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/**")
-                    .allowedOrigins(allowedOrigins)
-                    .allowedMethods(allowedMethods)
-                    .allowedHeaders(allowedHeaders);
-            }
-        };
+    @Primary
+    public ObjectMapper objectMapper() {
+        return usingNotNullObjectMapper ? JsonUtil.NOT_NULL_INSTANCE : JsonUtil.DEFAULT_INSTANCE;
     }
 
-    @Override
-    public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
-        try {
-            org.springframework.core.io.Resource[] resources = ResourcePatternUtils.getResourcePatternResolver(null)
-                .getResources("classpath*:META-INF/mime.type");
-            for (org.springframework.core.io.Resource resource : resources) {
-                if (!resource.exists()) {
-                    continue;
-                }
-                List<String> mimeTypes = FileUtil.readUtf8Lines(resource.getURL());
-                for (String line : mimeTypes) {
-                    line = StrUtil.replace(line, StrUtil.TAB, StrUtil.SPACE).trim();
-                    if (line.isEmpty() || line.startsWith("#")) {
-                        continue;
-                    }
-                    String[] split = line.split(StrUtil.SPACE);
-                    if (split.length == 1) {
-                        continue;
-                    }
-                    MediaType mediaType = MediaType.valueOf(split[0]);
-                    for (int i = 1; i < split.length; i++) {
-                        if (split[i].isEmpty()) {
-                            continue;
-                        }
-                        configurer.mediaType(split[i], mediaType);
-                    }
-                }
-            }
-        } catch (IOException e) {
-            throw new RuntimeException("can not read file META-INF/mime.type: " + e);
-        }
-    }
 }

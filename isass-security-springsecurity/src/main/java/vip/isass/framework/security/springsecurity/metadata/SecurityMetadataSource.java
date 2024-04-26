@@ -183,7 +183,6 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
 import vip.isass.framework.core.exception.UnifiedException;
 import vip.isass.framework.core.exception.code.StatusMessageEnum;
 import vip.isass.framework.security.springsecurity.authorization.ConfigAttributeConst;
-import vip.isass.framework.web.uri.UriPrefixProvider;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Collection;
@@ -208,8 +207,6 @@ public class SecurityMetadataSource implements FilterInvocationSecurityMetadataS
 
     private final Collection<String> permitUrls;
 
-    private final UriPrefixProvider uriPrefixProvider;
-
     private static final List<String> IGNORE_LOGGING_URI = CollUtil.newArrayList("/error");
 
     /**
@@ -220,18 +217,15 @@ public class SecurityMetadataSource implements FilterInvocationSecurityMetadataS
      * @param requestMappingHandlerMapping           request mapping handler mapping
      * @param filterInvocationSecurityMetadataSource filter invocation security meta datasource
      * @param securityMetadataSourceProviderManager  security meta datasource provider manager
-     * @param uriPrefixProvider                      uri prefix provider
      * @param permitUrls                             permit urls
      */
     public SecurityMetadataSource(RequestMappingHandlerMapping requestMappingHandlerMapping,
                                   FilterInvocationSecurityMetadataSource filterInvocationSecurityMetadataSource,
                                   SecurityMetadataSourceProviderManager securityMetadataSourceProviderManager,
-                                  UriPrefixProvider uriPrefixProvider,
                                   Collection<String> permitUrls) {
         this.requestMappingHandlerMapping = requestMappingHandlerMapping;
         this.filterInvocationSecurityMetadataSource = filterInvocationSecurityMetadataSource;
         this.securityMetadataSourceProviderManager = securityMetadataSourceProviderManager;
-        this.uriPrefixProvider = uriPrefixProvider;
         this.permitUrls = permitUrls;
     }
 

@@ -166,7 +166,7 @@
  * Library.
  */
 
-package vip.isass.framework.web.structure;
+package vip.isass.framework.lowcode.springboot.starter;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.swagger.annotations.ApiImplicitParam;

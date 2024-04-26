@@ -166,38 +166,27 @@
  * Library.
  */
 
-package vip.isass.framework.web.config;
+package vip.isass.framework.web.springmvc.interceptor;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.Getter;
-import lombok.Setter;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
-import vip.isass.framework.serialization.jackson.JsonUtil;
+import org.springframework.web.servlet.HandlerInterceptor;
+
+import java.util.List;
 
 /**
- * @author Rain
+ * isass HandlerInterceptor
+ *
+ * @author : rain
+ * @date : 2022/11/23
  */
-
-@Getter
-@Setter
-@Configuration
-@ConfigurationProperties(prefix = "core.json.object-mapper")
-public class ObjectMapperConfiguration {
+public interface IsassHandlerInterceptor extends HandlerInterceptor {
 
     /**
-     * 不能设置为 false，会导致 bug
-     * 例如 UserMobile 是idEntity ,但是没有id字段，在转为json时，{"userId":"1296279169555202049","mobile":"15949388631","id":null}
-     * 会有 ”id“:null，导致翻序列化时，userId被id=null 覆盖，最终实体的userId没有值
+     * 默认 pattern 为 /**
+     *
+     * @return patterns
      */
-    private boolean usingNotNullObjectMapper = true;
-
-    @Bean
-    @Primary
-    public ObjectMapper objectMapper() {
-        return usingNotNullObjectMapper ? JsonUtil.NOT_NULL_INSTANCE : JsonUtil.DEFAULT_INSTANCE;
+    default List<String> getPatterns() {
+        return null;
     }
 
 }

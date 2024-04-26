@@ -166,20 +166,59 @@
  * Library.
  */
 
-package vip.isass.framework.web;
+package vip.isass.framework.lowcode.springboot.starter;
 
-import vip.isass.framework.lowcode.v1.entity.IdEntity;
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.http.HttpUtil;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Configuration;
+import vip.isass.framework.serialization.jackson.JsonUtil;
+import vip.isass.framework.lowcode.v2.entity.AdvancedFeature;
+import vip.isass.framework.lowcode.v2.entity.IAnyJsonEntity;
+import vip.isass.framework.web.springmvc.interceptor.IsassHandlerInterceptor;
 
-import java.io.Serializable;
-import java.util.List;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
 
-public interface ICommonService {
+/**
+ * 高级特性 拦截器
+ *
+ * @author : rain
+ * @date : 2022/11/22
+ */
+@Slf4j
+@Configuration
+public class AdvanceFeatureInterceptor implements IsassHandlerInterceptor {
 
-    <PK extends Serializable, E extends IdEntity<PK, E>>
-    List<E> findAllSubRecords(Class<E> entityClass,
-                              String idColumnName,
-                              String parentIdColumnName,
-                              PK id,
-                              boolean returnIdRecord);
+    private static final String ADVANCED_FEATURE_FIELD_NAME = "advancedFeature";
+
+    private static final String ADVANCED_FEATURE_EQUAL = ADVANCED_FEATURE_FIELD_NAME + "=";
+
+    @Override
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
+        String query = request.getQueryString();
+        if (StrUtil.isBlank(query) || !query.contains(ADVANCED_FEATURE_EQUAL)) {
+            return true;
+        }
+        Map<String, String> paramMap = HttpUtil.decodeParamMap(query, StandardCharsets.UTF_8);
+        String advancedFeatureStr = paramMap.get(ADVANCED_FEATURE_FIELD_NAME);
+        if (StrUtil.isBlank(advancedFeatureStr)) {
+            return true;
+        }
+        try {
+            AdvancedFeature advancedFeature = JsonUtil.readValue(advancedFeatureStr, AdvancedFeature.class);
+            IAnyJsonEntity.ADVANCED_FEATURE.set(advancedFeature);
+        } catch (Exception e) {
+            log.warn("request[{}] has error query string [{}], it must be json", request.getRequestURI(), ADVANCED_FEATURE_FIELD_NAME);
+        }
+        return true;
+    }
+
+    @Override
+    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) {
+        IAnyJsonEntity.ADVANCED_FEATURE.remove();
+    }
 
 }

@@ -166,53 +166,58 @@
  * Library.
  */
 
-package vip.isass.framework.web.uri;
+package vip.isass.framework.web.springmvc.execption;
 
-import cn.hutool.core.util.StrUtil;
+import cn.hutool.core.map.MapUtil;
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import vip.isass.framework.core.exception.IStatusMapping;
+import vip.isass.framework.core.exception.code.IStatusMessage;
+import vip.isass.framework.core.exception.code.StatusMessageEnum;
 
-import javax.annotation.Resource;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * @author Rain
  */
-@Slf4j
-@Getter
 @Component
-public class UriPrefixProvider {
+public class WebStatusMapping implements IStatusMapping {
 
-    private String appName = "";
+    private static final Map<Integer, IStatusMessage> statusMapping = MapUtil
+            .<Integer, IStatusMessage>builder()
+            .put(403, StatusMessageEnum.ACCESS_DENIED_403)
+            .put(404, StatusMessageEnum.NOT_FOUND_404)
+            .put(405, StatusMessageEnum.METHOD_NOT_ALLOWED_405)
+            .put(500, StatusMessageEnum.INTERNAL_SERVER_ERROR_500)
+            .putAll(Arrays
+                    .stream(WebStatusEnum.values())
+                    .collect(Collectors.toMap(WebStatusEnum::getStatus, Function.identity())))
+            .build();
 
-    private String contextPath = "";
-
-    private String uriPrefix;
-
-    @Resource
-    public void setAppName(@Value("${spring.application.name:}") String applicationName) {
-        if (StrUtil.isBlank(applicationName)) {
-            throw new IllegalArgumentException("请配置 spring.application.name");
-        }
-        log.info("applicationName:{}", applicationName);
-        this.appName = "/" + applicationName;
+    @Override
+    public IStatusMessage getErrorCode(Integer code) {
+        Map<Integer, WebStatusEnum> collect = Arrays.stream(WebStatusEnum.values())
+                .collect(Collectors.toMap(WebStatusEnum::getStatus, Function.identity()));
+        return statusMapping.get(code);
     }
 
-    @Resource
-    public void setContextPath(@Value("${server.servlet.context-path:}") String contextPath) {
-        if (StrUtil.isNotBlank(contextPath)) {
-            this.contextPath = "/" + contextPath;
-        }
-    }
+    @Getter
+    public enum WebStatusEnum implements IStatusMessage {
 
-    /**
-     * isass v3.0 的微服务前缀，已改到具体接口的 url 定义上，故直接返回空字符串
-     *
-     * @return uri prefix
-     */
-    public String getUriPrefix() {
-        return "";
+        FEIGN_URL_NOT_FOUND(10027_00001, "feign请求[{}]404"),
+        ;
+
+        private final Integer status;
+
+        private final String msg;
+
+        WebStatusEnum(Integer status, String msg) {
+            this.status = status;
+            this.msg = msg;
+        }
     }
 
 }

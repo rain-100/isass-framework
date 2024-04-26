@@ -166,40 +166,26 @@
  * Library.
  */
 
-package vip.isass.framework.web;
+package vip.isass.framework.web.springmvc.interceptor;
 
-import cn.hutool.core.lang.Assert;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import vip.isass.framework.lowcode.v1.entity.IdEntity;
-import vip.isass.framework.lowcode.v1.repository.ICommonRepository;
+import org.apache.skywalking.apm.toolkit.trace.TraceContext;
+import org.springframework.stereotype.Component;
 
-import java.io.Serializable;
-import java.util.List;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
-@Service
-public class CommonServiceImpl implements ICommonService {
+/**
+ * @author Rain
+ */
+@Component
+public class TraceIdInterceptor implements IsassHandlerInterceptor {
 
-    @Autowired(required = false)
-    private ICommonRepository commonRepository;
+    public static final String HEADER_NAME = "isass-trace-id";
 
     @Override
-    public <PK extends Serializable, E extends IdEntity<PK, E>> List<E> findAllSubRecords(Class<E> entityClass,
-                                                                                          String idColumnName,
-                                                                                          String parentIdColumnName,
-                                                                                          PK id,
-                                                                                          boolean returnIdRecord) {
-        if (commonRepository == null) {
-            throw new UnsupportedOperationException("当前环境没有ICommonRepository的实现");
-        }
-
-        Assert.notNull(id, "id必填");
-        return commonRepository.findAllSubRecords(
-                entityClass,
-                idColumnName,
-                parentIdColumnName,
-                id,
-                returnIdRecord);
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
+        response.addHeader(HEADER_NAME, TraceContext.traceId());
+        return true;
     }
 
 }

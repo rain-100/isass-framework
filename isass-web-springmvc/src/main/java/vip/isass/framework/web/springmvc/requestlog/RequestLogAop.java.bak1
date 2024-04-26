@@ -259,7 +259,7 @@ public class RequestLogAop {
     @Around("(" +
 //        "within(*..*Controller) " +
 //        "|| this(vip.isass.core.web.IController)" +
-//        "|| this(vip.isass.framework.web.structure.IV2Controller)" +
+//        "|| this(vip.isass.framework.lowcode.springboot.starter.structure.IV2Controller)" +
         "@within(org.springframework.web.bind.annotation.RestController)" +
         "|| @within(org.springframework.stereotype.Controller)" +
         ")"

@@ -166,65 +166,24 @@
  * Library.
  */
 
-package vip.isass.framework.web.config;
-
-import org.springframework.util.LinkedCaseInsensitiveMap;
-import org.springframework.web.filter.OncePerRequestFilter;
-
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletRequestWrapper;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.Map;
+package vip.isass.framework.web.springmvc.header;
 
 /**
- * 请求参数大小写不敏感过滤器
- * 开启方法：在启动类上添加注解
- * <code>@Import(CaseInsensitiveRequestParameterNameFilter.class)</code>
+ * @author Rain
  */
-public class CaseInsensitiveRequestParameterNameFilter extends OncePerRequestFilter {
+public interface AdditionalRequestHeaderProvider {
 
-    @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        filterChain.doFilter(new CaseInsensitiveParameterNameHttpServletRequest(request), response);
-    }
+    String getHeaderName();
 
-    public static class CaseInsensitiveParameterNameHttpServletRequest extends HttpServletRequestWrapper {
-        private final LinkedCaseInsensitiveMap<String[]> map = new LinkedCaseInsensitiveMap<>();
+    String getValue();
 
-        public CaseInsensitiveParameterNameHttpServletRequest(HttpServletRequest request) {
-            super(request);
-            map.putAll(request.getParameterMap());
-        }
+    /**
+     * 当已存在同名的请求头时，是否覆盖旧的值
+     *
+     * @return is override
+     */
+    boolean override();
 
-        @Override
-        public String getParameter(String name) {
-            String[] array = this.map.get(name);
-            if (array != null && array.length > 0) {
-                return array[0];
-            }
-            return null;
-        }
-
-        @Override
-        public Map<String, String[]> getParameterMap() {
-            return Collections.unmodifiableMap(this.map);
-        }
-
-        @Override
-        public Enumeration<String> getParameterNames() {
-            return Collections.enumeration(this.map.keySet());
-        }
-
-        @Override
-        public String[] getParameterValues(String name) {
-            return this.map.get(name);
-        }
-
-    }
+    boolean support(String method, String uri);
 
 }

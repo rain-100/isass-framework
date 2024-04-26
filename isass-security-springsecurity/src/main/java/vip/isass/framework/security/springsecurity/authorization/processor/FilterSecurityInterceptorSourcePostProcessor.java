@@ -174,7 +174,6 @@ import org.springframework.security.web.access.intercept.FilterSecurityIntercept
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 import vip.isass.framework.security.springsecurity.metadata.SecurityMetadataSource;
 import vip.isass.framework.security.springsecurity.metadata.SecurityMetadataSourceProviderManager;
-import vip.isass.framework.web.uri.UriPrefixProvider;
 
 import java.util.Collection;
 
@@ -187,30 +186,25 @@ public class FilterSecurityInterceptorSourcePostProcessor implements ObjectPostP
 
     private final SecurityMetadataSourceProviderManager securityMetadataSourceProviderManager;
 
-    private final UriPrefixProvider prefixProvider;
-
     private final Collection<String> permitUrls;
 
     public FilterSecurityInterceptorSourcePostProcessor(
-        RequestMappingHandlerMapping requestMappingHandlerMapping,
-        SecurityMetadataSourceProviderManager securityMetadataSourceProviderManager,
-        UriPrefixProvider prefixProvider,
-        Collection<String> permitUrls) {
+            RequestMappingHandlerMapping requestMappingHandlerMapping,
+            SecurityMetadataSourceProviderManager securityMetadataSourceProviderManager,
+            Collection<String> permitUrls) {
         this.requestMappingHandlerMapping = requestMappingHandlerMapping;
         this.securityMetadataSourceProviderManager = securityMetadataSourceProviderManager;
-        this.prefixProvider = prefixProvider;
         this.permitUrls = permitUrls;
     }
 
     @Override
     public <O extends FilterSecurityInterceptor> O postProcess(O object) {
         FilterInvocationSecurityMetadataSource securityMetadataSource =
-            new SecurityMetadataSource(
-                requestMappingHandlerMapping,
-                object.getSecurityMetadataSource(),
-                securityMetadataSourceProviderManager,
-                prefixProvider,
-                permitUrls);
+                new SecurityMetadataSource(
+                        requestMappingHandlerMapping,
+                        object.getSecurityMetadataSource(),
+                        securityMetadataSourceProviderManager,
+                        permitUrls);
         object.setSecurityMetadataSource(securityMetadataSource);
 
         return object;

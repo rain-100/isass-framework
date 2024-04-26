@@ -166,98 +166,11 @@
  * Library.
  */
 
-package vip.isass.framework.web.exception;
-
-import cn.hutool.core.exceptions.ExceptionUtil;
-import cn.hutool.core.util.ObjectUtil;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
-import vip.isass.framework.core.exception.IExceptionMapping;
-import vip.isass.framework.core.exception.UnifiedException;
-import vip.isass.framework.core.exception.code.IStatusMessage;
-import vip.isass.framework.core.exception.code.StatusMessageEnum;
-import vip.isass.framework.core.support.Resp;
-
-import javax.annotation.Resource;
-import java.util.List;
-
+package vip.isass.framework.lowcode.v1;
 
 /**
- * 所有异常转换成 Resp
- *
- * @author Rain
+ * @author rain
  */
-@Slf4j
-@RestControllerAdvice
-public class ExceptionAdvice {
-
-    @Resource
-    private List<IExceptionMapping> exceptionMappings;
-
-    /**
-     * 处理 controller 抛出的异常
-     */
-    @ExceptionHandler(Exception.class)
-    private Resp<?> exceptionHandler(Exception e) {
-        if (e instanceof UnifiedException) {
-            log.debug(e.getMessage(), e);
-        } else {
-            log.error(e.getMessage(), e);
-        }
-        return createRespByException(e);
-    }
-
-    /**
-     * 当没有 IExceptionMapping 时，从异常本身记录信息进行消息格式化
-     *
-     * @param t 被抛出的异常
-     * @return 格式化后的消息
-     */
-    private String defaultMessage(Throwable t) {
-        return t.getClass().getSimpleName() + ((t.getMessage() == null) ? "" : (": " + t.getMessage()));
-    }
-
-    public Resp<?> createRespByException(Exception e) {
-        Resp<?> resp = null;
-        if (e instanceof UnifiedException) {
-            UnifiedException exception = (UnifiedException) e;
-
-            Exception cause = (Exception) exception.getCause();
-            if (exception.getStatus() == null && cause != null) {
-                resp = createRespByExceptionFromExceptionMappings(cause);
-            }
-
-            return resp == null
-                ? new Resp<>()
-                .setSuccess(false)
-                .setStatus(ObjectUtil.defaultIfNull(exception.getStatus(), StatusMessageEnum.UNDEFINED.getStatus()))
-                .setMessage(exception.getMsg())
-                : resp;
-        }
-
-        resp = createRespByExceptionFromExceptionMappings(e);
-        return resp == null
-            ? new Resp<>()
-            .setSuccess(Boolean.FALSE)
-            .setStatus(StatusMessageEnum.UNDEFINED.getStatus())
-            .setMessage(defaultMessage(ExceptionUtil.unwrap(e)))
-            : resp;
-    }
-
-    private Resp<?> createRespByExceptionFromExceptionMappings(Exception e) {
-        for (IExceptionMapping exceptionMapping : exceptionMappings) {
-            IStatusMessage statusMessage = exceptionMapping.getStatusCode(e);
-            if (statusMessage == null) {
-                continue;
-            }
-
-            return new Resp<>()
-                .setSuccess(false)
-                .setStatus(statusMessage.getStatus())
-                .setMessage(exceptionMapping.parseMessage(e, statusMessage));
-        }
-        return null;
-    }
+public interface IController<T> {
 
 }

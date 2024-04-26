@@ -169,9 +169,9 @@
 package vip.isass.framework.lowcode.v2.criteria.field;
 
 import io.swagger.annotations.ApiModel;
+import vip.isass.framework.lowcode.v2.entity.IV2IdEntity;
 import vip.isass.framework.lowcode.v2.criteria.type.IV2SelectColumnCriteria;
 import vip.isass.framework.lowcode.v2.criteria.type.IV2WhereConditionCriteria;
-import vip.isass.framework.lowcode.v2.entity.IV2IdEntity;
 
 import java.beans.Transient;
 import java.io.Serializable;

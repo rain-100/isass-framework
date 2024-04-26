@@ -168,7 +168,6 @@
 
 package vip.isass.framework.lowcode.v2.criteria.field;
 
-import org.checkerframework.checker.units.qual.C;
 import vip.isass.framework.lowcode.v2.criteria.IV2Criteria;
 import vip.isass.framework.lowcode.v2.criteria.type.IV2OrderByCriteria;
 import vip.isass.framework.lowcode.v2.criteria.type.IV2WhereConditionCriteria;

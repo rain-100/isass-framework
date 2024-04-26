@@ -170,8 +170,8 @@ package vip.isass.framework.lowcode.v2.criteria.type;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Assert;
-import vip.isass.framework.lowcode.v2.criteria.V2WhereCondition;
 import vip.isass.framework.lowcode.v2.criteria.IV2Criteria;
+import vip.isass.framework.lowcode.v2.criteria.V2WhereCondition;
 import vip.isass.framework.lowcode.v2.criteria.impl.type.V2Condition;
 import vip.isass.framework.lowcode.v2.entity.IV2Entity;
 

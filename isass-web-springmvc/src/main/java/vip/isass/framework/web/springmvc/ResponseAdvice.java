@@ -166,26 +166,48 @@
  * Library.
  */
 
-package vip.isass.framework.web.interceptor;
+package vip.isass.framework.web.springmvc;
 
-import org.apache.skywalking.apm.toolkit.trace.TraceContext;
-import org.springframework.stereotype.Component;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import lombok.SneakyThrows;
+import org.springframework.core.MethodParameter;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.server.ServerHttpRequest;
+import org.springframework.http.server.ServerHttpResponse;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
+import vip.isass.framework.core.support.Resp;
+import vip.isass.framework.serialization.jackson.JsonUtil;
 
 /**
- * @author Rain
+ * 把 controller 的返回值转换为 resp
  */
-@Component
-public class TraceIdInterceptor implements IsassHandlerInterceptor {
-
-    public static final String HEADER_NAME = "isass-trace-id";
+@RestControllerAdvice
+public class ResponseAdvice implements ResponseBodyAdvice<Object> {
 
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
-        response.addHeader(HEADER_NAME, TraceContext.traceId());
-        return true;
+    public boolean supports(MethodParameter returnType, Class<? extends HttpMessageConverter<?>> converterType) {
+        if (returnType.getParameterType() == Resp.class
+                || returnType.getParameterType() == ResponseEntity.class) {
+            return false;
+        }
+        return returnType.getContainingClass().getSimpleName().endsWith("V2Controller");
+        // return IV2Controller.class.isAssignableFrom(returnType.getContainingClass());
+    }
+
+    @Override
+    @SneakyThrows
+    public Object beforeBodyWrite(Object body,
+                                  MethodParameter returnType,
+                                  MediaType selectedContentType,
+                                  Class<? extends HttpMessageConverter<?>> selectedConverterType,
+                                  ServerHttpRequest request,
+                                  ServerHttpResponse response) {
+        Resp<Object> resp = Resp.bizSuccess(body);
+        return CharSequence.class.isAssignableFrom(returnType.getParameterType())
+                ? JsonUtil.NOT_NULL_INSTANCE.writeValueAsString(resp)
+                : resp;
     }
 
 }

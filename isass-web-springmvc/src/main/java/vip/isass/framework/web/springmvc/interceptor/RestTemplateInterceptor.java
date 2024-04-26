@@ -166,212 +166,52 @@
  * Library.
  */
 
-package vip.isass.framework.web;
+package vip.isass.framework.web.springmvc.interceptor;
 
-import cn.hutool.core.lang.Assert;
-import cn.hutool.core.util.StrUtil;
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import org.springframework.transaction.annotation.Transactional;
-import vip.isass.framework.core.exception.AbsentException;
-import vip.isass.framework.core.exception.UnifiedException;
-import vip.isass.framework.core.exception.code.IStatusMessage;
-import vip.isass.framework.lowcode.v1.criteria.ICriteria;
-import vip.isass.framework.lowcode.v1.repository.IRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpRequest;
+import org.springframework.http.client.ClientHttpRequestExecution;
+import org.springframework.http.client.ClientHttpRequestInterceptor;
+import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.stereotype.Component;
+import vip.isass.framework.web.springmvc.header.AdditionalRequestHeaderProvider;
 
-import java.io.Serializable;
-import java.util.Collection;
+import java.io.IOException;
 import java.util.List;
 
 /**
- * @author rain
+ * @author Rain
  */
-public interface IV1Service<E, C extends ICriteria<E, C>> {
+@Component
+public class RestTemplateInterceptor implements ClientHttpRequestInterceptor {
 
-    IRepository<E, C> getV1Repository();
+    @Autowired(required = false)
+    private List<AdditionalRequestHeaderProvider> additionalHeaderProviders;
 
-    // ****************************** 增 start ******************************
-
-    default E add(E entity) {
-        getV1Repository().add(entity);
-        return entity;
-    }
-
-    @Transactional(rollbackFor = Exception.class)
-    default Collection<E> addBatch(Collection<E> entities) {
-        getV1Repository().addBatch(entities);
-        return entities;
-    }
-
-    @Transactional(rollbackFor = Exception.class)
-    default Collection<E> addBatch(Collection<E> entities, int batchSize) {
-        getV1Repository().addBatch(entities, batchSize);
-        return entities;
-    }
-
-    default E addIfAbsent(E entity, ICriteria<E, C> criteria) {
-        if (!getV1Repository().isPresentByCriteria(criteria)) {
-            getV1Repository().add(entity);
+    /**
+     * todo 如果访问的url是微服务集群内部服务，添加头信息
+     */
+    @Override
+    public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution) throws IOException {
+        if (additionalHeaderProviders == null) {
+            return execution.execute(request, body);
         }
-        return entity;
-    }
 
-    default Integer addBatchIfAbsent(List<E> entities, List<String> uniqueColumns) {
-        int count = 0;
-        for (E entity : entities) {
-            if (getV1Repository().addIfAbsent(entity, uniqueColumns)) {
-                count++;
+        HttpHeaders headers = request.getHeaders();
+        additionalHeaderProviders.forEach(h -> {
+            if (!h.support(request.getMethodValue(), request.getURI().getHost())) {
+                return;
             }
-        }
-        return count;
-    }
-
-    default E addOrUpdate(E entity, List<String> uniqueColumns) {
-        return getV1Repository().addOrUpdate(entity, uniqueColumns);
-    }
-
-    @Transactional(rollbackFor = Exception.class)
-    default int addOrUpdateEntities(List<E> entities, List<String> uniqueColumns) {
-        for (E entity : entities) {
-            getV1Repository().addOrUpdate(entity, uniqueColumns);
-        }
-        return entities.size();
-    }
-
-    // ****************************** 删 start ******************************
-
-    default boolean deleteById(Serializable id) {
-        if (StrUtil.isBlankIfStr(id)) {
-            throw new IllegalArgumentException("id必填");
-        }
-        return getV1Repository().deleteById(id);
-    }
-
-    default boolean deleteByIds(Collection<? extends Serializable> ids) {
-        return getV1Repository().deleteByIds(ids);
-    }
-
-    default boolean deleteByCriteria(ICriteria<E, C> criteria) {
-        return getV1Repository().deleteByCriteria(criteria);
-    }
-
-    //****************************** 改 start ******************************
-
-    default boolean updateById(E entity) {
-        return getV1Repository().updateEntityById(entity);
-    }
-
-    default boolean updateEntityById(E entity) {
-        return getV1Repository().updateEntityById(entity);
-    }
-
-    default void updateByIdOrException(E entity) {
-        if (!getV1Repository().updateEntityById(entity)) {
-            throw new AbsentException("更新失败，记录不存在");
-        }
-    }
-
-    default boolean updateByCriteria(E entity, ICriteria<E, C> criteria) {
-        return getV1Repository().updateByCriteria(entity, criteria);
-    }
-
-    default void updateByCriteriaOrException(E entity, ICriteria<E, C> criteria) {
-        if (!getV1Repository().updateByCriteria(entity, criteria)) {
-            throw new AbsentException("更新失败，记录不存在");
-        }
-    }
-
-    // ****************************** 查 start ******************************
-
-    default E getById(Serializable id) {
-        Assert.notNull(id, "id");
-        return getV1Repository().getEntityById(id);
-    }
-
-    default E getByIdOrException(Serializable id) {
-        Assert.notNull(id, "id");
-        return getV1Repository().getByIdOrException(id);
-    }
-
-    default E getByCriteria(ICriteria<E, C> criteria) {
-        return getV1Repository().getByCriteria(criteria);
-    }
-
-    default E getByCriteriaOrWarn(ICriteria<E, C> criteria) {
-        return getV1Repository().getByCriteriaOrWarn(criteria);
-    }
-
-    default E getByCriteriaOrException(ICriteria<E, C> criteria) {
-        return getV1Repository().getByCriteriaOrException(criteria);
-    }
-
-    default E getByCriteriaOrException(ICriteria<E, C> criteria, IStatusMessage statusMessage) {
-        E e = getByCriteria(criteria);
-        if (e == null) {
-            throw new UnifiedException(statusMessage);
-        }
-        return e;
-    }
-
-    default List<E> findByCriteria(ICriteria<E, C> criteria) {
-        return getV1Repository().findByCriteria(criteria);
-    }
-
-    default IPage<E> findPageByCriteria(ICriteria<E, C> criteria) {
-        return getV1Repository().findPageByCriteria(criteria);
-    }
-
-    default List<E> findAll() {
-        return getV1Repository().findAll();
-    }
-
-    default Integer countByCriteria(ICriteria<E, C> criteria) {
-        return getV1Repository().countByCriteria(criteria);
-    }
-
-    default Integer countAll() {
-        return getV1Repository().countAll();
-    }
-
-    default boolean isPresentById(Serializable id) {
-        return getV1Repository().isPresentById(id);
-    }
-
-    default boolean isPresentByColumn(String columnName, Object value) {
-        return getV1Repository().isPresentByColumn(columnName, value);
-    }
-
-    default boolean isPresentByCriteria(ICriteria<E, C> criteria) {
-        return getV1Repository().isPresentByCriteria(criteria);
-    }
-
-    default boolean isAbsentByColumn(String columnName, Object value) {
-        return !getV1Repository().isPresentByColumn(columnName, value);
-    }
-
-    default boolean isAbsentByCriteria(ICriteria<E, C> criteria) {
-        return !getV1Repository().isPresentByCriteria(criteria);
-    }
-
-    default void exceptionIfPresentByCriteria(ICriteria<E, C> criteria) {
-        getV1Repository().exceptionIfPresentByCriteria(criteria);
-    }
-
-    default void exceptionIfPresentByCriteria(ICriteria<E, C> criteria, IStatusMessage statusMessage) {
-        Integer count = countByCriteria(criteria);
-        if (count > 0) {
-            throw new UnifiedException(statusMessage);
-        }
-    }
-
-    default void exceptionIfAbsentByCriteria(ICriteria<E, C> criteria) {
-        getV1Repository().exceptionIfAbsentByCriteria(criteria);
-    }
-
-    default void exceptionIfAbsentByCriteria(ICriteria<E, C> criteria, IStatusMessage statusMessage) {
-        Integer count = countByCriteria(criteria);
-        if (count == 0) {
-            throw new UnifiedException(statusMessage);
-        }
+            if (h.override()) {
+                headers.set(h.getHeaderName(), h.getValue());
+                return;
+            }
+            if (headers.getFirst(h.getHeaderName()) == null) {
+                headers.set(h.getHeaderName(), h.getValue());
+            }
+        });
+        return execution.execute(request, body);
     }
 
 }

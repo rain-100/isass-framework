@@ -166,52 +166,28 @@
  * Library.
  */
 
-package vip.isass.framework.web.interceptor;
+package vip.isass.framework.web.springmvc.interceptor;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpRequest;
-import org.springframework.http.client.ClientHttpRequestExecution;
-import org.springframework.http.client.ClientHttpRequestInterceptor;
-import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.stereotype.Component;
-import vip.isass.framework.security.core.authentication.matedata.AdditionalRequestHeaderProvider;
+import org.springframework.web.servlet.HandlerMapping;
+import vip.isass.framework.core.support.UriRequestMapping;
 
-import java.io.IOException;
-import java.util.List;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * @author Rain
  */
 @Component
-public class RestTemplateInterceptor implements ClientHttpRequestInterceptor {
+public class UriMappingInterceptor implements IsassHandlerInterceptor {
 
-    @Autowired(required = false)
-    private List<AdditionalRequestHeaderProvider> additionalHeaderProviders;
-
-    /**
-     * todo 如果访问的url是微服务集群内部服务，添加头信息
-     */
     @Override
-    public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution) throws IOException {
-        if (additionalHeaderProviders == null) {
-            return execution.execute(request, body);
-        }
-
-        HttpHeaders headers = request.getHeaders();
-        additionalHeaderProviders.forEach(h -> {
-            if (!h.support(request.getMethodValue(), request.getURI().getHost())) {
-                return;
-            }
-            if (h.override()) {
-                headers.set(h.getHeaderName(), h.getValue());
-                return;
-            }
-            if (headers.getFirst(h.getHeaderName()) == null) {
-                headers.set(h.getHeaderName(), h.getValue());
-            }
-        });
-        return execution.execute(request, body);
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
+        String mapping = (String) request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE);
+        response.addHeader(
+                UriRequestMapping.MAPPING_KEY,
+                request.getMethod().toUpperCase() + " " + mapping);
+        return true;
     }
 
 }

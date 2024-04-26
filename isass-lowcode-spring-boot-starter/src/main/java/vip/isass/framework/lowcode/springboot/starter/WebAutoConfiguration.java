@@ -166,48 +166,14 @@
  * Library.
  */
 
-package vip.isass.framework.web.response;
+package vip.isass.framework.lowcode.springboot.starter;
 
-import lombok.SneakyThrows;
-import org.springframework.core.MethodParameter;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.http.server.ServerHttpRequest;
-import org.springframework.http.server.ServerHttpResponse;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
-import vip.isass.framework.serialization.jackson.JsonUtil;
-import vip.isass.framework.core.support.Resp;
-import vip.isass.framework.web.structure.IV2Controller;
+import org.springframework.context.annotation.ComponentScan;
 
 /**
- * 把 controller 的返回值转换为 resp
+ * @author Rain
  */
-@RestControllerAdvice
-public class ResponseAdvice implements ResponseBodyAdvice<Object> {
-
-    @Override
-    public boolean supports(MethodParameter returnType, Class<? extends HttpMessageConverter<?>> converterType) {
-        if (returnType.getParameterType() == Resp.class
-                || returnType.getParameterType() == ResponseEntity.class) {
-            return false;
-        }
-        return IV2Controller.class.isAssignableFrom(returnType.getContainingClass());
-    }
-
-    @Override
-    @SneakyThrows
-    public Object beforeBodyWrite(Object body,
-                                  MethodParameter returnType,
-                                  MediaType selectedContentType,
-                                  Class<? extends HttpMessageConverter<?>> selectedConverterType,
-                                  ServerHttpRequest request,
-                                  ServerHttpResponse response) {
-        Resp<Object> resp = Resp.bizSuccess(body);
-        return CharSequence.class.isAssignableFrom(returnType.getParameterType())
-                ? JsonUtil.NOT_NULL_INSTANCE.writeValueAsString(resp)
-                : resp;
-    }
+@ComponentScan
+public class WebAutoConfiguration {
 
 }

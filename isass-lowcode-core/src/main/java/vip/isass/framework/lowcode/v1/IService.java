@@ -166,59 +166,156 @@
  * Library.
  */
 
-package vip.isass.framework.web;
+package vip.isass.framework.lowcode.v1;
 
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.http.HttpUtil;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Configuration;
-import vip.isass.framework.serialization.jackson.JsonUtil;
-import vip.isass.framework.lowcode.v2.entity.AdvancedFeature;
-import vip.isass.framework.lowcode.v2.entity.IAnyJsonEntity;
-import vip.isass.framework.web.interceptor.IsassHandlerInterceptor;
+import cn.hutool.core.lang.Assert;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import vip.isass.framework.core.exception.AbsentException;
+import vip.isass.framework.lowcode.v1.criteria.ICriteria;
+import vip.isass.framework.lowcode.v1.repository.IRepository;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.nio.charset.StandardCharsets;
-import java.util.Map;
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.List;
 
 /**
- * 高级特性 拦截器
- *
- * @author : rain
- * @date : 2022/11/22
+ * @author rain
  */
-@Slf4j
-@Configuration
-public class AdvanceFeatureInterceptor implements IsassHandlerInterceptor {
+public interface IService<E, C extends ICriteria<E, C>> {
 
-    private static final String ADVANCED_FEATURE_FIELD_NAME = "advancedFeature";
+    IRepository<E, C> getMpRepository();
 
-    private static final String ADVANCED_FEATURE_EQUAL = ADVANCED_FEATURE_FIELD_NAME + "=";
-
-    @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
-        String query = request.getQueryString();
-        if (StrUtil.isBlank(query) || !query.contains(ADVANCED_FEATURE_EQUAL)) {
-            return true;
-        }
-        Map<String, String> paramMap = HttpUtil.decodeParamMap(query, StandardCharsets.UTF_8);
-        String advancedFeatureStr = paramMap.get(ADVANCED_FEATURE_FIELD_NAME);
-        if (StrUtil.isBlank(advancedFeatureStr)) {
-            return true;
-        }
-        try {
-            AdvancedFeature advancedFeature = JsonUtil.readValue(advancedFeatureStr, AdvancedFeature.class);
-            IAnyJsonEntity.ADVANCED_FEATURE.set(advancedFeature);
-        } catch (Exception e) {
-            log.warn("request[{}] has error query string [{}], it must be json", request.getRequestURI(), ADVANCED_FEATURE_FIELD_NAME);
-        }
-        return true;
+    // ****************************** 增 start ******************************
+    default E add(E entity) {
+        getMpRepository().add(entity);
+        return entity;
     }
 
-    @Override
-    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) {
-        IAnyJsonEntity.ADVANCED_FEATURE.remove();
+    default Collection<E> addBatch(Collection<E> entities) {
+        getMpRepository().addBatch(entities);
+        return entities;
+    }
+
+    default Collection<E> addBatch(Collection<E> entities, int batchSize) {
+        getMpRepository().addBatch(entities, batchSize);
+        return entities;
+    }
+
+    default E addIfAbsent(E entity, ICriteria<E, C> criteria) {
+        if (this.isAbsentByCriteria(criteria)) {
+            return this.add(entity);
+        }
+        return null;
+    }
+
+    // ****************************** 删 start ******************************
+
+    default Boolean deleteById(Serializable id) {
+        return getMpRepository().deleteById(id);
+    }
+
+    default Boolean deleteByIds(Collection<? extends Serializable> ids) {
+        return getMpRepository().deleteByIds(ids);
+    }
+
+    default Boolean deleteByCriteria(ICriteria<E, C> criteria) {
+        return getMpRepository().deleteByCriteria(criteria);
+    }
+
+    //****************************** 改 start ******************************
+    default Boolean updateById(E entity) {
+        return updateEntityById(entity);
+    }
+
+    default Boolean updateEntityById(E entity) {
+        return getMpRepository().updateEntityById(entity);
+    }
+
+    default void updateByIdOrException(E entity) {
+        if (!updateEntityById(entity)) {
+            throw new AbsentException("更新失败，记录不存在");
+        }
+    }
+
+    default Boolean updateByCriteria(E entity, ICriteria<E, C> criteria) {
+        return getMpRepository().updateByCriteria(entity, criteria);
+    }
+
+    default void updateByCriteriaOrException(E entity, ICriteria<E, C> criteria) {
+        if (!getMpRepository().updateByCriteria(entity, criteria)) {
+            throw new AbsentException("更新失败，记录不存在");
+        }
+    }
+
+    // ****************************** 查 start ******************************
+    default E getById(Serializable id) {
+        Assert.notNull(id, "id");
+        return getMpRepository().getEntityById(id);
+    }
+
+    default E getByIdOrException(Serializable id) {
+        Assert.notNull(id, "id");
+        return getMpRepository().getByIdOrException(id);
+    }
+
+    default E getByCriteria(ICriteria<E, C> criteria) {
+        return getMpRepository().getByCriteria(criteria);
+    }
+
+    default E getByCriteriaOrWarn(ICriteria<E, C> criteria) {
+        return getMpRepository().getByCriteriaOrWarn(criteria);
+    }
+
+    default E getByCriteriaOrException(ICriteria<E, C> criteria) {
+        return getMpRepository().getByCriteriaOrException(criteria);
+    }
+
+    default List<E> findByCriteria(ICriteria<E, C> criteria) {
+        return getMpRepository().findByCriteria(criteria);
+    }
+
+    default IPage<E> findPageByCriteria(ICriteria<E, C> criteria) {
+        return getMpRepository().findPageByCriteria(criteria);
+    }
+
+    default List<E> findAll() {
+        return getMpRepository().findAll();
+    }
+
+    default Integer countByCriteria(ICriteria<E, C> criteria) {
+        return getMpRepository().countByCriteria(criteria);
+    }
+
+    default Integer countAll() {
+        return getMpRepository().countAll();
+    }
+
+    default boolean isPresentById(Serializable id) {
+        return getMpRepository().isPresentById(id);
+    }
+
+    default boolean isPresentByColumn(String columnName, Object value) {
+        return getMpRepository().isPresentByColumn(columnName, value);
+    }
+
+    default boolean isPresentByCriteria(ICriteria<E, C> criteria) {
+        return getMpRepository().isPresentByCriteria(criteria);
+    }
+
+    default boolean isAbsentByColumn(String columnName, Object value) {
+        return !isPresentByColumn(columnName, value);
+    }
+
+    default boolean isAbsentByCriteria(ICriteria<E, C> criteria) {
+        return !isPresentByCriteria(criteria);
+    }
+
+    default void exceptionIfPresentByCriteria(ICriteria<E, C> criteria) {
+        getMpRepository().exceptionIfPresentByCriteria(criteria);
+    }
+
+    default void exceptionIfAbsentByCriteria(ICriteria<E, C> criteria) {
+        getMpRepository().exceptionIfAbsentByCriteria(criteria);
     }
 
 }

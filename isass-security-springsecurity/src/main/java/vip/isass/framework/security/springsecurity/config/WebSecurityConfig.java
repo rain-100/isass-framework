@@ -187,12 +187,11 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
 import vip.isass.framework.security.core.authentication.jwt.IJwtService;
 import vip.isass.framework.security.core.authorization.permiturl.UrlAccessSecurityStrategy;
 import vip.isass.framework.security.springsecurity.authentication.jwt.JwtAuthenticationFilter;
-import vip.isass.framework.security.springsecurity.authentication.multiterminal.MultiTerminalLoginConfiguration;
 import vip.isass.framework.security.springsecurity.authentication.ms.MsAuthenticationFilter;
-import vip.isass.framework.security.springsecurity.metadata.SecurityMetadataSourceProviderManager;
+import vip.isass.framework.security.springsecurity.authentication.multiterminal.MultiTerminalLoginConfiguration;
 import vip.isass.framework.security.springsecurity.authorization.processor.AffirmativeBasedPostProcessor;
 import vip.isass.framework.security.springsecurity.authorization.processor.FilterSecurityInterceptorSourcePostProcessor;
-import vip.isass.framework.web.uri.UriPrefixProvider;
+import vip.isass.framework.security.springsecurity.metadata.SecurityMetadataSourceProviderManager;
 
 import javax.annotation.Resource;
 import java.util.Collection;
@@ -222,9 +221,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     private SecurityMetadataSourceProviderManager securityMetadataSourceProviderManager;
 
     @Resource
-    private UriPrefixProvider uriPrefixProvider;
-
-    @Resource
     private PermitUrlConfiguration permitUrlConfiguration;
 
     @Autowired(required = false)
@@ -240,7 +236,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     public void configure(AuthenticationManagerBuilder auth) throws Exception {
         auth.userDetailsService(userDetailsService)
-            .passwordEncoder(passwordEncoder);
+                .passwordEncoder(passwordEncoder);
 
         // 使用自定义身份验证组件
         authenticationProvider.forEach(auth::authenticationProvider);
@@ -254,76 +250,75 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         Collection<String> permitUrls = permitUrlConfiguration.getPermitUrls();
 
         FilterSecurityInterceptorSourcePostProcessor filterSecurityInterceptorSourcePostProcessor =
-            new FilterSecurityInterceptorSourcePostProcessor(
-                requestMappingHandlerMapping,
-                securityMetadataSourceProviderManager,
-                uriPrefixProvider,
-                permitUrls);
+                new FilterSecurityInterceptorSourcePostProcessor(
+                        requestMappingHandlerMapping,
+                        securityMetadataSourceProviderManager,
+                        permitUrls);
 
         AffirmativeBasedPostProcessor affirmativeBasedPostProcessor = new AffirmativeBasedPostProcessor();
 
         http
-            // 允许跨域
-            .cors()
-
-            .and()
-
-            // 基于jwt，无需预防CSRF攻击
-            .csrf().disable()
-
-            // 基于jwt，无需session
-            .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-
-            .and()
-
-            // 禁用缓存
-            .headers().cacheControl().disable()
-
-            // 允许加载iframe
-            .frameOptions().disable()
-
-            // 禁用只能通过 HTTPS 访问当前资源
-            .httpStrictTransportSecurity().disable()
-
-            .and()
-
-            // jwt 校验过滤器
-            .addFilter(new JwtAuthenticationFilter(authenticationManager(), jwtService, multiTerminalLoginConfiguration))
-
-            // 微服务之间调用权限校验过滤器
-            .addFilter(new MsAuthenticationFilter(authenticationManager()))
-
-            // 允许匿名用户机制
-            .anonymous();
-
-        ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry registry =
-            http.authorizeRequests();
-        if (urlAccessSecurityStrategy == UrlAccessSecurityStrategy.NONE) {
-            registry
-                .anyRequest()
-                .permitAll();
-        } else {
-            registry
-                // 允许 actuator 的请求
-                .requestMatchers(EndpointRequest.toAnyEndpoint())
-                .permitAll()
+                // 允许跨域
+                .cors()
 
                 .and()
 
-                // 允许自定义配置的 url 的请求
-                .authorizeRequests()
-                .antMatchers(permitUrls.toArray(new String[]{}))
-                .permitAll();
+                // 基于jwt，无需预防CSRF攻击
+                .csrf().disable()
+
+                // 基于jwt，无需session
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+
+                .and()
+
+                // 禁用缓存
+                .headers().cacheControl().disable()
+
+                // 允许加载iframe
+                .frameOptions().disable()
+
+                // 禁用只能通过 HTTPS 访问当前资源
+                .httpStrictTransportSecurity().disable()
+
+                .and()
+
+                // jwt 校验过滤器
+                .addFilter(new JwtAuthenticationFilter(authenticationManager(), jwtService, multiTerminalLoginConfiguration))
+
+                // 微服务之间调用权限校验过滤器
+                .addFilter(new MsAuthenticationFilter(authenticationManager()))
+
+                // 允许匿名用户机制
+                .anonymous();
+
+        ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry registry =
+                http.authorizeRequests();
+        if (urlAccessSecurityStrategy == UrlAccessSecurityStrategy.NONE) {
+            registry
+                    .anyRequest()
+                    .permitAll();
+        } else {
+            registry
+                    // 允许 actuator 的请求
+                    .requestMatchers(EndpointRequest.toAnyEndpoint())
+                    .permitAll()
+
+                    .and()
+
+                    // 允许自定义配置的 url 的请求
+                    .authorizeRequests()
+                    .antMatchers(permitUrls.toArray(new String[]{}))
+                    .permitAll();
 
             if (urlAccessSecurityStrategy == UrlAccessSecurityStrategy.AUTHENTICATED) {
                 registry.anyRequest()
-                    .authenticated();
+                        .authenticated();
             }
         }
 
         // 添加自定义角色获取器
         registry.withObjectPostProcessor(filterSecurityInterceptorSourcePostProcessor)
-            .withObjectPostProcessor(affirmativeBasedPostProcessor);
+                .withObjectPostProcessor(affirmativeBasedPostProcessor);
     }
 
 }

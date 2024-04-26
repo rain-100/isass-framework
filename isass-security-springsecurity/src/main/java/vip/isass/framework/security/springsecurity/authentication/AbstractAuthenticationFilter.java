@@ -179,7 +179,7 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 import vip.isass.framework.security.springsecurity.authentication.jwt.JwtAuthenticationFilter;
 import vip.isass.framework.security.core.authentication.jwt.JwtConst;
 import vip.isass.framework.security.springsecurity.authentication.ms.MsAuthenticationFilter;
-import vip.isass.framework.security.core.authentication.ms.MsAuthenticationHeaderProvider;
+import vip.isass.framework.web.springmvc.header.MsAuthenticationHeaderProvider;
 import vip.isass.framework.security.core.authentication.login.DefaultLoginUser;
 import vip.isass.framework.security.core.authentication.login.LoginUser;
 

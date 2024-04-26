@@ -166,45 +166,143 @@
  * Library.
  */
 
-package vip.isass.framework.web;
+package vip.isass.framework.web.springmvc.config;
 
-import vip.isass.framework.core.exception.code.IStatusMessage;
-import vip.isass.framework.core.exception.code.StatusMessageEnum;
+import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.util.StrUtil;
 import lombok.Getter;
-import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.support.ResourcePatternUtils;
+import org.springframework.http.MediaType;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.http.converter.BufferedImageHttpMessageConverter;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.StringHttpMessageConverter;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import vip.isass.framework.web.springmvc.interceptor.IsassHandlerInterceptor;
+import vip.isass.framework.web.springmvc.interceptor.RestTemplateInterceptor;
+
+import javax.annotation.Resource;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author Rain
  */
-@Getter
-public enum WebStatusCode implements IStatusMessage {
+@Configuration
+public class WebConfig implements WebMvcConfigurer {
 
-    NOT_FOUND_405(StatusMessageEnum.METHOD_NOT_ALLOWED_405.getStatus(), StatusMessageEnum.METHOD_NOT_ALLOWED_405.getMsg(), HttpRequestMethodNotSupportedException.class),;
+    public static final int CONN_TIMEOUT_IN_MILLIS = 10_000;
 
-    private Integer status;
+    public static final int READ_TIMEOUT_IN_MILLIS = 50_000;
 
-    private String msg;
+    @Resource
+    private List<IsassHandlerInterceptor> isassHandlerInterceptors;
 
-    private Class<? extends Exception> exception;
+    /**
+     * 允许跨域的域名，*表示允许任何域名使用
+     */
+    @Getter
+    @Value("${core.web.allowedOrigins:*}")
+    private String allowedOrigins;
 
-    WebStatusCode(Integer status, String msg, Class<? extends Exception> exception) {
-        this.status = status;
-        this.msg = msg;
-        this.exception = exception;
+    /**
+     * 允许的方法
+     */
+    @Getter
+    @Value("${core.web.allowedMethods:*}")
+    private String allowedMethods;
+
+    /**
+     * 允许的请求头
+     */
+    @Getter
+    @Value("${core.web.allowedHeaders:*}")
+    private String allowedHeaders;
+
+    @Resource
+    private RestTemplateInterceptor restTemplateInterceptor;
+
+    @Bean
+    public RestTemplate noBalancedRestTemplate() {
+        HttpComponentsClientHttpRequestFactory httpRequestFactory = new HttpComponentsClientHttpRequestFactory();
+        httpRequestFactory.setConnectionRequestTimeout(CONN_TIMEOUT_IN_MILLIS);
+        httpRequestFactory.setConnectTimeout(CONN_TIMEOUT_IN_MILLIS);
+        httpRequestFactory.setReadTimeout(READ_TIMEOUT_IN_MILLIS);
+
+        RestTemplate restTemplate = new RestTemplate(httpRequestFactory);
+        restTemplate.getMessageConverters().add(0, new StringHttpMessageConverter(StandardCharsets.UTF_8));
+        restTemplate.setInterceptors(Collections.singletonList(restTemplateInterceptor));
+        return restTemplate;
     }
 
-    public static WebStatusCode getByStatus(Integer status) {
-        for (WebStatusCode statusCode : values()) {
-            if (statusCode.getStatus().equals(status)) {
-                return statusCode;
-            }
-        }
-        return null;
+    @Bean
+    public HttpMessageConverter<BufferedImage> bufferedImageHttpMessageConverter() {
+        return new BufferedImageHttpMessageConverter();
     }
-
 
     @Override
-    public String getMsg() {
-        return msg;
+    public void addInterceptors(InterceptorRegistry registry) {
+        for (IsassHandlerInterceptor interceptor : isassHandlerInterceptors) {
+            registry.addInterceptor(interceptor)
+                    .addPathPatterns(interceptor.getPatterns() == null
+                            ? Collections.singletonList("/**")
+                            : interceptor.getPatterns());
+        }
+    }
+
+    @Bean
+    public WebMvcConfigurer corsConfigurer() {
+        return new WebMvcConfigurer() {
+            @Override
+            public void addCorsMappings(CorsRegistry registry) {
+                registry.addMapping("/**")
+                        .allowedOrigins(allowedOrigins)
+                        .allowedMethods(allowedMethods)
+                        .allowedHeaders(allowedHeaders);
+            }
+        };
+    }
+
+    @Override
+    public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
+        try {
+            org.springframework.core.io.Resource[] resources = ResourcePatternUtils.getResourcePatternResolver(null)
+                    .getResources("classpath*:META-INF/mime.type");
+            for (org.springframework.core.io.Resource resource : resources) {
+                if (!resource.exists()) {
+                    continue;
+                }
+                List<String> mimeTypes = FileUtil.readUtf8Lines(resource.getURL());
+                for (String line : mimeTypes) {
+                    line = StrUtil.replace(line, StrUtil.TAB, StrUtil.SPACE).trim();
+                    if (line.isEmpty() || line.startsWith("#")) {
+                        continue;
+                    }
+                    String[] split = line.split(StrUtil.SPACE);
+                    if (split.length == 1) {
+                        continue;
+                    }
+                    MediaType mediaType = MediaType.valueOf(split[0]);
+                    for (int i = 1; i < split.length; i++) {
+                        if (split[i].isEmpty()) {
+                            continue;
+                        }
+                        configurer.mediaType(split[i], mediaType);
+                    }
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("can not read file META-INF/mime.type: " + e);
+        }
     }
 }

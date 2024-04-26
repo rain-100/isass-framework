@@ -172,8 +172,8 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import vip.isass.framework.lowcode.v1.entity.IdEntity;
 import vip.isass.framework.lowcode.v1.criteria.ICriteria;
+import vip.isass.framework.lowcode.v1.entity.IdEntity;
 
 import java.io.Serializable;
 import java.util.Collection;

@@ -166,51 +166,57 @@
  * Library.
  */
 
-package vip.isass.framework.web;
+package vip.isass.framework.web.springmvc.header;
 
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.springframework.http.converter.BufferedImageHttpMessageConverter;
-import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.http.converter.StringHttpMessageConverter;
-import org.springframework.web.client.RestTemplate;
-import vip.isass.framework.web.interceptor.RestTemplateInterceptor;
-
-import javax.annotation.Resource;
-import java.awt.image.BufferedImage;
-import java.nio.charset.StandardCharsets;
-import java.util.Collections;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Rain
  */
-@ComponentScan
-public class WebAutoConfiguration {
+@Getter
+@Setter
+@Accessors(chain = true)
+@Component
+public class MsAuthenticationHeaderProvider implements AdditionalRequestHeaderProvider {
 
-    public static final int CONN_TIMEOUT_IN_MILLIS = 10_000;
+    public static final String HEADER = "ms-authorization";
 
-    public static final int READ_TIMEOUT_IN_MILLIS = 50_000;
+    @Value("${spring.application.name:unknown}")
+    private String appName;
 
-    @Resource
-    private RestTemplateInterceptor restTemplateInterceptor;
+    @Value("${security.ms.secret:qcyAHr35IDzI9FkD}")
+    private String secret;
 
-    @Bean
-    public RestTemplate noBalancedRestTemplate() {
-        HttpComponentsClientHttpRequestFactory httpRequestFactory = new HttpComponentsClientHttpRequestFactory();
-        httpRequestFactory.setConnectionRequestTimeout(CONN_TIMEOUT_IN_MILLIS);
-        httpRequestFactory.setConnectTimeout(CONN_TIMEOUT_IN_MILLIS);
-        httpRequestFactory.setReadTimeout(READ_TIMEOUT_IN_MILLIS);
+    @Value(".${security.ms.secret:qcyAHr35IDzI9FkD}")
+    private String dotSecret;
 
-        RestTemplate restTemplate = new RestTemplate(httpRequestFactory);
-        restTemplate.getMessageConverters().add(0, new StringHttpMessageConverter(StandardCharsets.UTF_8));
-        restTemplate.setInterceptors(Collections.singletonList(restTemplateInterceptor));
-        return restTemplate;
+    private String fullMsAuthenticationHeaderValue = "";
+
+    @Override
+    public String getHeaderName() {
+        return HEADER;
     }
 
-    @Bean
-    public HttpMessageConverter<BufferedImage> bufferedImageHttpMessageConverter() {
-        return new BufferedImageHttpMessageConverter();
+    @Override
+    public String getValue() {
+        if ("".equals(fullMsAuthenticationHeaderValue)) {
+            fullMsAuthenticationHeaderValue = appName + dotSecret;
+        }
+        return fullMsAuthenticationHeaderValue;
+    }
+
+    @Override
+    public boolean override() {
+        return false;
+    }
+
+    @Override
+    public boolean support(String method, String url) {
+        return true;
     }
 
 }

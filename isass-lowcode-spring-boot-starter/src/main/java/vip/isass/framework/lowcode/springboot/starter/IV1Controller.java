@@ -166,102 +166,164 @@
  * Library.
  */
 
-package vip.isass.framework.web.exception;
+package vip.isass.framework.lowcode.springboot.starter;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.AutoConfigureOrder;
-import org.springframework.boot.web.servlet.error.ErrorAttributes;
-import org.springframework.boot.web.servlet.error.ErrorController;
-import org.springframework.core.Ordered;
-import org.springframework.util.Assert;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.context.request.ServletWebRequest;
-import vip.isass.framework.core.exception.IStatusMapping;
-import vip.isass.framework.core.exception.UnifiedException;
-import vip.isass.framework.core.exception.code.IStatusMessage;
-import vip.isass.framework.core.exception.code.StatusMessageEnum;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import vip.isass.framework.core.support.Resp;
+import vip.isass.framework.lowcode.v1.IV1Service;
+import vip.isass.framework.lowcode.v1.criteria.ICriteria;
+import vip.isass.framework.lowcode.v1.entity.IdEntity;
 
-import javax.annotation.Resource;
-import javax.servlet.RequestDispatcher;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
- * @author Rain
+ * 通用controller
+ *
+ * @author rain
+ * <code>@ApiOperation</code> 的 value 的横杠前面需要1个字符，例如查-，增-
  */
-@RestController
-@AutoConfigureOrder(Ordered.HIGHEST_PRECEDENCE)
-public class IsassErrorController implements ErrorController {
+public interface IV1Controller<
+        E,
+        C extends ICriteria<E, C>,
+        S extends IV1Service<E, C>> {
 
-    private static final String PATH = "/error";
+    S getService();
 
-    private final ErrorAttributes errorAttributes;
-
-    @Resource
-    private List<IStatusMapping> statusMappings;
-
-    @Autowired
-    public IsassErrorController(ErrorAttributes errorAttributes) {
-        Assert.notNull(errorAttributes, "ErrorAttributes must not be null");
-        this.errorAttributes = errorAttributes;
+    @GetMapping("/{id}")
+    @ApiOperation(value = "查-根据id-单实体", position = 1)
+    default Resp<E> getById(@PathVariable("id") Serializable id) {
+        return Resp.bizSuccess(getService().getById(id));
     }
 
-    @Override
-    public String getErrorPath() {
-        return PATH;
+    @GetMapping("/1")
+    @ApiOperation(value = "查-根据条件-单实体", position = 2)
+    default Resp<E> getByCriteria(@ModelAttribute C criteria) {
+        return Resp.bizSuccess(getService().getByCriteria(criteria));
     }
 
-    /**
-     * 处理还没进入 controller 就抛出的异常
-     *
-     * @param request  request
-     * @param response response
-     * @return resp
-     */
-    @RequestMapping(value = PATH, produces = "application/json;charset=UTF-8")
-    public Resp<?> errorJson(HttpServletRequest request, HttpServletResponse response) {
-        Map<String, Object> errorAttributes = getErrorAttributes(request, true);
-        Object exception = errorAttributes.get(RequestDispatcher.ERROR_EXCEPTION);
-        if (exception instanceof UnifiedException) {
-            return new Resp<>()
-                    .setSuccess(Boolean.FALSE)
-                    .setStatus(((UnifiedException) exception).getStatus())
-                    .setMessage(((UnifiedException) exception).getMsg());
-        }
-
-        Integer status = Integer.valueOf(errorAttributes.get("status").toString());
-        for (IStatusMapping statusMapping : statusMappings) {
-            IStatusMessage statusCode = statusMapping.getErrorCode(status);
-            if (statusCode != null) {
-                return new Resp<>()
-                        .setSuccess(false)
-                        .setStatus(statusCode.getStatus())
-                        .setMessage(statusCode.getMsg() + ": " + request.getMethod() + " "
-                                + errorAttributes.get("path") + " "
-                                + errorAttributes.get("error") + " "
-                                + errorAttributes.get("exception") + " "
-                                + errorAttributes.get("message"));
-            }
-        }
-
-        return new Resp<>()
-                .setSuccess(false)
-                .setStatus(status)
-                .setMessage(StatusMessageEnum.UNDEFINED.getMsg() + " " + request.getMethod() + " " + errorAttributes.get("path") + " " + errorAttributes.get("error"));
+    @GetMapping("/page")
+    @ApiOperation(value = "查-根据条件-分页列表", position = 3)
+    default Resp<IPage<E>> findPageByCriteria(@ModelAttribute C criteria) {
+        return Resp.bizSuccess(getService().findPageByCriteria(criteria));
     }
 
-    protected Map<String, Object> getErrorAttributes(HttpServletRequest request, boolean includeStackTrace) {
-        ServletWebRequest servletWebRequest = new ServletWebRequest(request);
-        Map<String, Object> errorAttributes = this.errorAttributes.getErrorAttributes(servletWebRequest, includeStackTrace);
-        Throwable error = this.errorAttributes.getError(servletWebRequest);
-        if (error != null) {
-            errorAttributes.put(RequestDispatcher.ERROR_EXCEPTION, error);
-        }
-        return errorAttributes;
+    @GetMapping("")
+    @ApiOperation(value = "查-根据条件-列表", position = 4)
+    default Resp<List<E>> findByCriteria(@ModelAttribute C criteria) {
+        return Resp.bizSuccess(getService().findByCriteria(criteria));
+    }
+
+    @GetMapping("/all")
+    @ApiOperation(value = "查-全部-列表", position = 4)
+    default Resp<List<E>> findAll() {
+        return Resp.bizSuccess(getService().findAll());
+    }
+
+    @GetMapping("/count")
+    @ApiOperation(value = "查-根据条件-实体数量", position = 5)
+    default Resp<Integer> countByCriteria(@ModelAttribute C criteria) {
+        return Resp.bizSuccess(getService().countByCriteria(criteria));
+    }
+
+    @GetMapping("/count/all")
+    @ApiOperation(value = "查-全部实体数量", position = 6)
+    default Resp<Integer> countAll() {
+        return Resp.bizSuccess(getService().countAll());
+    }
+
+    @GetMapping("/present/{id}")
+    @ApiOperation(value = "查-根据id-实体是否存在", position = 7)
+    default Resp<Boolean> isPresentById(@PathVariable("id") String id) {
+        return Resp.bizSuccess(getService().isPresentById(id));
+    }
+
+    @GetMapping("/present")
+    @ApiOperation(value = "查-根据条件-实体是否存在", position = 8)
+    default Resp<Boolean> isPresentByCriteria(@ModelAttribute C criteria) {
+        return Resp.bizSuccess(getService().isPresentByCriteria(criteria));
+    }
+
+    @SuppressWarnings("rawtypes")
+    @PostMapping("")
+    @ApiOperation(value = "增-单实体", position = 9)
+    default Resp<String> add(@RequestBody @Valid E entity) {
+        getService().add(entity);
+        return Resp.bizSuccess(entity instanceof IdEntity ? ((IdEntity) entity).getId().toString() : "");
+    }
+
+    @PostMapping("/batch")
+    @ApiOperation(value = "增-批量实体", position = 10)
+    default Resp<Integer> batchAdd(@RequestBody ArrayList<E> entities) {
+        return Resp.bizSuccess(getService().addBatch(entities).size());
+    }
+
+    @PostMapping("/batch/absent/{uniqueColumns}")
+    @ApiOperation(value = "增-不存在时-批量实体", position = 10)
+    default Resp<Integer> addBatchIfAbsent(@RequestBody List<E> entities,
+                                           @PathVariable("uniqueColumns") List<String> uniqueColumns) {
+        return Resp.bizSuccess(getService().addBatchIfAbsent(entities, uniqueColumns));
+    }
+
+    @PostMapping("/add-update/{uniqueColumns}")
+    @ApiOperation(value = "增改-根据字段-全部实体", position = 11,
+            notes = "根据 uniqueColumns 字段和 entity 对应的值作为查询条件，如果已存在数据，则更新数据，否则新增数据。")
+    @ApiImplicitParam(name = "uniqueColumns", value = "唯一字段名列表，根据此字段判断需要新增或者修改", required = true)
+    default Resp<?> addOrUpdate(@RequestBody @Valid E entity,
+                                @PathVariable("uniqueColumns") List<String> uniqueColumns) {
+        getService().addOrUpdate(entity, uniqueColumns);
+        return Resp.bizSuccess();
+    }
+
+    @PostMapping("/add-update/batch/{uniqueColumns}")
+    @ApiOperation(value = "增改-根据字段-批量实体", position = 11,
+            notes = "根据 uniqueColumns 字段和 每个 entity 对应的值作为查询条件，如果已存在数据，则更新数据，否则新增数据。")
+    @ApiImplicitParam(name = "uniqueColumns", value = "唯一字段名列表，根据此字段判断需要新增或者修改", required = true)
+    default Resp<Integer> addOrUpdateEntities(@RequestBody @Valid List<E> entities,
+                                              @PathVariable("uniqueColumns") List<String> uniqueColumns) {
+        return Resp.bizSuccess(getService().addOrUpdateEntities(entities, uniqueColumns));
+    }
+
+    @PutMapping("/allColumns")
+    @ApiOperation(value = "改-根据id-全部字段", position = 12)
+    default Resp<Boolean> updateAllColumnsById(@RequestBody @Valid E entity) {
+        return Resp.bizSuccess(getService().updateEntityById(entity));
+    }
+
+    @PutMapping("")
+    @ApiOperation(value = "改-根据id-非空字段", position = 13)
+    default Resp<Boolean> updateExcludeNullFieldsById(@RequestBody @Valid E entity) {
+        return Resp.bizSuccess(getService().updateEntityById(entity));
+    }
+
+    @PutMapping("/criteria")
+    @ApiOperation(value = "改-根据条件")
+    default Resp<Boolean> updateByCriteria(@RequestBody E entity, @ModelAttribute C criteria) {
+        return Resp.bizSuccess(getService().updateByCriteria(entity, criteria));
+    }
+
+    @DeleteMapping("/{ids}")
+    @ApiOperation(value = "删-根据批量id", position = 14)
+    default Resp<Boolean> deleteByIds(@PathVariable("ids") @ApiParam(value = "ids,用英文逗号,隔开") List<String> ids) {
+        return Resp.bizSuccess(getService().deleteByIds(ids));
+    }
+
+    @DeleteMapping("")
+    @ApiOperation(value = "删-根据条件", position = 15)
+    default Resp<Boolean> deleteByCriteria(@ModelAttribute C criteria) {
+        return Resp.bizSuccess(getService().deleteByCriteria(criteria));
     }
 
 }
