@@ -195,7 +195,7 @@ import springfox.documentation.spi.service.contexts.SecurityContext;
 import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.spring.web.readers.operation.CachingOperationNameGenerator;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
-import vip.isass.framework.web.security.authentication.jwt.JwtConst;
+import vip.isass.framework.security.core.authentication.jwt.JwtConst;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;

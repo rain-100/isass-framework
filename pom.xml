@@ -204,10 +204,10 @@
         <module>isass-lowcode-core</module>
         <module>isass-lowcode-generator</module>
         <module>isass-lowcode-spring-boot-starter</module>
-        <module>isass-security-auth</module>
-        <module>isass-security-spring-boot-starter</module>
+        <module>isass-security-core</module>
+        <module>isass-security-springsecurity</module>
         <module>isass-web-swagger</module>
-        <module>isass-http-feign</module>
+        <module>isass-rpc-feign</module>
         <module>isass-net-core</module>
         <module>isass-net-netty</module>
         <module>isass-net-proxy-core</module>
@@ -218,9 +218,8 @@
         <module>isass-serialization-jackson</module>
         <module>isass-serialization-protobuf</module>
         <module>isass-database-elasticsearch</module>
-        <module>isass-security-encryption</module>
-        <module>isass-http-okhttp</module>
-        <module>isass-web</module>
+        <module>isass-rpc-okhttp</module>
+        <module>isass-web-springmvc</module>
     </modules>
 
     <!-- 配置属性 -->
@@ -407,31 +406,25 @@
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>isass-security-auth</artifactId>
+                <artifactId>isass-security-core</artifactId>
                 <version>${super-core.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>isass-security-spring-boot-starter</artifactId>
+                <artifactId>isass-security-springsecurity</artifactId>
                 <version>${super-core.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>isass-http-feign</artifactId>
+                <artifactId>isass-rpc-feign</artifactId>
                 <version>${super-core.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
                 <artifactId>isass-web-swagger</artifactId>
-                <version>${super-core.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>vip.isass</groupId>
-                <artifactId>isass-security-encryption</artifactId>
                 <version>${super-core.version}</version>
             </dependency>
 
@@ -563,13 +556,13 @@
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>isass-http-okhttp</artifactId>
+                <artifactId>isass-rpc-okhttp</artifactId>
                 <version>${super-core.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>isass-web</artifactId>
+                <artifactId>isass-web-springmvc</artifactId>
                 <version>${super-core.version}</version>
             </dependency>
 

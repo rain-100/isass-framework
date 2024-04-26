@@ -177,7 +177,6 @@ import vip.isass.framework.mq.core.MqMessageContext;
 import vip.isass.framework.mq.core.producer.MqProducer;
 import vip.isass.framework.mq.core.producer.ProducerManager;
 import vip.isass.framework.mq.ons.OnsConst;
-import vip.isass.core.mq.ons.config.*;
 import vip.isass.framework.mq.ons.config.InstanceConfiguration;
 import vip.isass.framework.mq.ons.config.OnsConfigUtil;
 import vip.isass.framework.mq.ons.config.OnsConfiguration;
@@ -208,15 +207,15 @@ public class OnsProducerManager implements ProducerManager {
         Assert.notEmpty(onsConfiguration.getRegions(), "没有配置ons regions");
 
         final RegionConfiguration regionConfiguration = OnsConfigUtil.selectRegion(
-            onsConfiguration, mqMessageContext.getStringProperty(OnsConst.REGION));
+                onsConfiguration, mqMessageContext.getStringProperty(OnsConst.REGION));
         mqMessageContext.setProperty(OnsConst.REGION, regionConfiguration.getRegionName());
 
         final InstanceConfiguration instanceConfiguration = OnsConfigUtil.selectInstance(
-            regionConfiguration, mqMessageContext.getStringProperty(OnsConst.INSTANCE));
+                regionConfiguration, mqMessageContext.getStringProperty(OnsConst.INSTANCE));
         mqMessageContext.setProperty(OnsConst.INSTANCE, instanceConfiguration.getInstanceName());
 
         ProducerConfiguration producerConfiguration = OnsConfigUtil.selectProducer(
-            regionConfiguration, instanceConfiguration, mqMessageContext.getStringProperty(OnsConst.PRODUCER_ID));
+                regionConfiguration, instanceConfiguration, mqMessageContext.getStringProperty(OnsConst.PRODUCER_ID));
 
         // 设置topic
         if (StrUtil.isBlank(mqMessageContext.getTopic())) {
@@ -273,8 +272,8 @@ public class OnsProducerManager implements ProducerManager {
         }
 
         producerGroupByProducerId = onsProducerAutoConfiguration.getOnsProducers()
-            .stream()
-            .collect(Collectors.toMap((o) -> o.getProducerProperties().getProducerId(), Function.identity()));
+                .stream()
+                .collect(Collectors.toMap((o) -> o.getProducerProperties().getProducerId(), Function.identity()));
     }
 
 }

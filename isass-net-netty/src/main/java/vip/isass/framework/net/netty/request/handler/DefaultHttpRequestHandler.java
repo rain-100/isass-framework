@@ -187,11 +187,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
-import vip.isass.framework.protobuf.Base;
-import vip.isass.framework.serialization.protobuf2.entity.im.IM;
 import vip.isass.framework.core.serialization.SerializeMode;
-import vip.isass.framework.serialization.protobuf2.ProtobufMethodCache;
-import vip.isass.framework.serialization.jackson.JsonUtil;
 import vip.isass.framework.core.support.UriRequestMapping;
 import vip.isass.framework.net.core.message.MessageCmd;
 import vip.isass.framework.net.netty.config.NetProperties;
@@ -199,6 +195,10 @@ import vip.isass.framework.net.netty.packet.IPacket;
 import vip.isass.framework.net.netty.packet.TcpPacket;
 import vip.isass.framework.net.netty.packet.impl.HttpContent;
 import vip.isass.framework.net.netty.request.Request;
+import vip.isass.framework.serialization.jackson.JsonUtil;
+import vip.isass.framework.serialization.protobuf2.ProtobufMethodCache;
+import vip.isass.framework.serialization.protobuf2.entity.Base;
+import vip.isass.framework.serialization.protobuf2.entity.im.IM;
 
 import javax.annotation.Resource;
 import java.lang.reflect.Method;
@@ -309,7 +309,7 @@ public class DefaultHttpRequestHandler implements RequestHandler {
                 body = "";
             } else if (body.length() < 2) {
                 body = "\"" + body + "\"";
-            } else if (!JSONUtil.isJson(body)) {
+            } else if (!JSONUtil.isTypeJSON(body)) {
                 body = "\"" + body + "\"";
             }
             log.debug("http网关执行结果：{}", resp);

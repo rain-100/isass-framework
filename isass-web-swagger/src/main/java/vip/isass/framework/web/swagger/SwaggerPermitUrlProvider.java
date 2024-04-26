@@ -172,7 +172,7 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import vip.isass.framework.web.security.PermitUrlProvider;
+import vip.isass.framework.security.core.authorization.permiturl.PermitUrlProvider;
 
 import java.util.Collection;
 import java.util.List;

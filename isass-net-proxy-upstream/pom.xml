@@ -191,7 +191,7 @@
 
         <dependency>
             <groupId>vip.isass</groupId>
-            <artifactId>isass-http-okhttp</artifactId>
+            <artifactId>isass-rpc-okhttp</artifactId>
         </dependency>
 
         <dependency>

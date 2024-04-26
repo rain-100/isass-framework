@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import ${cfg.criteriaPackageName}.V2${entity}Criteria;
 import ${cfg.entityPackageName}.V2${entity};
 import ${cfg.package}.${cfg.moduleName}.api.service.${table.serviceName};
-import vip.isass.framework.http.feign.IV2FeignService;
+import vip.isass.framework.rpc.feign.IV2FeignService;
 
 /**
  * <p>

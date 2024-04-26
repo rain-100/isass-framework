@@ -169,7 +169,6 @@
 package vip.isass.framework.mq.ons.producer;
 
 import cn.hutool.core.collection.CollUtil;
-import vip.isass.core.mq.ons.config.*;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
@@ -214,19 +213,19 @@ public class OnsProducerAutoConfiguration {
             for (InstanceConfiguration instanceConfiguration : region.getInstances()) {
                 for (ProducerConfiguration producerConfiguration : instanceConfiguration.getProducers()) {
                     onsProducers.add(new OnsProducer()
-                        .setProducerProperties(new ProducerProperties()
-                            .setRegionName(region.getRegionName())
-                            .setInstanceName(instanceConfiguration.getInstanceName())
-                            .setNamesrvAddr(instanceConfiguration.getNamesrvAddr())
-                            .setAccessKey(instanceConfiguration.getAccessKey())
-                            .setSecretKey(instanceConfiguration.getSecretKey())
-                            .setProducerId(producerConfiguration.getProducerId())
-                            .setDefaultTopic(instanceConfiguration.getDefaultTopic())
-                            .setCommonMessageTopic(instanceConfiguration.getCommonMessageTopic())
-                            .setGlobalSequentialMessageTopic(instanceConfiguration.getGlobalSequentialMessageTopic())
-                            .setShardingSequentialMessageTopic(instanceConfiguration.getShardingSequentialMessageTopic())
-                            .setTimingMessageTopic(instanceConfiguration.getTimingMessageTopic()))
-                        .init());
+                            .setProducerProperties(new ProducerProperties()
+                                    .setRegionName(region.getRegionName())
+                                    .setInstanceName(instanceConfiguration.getInstanceName())
+                                    .setNamesrvAddr(instanceConfiguration.getNamesrvAddr())
+                                    .setAccessKey(instanceConfiguration.getAccessKey())
+                                    .setSecretKey(instanceConfiguration.getSecretKey())
+                                    .setProducerId(producerConfiguration.getProducerId())
+                                    .setDefaultTopic(instanceConfiguration.getDefaultTopic())
+                                    .setCommonMessageTopic(instanceConfiguration.getCommonMessageTopic())
+                                    .setGlobalSequentialMessageTopic(instanceConfiguration.getGlobalSequentialMessageTopic())
+                                    .setShardingSequentialMessageTopic(instanceConfiguration.getShardingSequentialMessageTopic())
+                                    .setTimingMessageTopic(instanceConfiguration.getTimingMessageTopic()))
+                            .init());
                 }
             }
         }
@@ -238,8 +237,8 @@ public class OnsProducerAutoConfiguration {
             return;
         }
         onsProducers.stream()
-            .filter(Objects::nonNull)
-            .forEach(OnsProducer::destroy);
+                .filter(Objects::nonNull)
+                .forEach(OnsProducer::destroy);
     }
 
 }

@@ -175,7 +175,7 @@ import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.stereotype.Component;
-import vip.isass.framework.security.auth.matedata.AdditionalRequestHeaderProvider;
+import vip.isass.framework.security.core.authentication.matedata.AdditionalRequestHeaderProvider;
 
 import java.io.IOException;
 import java.util.List;

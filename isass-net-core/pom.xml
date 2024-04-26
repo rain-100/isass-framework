@@ -191,7 +191,7 @@
 
         <dependency>
             <groupId>vip.isass</groupId>
-            <artifactId>isass-security-auth</artifactId>
+            <artifactId>isass-security-core</artifactId>
         </dependency>
 
         <dependency>
