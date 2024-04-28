@@ -178,6 +178,7 @@ import vip.isass.framework.core.exception.code.StatusMessageEnum;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.time.DateTimeException;
 import java.util.Map;
 
 /**
@@ -195,6 +196,7 @@ public class BuildInCoreExceptionMapping implements IExceptionMapping {
             .put(IOException.class, StatusMessageEnum.IO_ERROR)
             .put(FileNotFoundException.class, StatusMessageEnum.FILE_NOT_FOUND)
             .put(BindException.class, StatusMessageEnum.ILLEGAL_ARGUMENT_ERROR)
+            .put(DateTimeException.class, StatusMessageEnum.DATE_TIME_ERROR)
             .build();
 
     @Override
