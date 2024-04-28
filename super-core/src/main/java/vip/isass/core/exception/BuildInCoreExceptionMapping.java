@@ -183,6 +183,7 @@ import vip.isass.core.exception.code.StatusMessageEnum;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.time.DateTimeException;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -194,17 +195,18 @@ import java.util.stream.Stream;
 public class BuildInCoreExceptionMapping implements IExceptionMapping {
 
     private static final Map<Class<? extends Exception>, IStatusMessage> EXCEPTION_MAPPING = MapUtil.<Class<? extends Exception>, IStatusMessage>builder()
-        .put(IllegalArgumentException.class, StatusMessageEnum.ILLEGAL_ARGUMENT_ERROR)
-        .put(AlreadyPresentException.class, StatusMessageEnum.ALREADY_PRESENT)
-        .put(AbsentException.class, StatusMessageEnum.ABSENT)
-        .put(UnsupportedOperationException.class, StatusMessageEnum.UN_SUPPORT_OPERATION)
-        .put(MethodArgumentNotValidException.class, StatusMessageEnum.ILLEGAL_ARGUMENT_ERROR)
-        .put(ValidateException.class, StatusMessageEnum.ILLEGAL_ARGUMENT_ERROR)
-        .put(IOException.class, StatusMessageEnum.IO_ERROR)
-        .put(FileNotFoundException.class, StatusMessageEnum.FILE_NOT_FOUND)
-        .put(BindException.class, StatusMessageEnum.ILLEGAL_ARGUMENT_ERROR)
-        .put(HttpMessageConversionException.class, StatusMessageEnum.ILLEGAL_ARGUMENT_ERROR)
-        .build();
+            .put(IllegalArgumentException.class, StatusMessageEnum.ILLEGAL_ARGUMENT_ERROR)
+            .put(AlreadyPresentException.class, StatusMessageEnum.ALREADY_PRESENT)
+            .put(AbsentException.class, StatusMessageEnum.ABSENT)
+            .put(UnsupportedOperationException.class, StatusMessageEnum.UN_SUPPORT_OPERATION)
+            .put(MethodArgumentNotValidException.class, StatusMessageEnum.ILLEGAL_ARGUMENT_ERROR)
+            .put(ValidateException.class, StatusMessageEnum.ILLEGAL_ARGUMENT_ERROR)
+            .put(IOException.class, StatusMessageEnum.IO_ERROR)
+            .put(FileNotFoundException.class, StatusMessageEnum.FILE_NOT_FOUND)
+            .put(BindException.class, StatusMessageEnum.ILLEGAL_ARGUMENT_ERROR)
+            .put(HttpMessageConversionException.class, StatusMessageEnum.ILLEGAL_ARGUMENT_ERROR)
+            .put(DateTimeException.class, StatusMessageEnum.DATE_TIME_ERROR)
+            .build();
 
     @Override
     public IStatusMessage getStatusCode(Exception exception) {
@@ -225,30 +227,30 @@ public class BuildInCoreExceptionMapping implements IExceptionMapping {
 
     private String parseBindExceptionMessage(BindException e) {
         return e.getAllErrors()
-            .stream()
-            .map(error -> {
-                StringBuilder sb = new StringBuilder();
-                sb.append(error.getObjectName());
-                sb.append("[");
+                .stream()
+                .map(error -> {
+                    StringBuilder sb = new StringBuilder();
+                    sb.append(error.getObjectName());
+                    sb.append("[");
 
-                Object[] args = error.getArguments();
-                if (args != null) {
-                    sb.append(Stream.of(args)
-                        .map(a -> (DefaultMessageSourceResolvable) a)
-                        .map(DefaultMessageSourceResolvable::getDefaultMessage)
-                        .collect(Collectors.joining(", ")));
-                }
+                    Object[] args = error.getArguments();
+                    if (args != null) {
+                        sb.append(Stream.of(args)
+                                .map(a -> (DefaultMessageSourceResolvable) a)
+                                .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                                .collect(Collectors.joining(", ")));
+                    }
 
-                sb.append("]");
-                sb.append(error.getDefaultMessage());
+                    sb.append("]");
+                    sb.append(error.getDefaultMessage());
 
-                IStatusMessage statusCode = getStatusCode(e);
-                if (statusCode != null) {
-                    return StrUtil.format(statusCode.getMsg(), sb.toString());
-                }
-                return sb.toString();
-            })
-            .collect(Collectors.joining(", "));
+                    IStatusMessage statusCode = getStatusCode(e);
+                    if (statusCode != null) {
+                        return StrUtil.format(statusCode.getMsg(), sb.toString());
+                    }
+                    return sb.toString();
+                })
+                .collect(Collectors.joining(", "));
     }
 
 }
