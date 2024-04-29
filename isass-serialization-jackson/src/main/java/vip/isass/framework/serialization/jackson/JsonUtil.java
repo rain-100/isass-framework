@@ -173,7 +173,6 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.MapperFeature;
@@ -183,6 +182,7 @@ import com.fasterxml.jackson.databind.deser.std.StdDelegatingDeserializer;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.std.NumberSerializer;
 import com.fasterxml.jackson.databind.ser.std.StdDelegatingSerializer;
+import lombok.Getter;
 import lombok.SneakyThrows;
 import vip.isass.framework.serialization.jackson.converter.LocalDateTimeToLongConverter;
 import vip.isass.framework.serialization.jackson.converter.LocalDateToLongConverter;
@@ -290,13 +290,15 @@ public class JsonUtil {
     }
 
     @SneakyThrows
+    @SuppressWarnings("unchecked")
     public static Map<String, Object> readMap(String json) {
-        return DEFAULT_INSTANCE.readValue(json, TypeReferences.MAP.javaType());
+        return (Map<String, Object>) DEFAULT_INSTANCE.readValue(json, TypeReferences.MAP.getTypeReference());
     }
 
     @SneakyThrows
+    @SuppressWarnings("unchecked")
     public static Map<String, Object> convertToMap(Object object) {
-        return DEFAULT_INSTANCE.convertValue(object, TypeReferences.MAP.javaType());
+        return (Map<String, Object>) DEFAULT_INSTANCE.convertValue(object, TypeReferences.MAP.getTypeReference());
     }
 
     @SneakyThrows
@@ -305,8 +307,9 @@ public class JsonUtil {
     }
 
     @SneakyThrows
+    @SuppressWarnings("unchecked")
     public static List<Map<String, Object>> readListMap(String json) {
-        return DEFAULT_INSTANCE.readValue(json, TypeReferences.LIST_MAP.javaType());
+        return (List<Map<String, Object>>) DEFAULT_INSTANCE.readValue(json, TypeReferences.LIST_MAP.getTypeReference());
     }
 
     @SneakyThrows
@@ -329,6 +332,7 @@ public class JsonUtil {
         return NOT_NULL_INSTANCE.writeValueAsString(object);
     }
 
+    @Getter
     public enum TypeReferences {
 
         STRING_LIST(new TypeReference<List<String>>() {
@@ -345,10 +349,6 @@ public class JsonUtil {
 
         TypeReferences(TypeReference<?> typeReference) {
             this.typeReference = typeReference;
-        }
-
-        private JavaType javaType() {
-            return (JavaType) this.typeReference.getType();
         }
 
     }
