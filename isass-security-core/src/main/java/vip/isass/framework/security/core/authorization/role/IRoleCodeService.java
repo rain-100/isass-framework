@@ -166,24 +166,31 @@
  * Library.
  */
 
-package vip.isass.framework.core.spring.bean.destroy;
+package vip.isass.framework.security.core.authorization.role;
 
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.event.EventListener;
-import org.springframework.stereotype.Component;
-import vip.isass.framework.core.support.SpringContextUtil;
+import vip.isass.framework.core.support.rpc.ServiceCaller;
+
+import java.util.Collection;
 
 /**
- * 自动销毁管理器
+ * 角色编码服务
  *
- * @author rain
+ * @author Rain
  */
-@Component
-public class AutoDestroyManager {
+public interface IRoleCodeService extends ServiceCaller {
 
-    @EventListener(ApplicationReadyEvent.class)
-    public void destroy(ApplicationReadyEvent event) {
-        SpringContextUtil.unRegistryBean(AutoDestroyable.class);
-    }
+    Collection<String> findRoleCodesByUri(UriRoleCodesReq roleCodesReq);
+
+    void setRoleCodesByUserIdCache(String userId, Collection<String> roleCodes);
+
+    void setRoleCodesByUriCache(String uri, Collection<String> roleCodes);
+
+    /**
+     * 获取指定用户拥有的角色
+     *
+     * @param userId user id
+     * @return role codes
+     */
+    Collection<String> findRoleCodesByUserId(String userId);
 
 }

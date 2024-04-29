@@ -173,7 +173,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import java.util.List;
 
 /**
- * isass HandlerInterceptor
+ * isass url 拦截器 HandlerInterceptor
  *
  * @author : rain
  * @date : 2022/11/23

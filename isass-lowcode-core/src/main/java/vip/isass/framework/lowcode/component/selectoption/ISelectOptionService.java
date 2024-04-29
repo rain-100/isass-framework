@@ -166,21 +166,14 @@
  * Library.
  */
 
-package vip.isass.framework.core.support.api;
+package vip.isass.framework.lowcode.component.selectoption;
 
-/**
- * 实现接口的排序，数字越少越靠前
- */
-public interface ApiOrder {
+import java.util.List;
 
-    int CACHE_SERVICE = 10;
+public interface ISelectOptionService<T> {
 
-    int LOCAL_SERVICE = 20;
+    String getKey();
 
-    int FEIGN_SERVICE = 30;
-
-    int CONTROLLER = 100;
-
-    int SERVER_MANAGER = Integer.MIN_VALUE;
+    List<SelectOption<T>> getSelectOptions();
 
 }

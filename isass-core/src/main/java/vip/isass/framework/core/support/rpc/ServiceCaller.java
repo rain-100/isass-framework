@@ -166,31 +166,73 @@
  * Library.
  */
 
-package vip.isass.framework.core.web.security.metadata.rolecode;
+package vip.isass.framework.core.support.rpc;
 
-import vip.isass.framework.core.support.api.ApiService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.core.annotation.Order;
 
 import java.util.Collection;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
- * 角色编码服务
- *
- * @author Rain
+ * @author isass
  */
-public interface IRoleCodeService extends ApiService {
+public interface ServiceCaller {
 
-    Collection<String> findRoleCodesByUri(UriRoleCodesReq roleCodesReq);
+    Logger LOGGER = LoggerFactory.getLogger(ServiceCaller.class);
 
-    void setRoleCodesByUserIdCache(String userId, Collection<String> roleCodes);
+    default <S, V> V apply(Collection<S> services, Function<S, V> function) {
+        if (services == null) {
+            throw new UnsupportedOperationException("当前环境没有" + this.getClass().getSimpleName());
+        }
 
-    void setRoleCodesByUriCache(String uri, Collection<String> roleCodes);
+        boolean hasLocalService = false;
+        for (S service : services) {
+            // 如果有本地服务，则无需执行 feign 服务
+            Order order = AnnotationUtils.findAnnotation(service.getClass(), Order.class);
+            if (order != null && order.value() == ServiceOrder.LOCAL_SERVICE) {
+                hasLocalService = true;
+            }
 
-    /**
-     * 获取指定用户拥有的角色
-     *
-     * @param userId user id
-     * @return role codes
-     */
-    Collection<String> findRoleCodesByUserId(String userId);
+            if (order != null && order.value() == ServiceOrder.FEIGN_SERVICE && hasLocalService) {
+                continue;
+            }
+
+            V value = function.apply(service);
+            if (value != null) {
+                return value;
+            }
+        }
+        return null;
+    }
+
+    default <S> void consume(Collection<S> services, Consumer<S> consumer) {
+        if (services == null) {
+            throw new UnsupportedOperationException("当前环境没有" + this.getClass().getSimpleName());
+        }
+
+        for (S service : services) {
+            consumer.accept(service);
+            return;
+        }
+    }
+
+    default <S> void consumeWithoutException(Collection<S> services, Consumer<S> consumer) {
+        if (services == null) {
+            throw new UnsupportedOperationException("当前环境没有" + this.getClass().getSimpleName());
+        }
+
+        for (S service : services) {
+            try {
+                consumer.accept(service);
+                return;
+            } catch (Exception e) {
+                LOGGER.error(e.getMessage(), e);
+            }
+        }
+    }
 
 }

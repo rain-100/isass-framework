@@ -166,14 +166,7 @@
  * Library.
  */
 
-package vip.isass.framework.core.selectoption;
+package vip.isass.framework.lowcode.component.selectoption;
 
-import java.util.List;
-
-public interface ISelectOptionService<T> {
-
-    String getKey();
-
-    List<SelectOption<T>> getSelectOptions();
-
+public interface HardCodeSelectOptionService<T> extends ISelectOptionService<T> {
 }

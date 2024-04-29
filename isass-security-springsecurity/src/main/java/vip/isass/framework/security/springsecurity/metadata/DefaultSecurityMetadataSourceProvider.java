@@ -169,8 +169,8 @@
 package vip.isass.framework.security.springsecurity.metadata;
 
 import org.springframework.stereotype.Component;
-import vip.isass.framework.core.web.security.metadata.rolecode.IRoleCodeService;
-import vip.isass.framework.core.web.security.metadata.rolecode.UriRoleCodesReq;
+import vip.isass.framework.security.core.authorization.role.IRoleCodeService;
+import vip.isass.framework.security.core.authorization.role.UriRoleCodesReq;
 
 import javax.annotation.Resource;
 import java.util.Collection;

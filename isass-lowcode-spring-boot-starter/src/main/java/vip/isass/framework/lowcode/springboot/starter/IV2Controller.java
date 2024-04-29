@@ -176,7 +176,7 @@ import vip.isass.framework.lowcode.v2.criteria.IV2Criteria;
 import vip.isass.framework.lowcode.v2.entity.IV2Entity;
 import vip.isass.framework.lowcode.v2.service.IV2LocalService;
 import vip.isass.framework.lowcode.v2.service.IV2Service;
-import vip.isass.framework.core.support.api.ApiOrder;
+import vip.isass.framework.core.support.rpc.ServiceOrder;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -189,7 +189,7 @@ public interface IV2Controller<
 
     @Override
     default int getOrder() {
-        return ApiOrder.CONTROLLER;
+        return ServiceOrder.CONTROLLER;
     }
 
     IV2LocalService<E, C> getService();

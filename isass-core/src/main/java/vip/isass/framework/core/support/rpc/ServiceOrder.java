@@ -166,73 +166,21 @@
  * Library.
  */
 
-package vip.isass.framework.core.support.api;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.core.annotation.Order;
-
-import java.util.Collection;
-import java.util.function.Consumer;
-import java.util.function.Function;
+package vip.isass.framework.core.support.rpc;
 
 /**
- * @author isass
+ * 实现接口的排序，数字越少越靠前
  */
-public interface ApiService {
+public interface ServiceOrder {
 
-    Logger LOGGER = LoggerFactory.getLogger(ApiService.class);
+    int CACHE_SERVICE = 10;
 
-    default <S, V> V apply(Collection<S> services, Function<S, V> function) {
-        if (services == null) {
-            throw new UnsupportedOperationException("当前环境没有" + this.getClass().getSimpleName());
-        }
+    int LOCAL_SERVICE = 20;
 
-        boolean hasLocalService = false;
-        for (S service : services) {
-            // 如果有本地服务，则无需执行 feign 服务
-            Order order = AnnotationUtils.findAnnotation(service.getClass(), Order.class);
-            if (order != null && order.value() == ApiOrder.LOCAL_SERVICE) {
-                hasLocalService = true;
-            }
+    int FEIGN_SERVICE = 30;
 
-            if (order != null && order.value() == ApiOrder.FEIGN_SERVICE && hasLocalService) {
-                continue;
-            }
+    int CONTROLLER = 100;
 
-            V value = function.apply(service);
-            if (value != null) {
-                return value;
-            }
-        }
-        return null;
-    }
-
-    default <S> void consume(Collection<S> services, Consumer<S> consumer) {
-        if (services == null) {
-            throw new UnsupportedOperationException("当前环境没有" + this.getClass().getSimpleName());
-        }
-
-        for (S service : services) {
-            consumer.accept(service);
-            return;
-        }
-    }
-
-    default <S> void consumeWithoutException(Collection<S> services, Consumer<S> consumer) {
-        if (services == null) {
-            throw new UnsupportedOperationException("当前环境没有" + this.getClass().getSimpleName());
-        }
-
-        for (S service : services) {
-            try {
-                consumer.accept(service);
-                return;
-            } catch (Exception e) {
-                LOGGER.error(e.getMessage(), e);
-            }
-        }
-    }
+    int SERVER_MANAGER = Integer.MIN_VALUE;
 
 }

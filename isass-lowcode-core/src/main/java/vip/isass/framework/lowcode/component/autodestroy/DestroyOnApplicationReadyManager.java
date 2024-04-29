@@ -166,10 +166,24 @@
  * Library.
  */
 
-package vip.isass.framework.core.spring.bean.destroy;
+package vip.isass.framework.lowcode.component.autodestroy;
+
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
+import org.springframework.stereotype.Component;
+import vip.isass.framework.core.support.SpringContextUtil;
 
 /**
- * bean 加载后自动销毁 bean
+ * 自动销毁管理器
+ *
+ * @author rain
  */
-public interface AutoDestroyable {
+@Component
+public class DestroyOnApplicationReadyManager {
+
+    @EventListener(ApplicationReadyEvent.class)
+    public void destroy(ApplicationReadyEvent event) {
+        SpringContextUtil.unRegistryBean(DestroyOnApplicationReady.class);
+    }
+
 }

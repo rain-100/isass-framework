@@ -166,31 +166,25 @@
  * Library.
  */
 
-package vip.isass.framework.core.selectoption;
+package vip.isass.framework.security.core.authorization.role;
 
 import lombok.Getter;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import lombok.Setter;
+import lombok.SneakyThrows;
+import lombok.experimental.Accessors;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+/**
+ * @author Rain
+ */
+@Getter
+@Setter
+@Accessors(chain = true)
+public class UriRoleCodesReq {
 
-@Service
-public class SelectOptionServiceManager {
+    private String uri;
 
-    @Getter
-    private Map<String, ISelectOptionService<?>> selectOptionServices = Collections.emptyMap();
-
-    @Autowired(required = false)
-    public void setSelectOptionServices(List<ISelectOptionService<?>> selectOptionServices) {
-        this.selectOptionServices = selectOptionServices == null
-                ? Collections.emptyMap()
-                : selectOptionServices
-                .stream()
-                .collect(Collectors.toMap(ISelectOptionService::getKey, Function.identity()));
+    @Override
+    public String toString() {
+        return "UriRoleCodesReq{" + "uri='" + uri + '}';
     }
-
 }

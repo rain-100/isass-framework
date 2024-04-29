@@ -174,7 +174,7 @@ import org.springframework.web.bind.annotation.*;
 import vip.isass.framework.lowcode.v2.criteria.IV2Criteria;
 import vip.isass.framework.lowcode.v2.entity.IV2Entity;
 import vip.isass.framework.lowcode.v2.service.IV2Service;
-import vip.isass.framework.core.support.api.ApiOrder;
+import vip.isass.framework.core.support.rpc.ServiceOrder;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -187,7 +187,7 @@ public interface IV2FeignService<
 
     @Override
     default int getOrder() {
-        return ApiOrder.FEIGN_SERVICE;
+        return ServiceOrder.FEIGN_SERVICE;
     }
 
     // region 增

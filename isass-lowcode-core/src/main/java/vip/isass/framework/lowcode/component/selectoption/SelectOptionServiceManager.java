@@ -166,7 +166,31 @@
  * Library.
  */
 
-package vip.isass.framework.core.selectoption;
+package vip.isass.framework.lowcode.component.selectoption;
 
-public interface HardCodeSelectOptionService<T> extends ISelectOptionService<T> {
+import lombok.Getter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+@Service
+public class SelectOptionServiceManager {
+
+    @Getter
+    private Map<String, ISelectOptionService<?>> selectOptionServices = Collections.emptyMap();
+
+    @Autowired(required = false)
+    public void setSelectOptionServices(List<ISelectOptionService<?>> selectOptionServices) {
+        this.selectOptionServices = selectOptionServices == null
+                ? Collections.emptyMap()
+                : selectOptionServices
+                .stream()
+                .collect(Collectors.toMap(ISelectOptionService::getKey, Function.identity()));
+    }
+
 }

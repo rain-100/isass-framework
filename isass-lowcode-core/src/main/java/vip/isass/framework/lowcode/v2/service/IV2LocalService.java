@@ -178,7 +178,7 @@ import vip.isass.framework.lowcode.v2.criteria.type.IV2WhereConditionCriteria;
 import vip.isass.framework.lowcode.v2.entity.IV2Entity;
 import vip.isass.framework.lowcode.v2.entity.IV2IdEntity;
 import vip.isass.framework.lowcode.v2.repository.IV2Repository;
-import vip.isass.framework.core.support.api.ApiOrder;
+import vip.isass.framework.core.support.rpc.ServiceOrder;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -200,7 +200,7 @@ public interface IV2LocalService<
 
     @Override
     default int getOrder() {
-        return ApiOrder.LOCAL_SERVICE;
+        return ServiceOrder.LOCAL_SERVICE;
     }
 
     // region 增

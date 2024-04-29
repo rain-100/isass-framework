@@ -166,25 +166,10 @@
  * Library.
  */
 
-package vip.isass.framework.core.web.security.metadata.rolecode;
-
-import lombok.Getter;
-import lombok.Setter;
-import lombok.SneakyThrows;
-import lombok.experimental.Accessors;
+package vip.isass.framework.lowcode.component.autodestroy;
 
 /**
- * @author Rain
+ * 被标记此注解的 bean 将在应用程序启动好准备就绪后自动销毁
  */
-@Getter
-@Setter
-@Accessors(chain = true)
-public class UriRoleCodesReq {
-
-    private String uri;
-
-    @Override
-    public String toString() {
-        return "UriRoleCodesReq{" + "uri='" + uri + '}';
-    }
+public interface DestroyOnApplicationReady {
 }

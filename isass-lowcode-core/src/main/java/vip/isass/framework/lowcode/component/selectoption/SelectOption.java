@@ -166,40 +166,24 @@
  * Library.
  */
 
-package vip.isass.framework.core.web.security.metadata.rolecode;
+package vip.isass.framework.lowcode.component.selectoption;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Primary;
-import org.springframework.stereotype.Service;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 
-import java.util.Collection;
-import java.util.List;
+@Getter
+@Setter
+@Accessors(chain = true)
+@ApiModel
+public class SelectOption<T> {
 
-@Primary
-@Service
-public class RoleCodeServiceManager implements IRoleCodeService {
+    @ApiModelProperty("选项名")
+    private String name;
 
-    @Autowired(required = false)
-    private List<IRoleCodeService> services;
-
-    @Override
-    public Collection<String> findRoleCodesByUri(UriRoleCodesReq roleCodesReq) {
-        return apply(services, s -> s.findRoleCodesByUri(roleCodesReq));
-    }
-
-    @Override
-    public void setRoleCodesByUserIdCache(String userId, Collection<String> roleCodes) {
-        consume(services, s -> s.setRoleCodesByUserIdCache(userId, roleCodes));
-    }
-
-    @Override
-    public void setRoleCodesByUriCache(String uri, Collection<String> roleCodes) {
-        consume(services, s -> setRoleCodesByUriCache(uri, roleCodes));
-    }
-
-    @Override
-    public Collection<String> findRoleCodesByUserId(String userId) {
-        return apply(services, s -> s.findRoleCodesByUserId(userId));
-    }
+    @ApiModelProperty("选项值")
+    private T value;
 
 }

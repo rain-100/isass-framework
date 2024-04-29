@@ -168,11 +168,11 @@
 
 package vip.isass.framework.core.log.requestlog;
 
-import vip.isass.framework.core.support.api.ApiService;
+import vip.isass.framework.core.support.rpc.ServiceCaller;
 
 import java.util.List;
 
-public interface IRequestLogService extends ApiService {
+public interface IRequestLogService extends ServiceCaller {
 
     void add(RequestLog requestLog);
 
