@@ -179,6 +179,10 @@ public enum StatusMessageEnum implements IStatusMessage {
     UNDEFINED(-2, "未定义错误"),
     FAIL(-1, "操作失败"),
     SUCCESS(200, "操作成功"),
+    ACCESS_DENIED_403(403, "权限不足"),
+    NOT_FOUND_404(404, "链接不存在"),
+    METHOD_NOT_ALLOWED_405(405, "不支持的HTTP方法"),
+    INTERNAL_SERVER_ERROR_500(500, "服务器内部错误"),
 
     DB_INSERT_FAIL(10, "插入数据库失败"),
     TOO_MANY_RESULT(11, "数据重复"),
@@ -196,10 +200,6 @@ public enum StatusMessageEnum implements IStatusMessage {
     FILE_NOT_FOUND(23, "文件不存在"),
     DATASOURCE_CONNECT_FAIL(24, "数据源连接失败"),
 
-    ACCESS_DENIED_403(403, "权限不足"),
-    NOT_FOUND_404(404, "链接不存在"),
-    METHOD_NOT_ALLOWED_405(405, "不支持的HTTP方法"),
-    INTERNAL_SERVER_ERROR_500(500, "服务器内部错误"),
 
     // 用户名密码错误,
     ILLEGAL_ARGUMENT_ERROR(1002, "参数错误:{}"),

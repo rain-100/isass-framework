@@ -168,6 +168,7 @@
 
 package vip.isass.framework.web.springmvc.execption;
 
+import cn.hutool.core.util.StrUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfigureOrder;
 import org.springframework.boot.web.servlet.error.ErrorAttributes;
@@ -227,20 +228,20 @@ public class IsassErrorController implements ErrorController {
         Map<String, Object> errorAttributes = getErrorAttributes(request, true);
         Object exception = errorAttributes.get(RequestDispatcher.ERROR_EXCEPTION);
         if (exception instanceof UnifiedException) {
-            return new Resp<>()
-                    .setSuccess(Boolean.FALSE)
-                    .setStatus(((UnifiedException) exception).getStatus())
-                    .setMessage(((UnifiedException) exception).getMsg());
+            return new Resp<>(
+                    Boolean.FALSE,
+                    ((UnifiedException) exception).getStatus(),
+                    ((UnifiedException) exception).getMsg());
         }
 
         Integer status = Integer.valueOf(errorAttributes.get("status").toString());
         for (IStatusMapping statusMapping : statusMappings) {
             IStatusMessage statusCode = statusMapping.getErrorCode(status);
             if (statusCode != null) {
-                return new Resp<>()
-                        .setSuccess(false)
-                        .setStatus(statusCode.getStatus())
-                        .setMessage(statusCode.getMsg() + ": " + request.getMethod() + " "
+                return new Resp<>(
+                        Boolean.FALSE,
+                        statusCode.getStatus(),
+                        statusCode.getMsg() + ": " + request.getMethod() + " "
                                 + errorAttributes.get("path") + " "
                                 + errorAttributes.get("error") + " "
                                 + errorAttributes.get("exception") + " "
@@ -248,10 +249,14 @@ public class IsassErrorController implements ErrorController {
             }
         }
 
-        return new Resp<>()
-                .setSuccess(false)
-                .setStatus(status)
-                .setMessage(StatusMessageEnum.UNDEFINED.getMsg() + " " + request.getMethod() + " " + errorAttributes.get("path") + " " + errorAttributes.get("error"));
+        return new Resp<>(
+                Boolean.FALSE,
+                status,
+                StrUtil.format("{} {} {} {}",
+                        StatusMessageEnum.INTERNAL_SERVER_ERROR_500.getMsg(),
+                        request.getMethod(),
+                        errorAttributes.get("path"),
+                        errorAttributes.get("error")));
     }
 
     protected Map<String, Object> getErrorAttributes(HttpServletRequest request, boolean includeStackTrace) {

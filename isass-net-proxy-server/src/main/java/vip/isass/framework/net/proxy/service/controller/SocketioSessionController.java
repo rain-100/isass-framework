@@ -171,8 +171,6 @@ package vip.isass.framework.net.proxy.service.controller;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -194,7 +192,6 @@ import java.util.Map;
  * @author rain
  */
 @Slf4j
-@Api(tags = "socketio服务")
 @RestController
 @RequestMapping("/${spring.application.name}/session")
 public class SocketioSessionController {
@@ -202,22 +199,37 @@ public class SocketioSessionController {
     @Resource
     private ISessionService sessionService;
 
+    /**
+     * 发送消息给客户端
+     *
+     * @param message 消息
+     * @return 操作结果
+     */
     @PostMapping("/send")
-    @ApiOperation(value = "发送消息给客户端")
     public Resp<?> sendMessage(@RequestBody Message message) {
         sessionService.sendMessage(message);
         return Resp.bizSuccess();
     }
 
+    /**
+     * 批量发送消息给客户端
+     *
+     * @param messages 消息列表
+     * @return 操作结果
+     */
     @PostMapping("/send/batch")
-    @ApiOperation(value = "批量发送消息给客户端")
     public Resp<?> sendMessages(@RequestBody Collection<Message> messages) {
         sessionService.sendMessages(messages);
         return Resp.bizSuccess();
     }
 
+    /**
+     * 保存会话绑定信息
+     *
+     * @param req 会话绑定信息请求实体
+     * @return 操作结果
+     */
     @PostMapping("/info")
-    @ApiOperation(value = "保存会话绑定信息")
     public Resp<?> saveSessionInfo(@RequestBody SessionBindingInfoChangeReq req) {
         if (StrUtil.isNotBlank(req.getSessionId())) {
             if (StrUtil.isNotBlank(req.getResetUserId())) {
@@ -267,32 +279,36 @@ public class SocketioSessionController {
     /**
      * 获取用户 id
      *
+     * @param sessionId 会话 id
      * @return 用户 id
      */
     @GetMapping("/{sessionId}/userId")
-    @ApiOperation(value = "获取用户id")
     public Resp<String> getUserId(@PathVariable("sessionId") String sessionId) {
         return Resp.bizSuccess(sessionService.getUserId(sessionId));
     }
 
+    /**
+     * 批量判断用户是否在线
+     *
+     * @param userIds 用户 id 集合
+     * @return 用户在线状态表
+     */
     @PostMapping("/user/isOnline")
-    @ApiOperation(value = "批量判断用户是否在线")
     public Resp<Map<String, Boolean>> isOnline(@RequestBody Collection<String> userIds) {
         return Resp.bizSuccess(sessionService.isOnline(userIds));
     }
 
     // endregion
 
-
     // region alias
 
     /**
      * 获取别名
      *
+     * @param sessionId 会话 id
      * @return 别名
      */
     @GetMapping("/{sessionId}/alias")
-    @ApiOperation(value = "获取别名")
     public Resp<String> getAlias(@PathVariable("sessionId") String sessionId) {
         return Resp.bizSuccess(sessionService.getAlias(sessionId));
     }
@@ -304,10 +320,10 @@ public class SocketioSessionController {
     /**
      * 获取标签
      *
+     * @param sessionId 会话 id
      * @return 标签列表
      */
     @GetMapping("/{sessionId}/tags")
-    @ApiOperation(value = "获取标签")
     public Resp<Collection<String>> getTags(@PathVariable("sessionId") String sessionId) {
         return Resp.bizSuccess(sessionService.findTags(sessionId));
     }
@@ -315,10 +331,10 @@ public class SocketioSessionController {
     /**
      * 根据用户获取标签
      *
+     * @param userId 用户 id
      * @return 标签列表
      */
     @GetMapping("/tags/{userId}")
-    @ApiOperation(value = "根据用户获取标签")
     public Resp<Collection<String>> getTagsByUserId(@PathVariable("userId") String userId) {
         return Resp.bizSuccess(sessionService.findTagsByUserId(userId));
     }
@@ -330,7 +346,6 @@ public class SocketioSessionController {
      * @return 符合条件的会话集合
      */
     @GetMapping("/any")
-    @ApiOperation(value = "根据任意标签获取会话id")
     public Resp<Collection<String>> findSessionsByAnyMatchTags(@RequestParam("tags") Collection<String> tags) {
         return Resp.bizSuccess(sessionService.findSessionsByAnyMatchTags(tags));
     }
@@ -343,7 +358,6 @@ public class SocketioSessionController {
      * @return 是否拥有标签
      */
     @GetMapping("/{sessionId}/containAnyTag")
-    @ApiOperation(value = "批量发送消息给客户端")
     public Resp<Boolean> containAnyTag(@PathVariable("sessionId") String sessionId, @RequestParam("tags") Collection<String> tags) {
         return Resp.bizSuccess(sessionService.containAnyTag(sessionId, tags));
     }
@@ -356,7 +370,6 @@ public class SocketioSessionController {
      * @return 是否拥有标签
      */
     @GetMapping("/{sessionId}/containTags")
-    @ApiOperation(value = "批量发送消息给客户端")
     public Resp<Boolean> containAllTags(@PathVariable("sessionId") String sessionId, @RequestParam("tags") Collection<String> tags) {
         return Resp.bizSuccess(sessionService.containAllTags(sessionId, tags));
     }

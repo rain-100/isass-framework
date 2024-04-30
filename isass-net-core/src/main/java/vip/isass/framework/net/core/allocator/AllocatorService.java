@@ -204,7 +204,7 @@ public class AllocatorService {
      * 优先根据用户 id 分配，其次客户端 ip
      * </p>
      *
-     * @param serverName 服务名
+     * @param serverName 需分配的服务
      * @param clientIp   客户端 ip
      * @return 分配到的节点
      */

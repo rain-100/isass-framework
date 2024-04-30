@@ -168,7 +168,6 @@
 
 package vip.isass.framework.lowcode.v2.criteria;
 
-import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -187,25 +186,21 @@ public class V2WhereCondition {
     /**
      * java 对象属性名
      */
-    @ApiModelProperty(hidden = true)
     private String propertyName;
 
     /**
      * 数据库字段名
      */
-    @ApiModelProperty(hidden = true)
     private String columnName;
 
     /**
      * 条件，例如：大于，小于，等于
      */
-    @ApiModelProperty(hidden = true)
     private V2Condition condition;
 
     /**
      * 比较的值
      */
-    @ApiModelProperty(hidden = true)
     private Object value;
 
 }

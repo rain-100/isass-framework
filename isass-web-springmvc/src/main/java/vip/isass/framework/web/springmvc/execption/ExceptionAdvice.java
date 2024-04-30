@@ -229,19 +229,19 @@ public class ExceptionAdvice {
             }
 
             return resp == null
-                    ? new Resp<>()
-                    .setSuccess(false)
-                    .setStatus(ObjectUtil.defaultIfNull(exception.getStatus(), StatusMessageEnum.UNDEFINED.getStatus()))
-                    .setMessage(exception.getMsg())
+                    ? new Resp<>(
+                    Boolean.FALSE,
+                    ObjectUtil.defaultIfNull(exception.getStatus(), StatusMessageEnum.INTERNAL_SERVER_ERROR_500.getStatus()),
+                    exception.getMsg())
                     : resp;
         }
 
         resp = createRespByExceptionFromExceptionMappings(e);
         return resp == null
-                ? new Resp<>()
-                .setSuccess(Boolean.FALSE)
-                .setStatus(StatusMessageEnum.UNDEFINED.getStatus())
-                .setMessage(defaultMessage(ExceptionUtil.unwrap(e)))
+                ? new Resp<>(
+                Boolean.FALSE,
+                StatusMessageEnum.INTERNAL_SERVER_ERROR_500.getStatus(),
+                defaultMessage(ExceptionUtil.unwrap(e)))
                 : resp;
     }
 
@@ -252,10 +252,10 @@ public class ExceptionAdvice {
                 continue;
             }
 
-            return new Resp<>()
-                    .setSuccess(false)
-                    .setStatus(statusMessage.getStatus())
-                    .setMessage(exceptionMapping.parseMessage(e, statusMessage));
+            return new Resp<>(
+                    Boolean.FALSE,
+                    statusMessage.getStatus(),
+                    exceptionMapping.parseMessage(e, statusMessage));
         }
         return null;
     }

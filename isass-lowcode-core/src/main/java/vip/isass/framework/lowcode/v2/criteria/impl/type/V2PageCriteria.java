@@ -168,7 +168,6 @@
 
 package vip.isass.framework.lowcode.v2.criteria.impl.type;
 
-import io.swagger.annotations.ApiModelProperty;
 import lombok.ToString;
 import vip.isass.framework.lowcode.v2.criteria.type.IV2PageCriteria;
 import vip.isass.framework.lowcode.v2.entity.IV2Entity;
@@ -180,7 +179,7 @@ import vip.isass.framework.lowcode.v2.entity.IV2Entity;
  */
 @ToString
 public class V2PageCriteria<E extends IV2Entity<E>, C extends V2PageCriteria<E, C>>
-    implements IV2PageCriteria<E, C> {
+        implements IV2PageCriteria<E, C> {
 
     /**
      * 分页页码
@@ -192,7 +191,6 @@ public class V2PageCriteria<E extends IV2Entity<E>, C extends V2PageCriteria<E, 
      */
     private Long pageSize;
 
-    @ApiModelProperty(hidden = true)
     private Boolean searchCountFlag;
 
     @Override

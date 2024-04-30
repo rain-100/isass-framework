@@ -168,10 +168,9 @@
 
 package vip.isass.framework.lowcode.v2.criteria.field;
 
-import io.swagger.annotations.ApiModel;
-import vip.isass.framework.lowcode.v2.entity.IV2ParentIdEntity;
 import vip.isass.framework.lowcode.v2.criteria.type.IV2SelectColumnCriteria;
 import vip.isass.framework.lowcode.v2.criteria.type.IV2WhereConditionCriteria;
+import vip.isass.framework.lowcode.v2.entity.IV2ParentIdEntity;
 
 import java.beans.Transient;
 import java.io.Serializable;
@@ -182,12 +181,11 @@ import java.util.Collection;
  *
  * @author Rain
  */
-@ApiModel
 public interface IV2ParentIdCriteria<
-    PK extends Serializable,
-    E extends IV2ParentIdEntity<PK, E>,
-    C extends IV2ParentIdCriteria<PK, E, C>
-    > extends IV2PkCriteria<PK, E, C> {
+        PK extends Serializable,
+        E extends IV2ParentIdEntity<PK, E>,
+        C extends IV2ParentIdCriteria<PK, E, C>
+        > extends IV2PkCriteria<PK, E, C> {
 
     @Transient
     default String getParentIdColumnName() {
@@ -203,8 +201,8 @@ public interface IV2ParentIdCriteria<
     @SuppressWarnings({"unchecked", "rawtypes"})
     default PK getParentId() {
         return this instanceof IV2WhereConditionCriteria
-            ? (PK) ((IV2WhereConditionCriteria) this).getEquals(getParentIdColumnName())
-            : null;
+                ? (PK) ((IV2WhereConditionCriteria) this).getEquals(getParentIdColumnName())
+                : null;
     }
 
     // region 所有类型都有的条件
@@ -212,85 +210,85 @@ public interface IV2ParentIdCriteria<
     @SuppressWarnings({"unchecked", "rawtypes"})
     default C setParentId(PK id) {
         return this instanceof IV2WhereConditionCriteria
-            ? (C) ((IV2WhereConditionCriteria) this).equals(getParentIdPropertyName(), getParentIdColumnName(), id)
-            : (C) this;
+                ? (C) ((IV2WhereConditionCriteria) this).equals(getParentIdPropertyName(), getParentIdColumnName(), id)
+                : (C) this;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     default C setOrParentId(PK id) {
         return this instanceof IV2WhereConditionCriteria
-            ? (C) ((IV2WhereConditionCriteria) this).orEquals(getParentIdPropertyName(), getParentIdColumnName(), id)
-            : (C) this;
+                ? (C) ((IV2WhereConditionCriteria) this).orEquals(getParentIdPropertyName(), getParentIdColumnName(), id)
+                : (C) this;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     default C setParentIdNotEqual(PK id) {
         return this instanceof IV2WhereConditionCriteria
-            ? (C) ((IV2WhereConditionCriteria) this).notEquals(getParentIdPropertyName(), getParentIdColumnName(), id)
-            : (C) this;
+                ? (C) ((IV2WhereConditionCriteria) this).notEquals(getParentIdPropertyName(), getParentIdColumnName(), id)
+                : (C) this;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     default C setOrParentIdNotEqual(PK id) {
         return this instanceof IV2WhereConditionCriteria
-            ? (C) ((IV2WhereConditionCriteria) this).orNotEquals(getParentIdPropertyName(), getParentIdColumnName(), id)
-            : (C) this;
+                ? (C) ((IV2WhereConditionCriteria) this).orNotEquals(getParentIdPropertyName(), getParentIdColumnName(), id)
+                : (C) this;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     default C setParentIdIn(Collection<PK> ids) {
         return this instanceof IV2WhereConditionCriteria
-            ? (C) ((IV2WhereConditionCriteria) this).in(getParentIdPropertyName(), getParentIdColumnName(), ids)
-            : (C) this;
+                ? (C) ((IV2WhereConditionCriteria) this).in(getParentIdPropertyName(), getParentIdColumnName(), ids)
+                : (C) this;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     default C setOrParentIdIn(Collection<PK> ids) {
         return this instanceof IV2WhereConditionCriteria
-            ? (C) ((IV2WhereConditionCriteria) this).orIn(getParentIdPropertyName(), getParentIdColumnName(), ids)
-            : (C) this;
+                ? (C) ((IV2WhereConditionCriteria) this).orIn(getParentIdPropertyName(), getParentIdColumnName(), ids)
+                : (C) this;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     default C setParentIdNotIn(Collection<PK> ids) {
         return this instanceof IV2WhereConditionCriteria
-            ? (C) ((IV2WhereConditionCriteria) this).notIn(getParentIdPropertyName(), getParentIdColumnName(), ids)
-            : (C) this;
+                ? (C) ((IV2WhereConditionCriteria) this).notIn(getParentIdPropertyName(), getParentIdColumnName(), ids)
+                : (C) this;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     default C setOrParentIdNotIn(Collection<PK> ids) {
         return this instanceof IV2WhereConditionCriteria
-            ? (C) ((IV2WhereConditionCriteria) this).orNotIn(getParentIdPropertyName(), getParentIdColumnName(), ids)
-            : (C) this;
+                ? (C) ((IV2WhereConditionCriteria) this).orNotIn(getParentIdPropertyName(), getParentIdColumnName(), ids)
+                : (C) this;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     default C setParentIdIsNull() {
         return this instanceof IV2WhereConditionCriteria
-            ? (C) ((IV2WhereConditionCriteria) this).isNull(getParentIdColumnName(), getParentIdColumnName())
-            : (C) this;
+                ? (C) ((IV2WhereConditionCriteria) this).isNull(getParentIdColumnName(), getParentIdColumnName())
+                : (C) this;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     default C setOrParentIdIsNull() {
         return this instanceof IV2WhereConditionCriteria
-            ? (C) ((IV2WhereConditionCriteria) this).orIsNull(getParentIdColumnName(), getParentIdColumnName())
-            : (C) this;
+                ? (C) ((IV2WhereConditionCriteria) this).orIsNull(getParentIdColumnName(), getParentIdColumnName())
+                : (C) this;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     default C setParentIdIsNotNull() {
         return this instanceof IV2WhereConditionCriteria
-            ? (C) ((IV2WhereConditionCriteria) this).isNotNull(getParentIdColumnName(), getParentIdColumnName())
-            : (C) this;
+                ? (C) ((IV2WhereConditionCriteria) this).isNotNull(getParentIdColumnName(), getParentIdColumnName())
+                : (C) this;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     default C setOrParentIdIsNotNull() {
         return this instanceof IV2WhereConditionCriteria
-            ? (C) ((IV2WhereConditionCriteria) this).orIsNotNull(getParentIdColumnName(), getParentIdColumnName())
-            : (C) this;
+                ? (C) ((IV2WhereConditionCriteria) this).orIsNotNull(getParentIdColumnName(), getParentIdColumnName())
+                : (C) this;
     }
 
     // endregion
@@ -300,43 +298,43 @@ public interface IV2ParentIdCriteria<
     @SuppressWarnings({"unchecked", "rawtypes"})
     default C setParentIdLike(PK idLike) {
         return this instanceof IV2WhereConditionCriteria
-            ? (C) ((IV2WhereConditionCriteria) this).like(getParentIdPropertyName(), getParentIdColumnName(), idLike)
-            : (C) this;
+                ? (C) ((IV2WhereConditionCriteria) this).like(getParentIdPropertyName(), getParentIdColumnName(), idLike)
+                : (C) this;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     default C setOrParentIdLike(PK orParentIdLike) {
         return this instanceof IV2WhereConditionCriteria
-            ? (C) ((IV2WhereConditionCriteria) this).orLike(getParentIdPropertyName(), getParentIdColumnName(), orParentIdLike)
-            : (C) this;
+                ? (C) ((IV2WhereConditionCriteria) this).orLike(getParentIdPropertyName(), getParentIdColumnName(), orParentIdLike)
+                : (C) this;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     default C setParentIdNotLike(PK idNotLike) {
         return this instanceof IV2WhereConditionCriteria
-            ? (C) ((IV2WhereConditionCriteria) this).notLike(getParentIdPropertyName(), getParentIdColumnName(), idNotLike)
-            : (C) this;
+                ? (C) ((IV2WhereConditionCriteria) this).notLike(getParentIdPropertyName(), getParentIdColumnName(), idNotLike)
+                : (C) this;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     default C setOrParentIdNotLike(PK orParentIdNotLike) {
         return this instanceof IV2WhereConditionCriteria
-            ? (C) ((IV2WhereConditionCriteria) this).orNotLike(getParentIdPropertyName(), getParentIdColumnName(), orParentIdNotLike)
-            : (C) this;
+                ? (C) ((IV2WhereConditionCriteria) this).orNotLike(getParentIdPropertyName(), getParentIdColumnName(), orParentIdNotLike)
+                : (C) this;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     default C setParentIdStartWith(PK idStartWith) {
         return this instanceof IV2WhereConditionCriteria
-            ? (C) ((IV2WhereConditionCriteria) this).startWith(getParentIdPropertyName(), getParentIdColumnName(), idStartWith)
-            : (C) this;
+                ? (C) ((IV2WhereConditionCriteria) this).startWith(getParentIdPropertyName(), getParentIdColumnName(), idStartWith)
+                : (C) this;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     default C setOrParentIdStartWith(PK orParentIdStartWith) {
         return this instanceof IV2WhereConditionCriteria
-            ? (C) ((IV2WhereConditionCriteria) this).orStartWith(getParentIdPropertyName(), getParentIdColumnName(), orParentIdStartWith)
-            : (C) this;
+                ? (C) ((IV2WhereConditionCriteria) this).orStartWith(getParentIdPropertyName(), getParentIdColumnName(), orParentIdStartWith)
+                : (C) this;
     }
 
     // endregion
@@ -346,57 +344,57 @@ public interface IV2ParentIdCriteria<
     @SuppressWarnings({"unchecked", "rawtypes"})
     default C setParentIdLessThan(PK value) {
         return this instanceof IV2WhereConditionCriteria
-            ? (C) ((IV2WhereConditionCriteria) this).lessThan(getParentIdPropertyName(), getParentIdColumnName(), value)
-            : (C) this;
+                ? (C) ((IV2WhereConditionCriteria) this).lessThan(getParentIdPropertyName(), getParentIdColumnName(), value)
+                : (C) this;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     default C setOrParentIdLessThan(PK value) {
         return this instanceof IV2WhereConditionCriteria
-            ? (C) ((IV2WhereConditionCriteria) this).orLessThan(getParentIdPropertyName(), getParentIdColumnName(), value)
-            : (C) this;
+                ? (C) ((IV2WhereConditionCriteria) this).orLessThan(getParentIdPropertyName(), getParentIdColumnName(), value)
+                : (C) this;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     default C setParentIdLessThanEqual(PK value) {
         return this instanceof IV2WhereConditionCriteria
-            ? (C) ((IV2WhereConditionCriteria) this).lessThanEqual(getParentIdPropertyName(), getParentIdColumnName(), value)
-            : (C) this;
+                ? (C) ((IV2WhereConditionCriteria) this).lessThanEqual(getParentIdPropertyName(), getParentIdColumnName(), value)
+                : (C) this;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     default C setOrParentIdLessThanEqual(PK value) {
         return this instanceof IV2WhereConditionCriteria
-            ? (C) ((IV2WhereConditionCriteria) this).orLessThanEqual(getParentIdPropertyName(), getParentIdColumnName(), value)
-            : (C) this;
+                ? (C) ((IV2WhereConditionCriteria) this).orLessThanEqual(getParentIdPropertyName(), getParentIdColumnName(), value)
+                : (C) this;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     default C setParentIdGreaterThan(PK value) {
         return this instanceof IV2WhereConditionCriteria
-            ? (C) ((IV2WhereConditionCriteria) this).greaterThan(getParentIdPropertyName(), getParentIdColumnName(), value)
-            : (C) this;
+                ? (C) ((IV2WhereConditionCriteria) this).greaterThan(getParentIdPropertyName(), getParentIdColumnName(), value)
+                : (C) this;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     default C setOrParentIdGreaterThan(PK value) {
         return this instanceof IV2WhereConditionCriteria
-            ? (C) ((IV2WhereConditionCriteria) this).orGreaterThan(getParentIdPropertyName(), getParentIdColumnName(), value)
-            : (C) this;
+                ? (C) ((IV2WhereConditionCriteria) this).orGreaterThan(getParentIdPropertyName(), getParentIdColumnName(), value)
+                : (C) this;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     default C setParentIdGreaterThanEqual(PK value) {
         return this instanceof IV2WhereConditionCriteria
-            ? (C) ((IV2WhereConditionCriteria) this).greaterThanEqual(getParentIdPropertyName(), getParentIdColumnName(), value)
-            : (C) this;
+                ? (C) ((IV2WhereConditionCriteria) this).greaterThanEqual(getParentIdPropertyName(), getParentIdColumnName(), value)
+                : (C) this;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     default C setOrParentIdGreaterThanEqual(PK value) {
         return this instanceof IV2WhereConditionCriteria
-            ? (C) ((IV2WhereConditionCriteria) this).orGreaterThanEqual(getParentIdPropertyName(), getParentIdColumnName(), value)
-            : (C) this;
+                ? (C) ((IV2WhereConditionCriteria) this).orGreaterThanEqual(getParentIdPropertyName(), getParentIdColumnName(), value)
+                : (C) this;
     }
 
     // endregion
@@ -406,22 +404,22 @@ public interface IV2ParentIdCriteria<
     @SuppressWarnings({"unchecked", "rawtypes"})
     default C selectParentId() {
         return this instanceof IV2SelectColumnCriteria
-            ? (C) ((IV2SelectColumnCriteria) this).setSelectColumn(getParentIdColumnName())
-            : (C) this;
+                ? (C) ((IV2SelectColumnCriteria) this).setSelectColumn(getParentIdColumnName())
+                : (C) this;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     default C addSelectParentId() {
         return this instanceof IV2SelectColumnCriteria
-            ? (C) ((IV2SelectColumnCriteria) this).addSelectColumn(getParentIdColumnName())
-            : (C) this;
+                ? (C) ((IV2SelectColumnCriteria) this).addSelectColumn(getParentIdColumnName())
+                : (C) this;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     default C unSelectParentId() {
         return this instanceof IV2SelectColumnCriteria
-            ? (C) ((IV2SelectColumnCriteria) this).unSelectColumn(getParentIdColumnName())
-            : (C) this;
+                ? (C) ((IV2SelectColumnCriteria) this).unSelectColumn(getParentIdColumnName())
+                : (C) this;
     }
 
     // endregion

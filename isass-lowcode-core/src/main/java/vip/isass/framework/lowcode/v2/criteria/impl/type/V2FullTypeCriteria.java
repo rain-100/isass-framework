@@ -168,7 +168,6 @@
 
 package vip.isass.framework.lowcode.v2.criteria.impl.type;
 
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
 import vip.isass.framework.lowcode.v2.criteria.IV2Criteria;
 import vip.isass.framework.lowcode.v2.criteria.V2WhereCondition;
@@ -186,12 +185,12 @@ import java.util.List;
  * 聚合了 selectColumn、whereCondition、page、orderBy 查询条件
  */
 public class V2FullTypeCriteria<E extends IV2Entity<E>, C extends V2FullTypeCriteria<E, C>>
-    implements
-    IV2SelectColumnCriteria<E, C>,
-    IV2WhereConditionCriteria<E, C>,
-    IV2PageCriteria<E, C>,
-    IV2OrderByCriteria<E, C>,
-    IV2Criteria<E, C> {
+        implements
+        IV2SelectColumnCriteria<E, C>,
+        IV2WhereConditionCriteria<E, C>,
+        IV2PageCriteria<E, C>,
+        IV2OrderByCriteria<E, C>,
+        IV2Criteria<E, C> {
 
     // region selectColumn
 
@@ -231,18 +230,15 @@ public class V2FullTypeCriteria<E extends IV2Entity<E>, C extends V2FullTypeCrit
     // region page
 
     /**
-     * 分页页码
+     * 分页页码，从1开始，默认1
      */
-    @ApiModelProperty("页码，默认1")
     private Long pageNum;
 
     /**
-     * 每页大小
+     * 每页大小，默认20
      */
-    @ApiModelProperty("分页大小，默认20")
     private Long pageSize;
 
-    @ApiModelProperty(hidden = true)
     private Boolean searchCountFlag;
 
     @Override

@@ -170,10 +170,10 @@ package vip.isass.framework.core.support;
 
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
-import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.experimental.Accessors;
+import lombok.ToString;
+import lombok.experimental.SuperBuilder;
 import lombok.extern.slf4j.Slf4j;
 import vip.isass.framework.core.exception.UnifiedException;
 import vip.isass.framework.core.exception.code.StatusMessageEnum;
@@ -189,94 +189,111 @@ import java.util.List;
 @Slf4j
 @Getter
 @Setter
-@Accessors(chain = true)
+@ToString
+@SuperBuilder
 public class Resp<T> {
 
     /**
      * 是否成功常
      */
-    @JsonInclude
     private Boolean success;
 
     /**
      * 状态码
      */
-    @JsonInclude
-    // @JsonProperty("code")
     private int status;
 
     /**
      * 描述信息
      */
-    @JsonInclude
     private String message;
 
     /**
      * 调用接口得到的数据
      */
-    @JsonInclude
     private T data;
 
+    public Resp() {
+    }
+
+    public Resp(Boolean success, int status, String message) {
+        this.success = success;
+        this.status = status;
+        this.message = message;
+    }
+
+    public Resp(Boolean success, int status, String message, T data) {
+        this.success = success;
+        this.status = status;
+        this.message = message;
+        this.data = data;
+    }
+
     public static <T> Resp<T> bizSuccess(T data) {
-        return new Resp<T>()
-                .setSuccess(Boolean.TRUE)
-                .setStatus(StatusMessageEnum.SUCCESS.getStatus())
-                .setMessage(StatusMessageEnum.SUCCESS.getMsg())
-                .setData(data);
+        Resp<T> resp = new Resp<>();
+        resp.setSuccess(Boolean.TRUE);
+        resp.setStatus(StatusMessageEnum.SUCCESS.getStatus());
+        resp.setMessage(StatusMessageEnum.SUCCESS.getMsg());
+        resp.setData(data);
+        return resp;
     }
 
     public static <T> Resp<T> bizSuccess() {
-        return new Resp<T>()
-                .setSuccess(Boolean.TRUE)
-                .setStatus(StatusMessageEnum.SUCCESS.getStatus())
-                .setMessage(StatusMessageEnum.SUCCESS.getMsg());
+        Resp<T> resp = new Resp<>();
+        resp.setSuccess(Boolean.TRUE);
+        resp.setStatus(StatusMessageEnum.SUCCESS.getStatus());
+        resp.setMessage(StatusMessageEnum.SUCCESS.getMsg());
+        return resp;
     }
 
     public static Resp<List<String>> bizSuccessEmptyStringList() {
-        return new Resp<List<String>>()
-                .setSuccess(Boolean.TRUE)
-                .setStatus(StatusMessageEnum.SUCCESS.getStatus())
-                .setMessage(StatusMessageEnum.SUCCESS.getMsg())
-                .setData(Collections.emptyList());
+        Resp<List<String>> resp = new Resp<>();
+        resp.setSuccess(Boolean.TRUE);
+        resp.setStatus(StatusMessageEnum.SUCCESS.getStatus());
+        resp.setMessage(StatusMessageEnum.SUCCESS.getMsg());
+        resp.setData(Collections.emptyList());
+        return resp;
     }
 
     public static <T> Resp<T> bizFail(T data) {
-        return new Resp<T>()
-                .setSuccess(Boolean.FALSE)
-                .setStatus(StatusMessageEnum.FAIL.getStatus())
-                .setMessage(StatusMessageEnum.FAIL.getMsg())
-                .setData(data);
+        Resp<T> resp = new Resp<>();
+        resp.setSuccess(Boolean.FALSE);
+        resp.setStatus(StatusMessageEnum.FAIL.getStatus());
+        resp.setMessage(StatusMessageEnum.FAIL.getMsg());
+        resp.setData(data);
+        return resp;
     }
 
     public static <T> Resp<T> bizFail() {
-        return new Resp<T>()
-                .setSuccess(Boolean.FALSE)
-                .setStatus(StatusMessageEnum.FAIL.getStatus())
-                .setMessage(StatusMessageEnum.FAIL.getMsg());
+        Resp<T> resp = new Resp<>();
+        resp.setSuccess(Boolean.FALSE);
+        resp.setStatus(StatusMessageEnum.FAIL.getStatus());
+        resp.setMessage(StatusMessageEnum.FAIL.getMsg());
+        return resp;
     }
 
     public void exceptionIfUnSuccess() {
-        if (!this.success) {
+        if (this.getSuccess() != Boolean.TRUE) {
             throw new UnifiedException(this.status, this.message);
         }
     }
 
     public T dataIfSuccessOrException() {
-        if (this.getSuccess()) {
-            return this.getData();
+        if (this.getSuccess() != Boolean.TRUE) {
+            throw new UnifiedException(this.getStatus(), this.getMessage());
         }
-        throw new UnifiedException(this.getStatus(), this.getMessage());
+        return this.getData();
     }
 
     public T dataIfSuccessOrWarn() {
-        if (!this.getSuccess()) {
+        if (this.getSuccess() != Boolean.TRUE) {
             log.warn("{}", this.getMessage());
         }
         return this.getData();
     }
 
     public T dataIfSuccess() {
-        if (this.getSuccess()) {
+        if (this.getSuccess() == Boolean.TRUE) {
             return this.getData();
         }
         return null;
@@ -296,12 +313,4 @@ public class Resp<T> {
         return this.getData();
     }
 
-    @Override
-    public String toString() {
-        return "Resp{" + "success=" + success +
-                ", status=" + status +
-                ", message='" + message + '\'' +
-                ", data=" + data +
-                '}';
-    }
 }

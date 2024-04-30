@@ -168,8 +168,6 @@
 
 package vip.isass.framework.lowcode.component.selectoption;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
@@ -177,13 +175,16 @@ import lombok.experimental.Accessors;
 @Getter
 @Setter
 @Accessors(chain = true)
-@ApiModel
 public class SelectOption<T> {
 
-    @ApiModelProperty("选项名")
+    /**
+     * 选项名
+     */
     private String name;
 
-    @ApiModelProperty("选项值")
+    /**
+     * 选项值
+     */
     private T value;
 
 }

@@ -169,8 +169,6 @@
 package vip.isass.framework.net.proxy.service.controller;
 
 import cn.hutool.core.collection.CollUtil;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.connection.stream.RecordId;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -191,7 +189,6 @@ import javax.annotation.Resource;
  * @author rain
  */
 @Slf4j
-@Api(tags = "网络通信消息发送")
 @RestController
 @RequestMapping("/${spring.application.name}/sender")
 public class SocketioSenderController {
@@ -205,14 +202,23 @@ public class SocketioSenderController {
     @Resource
     private RemoveC2SMessageService removeC2SMessageService;
 
+    /**
+     * 发送消息给客户端
+     *
+     * @param message 待发送的消息
+     */
     @PostMapping("/send")
-    @ApiOperation(value = "发送消息给客户端")
     public void sendMessage(@RequestBody Message message) {
         sessionService.sendMessage(message);
     }
 
+    /**
+     * 发送消息到redis(调试专用)
+     *
+     * @param cmd 命令
+     * @return redis stream 记录id
+     */
     @GetMapping("/pushToRedis")
-    @ApiOperation("发送消息到redis 调试专用")
     public Resp<RecordId> pushToRedis(@RequestParam("cmd") String cmd) {
         RecordId push = gatewayToRedisMessageService.push(
                 Message.builder()
@@ -223,8 +229,12 @@ public class SocketioSenderController {
         return Resp.bizSuccess(push);
     }
 
+    /**
+     * 删除 redis 旧的 c2s 消息
+     *
+     * @return 操作结果
+     */
     @GetMapping("/removeEarlyMessageService")
-    @ApiOperation("删除redis旧的c2s消息")
     public Resp<?> removeEarlyMessage() {
         removeC2SMessageService.process();
         return Resp.bizSuccess();

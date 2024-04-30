@@ -169,8 +169,6 @@
 package vip.isass.framework.net.core.allocator;
 
 import cn.hutool.extra.servlet.ServletUtil;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -181,14 +179,19 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
 @RestController
-@Api(tags = "节点分配器")
 @RequestMapping
 public class AllocatorController {
 
     @Resource
     private AllocatorService allocatorService;
 
-    @ApiOperation(value = "分配节点", notes = "根据客户端 ip 分配节点")
+    /**
+     * 根据客户端 ip 分配节点
+     *
+     * @param request    request
+     * @param serverName 需分配的服务
+     * @return 分配到的节点
+     */
     @GetMapping("/{serverName}/allocator/node")
     public Resp<String> allocate(HttpServletRequest request,
                                  @PathVariable("serverName") String serverName) {

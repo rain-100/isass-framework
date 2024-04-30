@@ -169,7 +169,6 @@
 package vip.isass.framework.core.log.requestlog;
 
 import cn.hutool.core.date.DateUtil;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.SneakyThrows;
@@ -177,7 +176,6 @@ import lombok.experimental.Accessors;
 
 import java.util.Date;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * copy from vip.isass.log.api.model.entity.RequestLog
@@ -196,7 +194,6 @@ public class RequestLog {
      * 数据库字段名: title
      * 数据库字段类型: varchar(128)
      */
-    @ApiModelProperty("标题")
     private String title;
 
     /**
@@ -206,7 +203,6 @@ public class RequestLog {
      * 数据库字段名: user_id
      * 数据库字段类型: varchar(64)
      */
-    @ApiModelProperty("用户id")
     private String userId;
 
     /**
@@ -216,7 +212,6 @@ public class RequestLog {
      * 数据库字段名: nick_name
      * 数据库字段类型: varchar(64)
      */
-    @ApiModelProperty("用户昵称")
     private String nickName;
 
     /**
@@ -226,7 +221,6 @@ public class RequestLog {
      * 数据库字段名: uri
      * 数据库字段类型: varchar(512)
      */
-    @ApiModelProperty("请求地址")
     private String uri;
 
     /**
@@ -236,7 +230,6 @@ public class RequestLog {
      * 数据库字段名: method
      * 数据库字段类型: varchar(16)
      */
-    @ApiModelProperty("http方法")
     private String method;
 
     /**
@@ -246,7 +239,6 @@ public class RequestLog {
      * 数据库字段名: request_header
      * 数据库字段类型: json
      */
-    @ApiModelProperty("请求头")
     private Map<String, Object> requestHeader;
 
     /**
@@ -256,7 +248,6 @@ public class RequestLog {
      * 数据库字段名: response_header
      * 数据库字段类型: json
      */
-    @ApiModelProperty("响应头")
     private Map<String, Object> responseHeader;
 
     /**
@@ -266,7 +257,6 @@ public class RequestLog {
      * 数据库字段名: request_param
      * 数据库字段类型: varchar(512)
      */
-    @ApiModelProperty("请求参数")
     private String requestParam;
 
     /**
@@ -276,7 +266,6 @@ public class RequestLog {
      * 数据库字段名: response_content
      * 数据库字段类型: varchar(512)
      */
-    @ApiModelProperty("响应内容")
     private String responseContent;
 
     /**
@@ -286,7 +275,6 @@ public class RequestLog {
      * 数据库字段名: exception_message
      * 数据库字段类型: varchar(255)
      */
-    @ApiModelProperty("异常消息")
     private String exceptionMessage;
 
     /**
@@ -296,7 +284,6 @@ public class RequestLog {
      * 数据库字段名: exception_detail
      * 数据库字段类型: varchar(1024)
      */
-    @ApiModelProperty("异常消息堆栈")
     private String exceptionDetail;
 
     /**
@@ -306,7 +293,6 @@ public class RequestLog {
      * 数据库字段名: os
      * 数据库字段类型: varchar(32)
      */
-    @ApiModelProperty("操作系统")
     private String os;
 
     /**
@@ -316,7 +302,6 @@ public class RequestLog {
      * 数据库字段名: browser
      * 数据库字段类型: varchar(32)
      */
-    @ApiModelProperty("浏览器")
     private String browser;
 
     /**
@@ -326,7 +311,6 @@ public class RequestLog {
      * 数据库字段名: remote_addr
      * 数据库字段类型: varchar(64)
      */
-    @ApiModelProperty("客户端ip")
     private String remoteAddr;
 
     /**
@@ -336,7 +320,6 @@ public class RequestLog {
      * 数据库字段名: request_time
      * 数据库字段类型: bigint(20)
      */
-    @ApiModelProperty("请求时间")
     private Long requestTime;
 
     /**
@@ -346,7 +329,6 @@ public class RequestLog {
      * 数据库字段名: cost
      * 数据库字段类型: int(11)
      */
-    @ApiModelProperty("耗时")
     private Integer cost;
 
     /**
@@ -356,7 +338,6 @@ public class RequestLog {
      * 数据库字段名: tenant_id
      * 数据库字段类型: varchar(64)
      */
-    @ApiModelProperty("租户id")
     private String tenantId;
 
     /**
@@ -366,7 +347,6 @@ public class RequestLog {
      * 数据库字段名: app_id
      * 数据库字段类型: varchar(64)
      */
-    @ApiModelProperty("应用id")
     private String appId;
 
     /**
@@ -376,7 +356,6 @@ public class RequestLog {
      * 数据库字段名: service_name
      * 数据库字段类型: varchar(32)
      */
-    @ApiModelProperty("微服务名")
     private String serviceName;
 
     @Override
