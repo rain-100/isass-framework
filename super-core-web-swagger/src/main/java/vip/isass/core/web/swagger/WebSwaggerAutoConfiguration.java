@@ -242,7 +242,6 @@ public class WebSwaggerAutoConfiguration {
                 .directModelSubstitute(ObjectNode.class, Map.class)
                 .directModelSubstitute(ArrayNode.class, List.class)
                 .directModelSubstitute(org.springframework.core.io.Resource.class, Void.class)
-                .directModelSubstitute(FeatureCollection.class, Map.class)
                 .select()
                 // .apis(RequestHandlerSelectors.any())
                 .apis(Predicates.or(
