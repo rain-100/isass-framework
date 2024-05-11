@@ -176,6 +176,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.xiaoymin.knife4j.spring.annotations.EnableKnife4j;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Lists;
+import org.geotools.data.simple.SimpleFeatureCollection;
+import org.geotools.feature.FeatureCollection;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.logging.LogLevel;
 import org.springframework.boot.logging.LoggingSystem;
@@ -197,6 +199,7 @@ import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.spring.web.readers.operation.CachingOperationNameGenerator;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 import vip.isass.core.entity.Json;
+import vip.isass.core.support.ExceptionCatcher;
 import vip.isass.core.web.security.authentication.jwt.JwtConst;
 
 import javax.annotation.Resource;
@@ -229,43 +232,53 @@ public class WebSwaggerAutoConfiguration {
     @Bean
     public Docket swaggerApi() {
         loggingSystem.setLogLevel(CachingOperationNameGenerator.class.getName(), LogLevel.WARN);
-        return new Docket(DocumentationType.SWAGGER_2)
-            .apiInfo(apiInfo())
-            .directModelSubstitute(LocalDateTime.class, Long.class)
-            .directModelSubstitute(LocalDate.class, Long.class)
-            .directModelSubstitute(LocalTime.class, Long.class)
-            .directModelSubstitute(Json.class, Map.class)
-            .directModelSubstitute(JsonNode.class, Map.class)
-            .directModelSubstitute(ObjectNode.class, Map.class)
-            .directModelSubstitute(ArrayNode.class, List.class)
-            .directModelSubstitute(org.springframework.core.io.Resource.class, Void.class)
-            .select()
-            // .apis(RequestHandlerSelectors.any())
-            .apis(Predicates.or(
-                RequestHandlerSelectors.withClassAnnotation(RestController.class),
-                RequestHandlerSelectors.withClassAnnotation(Controller.class)))
-            .apis(Predicates.not(RequestHandlerSelectors.basePackage("vip.isass.core.web.exception")))
-            .apis(Predicates.not(RequestHandlerSelectors.basePackage("vip.isass.core.web.swagger")))
-            .paths(PathSelectors.any())
-            .build()
-            .securityContexts(CollUtil.newArrayList(
-                SecurityContext.builder()
-                    .securityReferences(authorization())
-                    .build()
-            ))
-            .securitySchemes(CollUtil.newArrayList(
-                apiKey()
-            ));
+        Docket docket = new Docket(DocumentationType.SWAGGER_2)
+                .apiInfo(apiInfo())
+                .directModelSubstitute(LocalDateTime.class, Long.class)
+                .directModelSubstitute(LocalDate.class, Long.class)
+                .directModelSubstitute(LocalTime.class, Long.class)
+                .directModelSubstitute(Json.class, Map.class)
+                .directModelSubstitute(JsonNode.class, Map.class)
+                .directModelSubstitute(ObjectNode.class, Map.class)
+                .directModelSubstitute(ArrayNode.class, List.class)
+                .directModelSubstitute(org.springframework.core.io.Resource.class, Void.class)
+                .directModelSubstitute(FeatureCollection.class, Map.class)
+                .select()
+                // .apis(RequestHandlerSelectors.any())
+                .apis(Predicates.or(
+                        RequestHandlerSelectors.withClassAnnotation(RestController.class),
+                        RequestHandlerSelectors.withClassAnnotation(Controller.class)))
+                .apis(Predicates.not(RequestHandlerSelectors.basePackage("vip.isass.core.web.exception")))
+                .apis(Predicates.not(RequestHandlerSelectors.basePackage("vip.isass.core.web.swagger")))
+                .paths(PathSelectors.any())
+                .build()
+                .securityContexts(CollUtil.newArrayList(
+                        SecurityContext.builder()
+                                .securityReferences(authorization())
+                                .build()
+                ))
+                .securitySchemes(CollUtil.newArrayList(
+                        apiKey()
+                ));
+        ExceptionCatcher.consume(
+                docket,
+                d -> {
+                    d.directModelSubstitute(FeatureCollection.class, Map.class);
+                    d.directModelSubstitute(SimpleFeatureCollection.class, Map.class);
+                }
+
+        );
+        return docket;
     }
 
     private ApiInfo apiInfo() {
         return new ApiInfoBuilder()
-            .title(serviceName + " api文档")
-            .description(serviceName + " | " + serviceNameCn + " | api接口文档，文档内容根据代码自动生成。")
-            .termsOfServiceUrl("")
-            .contact(new Contact("rain", "https://www.isass.vip", "lizhirong100@163.com"))
-            .version(version)
-            .build();
+                .title(serviceName + " api文档")
+                .description(serviceName + " | " + serviceNameCn + " | api接口文档，文档内容根据代码自动生成。")
+                .termsOfServiceUrl("")
+                .contact(new Contact("rain", "https://www.isass.vip", "lizhirong100@163.com"))
+                .version(version)
+                .build();
     }
 
     private ApiKey apiKey() {
@@ -274,7 +287,7 @@ public class WebSwaggerAutoConfiguration {
 
     private List<SecurityReference> authorization() {
         AuthorizationScope[] authorizationScopes = new AuthorizationScope[]{
-            new AuthorizationScope("global", "jwt token")
+                new AuthorizationScope("global", "jwt token")
         };
         return Lists.newArrayList(new SecurityReference("jwt", authorizationScopes));
     }
