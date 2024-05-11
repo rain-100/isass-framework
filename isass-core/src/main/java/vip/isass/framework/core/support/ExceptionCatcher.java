@@ -182,7 +182,23 @@ import java.util.function.Supplier;
 @Slf4j
 public class ExceptionCatcher {
 
+    /**
+     * 泛型参数应该排在前面，调用方先传入泛型对象，后编写 consumer 时，ide 才能提示 consumer 的泛型类型
+     *
+     * @param consumer 消费逻辑
+     * @param t        消费对象
+     * @param <T>      消费对象泛型
+     */
+    @Deprecated
     public static <T> void consume(Consumer<T> consumer, T t) {
+        try {
+            consumer.accept(t);
+        } catch (Exception e) {
+            log.trace("ignore exception: ", e);
+        }
+    }
+
+    public static <T> void consume(T t, Consumer<T> consumer) {
         try {
             consumer.accept(t);
         } catch (Exception e) {

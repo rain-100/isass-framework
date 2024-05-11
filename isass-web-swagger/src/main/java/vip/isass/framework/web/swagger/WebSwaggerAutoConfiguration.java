@@ -175,6 +175,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.xiaoymin.knife4j.spring.annotations.EnableKnife4j;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Lists;
+import org.geotools.data.simple.SimpleFeatureCollection;
+import org.geotools.feature.FeatureCollection;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.logging.LogLevel;
 import org.springframework.boot.logging.LoggingSystem;
@@ -195,6 +197,7 @@ import springfox.documentation.spi.service.contexts.SecurityContext;
 import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.spring.web.readers.operation.CachingOperationNameGenerator;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
+import vip.isass.framework.core.support.ExceptionCatcher;
 import vip.isass.framework.security.core.authentication.jwt.JwtConst;
 
 import javax.annotation.Resource;
@@ -227,7 +230,7 @@ public class WebSwaggerAutoConfiguration {
     @Bean
     public Docket swaggerApi() {
         loggingSystem.setLogLevel(CachingOperationNameGenerator.class.getName(), LogLevel.WARN);
-        return new Docket(DocumentationType.SWAGGER_2)
+        Docket docket = new Docket(DocumentationType.SWAGGER_2)
                 .apiInfo(apiInfo())
                 .directModelSubstitute(LocalDateTime.class, Long.class)
                 .directModelSubstitute(LocalDate.class, Long.class)
@@ -253,6 +256,15 @@ public class WebSwaggerAutoConfiguration {
                 .securitySchemes(CollUtil.newArrayList(
                         apiKey()
                 ));
+        ExceptionCatcher.consume(
+                docket,
+                d -> {
+                    d.directModelSubstitute(FeatureCollection.class, Map.class);
+                    d.directModelSubstitute(SimpleFeatureCollection.class, Map.class);
+                }
+
+        );
+        return docket;
     }
 
     private ApiInfo apiInfo() {
