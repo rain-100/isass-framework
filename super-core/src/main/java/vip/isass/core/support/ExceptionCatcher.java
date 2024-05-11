@@ -194,7 +194,7 @@ public class ExceptionCatcher {
     public static <T> void consume(Consumer<T> consumer, T t) {
         try {
             consumer.accept(t);
-        } catch (Exception e) {
+        } catch (Throwable e) {
             log.trace("ignore exception: ", e);
         }
     }
@@ -202,7 +202,7 @@ public class ExceptionCatcher {
     public static <T> void consume(T t, Consumer<T> consumer) {
         try {
             consumer.accept(t);
-        } catch (Exception e) {
+        } catch (Throwable e) {
             log.trace("ignore exception: ", e);
         }
     }
@@ -210,7 +210,7 @@ public class ExceptionCatcher {
     public static <T, U> void biConsume(BiConsumer<T, U> consumer, T t, U u) {
         try {
             consumer.accept(t, u);
-        } catch (Exception e) {
+        } catch (Throwable e) {
             log.trace("ignore exception: ", e);
         }
     }
@@ -218,7 +218,7 @@ public class ExceptionCatcher {
     public static <T, R> R functionOrDefault(Function<T, R> function, T t, R defaultValue) {
         try {
             return function.apply(t);
-        } catch (Exception e) {
+        } catch (Throwable e) {
             log.trace("ignore exception: ", e);
         }
         return defaultValue;
@@ -235,7 +235,7 @@ public class ExceptionCatcher {
     public static <T> T supplierOrDefault(Supplier<T> supplier, T defaultValue) {
         try {
             return supplier.get();
-        } catch (Exception e) {
+        } catch (Throwable e) {
             log.trace("ignore exception: ", e);
         }
         return defaultValue;
@@ -244,7 +244,7 @@ public class ExceptionCatcher {
     public static <T> boolean isNull(Supplier<T> supplier) {
         try {
             return supplier.get() == null;
-        } catch (Exception e) {
+        } catch (Throwable e) {
             return true;
         }
     }
@@ -260,7 +260,7 @@ public class ExceptionCatcher {
     public static boolean isBlank(Supplier<String> supplier) {
         try {
             return StrUtil.isBlank(supplier.get());
-        } catch (Exception e) {
+        } catch (Throwable e) {
             return true;
         }
     }
