@@ -258,16 +258,16 @@ public interface IAnyJsonEntity {
                 formatedValue = DateUtil.format((LocalDateTime) fieldValue, entry.getValue());
             } else if (fieldValue instanceof LocalDate) {
                 formatedValue = DateUtil.format(
-                    LocalDateTimeUtil.toLocalDateTime((LocalDate) fieldValue),
-                    entry.getValue());
+                        LocalDateTimeUtil.toLocalDateTime((LocalDate) fieldValue),
+                        entry.getValue());
             } else if (fieldValue instanceof LocalTime) {
                 formatedValue = DateUtil.format(
-                    LocalDateTimeUtil.toLocalDateTime((LocalTime) fieldValue),
-                    entry.getValue());
-            } else if (fieldValue instanceof Long) {
+                        LocalDateTimeUtil.toLocalDateTime((LocalTime) fieldValue),
+                        entry.getValue());
+            } else if (fieldValue instanceof Number) {
                 formatedValue = DateUtil.format(
-                    LocalDateTimeUtil.toLocalDateTime((Long) fieldValue),
-                    entry.getValue());
+                        LocalDateTimeUtil.toLocalDateTime(((Number) fieldValue).longValue()),
+                        entry.getValue());
             } else if (fieldValue instanceof String) {
                 formatedValue = DateUtil.format(DateUtil.parse((String) fieldValue), entry.getValue());
             }
@@ -291,8 +291,8 @@ public interface IAnyJsonEntity {
             }
             try {
                 anyJsonMap.put(
-                    entry.getKey() + FORMATED_VALUE_SUFFIX,
-                    NumberUtil.round(fieldValue.toString(), entry.getValue()));
+                        entry.getKey() + FORMATED_VALUE_SUFFIX,
+                        NumberUtil.round(fieldValue.toString(), entry.getValue()));
             } catch (Exception e) {
                 log.warn("entity[{}] field[{}] can not be scale decimal", this.getClass(), entry.getKey(), e);
             }
