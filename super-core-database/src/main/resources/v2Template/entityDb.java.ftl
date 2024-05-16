@@ -56,7 +56,7 @@ import java.time.LocalTime;
  */
 @Getter
 @Setter
-@TableName("${table.name}")
+@TableName("${table.name?upper_case}")
 public class V2${entity}Db extends V2${entity} implements IV2DbEntity<V2${entity}, V2${entity}Db> {
 
 <#------------ END 定义类名 ------------>
