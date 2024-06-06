@@ -315,6 +315,7 @@
         <sqlite-jdbc.version>3.34.0</sqlite-jdbc.version>
         <fastjson.version>1.2.83</fastjson.version>
         <commons-compress.version>1.26.1</commons-compress.version>
+        <javassist.version>3.25.0-GA</javassist.version>
     </properties>
 
     <!-- maven功能说明 -->
@@ -861,6 +862,12 @@
                 <groupId>com.alibaba</groupId>
                 <artifactId>fastjson</artifactId>
                 <version>${fastjson.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.javassist</groupId>
+                <artifactId>javassist</artifactId>
+                <version>${javassist.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
