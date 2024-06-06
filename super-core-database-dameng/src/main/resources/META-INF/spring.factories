@@ -3,4 +3,4 @@ org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
 vip.isass.core.database.dameng.DatabaseDamengAutoConfiguration
 
 org.springframework.context.ApplicationContextInitializer=\
-com.suntek.mapserver.init.sourcecode.geotools.data.dameng.DamengDialectModifier
+vip.isass.core.database.dameng.sourcecode.DmdbResultSetMetaDataModifier
