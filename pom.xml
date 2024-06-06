@@ -189,6 +189,7 @@
 
     <modules>
         <module>isass-core</module>
+        <module>isass-spring-core</module>
         <module>isass-database-redis</module>
         <module>isass-database-core</module>
         <module>isass-database-orm-mybatisplus</module>
@@ -308,7 +309,7 @@
 
         <findbugs.version>3.0.1</findbugs.version>
 
-        <cglib.version>3.2.3</cglib.version>
+        <cglib.version>3.3.0</cglib.version>
 
         <wxjava.version>4.1.0</wxjava.version>
 
@@ -317,6 +318,11 @@
         <coordtransform4j.version>1.0.2</coordtransform4j.version>
         <sqlite-jdbc.version>3.34.0</sqlite-jdbc.version>
         <fastjson.version>1.2.83</fastjson.version>
+        <logback.version>1.2.3</logback.version>
+        <log4j-to-slf4j.version>2.12.1</log4j-to-slf4j.version>
+        <jul-to-slf4j.version>1.7.30</jul-to-slf4j.version>
+        <commons-compress.version>1.26.1</commons-compress.version>
+        <javassist.version>3.25.0-GA</javassist.version>
     </properties>
 
     <!-- maven功能说明 -->
@@ -377,6 +383,12 @@
             <dependency>
                 <groupId>vip.isass</groupId>
                 <artifactId>isass-core</artifactId>
+                <version>${super-core.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>vip.isass</groupId>
+                <artifactId>isass-spring-core</artifactId>
                 <version>${super-core.version}</version>
             </dependency>
 
@@ -767,6 +779,12 @@
             </dependency>
 
             <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-compress</artifactId>
+                <version>${commons-compress.version}</version>
+            </dependency>
+
+            <dependency>
                 <groupId>xerces</groupId>
                 <artifactId>xercesImpl</artifactId>
                 <version>${xerces.version}</version>
@@ -878,12 +896,36 @@
             </dependency>
 
             <dependency>
+                <groupId>org.javassist</groupId>
+                <artifactId>javassist</artifactId>
+                <version>${javassist.version}</version>
+            </dependency>
+
+            <dependency>
                 <groupId>com.sun</groupId>
                 <artifactId>tools</artifactId>
                 <version>${java.version}</version>
                 <scope>system</scope>
                 <optional>true</optional>
                 <systemPath>${env.JAVA_HOME}/lib/tools.jar</systemPath>
+            </dependency>
+
+            <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-classic</artifactId>
+                <version>${logback.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-to-slf4j</artifactId>
+                <version>${log4j-to-slf4j.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>jul-to-slf4j</artifactId>
+                <version>${jul-to-slf4j.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
