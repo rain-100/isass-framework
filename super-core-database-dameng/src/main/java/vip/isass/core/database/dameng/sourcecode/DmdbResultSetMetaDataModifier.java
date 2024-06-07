@@ -171,7 +171,6 @@ package vip.isass.core.database.dameng.sourcecode;
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtMethod;
-import javassist.CtNewMethod;
 import javassist.LoaderClassPath;
 import lombok.SneakyThrows;
 import org.springframework.context.ApplicationContextInitializer;
@@ -192,7 +191,7 @@ public class DmdbResultSetMetaDataModifier implements ApplicationContextInitiali
         ClassPool pool = ClassPool.getDefault();
         pool.appendClassPath(new LoaderClassPath(Thread.currentThread().getContextClassLoader()));
         CtClass ctClass = pool.get("dm.jdbc.driver.DmdbResultSetMetaData");
-        addDoGetColumnNameMethod(ctClass);
+        modifyDoGetColumnNameMethod(ctClass);
         ctClass.toClass();
         ctClass.detach();
     }
@@ -205,10 +204,9 @@ public class DmdbResultSetMetaDataModifier implements ApplicationContextInitiali
      * 旧的驱动，只拿 name，新的会拿 baseName，sql 都给了别名了，还拿 baseName
      */
     @SneakyThrows
-    private static void addDoGetColumnNameMethod(CtClass ctClass) {
-        String methodStr = " " +
-                "public String do_getColumnName(int var1) {" +
-                "     dm.jdbc.internal.desc.Column var2 = this.checkIndex($1);" +
+    private static void modifyDoGetColumnNameMethod(CtClass ctClass) {
+        String methodBody = "{" +
+                "    dm.jdbc.internal.desc.Column var2 = this.checkIndex($1);" +
                 "    String var3 = var2.name;" +
                 "    if (var3 == null) {" +
                 "        return var3;" +
@@ -218,8 +216,8 @@ public class DmdbResultSetMetaDataModifier implements ApplicationContextInitiali
                 "        return this.connection.isColumnNameLowerCase() ? var3.toLowerCase() : var3;" +
                 "    }" +
                 "}";
-        CtMethod method = CtNewMethod.make(methodStr, ctClass);
-        ctClass.addMethod(method);
+        CtMethod ctMethod = ctClass.getDeclaredMethod("do_getColumnName");
+        ctMethod.setBody(methodBody);
     }
 
 }
