@@ -208,7 +208,7 @@ public class DmdbResultSetMetaDataModifier implements ApplicationContextInitiali
     private static void addDoGetColumnNameMethod(CtClass ctClass) {
         String methodStr = " " +
                 "public String do_getColumnName(int var1) {" +
-                "    Column var2 = this.checkIndex($1);" +
+                "     dm.jdbc.internal.desc.Column var2 = this.checkIndex($1);" +
                 "    String var3 = var2.name;" +
                 "    if (var3 == null) {" +
                 "        return var3;" +
