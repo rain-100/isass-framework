@@ -168,9 +168,6 @@
 
 package vip.isass.framework.net.core.handler;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.context.annotation.Configuration;
-import vip.isass.framework.net.core.server.Server;
 import vip.isass.framework.net.core.message.Message;
 import vip.isass.framework.net.core.message.MessageCmd;
 
@@ -179,8 +176,8 @@ import vip.isass.framework.net.core.message.MessageCmd;
  *
  * @author rain
  */
-@Configuration
-@ConditionalOnBean(Server.class)
+// @Configuration
+// @ConditionalOnBean(Server.class)
 public class OnPingEventHandler implements OnMessageEventHandler<String> {
 
     @Override

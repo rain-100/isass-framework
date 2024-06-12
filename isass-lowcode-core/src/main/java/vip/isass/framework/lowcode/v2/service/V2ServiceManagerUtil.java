@@ -169,9 +169,8 @@
 package vip.isass.framework.lowcode.v2.service;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.Ordered;
 import vip.isass.framework.core.exception.UnimplementedMethodException;
-import vip.isass.framework.core.support.rpc.ServiceOrder;
+import vip.isass.framework.core.support.Ordered;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -191,16 +190,17 @@ public class V2ServiceManagerUtil {
             }
 
             // controller 的实现无需执行
-            if (service.getOrder() == ServiceOrder.CONTROLLER) {
-                continue;
-            }
+            // if (service.getOrder() == ServiceOrder.CONTROLLER) {
+            //     continue;
+            // }
 
             // 如果有本地服务，则无需执行 feign 服务
             if (service instanceof IV2LocalService) {
                 hasLocalService = true;
             }
 
-            if (hasLocalService && (service.getOrder() == ServiceOrder.FEIGN_SERVICE)) {
+            // if (hasLocalService && (service.getOrder() == ServiceOrder.FEIGN_SERVICE)) {
+            if (hasLocalService) {
                 continue;
             }
 

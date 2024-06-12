@@ -168,38 +168,31 @@
 
 package vip.isass.framework.security.core.authorization.role;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Primary;
-import org.springframework.stereotype.Service;
-
 import java.util.Collection;
 import java.util.List;
 
-@Primary
-@Service
 public class RoleCodeServiceManager implements IRoleCodeService {
 
-    @Autowired(required = false)
     private List<IRoleCodeService> services;
 
     @Override
     public Collection<String> findRoleCodesByUri(UriRoleCodesReq roleCodesReq) {
-        return apply(services, s -> s.findRoleCodesByUri(roleCodesReq));
+        return services.get(0).findRoleCodesByUri(roleCodesReq);
     }
 
     @Override
     public void setRoleCodesByUserIdCache(String userId, Collection<String> roleCodes) {
-        consume(services, s -> s.setRoleCodesByUserIdCache(userId, roleCodes));
+        services.get(0).setRoleCodesByUserIdCache(userId, roleCodes);
     }
 
     @Override
     public void setRoleCodesByUriCache(String uri, Collection<String> roleCodes) {
-        consume(services, s -> setRoleCodesByUriCache(uri, roleCodes));
+        services.get(0).setRoleCodesByUriCache(uri, roleCodes);
     }
 
     @Override
     public Collection<String> findRoleCodesByUserId(String userId) {
-        return apply(services, s -> s.findRoleCodesByUserId(userId));
+        return services.get(0).findRoleCodesByUserId(userId);
     }
 
 }

@@ -171,8 +171,6 @@ package vip.isass.framework.net.core.allocator;
 import cn.hutool.cache.Cache;
 import cn.hutool.cache.CacheUtil;
 import cn.hutool.core.lang.Assert;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import vip.isass.framework.net.core.server.NetServerInfo;
 import vip.isass.framework.net.core.server.allocator.INodeAllocatorService;
 
@@ -185,14 +183,14 @@ import java.util.stream.Collectors;
 /**
  * 节点分配器服务
  */
-@Service
+// @Service
 public class AllocatorService {
 
     private Map<String, INodeAllocatorService> nodeAllocatorServiceMap;
 
     private static final Cache<NetServerInfo, String> SERVER_INFO_CACHE = CacheUtil.newTimedCache(TimeUnit.DAYS.toMillis(1));
 
-    @Autowired
+    // @Autowired
     private void setNodeAllocatorService(List<INodeAllocatorService> nodeAllocatorServices) {
         nodeAllocatorServiceMap = nodeAllocatorServices.stream()
                 .collect(Collectors.toMap(s -> s.getNetProtocol().getServiceName(), Function.identity()));

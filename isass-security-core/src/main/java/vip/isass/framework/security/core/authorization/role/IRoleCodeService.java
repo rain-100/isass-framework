@@ -168,8 +168,6 @@
 
 package vip.isass.framework.security.core.authorization.role;
 
-import vip.isass.framework.core.support.rpc.ServiceCaller;
-
 import java.util.Collection;
 
 /**
@@ -177,7 +175,7 @@ import java.util.Collection;
  *
  * @author Rain
  */
-public interface IRoleCodeService extends ServiceCaller {
+public interface IRoleCodeService {
 
     Collection<String> findRoleCodesByUri(UriRoleCodesReq roleCodesReq);
 

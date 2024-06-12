@@ -172,7 +172,7 @@ import lombok.SneakyThrows;
 import org.springframework.stereotype.Component;
 import vip.isass.framework.lowcode.v2.criteria.V2WhereCondition;
 import vip.isass.framework.serialization.jackson.JsonUtil;
-import vip.isass.framework.core.support.Converter;
+import vip.isass.framework.core.converter.Converter;
 
 /**
  * 把 json 字符串类型的 v2查询条件，转换成 V2WhereCondition
@@ -183,13 +183,13 @@ import vip.isass.framework.core.support.Converter;
 public class StringToV2WhereConditionConverter implements Converter<String, V2WhereCondition> {
 
     @Override
-    public boolean supportSourceType(Object source) {
-        return source instanceof String;
+    public boolean supportSourceType(Object sourceObj) {
+        return sourceObj instanceof String;
     }
 
     @Override
-    public boolean supportTargetClass(Class clazz) {
-        return V2WhereCondition.class.isAssignableFrom(clazz);
+    public boolean supportTargetType(Class targetClass) {
+        return V2WhereCondition.class.isAssignableFrom(targetClass);
     }
 
     @Override

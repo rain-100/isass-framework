@@ -168,7 +168,7 @@
 
 package vip.isass.framework.lowcode.v2.entity;
 
-import vip.isass.framework.core.sequence.impl.LongSequence;
+import vip.isass.framework.core.sequence.SequenceSupport;
 
 import java.beans.Transient;
 import java.io.Serializable;
@@ -181,7 +181,7 @@ import java.time.LocalDateTime;
  * @author Rain
  */
 public interface IV2TraceEntity<UPK extends Serializable, E extends IV2TraceEntity<UPK, E>>
-    extends IV2Entity<E> {
+        extends IV2Entity<E> {
 
     String CREATE_USER_ID_PROPERTY_NAME = "createUserId";
     String CREATE_USER_ID_COLUMN_NAME = "create_user_id";
@@ -343,10 +343,10 @@ public interface IV2TraceEntity<UPK extends Serializable, E extends IV2TraceEnti
     @SuppressWarnings("unchecked")
     default E randomEntity() {
         // 在 isass 3.x.x 版本，用户id是字符串，现在只能写死类型强转
-        setCreateUserId((UPK) LongSequence.get().toString());
+        setCreateUserId((UPK) SequenceSupport.Long().next().toString());
         setCreateUserName(randomString());
         setCreateTime(randomLocalDateTime());
-        setModifyUserId((UPK) LongSequence.get().toString());
+        setModifyUserId((UPK) SequenceSupport.Long().next().toString());
         setModifyUserName(randomString());
         setModifyTime(randomLocalDateTime());
         return (E) this;

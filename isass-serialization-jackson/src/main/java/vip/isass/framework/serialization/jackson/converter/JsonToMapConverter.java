@@ -169,9 +169,8 @@
 package vip.isass.framework.serialization.jackson.converter;
 
 import cn.hutool.core.util.StrUtil;
-import org.springframework.stereotype.Component;
+import vip.isass.framework.core.converter.Converter;
 import vip.isass.framework.serialization.jackson.JsonUtil;
-import vip.isass.framework.core.support.Converter;
 
 import java.util.Map;
 
@@ -180,18 +179,7 @@ import java.util.Map;
  *
  * @author Rain
  */
-@Component
 public class JsonToMapConverter implements Converter<String, Map<String, Object>> {
-
-    @Override
-    public boolean supportSourceType(Object source) {
-        return source instanceof String;
-    }
-
-    @Override
-    public boolean supportTargetClass(Class clazz) {
-        return Map.class.isAssignableFrom(clazz);
-    }
 
     @Override
     public Map<String, Object> convert(String source) {

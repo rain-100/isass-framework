@@ -170,7 +170,7 @@ package vip.isass.framework.lowcode.v2.entity;
 
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
-import vip.isass.framework.core.sequence.impl.LongSequence;
+import vip.isass.framework.core.sequence.SequenceSupport;
 
 import java.io.Serializable;
 import java.lang.reflect.ParameterizedType;
@@ -215,14 +215,14 @@ public interface IV2PkEntity<PK extends Serializable, E extends IV2PkEntity<PK, 
     default PK randomPk() {
         Class<PK> pkClass = findPkClass();
         if (pkClass == String.class) {
-            return (PK) LongSequence.get().toString();
+            return (PK) SequenceSupport.Long().next().toString();
         } else if (pkClass == Long.class) {
-            return (PK) LongSequence.get();
+            return (PK) SequenceSupport.Long().next();
         } else if (pkClass == Integer.class) {
             return (PK) Integer.valueOf(RandomUtil.randomInt());
         } else {
             throw new UnsupportedOperationException(StrUtil.format(
-                "未支持自动生成类型为[{}]的主键", pkClass
+                    "未支持自动生成类型为[{}]的主键", pkClass
             ));
         }
     }

@@ -173,8 +173,6 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.context.annotation.Scope;
 import vip.isass.framework.net.netty.packet.Decoder;
 import vip.isass.framework.net.netty.packet.IPacket;
 import vip.isass.framework.net.netty.packet.TcpPacket;
@@ -187,8 +185,8 @@ import java.util.List;
  * @author Rain
  */
 @Slf4j
-@ConditionalOnMissingBean(Decoder.class)
-@Scope("prototype")
+// @ConditionalOnMissingBean(Decoder.class)
+// @Scope("prototype")
 public class IsassBinaryPacketDecoder extends Decoder {
 
     /**
@@ -216,7 +214,7 @@ public class IsassBinaryPacketDecoder extends Decoder {
 
         if (readableBytes > MAX_MESSAGE_BYTES) {
             throw new IllegalArgumentException(StrUtil.format(
-                "网络包的可读数据长度大于一个网络包(50m)长度：{}", readableBytes));
+                    "网络包的可读数据长度大于一个网络包(50m)长度：{}", readableBytes));
         }
 
         // 获取网络包的前4个字节，作为一个完整报文包的数据长度
@@ -249,10 +247,10 @@ public class IsassBinaryPacketDecoder extends Decoder {
     @SneakyThrows
     private IPacket createPackage(ChannelHandlerContext ctx, ByteBuf in, int fullLength) {
         TcpPacket packet = TcpPacket.builder()
-            .fullLength(fullLength)
-            .serializeMode(in.readInt())
-            .cmdLength(in.readInt())
-            .build();
+                .fullLength(fullLength)
+                .serializeMode(in.readInt())
+                .cmdLength(in.readInt())
+                .build();
 
         if (packet.getCmdLength() < 0) {
             throw new RuntimeException("tcp 报文的 cmdLength 不能为负数");

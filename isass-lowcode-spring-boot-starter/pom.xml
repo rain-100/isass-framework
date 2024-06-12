@@ -196,6 +196,11 @@
 
         <dependency>
             <groupId>vip.isass</groupId>
+            <artifactId>isass-spring-core</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>vip.isass</groupId>
             <artifactId>isass-web-springmvc</artifactId>
         </dependency>
 

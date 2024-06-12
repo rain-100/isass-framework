@@ -168,16 +168,12 @@
 
 package vip.isass.framework.net.core.handler;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
+import lombok.Value;
 import vip.isass.framework.net.core.message.Message;
-import vip.isass.framework.net.core.server.Server;
+import vip.isass.framework.net.core.message.MessageCmd;
 import vip.isass.framework.net.core.session.ISessionService;
 import vip.isass.framework.security.core.authentication.jwt.JwtInfo;
 import vip.isass.framework.security.core.authentication.jwt.JwtUtil;
-import vip.isass.framework.net.core.message.MessageCmd;
 
 import javax.annotation.Resource;
 
@@ -186,12 +182,9 @@ import javax.annotation.Resource;
  *
  * @author rain
  */
-@Order(-1)
-@Configuration
-@ConditionalOnBean(Server.class)
 public class OnLoginEventHandler implements OnMessageEventHandler<String> {
 
-    @Value("${security.jwt.secret:" + JwtUtil.DEFAULT_SECRET + "}")
+    // @Value("${security.jwt.secret:" + JwtUtil.DEFAULT_SECRET + "}")
     private String secret;
 
     @Resource

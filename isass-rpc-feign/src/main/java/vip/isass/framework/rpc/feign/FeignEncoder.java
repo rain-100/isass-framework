@@ -182,7 +182,7 @@ import org.springframework.cloud.openfeign.support.SpringEncoder;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ClassUtils;
-import vip.isass.framework.core.support.Converter;
+import vip.isass.framework.core.converter.Converter;
 import vip.isass.framework.core.support.LocalDateTimeUtil;
 
 import java.lang.reflect.Type;
@@ -219,13 +219,13 @@ public class FeignEncoder implements Encoder {
         converters = CollUtil.newArrayList(new Converter<Collection, String>() {
 
             @Override
-            public boolean supportSourceType(Object source) {
-                return ClassUtils.isAssignableValue(Collection.class, source);
+            public boolean supportSourceType(Object sourceObj) {
+                return ClassUtils.isAssignableValue(Collection.class, sourceObj);
             }
 
             @Override
-            public boolean supportTargetClass(Class clazz) {
-                return String.class.isAssignableFrom(clazz);
+            public boolean supportTargetType(Class targetClass) {
+                return String.class.isAssignableFrom(targetClass);
             }
 
             @Override
@@ -236,13 +236,13 @@ public class FeignEncoder implements Encoder {
         }, new Converter<Date, String>() {
 
             @Override
-            public boolean supportSourceType(Object source) {
-                return ClassUtils.isAssignableValue(Date.class, source);
+            public boolean supportSourceType(Object sourceObj) {
+                return ClassUtils.isAssignableValue(Date.class, sourceObj);
             }
 
             @Override
-            public boolean supportTargetClass(Class clazz) {
-                return String.class.isAssignableFrom(clazz);
+            public boolean supportTargetType(Class targetClass) {
+                return String.class.isAssignableFrom(targetClass);
             }
 
             @Override
@@ -252,13 +252,13 @@ public class FeignEncoder implements Encoder {
         }, new Converter<LocalDateTime, String>() {
 
             @Override
-            public boolean supportSourceType(Object source) {
-                return ClassUtils.isAssignableValue(LocalDateTime.class, source);
+            public boolean supportSourceType(Object sourceObj) {
+                return ClassUtils.isAssignableValue(LocalDateTime.class, sourceObj);
             }
 
             @Override
-            public boolean supportTargetClass(Class clazz) {
-                return String.class.isAssignableFrom(clazz);
+            public boolean supportTargetType(Class targetClass) {
+                return String.class.isAssignableFrom(targetClass);
             }
 
             @Override

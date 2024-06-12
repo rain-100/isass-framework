@@ -168,7 +168,7 @@
 
 package vip.isass.framework.core.sequence;
 
-
+import vip.isass.framework.core.support.Ordered;
 import vip.isass.framework.core.support.Support;
 
 /**
@@ -176,7 +176,7 @@ import vip.isass.framework.core.support.Support;
  *
  * @author Rain
  */
-public interface Sequence<T> extends Support {
+public interface Sequence<T> extends Support, Ordered {
 
     /**
      * @return 序列

@@ -168,6 +168,7 @@
 
 package vip.isass.framework.mq.ons.producer;
 
+import cn.hutool.core.date.SystemClock;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
 import com.aliyun.openservices.ons.api.Message;
@@ -186,7 +187,6 @@ import vip.isass.framework.mq.core.MqMessageContext;
 import vip.isass.framework.mq.core.producer.MqProducer;
 import vip.isass.framework.mq.ons.config.ProducerProperties;
 import vip.isass.framework.serialization.jackson.JsonUtil;
-import vip.isass.framework.core.support.SystemClock;
 
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;

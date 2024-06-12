@@ -168,10 +168,10 @@
 
 package vip.isass.framework.mq.core;
 
+import cn.hutool.core.date.SystemClock;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import vip.isass.framework.core.support.SystemClock;
 
 import java.util.Map;
 
@@ -208,18 +208,18 @@ public class MqMessage implements MqMessageContext {
     @Override
     public String toString() {
         return "MqMessage{" +
-            "manufacturer='" + manufacturer + '\'' +
-            ", messageType=" + messageType +
-            ", topic='" + topic + '\'' +
-            ", tag='" + tag + '\'' +
-            ", key='" + key + '\'' +
-            ", shardingKey='" + shardingKey + '\'' +
-            ", consumeAtMills=" + consumeAtMills +
-            ", delayMills=" + delayMills +
-            ", payload=" + payload +
-            ", properties=" + properties +
-            ", createTime=" + createTime +
-            '}';
+                "manufacturer='" + manufacturer + '\'' +
+                ", messageType=" + messageType +
+                ", topic='" + topic + '\'' +
+                ", tag='" + tag + '\'' +
+                ", key='" + key + '\'' +
+                ", shardingKey='" + shardingKey + '\'' +
+                ", consumeAtMills=" + consumeAtMills +
+                ", delayMills=" + delayMills +
+                ", payload=" + payload +
+                ", properties=" + properties +
+                ", createTime=" + createTime +
+                '}';
     }
 
 }

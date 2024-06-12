@@ -168,8 +168,7 @@
 
 package vip.isass.framework.core.converter.datatime;
 
-import org.springframework.stereotype.Component;
-import vip.isass.framework.core.support.Converter;
+import vip.isass.framework.core.converter.Converter;
 import vip.isass.framework.core.support.LocalDateTimeUtil;
 
 import java.time.LocalDate;
@@ -179,26 +178,15 @@ import java.time.LocalDate;
  *
  * @author Rain
  */
-@Component
 public class StringToLocalDateConverter implements Converter<String, LocalDate> {
 
     @Override
-    public boolean supportSourceType(Object source) {
-        return source instanceof String;
-    }
-
-    @Override
-    public boolean supportTargetClass(Class clazz) {
-        return LocalDate.class.isAssignableFrom(clazz);
-    }
-
-    @Override
     public LocalDate convert(String source) {
-        return convert0(source);
+        return doConvert(source);
     }
 
-    public static LocalDate convert0(String source) {
-        Long timestamp = StringDateToMillisConverter.convert0(source);
+    public static LocalDate doConvert(String source) {
+        Long timestamp = StringToTimestampConverter.doConvert(source);
         return timestamp == null ? null : LocalDateTimeUtil.epochMilliToLocalDate(timestamp);
     }
 

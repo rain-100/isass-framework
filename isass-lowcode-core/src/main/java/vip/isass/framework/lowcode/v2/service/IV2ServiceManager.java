@@ -172,9 +172,9 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Primary;
+import vip.isass.framework.core.support.Ordered;
 import vip.isass.framework.lowcode.v2.criteria.IV2Criteria;
 import vip.isass.framework.lowcode.v2.entity.IV2Entity;
-import vip.isass.framework.core.support.rpc.ServiceOrder;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -184,16 +184,16 @@ import java.util.function.Function;
 
 @Primary
 public interface IV2ServiceManager<
-    E extends IV2Entity<E>,
-    C extends IV2Criteria<E, C>,
-    S extends IV2Service<E, C>
-    > extends IV2Service<E, C> {
+        E extends IV2Entity<E>,
+        C extends IV2Criteria<E, C>,
+        S extends IV2Service<E, C>
+        > extends IV2Service<E, C> {
 
     Logger LOGGER = LoggerFactory.getLogger(IV2ServiceManager.class);
 
     @Override
     default int getOrder() {
-        return ServiceOrder.SERVER_MANAGER;
+        return Ordered.HIGHEST_PRECEDENCE;
     }
 
     List<S> getServices();

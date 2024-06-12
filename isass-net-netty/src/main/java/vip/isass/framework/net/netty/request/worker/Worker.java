@@ -173,13 +173,7 @@ package vip.isass.framework.net.netty.request.worker;
  */
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
-import vip.isass.framework.net.netty.request.worker.event.WorkCompletedEvent;
-import vip.isass.framework.net.netty.request.worker.event.WorkExceptionEvent;
-import vip.isass.framework.net.netty.request.worker.event.WorkStartEvent;
 import vip.isass.framework.net.netty.request.Request;
-
-import javax.annotation.Resource;
 
 @Slf4j
 public abstract class Worker extends Thread {
@@ -191,8 +185,8 @@ public abstract class Worker extends Thread {
 
     private boolean isStarted = false;
 
-    @Resource
-    private ApplicationEventPublisher applicationEventPublisher;
+    // @Resource
+    // private ApplicationEventPublisher applicationEventPublisher;
 
     protected void controlFlow() {
         while (isStarted) {
@@ -221,12 +215,12 @@ public abstract class Worker extends Thread {
 
     protected void doWorkWrapper(Request request) {
         try {
-            applicationEventPublisher.publishEvent(new WorkStartEvent().setRequest(request).setWorkCount(++workCount));
+            // applicationEventPublisher.publishEvent(new WorkStartEvent().setRequest(request).setWorkCount(++workCount));
             doWork(request);
         } catch (Exception e) {
-            applicationEventPublisher.publishEvent(new WorkExceptionEvent().setRequest(request).setException(e));
+            // applicationEventPublisher.publishEvent(new WorkExceptionEvent().setRequest(request).setException(e));
         } finally {
-            applicationEventPublisher.publishEvent(new WorkCompletedEvent().setRequest(request));
+            // applicationEventPublisher.publishEvent(new WorkCompletedEvent().setRequest(request));
         }
     }
 

@@ -172,8 +172,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
 
@@ -184,8 +182,7 @@ import java.util.List;
 @Setter
 @ToString
 @Accessors(chain = true)
-@Configuration
-@ConfigurationProperties("mq.kafka011")
+// @ConfigurationProperties("mq.kafka011")
 public class Kafka011Configuration {
 
     private boolean enable;

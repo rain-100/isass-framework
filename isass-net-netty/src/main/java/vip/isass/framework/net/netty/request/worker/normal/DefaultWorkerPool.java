@@ -170,10 +170,8 @@ package vip.isass.framework.net.netty.request.worker.normal;
 
 import cn.hutool.core.util.RandomUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import vip.isass.framework.net.netty.request.Request;
 import vip.isass.framework.net.netty.request.worker.WorkerPool;
-import vip.isass.framework.core.support.SpringContextUtil;
 
 /**
  * 管理业务逻辑工人线程线程池
@@ -182,7 +180,6 @@ import vip.isass.framework.core.support.SpringContextUtil;
  * @author Rain
  */
 @Slf4j
-@ConditionalOnMissingBean(WorkerPool.class)
 public class DefaultWorkerPool implements WorkerPool {
 
     /**
@@ -207,7 +204,7 @@ public class DefaultWorkerPool implements WorkerPool {
         workers = new DefaultWorker[this.minWorkerCount];
 
         for (int i = 0; i < workers.length; i++) {
-            DefaultWorker worker = SpringContextUtil.getBean(DefaultWorker.class);
+            DefaultWorker worker = new DefaultWorker();
             worker.setName("Worker-" + i);
             workers[i] = worker;
             worker.start();

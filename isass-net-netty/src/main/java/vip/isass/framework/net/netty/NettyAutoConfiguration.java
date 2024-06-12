@@ -168,16 +168,11 @@
 
 package vip.isass.framework.net.netty;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.scheduling.annotation.EnableScheduling;
-
 /**
  * @author Rain
  */
-@ComponentScan
-@Configuration
-@ConditionalOnProperty(name = {"kernel.net.enabled", "kernel.net.netty.enabled"}, havingValue = "true", matchIfMissing = false)
+// @ComponentScan
+// @Configuration
+// @ConditionalOnProperty(name = {"kernel.net.enabled", "kernel.net.netty.enabled"}, havingValue = "true", matchIfMissing = false)
 public class NettyAutoConfiguration {
 }

@@ -173,12 +173,12 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import vip.isass.framework.core.exception.AbsentException;
+import vip.isass.framework.core.support.Ordered;
 import vip.isass.framework.lowcode.v2.criteria.IV2Criteria;
 import vip.isass.framework.lowcode.v2.criteria.type.IV2WhereConditionCriteria;
 import vip.isass.framework.lowcode.v2.entity.IV2Entity;
 import vip.isass.framework.lowcode.v2.entity.IV2IdEntity;
 import vip.isass.framework.lowcode.v2.repository.IV2Repository;
-import vip.isass.framework.core.support.rpc.ServiceOrder;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -188,9 +188,9 @@ import java.util.List;
  * @author rain
  */
 public interface IV2LocalService<
-    E extends IV2Entity<E>,
-    C extends IV2Criteria<E, C>
-    > extends IV2Service<E, C> {
+        E extends IV2Entity<E>,
+        C extends IV2Criteria<E, C>
+        > extends IV2Service<E, C> {
 
     Logger LOGGER = LoggerFactory.getLogger(IV2LocalService.class);
 
@@ -200,7 +200,7 @@ public interface IV2LocalService<
 
     @Override
     default int getOrder() {
-        return ServiceOrder.LOCAL_SERVICE;
+        return Ordered.HIGHER_PRECEDENCE;
     }
 
     // region 增

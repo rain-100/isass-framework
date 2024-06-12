@@ -168,9 +168,9 @@
 
 package vip.isass.framework.lowcode.v2.entity;
 
+import cn.hutool.core.date.SystemClock;
 import cn.hutool.core.util.RandomUtil;
 import vip.isass.framework.core.support.LocalDateTimeUtil;
-import vip.isass.framework.core.support.SystemClock;
 
 import java.io.Serializable;
 import java.math.BigDecimal;

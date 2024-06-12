@@ -181,8 +181,6 @@ import com.aliyun.openservices.ons.api.PropertyKeyConst;
 import com.aliyun.openservices.ons.api.PropertyValueConst;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import vip.isass.framework.mq.core.FailStrategy;
 import vip.isass.framework.mq.core.MessageType;
 import vip.isass.framework.mq.core.MqMessage;
@@ -205,13 +203,11 @@ import java.util.Properties;
  * @author Rain
  */
 @Slf4j
-@Component
 public class OnsConsumerManager implements MqConsumerManager {
 
     @Resource
     private OnsConfiguration onsConfiguration;
 
-    @Autowired(required = false)
     private List<IMqConsumer> mqConsumers;
 
     private List<Consumer> consumers;

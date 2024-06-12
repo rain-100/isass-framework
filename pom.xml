@@ -1080,6 +1080,7 @@
                     <allowTimestampedSnapshots>true</allowTimestampedSnapshots>
                     <pushChanges>false</pushChanges>
                     <preparationGoals>clean validate</preparationGoals>
+                    <scmCommentPrefix>chore: </scmCommentPrefix>
                 </configuration>
             </plugin>
         </plugins>

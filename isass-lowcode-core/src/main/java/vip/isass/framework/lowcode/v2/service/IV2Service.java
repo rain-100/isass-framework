@@ -169,7 +169,7 @@
 package vip.isass.framework.lowcode.v2.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import org.springframework.core.Ordered;
+import vip.isass.framework.core.support.Ordered;
 import vip.isass.framework.lowcode.v2.criteria.IV2Criteria;
 import vip.isass.framework.lowcode.v2.entity.IV2Entity;
 

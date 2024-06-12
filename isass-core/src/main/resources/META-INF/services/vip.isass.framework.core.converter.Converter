@@ -1,0 +1,12 @@
+vip.isass.framework.core.converter.clazz.StringToClassConverter
+vip.isass.framework.core.converter.datatime.DateToTimestampStringConverter
+vip.isass.framework.core.converter.datatime.LocalDateTimeToDataTimeStringConverter
+vip.isass.framework.core.converter.datatime.LocalDateTimeToDateStringConverter
+vip.isass.framework.core.converter.datatime.LocalDateTimeToTimestampStringConverter
+vip.isass.framework.core.converter.datatime.LocalDateToDateStringConverter
+vip.isass.framework.core.converter.datatime.LocalTimeToTimeStringConverter
+vip.isass.framework.core.converter.datatime.StringToLocalDateConverter
+vip.isass.framework.core.converter.datatime.StringToLocalDateTimeConverter
+vip.isass.framework.core.converter.datatime.StringToLocalTimeConverter
+vip.isass.framework.core.converter.datatime.StringToTimestampConverter
+vip.isass.framework.core.converter.Iterator.CollectionToQueryStringConverter

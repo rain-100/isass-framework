@@ -169,12 +169,11 @@
 package vip.isass.framework.net.netty.request.worker;
 
 import vip.isass.framework.net.netty.request.Request;
-import org.springframework.beans.factory.InitializingBean;
 
 /**
  * @author hone 2018/5/8
  */
-public interface WorkerPool extends InitializingBean {
+public interface WorkerPool {
 
     /**
      * 将一个网络请求，放到请求处理器的队列中，等待空闲业务线程处理
@@ -191,7 +190,6 @@ public interface WorkerPool extends InitializingBean {
      */
     WorkerPool init();
 
-    @Override
     default void afterPropertiesSet() {
         init();
     }

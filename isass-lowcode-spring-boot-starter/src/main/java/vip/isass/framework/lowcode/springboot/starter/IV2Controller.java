@@ -172,11 +172,11 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.*;
+import vip.isass.framework.core.support.Ordered;
 import vip.isass.framework.lowcode.v2.criteria.IV2Criteria;
 import vip.isass.framework.lowcode.v2.entity.IV2Entity;
 import vip.isass.framework.lowcode.v2.service.IV2LocalService;
 import vip.isass.framework.lowcode.v2.service.IV2Service;
-import vip.isass.framework.core.support.rpc.ServiceOrder;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -189,7 +189,7 @@ public interface IV2Controller<
 
     @Override
     default int getOrder() {
-        return ServiceOrder.CONTROLLER;
+        return Ordered.LOWEST_PRECEDENCE;
     }
 
     IV2LocalService<E, C> getService();

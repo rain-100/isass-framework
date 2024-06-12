@@ -171,7 +171,7 @@ package vip.isass.framework.lowcode.v1.entity;
 import cn.hutool.core.util.StrUtil;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
-import vip.isass.framework.core.sequence.impl.LongSequence;
+import vip.isass.framework.core.sequence.SequenceSupport;
 import vip.isass.framework.core.sequence.impl.UuidSequence;
 
 import java.beans.Transient;
@@ -231,7 +231,7 @@ public interface IdEntity<PK extends Serializable, E extends IdEntity<PK, E>> ex
     static void main(String[] args) {
         System.out.println(Long.MIN_VALUE);
         System.out.println(Long.MAX_VALUE);
-        System.out.println(StrUtil.fillBefore(LongSequence.get() + "", '0', 19));
+        System.out.println(StrUtil.fillBefore(SequenceSupport.Long().next() + "", '0', 19));
         System.out.println(UuidSequence.get());
     }
 

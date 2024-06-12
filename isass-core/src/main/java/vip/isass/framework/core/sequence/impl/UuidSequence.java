@@ -197,4 +197,8 @@ public class UuidSequence implements Sequence<String> {
         return clazz == String.class;
     }
 
+    @Override
+    public int getOrder() {
+        return 100;
+    }
 }

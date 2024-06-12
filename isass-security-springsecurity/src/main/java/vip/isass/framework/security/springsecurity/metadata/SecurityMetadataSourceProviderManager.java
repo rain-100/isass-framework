@@ -169,7 +169,7 @@
 package vip.isass.framework.security.springsecurity.metadata;
 
 import org.springframework.stereotype.Service;
-import vip.isass.framework.core.support.FunctionUtil;
+import vip.isass.framework.core.function.FunctionUtil;
 import vip.isass.framework.security.core.authorization.permiturl.UrlAccessSecurityStrategy;
 import vip.isass.framework.security.springsecurity.config.WebSecurityConfig;
 

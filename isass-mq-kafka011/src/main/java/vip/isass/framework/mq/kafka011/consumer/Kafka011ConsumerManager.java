@@ -178,11 +178,14 @@ import lombok.Setter;
 import lombok.SneakyThrows;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.clients.consumer.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import vip.isass.framework.mq.core.MessageType;
+import org.apache.kafka.clients.consumer.Consumer;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
+import vip.isass.framework.core.function.FunctionUtil;
 import vip.isass.framework.mq.core.FailStrategy;
+import vip.isass.framework.mq.core.MessageType;
 import vip.isass.framework.mq.core.MqMessage;
 import vip.isass.framework.mq.core.MqMessageContext;
 import vip.isass.framework.mq.core.consumer.IMqConsumer;
@@ -192,7 +195,6 @@ import vip.isass.framework.mq.kafka011.config.InstanceConfiguration;
 import vip.isass.framework.mq.kafka011.config.Kafka011ConfigUtil;
 import vip.isass.framework.mq.kafka011.config.Kafka011Configuration;
 import vip.isass.framework.serialization.jackson.JsonUtil;
-import vip.isass.framework.core.support.FunctionUtil;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
@@ -210,7 +212,6 @@ import java.util.stream.Collectors;
 @Getter
 @Setter
 @Accessors(chain = true)
-@Component
 public class Kafka011ConsumerManager implements MqConsumerManager {
 
     private ExecutorService executorService;
@@ -218,7 +219,6 @@ public class Kafka011ConsumerManager implements MqConsumerManager {
     @Resource
     private Kafka011Configuration kafka011Configuration;
 
-    @Autowired(required = false)
     private List<IMqConsumer> mqConsumers;
 
     private List<Consumer<String, String>> consumers;
@@ -235,41 +235,41 @@ public class Kafka011ConsumerManager implements MqConsumerManager {
         }
         consumers = new ArrayList<>(mqConsumers.size());
         List<Runnable> tasks = mqConsumers.stream()
-            .filter(mc -> StrUtil.isBlank(mc.getManufacturer()) || Kafka011Const.MANUFACTURER.equals(mc.getManufacturer()))
-            .map(mc -> (Runnable) () -> {
-                Assert.notBlank(mc.getConsumerId());
-                log.info("开始订阅事件,consumerId[{}]", mc.getConsumerId());
+                .filter(mc -> StrUtil.isBlank(mc.getManufacturer()) || Kafka011Const.MANUFACTURER.equals(mc.getManufacturer()))
+                .map(mc -> (Runnable) () -> {
+                    Assert.notBlank(mc.getConsumerId());
+                    log.info("开始订阅事件,consumerId[{}]", mc.getConsumerId());
 
-                String instance = MapUtil.getStr(mc.getProperties(), Kafka011Const.INSTANCE);
-                InstanceConfiguration instanceConfiguration = Kafka011ConfigUtil.selectInstance(kafka011Configuration, instance);
+                    String instance = MapUtil.getStr(mc.getProperties(), Kafka011Const.INSTANCE);
+                    InstanceConfiguration instanceConfiguration = Kafka011ConfigUtil.selectInstance(kafka011Configuration, instance);
 
-                Properties properties = createProperties(mc, instanceConfiguration);
-                KafkaConsumer<String, String> consumer = new KafkaConsumer<>(properties);
-                consumer.subscribe(Collections.singletonList(parseTopic(mc, instanceConfiguration)));
-                consumers.add(consumer);
+                    Properties properties = createProperties(mc, instanceConfiguration);
+                    KafkaConsumer<String, String> consumer = new KafkaConsumer<>(properties);
+                    consumer.subscribe(Collections.singletonList(parseTopic(mc, instanceConfiguration)));
+                    consumers.add(consumer);
 
-                //noinspection InfiniteLoopStatement
-                while (true) {
-                    ConsumerRecords<String, String> records = consumer.poll(100);
-                    for (ConsumerRecord<String, String> record : records) {
-                        log.debug("收到mq消息：{}", record);
-                        Object payload;
-                        try {
-                            payload = getPayload(mc, record);
-                        } catch (Exception e) {
-                            log.error("反序列化mq消息错误，此消息将标记为消费成功：{}，", e.getMessage(), e);
-                            continue;
+                    //noinspection InfiniteLoopStatement
+                    while (true) {
+                        ConsumerRecords<String, String> records = consumer.poll(100);
+                        for (ConsumerRecord<String, String> record : records) {
+                            log.debug("收到mq消息：{}", record);
+                            Object payload;
+                            try {
+                                payload = getPayload(mc, record);
+                            } catch (Exception e) {
+                                log.error("反序列化mq消息错误，此消息将标记为消费成功：{}，", e.getMessage(), e);
+                                continue;
+                            }
+                            MqMessageContext mqMessageContext = new MqMessage()
+                                    .setTopic(record.topic())
+                                    .setKey(record.key())
+                                    .setMessageType(mc.getMessageType())
+                                    .setPayload(payload);
+                            doConsume(mc, mqMessageContext);
                         }
-                        MqMessageContext mqMessageContext = new MqMessage()
-                            .setTopic(record.topic())
-                            .setKey(record.key())
-                            .setMessageType(mc.getMessageType())
-                            .setPayload(payload);
-                        doConsume(mc, mqMessageContext);
                     }
-                }
-            })
-            .collect(Collectors.toList());
+                })
+                .collect(Collectors.toList());
         if (tasks.isEmpty()) {
             return;
         }

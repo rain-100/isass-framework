@@ -171,7 +171,6 @@ package vip.isass.framework.mq.kafka011.producer;
 import cn.hutool.core.collection.CollUtil;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Configuration;
 import vip.isass.framework.mq.kafka011.config.InstanceConfiguration;
 import vip.isass.framework.mq.kafka011.config.Kafka011Configuration;
 import vip.isass.framework.mq.kafka011.config.ProducerConfiguration;
@@ -187,7 +186,6 @@ import java.util.Objects;
  * @author Rain
  */
 @Slf4j
-@Configuration
 public class Kafka011ProducerAutoConfiguration {
 
     @Resource
@@ -205,9 +203,9 @@ public class Kafka011ProducerAutoConfiguration {
         for (InstanceConfiguration instanceConfiguration : kafka011Configuration.getInstances()) {
             for (ProducerConfiguration producerConfiguration : instanceConfiguration.getProducers()) {
                 producers.add(new Kafka011Producer()
-                    .setInstanceConfiguration(instanceConfiguration)
-                    .setProducerConfiguration(producerConfiguration)
-                    .init());
+                        .setInstanceConfiguration(instanceConfiguration)
+                        .setProducerConfiguration(producerConfiguration)
+                        .init());
             }
         }
     }
@@ -218,8 +216,8 @@ public class Kafka011ProducerAutoConfiguration {
             return;
         }
         producers.stream()
-            .filter(Objects::nonNull)
-            .forEach(Kafka011Producer::destroy);
+                .filter(Objects::nonNull)
+                .forEach(Kafka011Producer::destroy);
     }
 
 }

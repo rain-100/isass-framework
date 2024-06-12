@@ -168,9 +168,6 @@
 
 package vip.isass.framework.net.core.handler.manager;
 
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import vip.isass.framework.net.core.handler.IMessageEventRegister;
 import vip.isass.framework.net.core.handler.OnMessageEventHandler;
 
@@ -178,20 +175,16 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * 消息事件处理注册管理
+ * todo 消息事件处理注册管理
  *
  * @author rain
  */
-@Component
-public class MessageEventRegisterManager implements InitializingBean {
+public class MessageEventRegisterManager {
 
-    @Autowired(required = false)
     private List<IMessageEventRegister> messageEventRegisters;
 
-    @Autowired(required = false)
     private List<OnMessageEventHandler<?>> onMessageEventHandlers;
 
-    @Override
     public void afterPropertiesSet() {
         register();
     }
@@ -202,11 +195,11 @@ public class MessageEventRegisterManager implements InitializingBean {
         }
 
         messageEventRegisters.forEach(r -> r.listening(
-            onMessageEventHandlers
-                .stream()
-                .map(OnMessageEventHandler::getCmd)
-                .collect(Collectors.toSet())
-            )
+                        onMessageEventHandlers
+                                .stream()
+                                .map(OnMessageEventHandler::getCmd)
+                                .collect(Collectors.toSet())
+                )
         );
     }
 

@@ -178,9 +178,6 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Configuration;
 import vip.isass.framework.net.core.server.NetProtocol;
 import vip.isass.framework.net.core.server.Server;
 
@@ -193,14 +190,14 @@ import java.util.concurrent.Executors;
  * @author Rain
  */
 @Slf4j
-@Configuration
-@ConditionalOnProperty(prefix = "core-net.tcp", name = "enabled", havingValue = "true")
+// @Configuration
+// @ConditionalOnProperty(prefix = "core-net.tcp", name = "enabled", havingValue = "true")
 public class TcpServer implements Server {
 
     @Resource
     private TcpChannelInitializerHandler channelInitializerHandler;
 
-    @Value("${core-net.tcp.port:20002}")
+    // @Value("${core-net.tcp.port:20002}")
     private int port;
 
     private ExecutorService executorService;

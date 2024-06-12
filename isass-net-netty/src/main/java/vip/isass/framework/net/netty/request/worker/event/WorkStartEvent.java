@@ -168,11 +168,10 @@
 
 package vip.isass.framework.net.netty.request.worker.event;
 
-import vip.isass.framework.net.netty.request.Request;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import org.springframework.context.ApplicationEvent;
+import vip.isass.framework.net.netty.request.Request;
 
 /**
  * @author hone
@@ -181,14 +180,13 @@ import org.springframework.context.ApplicationEvent;
 @Getter
 @Setter
 @Accessors(chain = true)
-public class WorkStartEvent extends ApplicationEvent {
+public class WorkStartEvent {
 
     private Request request;
 
     private int workCount;
 
     public WorkStartEvent() {
-        super(Boolean.TRUE);
     }
 
 }

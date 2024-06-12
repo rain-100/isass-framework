@@ -174,7 +174,7 @@ import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.StrUtil;
 import feign.QueryMapEncoder;
 import feign.codec.EncodeException;
-import vip.isass.framework.core.converter.CollectionToQueryStringConverter;
+import vip.isass.framework.core.converter.Iterator.CollectionToQueryStringConverter;
 import vip.isass.framework.serialization.jackson.JsonUtil;
 import vip.isass.framework.lowcode.v2.criteria.IV2Criteria;
 import vip.isass.framework.lowcode.v2.criteria.impl.type.V2Condition;
@@ -226,7 +226,7 @@ public class IsassV2QueryMapEncoder implements QueryMapEncoder {
 
             String convert = null;
             if (value instanceof Collection) {
-                convert = CollectionToQueryStringConverter.convert0((Collection) value);
+                convert = CollectionToQueryStringConverter.doConvert((Collection) value);
             }
             String s = StrUtil.nullToDefault(convert, value.toString());
             if (s.length() != 0) {

@@ -176,8 +176,6 @@ import io.netty.handler.stream.ChunkedWriteHandler;
 import io.netty.handler.timeout.IdleStateHandler;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import vip.isass.framework.net.netty.channel.ChannelEventHandler;
 import vip.isass.framework.net.netty.channel.ChannelInitializerHandler;
 
@@ -190,14 +188,14 @@ import java.util.concurrent.TimeUnit;
  * @author Rain
  */
 @Slf4j
-@ConditionalOnMissingBean(ChannelInitializerHandler.class)
+// @ConditionalOnMissingBean(ChannelInitializerHandler.class)
 public class WebsocketChannelInitializerHandler extends ChannelInitializerHandler {
 
     /**
      * 默认4分钟
      */
     @Getter
-    @Value("${server.websocket.timeout:240000}")
+    // @Value("${server.websocket.timeout:240000}")
     private int timeout;
 
     @Resource
@@ -209,8 +207,8 @@ public class WebsocketChannelInitializerHandler extends ChannelInitializerHandle
 
         // 设置tcp链路空闲超时时间
         pipeline.addLast(
-            "idleStateHandler",
-            new IdleStateHandler(0, 0, timeout, TimeUnit.MILLISECONDS));
+                "idleStateHandler",
+                new IdleStateHandler(0, 0, timeout, TimeUnit.MILLISECONDS));
 
         pipeline.addLast("http-codec", new HttpServerCodec());
         pipeline.addLast("aggregator", new HttpObjectAggregator(65536));

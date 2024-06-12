@@ -175,10 +175,9 @@ import com.baomidou.mybatisplus.core.conditions.AbstractWrapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.SneakyThrows;
-import vip.isass.framework.serialization.jackson.JsonUtil;
-import vip.isass.framework.core.support.SpringContextUtil;
 import vip.isass.framework.lowcode.v2.criteria.V2WhereCondition;
 import vip.isass.framework.lowcode.v2.entity.IV2Entity;
+import vip.isass.framework.serialization.jackson.JsonUtil;
 
 import javax.sql.DataSource;
 import java.util.ArrayList;
@@ -393,7 +392,8 @@ public class V2MybatisPlusWhereCondition {
 
     @SneakyThrows
     private static String getDbType() {
-        DynamicRoutingDataSource ds = SpringContextUtil.getBean(DynamicRoutingDataSource.class);
+        // todo DynamicRoutingDataSource ds = SpringContextUtil.getBean(DynamicRoutingDataSource.class);
+        DynamicRoutingDataSource ds = null;
         DataSource datasource = ds.determineDataSource();
         String dbType = DB_TYPE_MAPPING.get(datasource);
         if (dbType != null) {

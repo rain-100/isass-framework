@@ -169,9 +169,8 @@
 package vip.isass.framework.serialization.jackson.converter;
 
 import lombok.SneakyThrows;
-import org.springframework.stereotype.Component;
+import vip.isass.framework.core.converter.Converter;
 import vip.isass.framework.serialization.jackson.JsonUtil;
-import vip.isass.framework.core.support.Converter;
 
 import java.util.Map;
 
@@ -180,23 +179,21 @@ import java.util.Map;
  *
  * @author Rain
  */
-@Component
 public class MapToJsonConverter implements Converter<Map<?, ?>, String> {
 
     @Override
-    public boolean supportSourceType(Object source) {
-        return source instanceof Map;
+    public boolean supportSourceType(Object sourceObj) {
+        return sourceObj instanceof Map;
     }
 
     @Override
     @SuppressWarnings("rawtypes")
-    public boolean supportTargetClass(Class clazz) {
+    public boolean supportTargetType(Class targetClass) {
         return false;
     }
 
     @Override
     @SneakyThrows
-    @SuppressWarnings("NullableProblems")
     public String convert(Map<?, ?> source) {
         return JsonUtil.NOT_NULL_INSTANCE.writeValueAsString(source);
     }

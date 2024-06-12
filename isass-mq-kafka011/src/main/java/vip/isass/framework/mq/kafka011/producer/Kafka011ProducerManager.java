@@ -171,7 +171,6 @@ package vip.isass.framework.mq.kafka011.producer;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
-import org.springframework.stereotype.Component;
 import vip.isass.framework.mq.core.MessageType;
 import vip.isass.framework.mq.core.MqMessageContext;
 import vip.isass.framework.mq.core.producer.MqProducer;
@@ -191,7 +190,6 @@ import java.util.stream.Collectors;
 /**
  * @author Rain
  */
-@Component
 public class Kafka011ProducerManager implements ProducerManager {
 
     @Resource
@@ -204,11 +202,11 @@ public class Kafka011ProducerManager implements ProducerManager {
 
     private MqProducer selectProducer(final MqMessageContext mqMessageContext) {
         final InstanceConfiguration instanceConfiguration = Kafka011ConfigUtil.selectInstance(
-            kafka011Configuration, mqMessageContext.getStringProperty(Kafka011Const.INSTANCE));
+                kafka011Configuration, mqMessageContext.getStringProperty(Kafka011Const.INSTANCE));
         mqMessageContext.setProperty(Kafka011Const.INSTANCE, instanceConfiguration.getInstanceName());
 
         ProducerConfiguration producerConfiguration = Kafka011ConfigUtil.selectProducer(
-            kafka011Configuration, instanceConfiguration, mqMessageContext.getStringProperty(Kafka011Const.PRODUCER_ID));
+                kafka011Configuration, instanceConfiguration, mqMessageContext.getStringProperty(Kafka011Const.PRODUCER_ID));
 
         // 设置topic
         if (StrUtil.isBlank(mqMessageContext.getTopic())) {
@@ -265,8 +263,8 @@ public class Kafka011ProducerManager implements ProducerManager {
         }
 
         producerGroupByProducerId = kafka011ProducerAutoConfiguration.getProducers()
-            .stream()
-            .collect(Collectors.toMap((o) -> o.getProducerConfiguration().getProducerId(), Function.identity()));
+                .stream()
+                .collect(Collectors.toMap((o) -> o.getProducerConfiguration().getProducerId(), Function.identity()));
     }
 
 }

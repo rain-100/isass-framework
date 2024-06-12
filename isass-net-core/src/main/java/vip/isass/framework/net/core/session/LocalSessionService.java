@@ -173,8 +173,6 @@ import cn.hutool.core.lang.Assert;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.StrUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.context.annotation.Configuration;
 import vip.isass.framework.core.map.MultiKeyMultiValueBiMap;
 import vip.isass.framework.core.map.MultiValueBiMap;
 import vip.isass.framework.net.core.message.Message;
@@ -195,8 +193,8 @@ import java.util.stream.Collectors;
  * @author Rain
  */
 @Slf4j
-@Configuration
-@ConditionalOnMissingBean(name = "sessionServiceClientProxy")
+// @Configuration
+// @ConditionalOnMissingBean(name = "sessionServiceClientProxy")
 public class LocalSessionService implements ISessionService {
 
     // region sessionId 和 session 关系

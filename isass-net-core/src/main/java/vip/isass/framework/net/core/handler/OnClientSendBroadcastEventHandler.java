@@ -168,13 +168,9 @@
 
 package vip.isass.framework.net.core.handler;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
 import vip.isass.framework.net.core.message.Message;
-import vip.isass.framework.net.core.server.Server;
-import vip.isass.framework.net.core.session.ISessionService;
 import vip.isass.framework.net.core.message.MessageCmd;
+import vip.isass.framework.net.core.session.ISessionService;
 
 import javax.annotation.Resource;
 
@@ -183,9 +179,6 @@ import javax.annotation.Resource;
  *
  * @author rain
  */
-@Order(-1)
-@Configuration
-@ConditionalOnBean(Server.class)
 public class OnClientSendBroadcastEventHandler implements OnMessageEventHandler<Object> {
 
     @Resource

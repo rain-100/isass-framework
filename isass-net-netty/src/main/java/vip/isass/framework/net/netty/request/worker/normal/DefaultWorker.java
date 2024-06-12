@@ -170,10 +170,8 @@ package vip.isass.framework.net.netty.request.worker.normal;
 
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.context.annotation.Scope;
-import vip.isass.framework.net.netty.request.handler.RequestHandler;
 import vip.isass.framework.net.netty.request.Request;
+import vip.isass.framework.net.netty.request.handler.RequestHandler;
 import vip.isass.framework.net.netty.request.worker.Worker;
 
 import javax.annotation.Resource;
@@ -184,8 +182,6 @@ import java.util.concurrent.BlockingQueue;
  * @author Rain
  */
 @Slf4j
-@ConditionalOnMissingBean(Worker.class)
-@Scope("prototype")
 public class DefaultWorker extends Worker {
 
     @Resource

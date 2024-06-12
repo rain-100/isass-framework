@@ -169,9 +169,6 @@
 package vip.isass.framework.net.core.server;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.context.SmartLifecycle;
-import org.springframework.context.annotation.Configuration;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -182,16 +179,16 @@ import java.util.List;
  * @author rain
  */
 @Slf4j
-@Configuration
-@ConditionalOnBean(Server.class)
-public class ServerStartupManager implements SmartLifecycle {
+// @Configuration
+// @ConditionalOnBean(Server.class)
+public class ServerStartupManager {
 
     private static boolean IS_RUNNING = false;
 
     @Resource
     private List<Server> servers;
 
-    @Override
+    // @Override
     public void start() {
         if (IS_RUNNING || servers == null) {
             return;
@@ -205,7 +202,7 @@ public class ServerStartupManager implements SmartLifecycle {
         IS_RUNNING = true;
     }
 
-    @Override
+    // @Override
     public void stop() {
         if (servers == null) {
             return;
@@ -219,7 +216,7 @@ public class ServerStartupManager implements SmartLifecycle {
         IS_RUNNING = false;
     }
 
-    @Override
+    // @Override
     public boolean isRunning() {
         return IS_RUNNING;
     }

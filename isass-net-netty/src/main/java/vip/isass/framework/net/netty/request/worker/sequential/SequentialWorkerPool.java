@@ -168,17 +168,21 @@
 
 package vip.isass.framework.net.netty.request.worker.sequential;
 
-import vip.isass.framework.net.netty.session.TcpClientSession;
-import vip.isass.framework.net.netty.request.Request;
-import vip.isass.framework.net.netty.request.worker.WorkerPool;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
+import vip.isass.framework.net.netty.request.Request;
+import vip.isass.framework.net.netty.request.worker.WorkerPool;
+import vip.isass.framework.net.netty.session.TcpClientSession;
 
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author hone 2018/5/7
@@ -192,7 +196,7 @@ public class SequentialWorkerPool implements WorkerPool {
      */
     @Getter
     @Setter
-    @Value("${pool.corePoolSize:5}")
+    // @Value("${pool.corePoolSize:5}")
     private int corePoolSize;
 
     /**
@@ -200,12 +204,12 @@ public class SequentialWorkerPool implements WorkerPool {
      */
     @Getter
     @Setter
-    @Value("${pool.maximumPoolSize:10}")
+    // @Value("${pool.maximumPoolSize:10}")
     private int maximumPoolSize;
 
     @Getter
     @Setter
-    @Value("${pool.taskThreshold:10}")
+    // @Value("${pool.taskThreshold:10}")
     private int taskThreshold;
 
     /**
@@ -213,7 +217,7 @@ public class SequentialWorkerPool implements WorkerPool {
      */
     @Getter
     @Setter
-    @Value("${pool.keepAliveTime:10000}")
+    // @Value("${pool.keepAliveTime:10000}")
     private int keepAliveTime;
 
     /**

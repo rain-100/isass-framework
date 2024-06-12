@@ -205,25 +205,25 @@ public class SpringEventMqConsumerManager implements ApplicationListener<IsassMq
 
         MqMessageContext mqMessageContext = (MqMessageContext) event.getSource();
         mqConsumers.stream()
-            // 判断厂商
-            .filter(mc -> StrUtil.isBlank(mqMessageContext.getManufacturer())
-                || StrUtil.isBlank(mc.getManufacturer())
-                || mc.getManufacturer().equals(mqMessageContext.getManufacturer()))
+                // 判断厂商
+                .filter(mc -> StrUtil.isBlank(mqMessageContext.getManufacturer())
+                        || StrUtil.isBlank(mc.getManufacturer())
+                        || mc.getManufacturer().equals(mqMessageContext.getManufacturer()))
 
-            // 判断 topic
-            .filter(mc -> mc.getTopic().equals(mqMessageContext.getTopic()))
+                // 判断 topic
+                .filter(mc -> mc.getTopic().equals(mqMessageContext.getTopic()))
 
-            // 判断 tag
-            .filter(mc -> "*".equals(mc.getTag()) || mc.getTag().equals(mqMessageContext.getTag()))
+                // 判断 tag
+                .filter(mc -> "*".equals(mc.getTag()) || mc.getTag().equals(mqMessageContext.getTag()))
 
-            .forEach(mc -> {
-                try {
-                    doConsume(mc, mqMessageContext);
-                } catch (Exception e) {
-                    log.error("springEvent消费异常，请业务视情况处理异常");
-                    throw e;
-                }
-            });
+                .forEach(mc -> {
+                    try {
+                        doConsume(mc, mqMessageContext);
+                    } catch (Exception e) {
+                        log.error("springEvent消费异常，请业务视情况处理异常");
+                        throw e;
+                    }
+                });
     }
 
     private void doConsume(IMqConsumer mqConsumer, MqMessageContext mqMessageContext) {
@@ -279,9 +279,9 @@ public class SpringEventMqConsumerManager implements ApplicationListener<IsassMq
             return;
         }
         mqConsumers = mqConsumers.stream()
-            // 判断厂商
-            .filter(mc -> StrUtil.isBlank(mc.getManufacturer()) || mc.getManufacturer().equals(getManufacturer()))
-            .collect(Collectors.toList());
+                // 判断厂商
+                .filter(mc -> StrUtil.isBlank(mc.getManufacturer()) || mc.getManufacturer().equals(getManufacturer()))
+                .collect(Collectors.toList());
     }
 
     @Override

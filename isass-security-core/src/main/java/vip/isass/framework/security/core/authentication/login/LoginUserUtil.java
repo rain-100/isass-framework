@@ -168,28 +168,38 @@
 
 package vip.isass.framework.security.core.authentication.login;
 
+import lombok.extern.slf4j.Slf4j;
 import vip.isass.framework.core.exception.UnifiedException;
 import vip.isass.framework.core.exception.code.StatusMessageEnum;
-import vip.isass.framework.core.support.SpringContextUtil;
+
+import java.util.ServiceLoader;
 
 /**
  * @author Rain
  */
+@Slf4j
 public class LoginUserUtil {
 
     private static volatile LoginUserService service = null;
 
+    static {
+        init();
+    }
+
+    private static void init() {
+        ServiceLoader<LoginUserService> services = ServiceLoader.load(LoginUserService.class);
+        for (LoginUserService loginUserService : services) {
+            service = loginUserService;
+            return;
+        }
+    }
+
     public static LoginUser getLoginUser() {
         if (service == null) {
-            if (SpringContextUtil.isInitialized()) {
-                try {
-                    service = SpringContextUtil.getBean(LoginUserService.class);
-                } catch (Exception e) {
-                    // ignore
-                }
-            }
+            log.warn("can not found LoginUserService implement, get login user fail!");
+            return null;
         }
-        return service == null ? null : service.getLoginUser();
+        return service.getLoginUser();
     }
 
     public static LoginUser getLoginUserOrException() {

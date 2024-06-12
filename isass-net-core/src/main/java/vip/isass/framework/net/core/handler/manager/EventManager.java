@@ -173,9 +173,6 @@ import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.TypeUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import vip.isass.framework.serialization.jackson.ConvertUtil;
 import vip.isass.framework.net.core.handler.OnAnyMessageEventHandler;
 import vip.isass.framework.net.core.handler.OnConnectEventHandler;
 import vip.isass.framework.net.core.handler.OnDisconnectEventHandler;
@@ -185,6 +182,7 @@ import vip.isass.framework.net.core.message.Message;
 import vip.isass.framework.net.core.message.MessageCmd;
 import vip.isass.framework.net.core.session.ISessionService;
 import vip.isass.framework.net.core.session.Session;
+import vip.isass.framework.serialization.jackson.ConvertUtil;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -193,35 +191,36 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 事件管理器
+ * todo 事件管理器
  *
  * @author Rain
  */
 @Slf4j
-@Component
+// @Component
 public class EventManager implements IEventManager {
 
-    @Autowired
+    // @Autowired
     private ISessionService sessionService;
 
-    @Autowired(required = false)
+    // @Autowired(required = false)
     private List<OnConnectEventHandler> onConnectEventHandlers;
 
-    @Autowired(required = false)
+    // @Autowired(required = false)
     private List<OnDisconnectEventHandler> onDisconnectEventHandlers;
 
-    @Autowired(required = false)
+    // @Autowired(required = false)
     private List<OnErrorEventHandler> onErrorEventHandlers;
 
-    @Autowired(required = false)
+    // @Autowired(required = false)
     private List<OnAnyMessageEventHandler<?>> onAnyMessageEventHandlers;
 
     private List<OnMessageEventHandler<?>> onMessageEventHandlers;
 
     private Map<String, List<OnMessageEventHandler<?>>> onMessageEventHandlerMap = Collections.emptyMap();
 
-    @Autowired(required = false)
-    public void onMessageEventHandlers(@Autowired(required = false) List<OnMessageEventHandler<?>> onMessageEventHandlers) {
+    // @Autowired(required = false)
+    // public void onMessageEventHandlers(@Autowired(required = false) List<OnMessageEventHandler<?>> onMessageEventHandlers) {
+    public void onMessageEventHandlers(List<OnMessageEventHandler<?>> onMessageEventHandlers) {
         this.onMessageEventHandlers = onMessageEventHandlers;
         if (onMessageEventHandlers == null) {
             return;

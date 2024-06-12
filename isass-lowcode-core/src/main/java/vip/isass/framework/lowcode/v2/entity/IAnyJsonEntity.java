@@ -176,9 +176,8 @@ import cn.hutool.core.util.StrUtil;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import vip.isass.framework.lowcode.IDictTranslationProvider;
 import vip.isass.framework.core.support.LocalDateTimeUtil;
-import vip.isass.framework.core.support.SpringContextUtil;
+import vip.isass.framework.lowcode.IDictTranslationProvider;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -216,7 +215,8 @@ public interface IAnyJsonEntity {
         if (MapUtil.isEmpty(dictTranslationMap)) {
             return;
         }
-        IDictTranslationProvider dictTranslationProvider = SpringContextUtil.getBean(IDictTranslationProvider.class);
+        // todo IDictTranslationProvider dictTranslationProvider = SpringContextUtil.getBean(IDictTranslationProvider.class);
+        IDictTranslationProvider dictTranslationProvider = null;
         for (Map.Entry<String, String> entry : dictTranslationMap.entrySet()) {
             if (StrUtil.isBlank(entry.getValue())) {
                 continue;
@@ -257,16 +257,16 @@ public interface IAnyJsonEntity {
                 formatedValue = DateUtil.format((LocalDateTime) fieldValue, entry.getValue());
             } else if (fieldValue instanceof LocalDate) {
                 formatedValue = DateUtil.format(
-                    LocalDateTimeUtil.toLocalDateTime((LocalDate) fieldValue),
-                    entry.getValue());
+                        LocalDateTimeUtil.toLocalDateTime((LocalDate) fieldValue),
+                        entry.getValue());
             } else if (fieldValue instanceof LocalTime) {
                 formatedValue = DateUtil.format(
-                    LocalDateTimeUtil.toLocalDateTime((LocalTime) fieldValue),
-                    entry.getValue());
+                        LocalDateTimeUtil.toLocalDateTime((LocalTime) fieldValue),
+                        entry.getValue());
             } else if (fieldValue instanceof Long) {
                 formatedValue = DateUtil.format(
-                    LocalDateTimeUtil.toLocalDateTime((Long) fieldValue),
-                    entry.getValue());
+                        LocalDateTimeUtil.toLocalDateTime((Long) fieldValue),
+                        entry.getValue());
             } else if (fieldValue instanceof String) {
                 formatedValue = DateUtil.format(DateUtil.parse((String) fieldValue), entry.getValue());
             }
@@ -290,8 +290,8 @@ public interface IAnyJsonEntity {
             }
             try {
                 anyJsonMap.put(
-                    entry.getKey() + FORMATED_VALUE_SUFFIX,
-                    NumberUtil.round(fieldValue.toString(), entry.getValue()));
+                        entry.getKey() + FORMATED_VALUE_SUFFIX,
+                        NumberUtil.round(fieldValue.toString(), entry.getValue()));
             } catch (Exception e) {
                 log.warn("entity[{}] field[{}] can not be scale decimal", this.getClass(), entry.getKey(), e);
             }

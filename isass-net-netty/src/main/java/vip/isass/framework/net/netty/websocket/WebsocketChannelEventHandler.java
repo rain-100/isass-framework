@@ -195,13 +195,12 @@ import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import vip.isass.framework.serialization.jackson.JsonUtil;
 import vip.isass.framework.net.core.session.ISessionService;
 import vip.isass.framework.net.netty.channel.ChannelEventHandler;
 import vip.isass.framework.net.netty.packet.TcpPacket;
 import vip.isass.framework.net.netty.request.Request;
 import vip.isass.framework.net.netty.request.RequestManager;
+import vip.isass.framework.serialization.jackson.JsonUtil;
 
 import javax.annotation.Resource;
 import java.util.Map;
@@ -212,7 +211,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Slf4j
 @ChannelHandler.Sharable
-@ConditionalOnMissingBean(ChannelEventHandler.class)
+// @ConditionalOnMissingBean(ChannelEventHandler.class)
 public class WebsocketChannelEventHandler extends SimpleChannelInboundHandler<Object> implements ChannelEventHandler {
 
     private Map<Channel, WebSocketServerHandshaker> handshakers = new ConcurrentHashMap<>(128);

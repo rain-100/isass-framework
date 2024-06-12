@@ -168,14 +168,9 @@
 
 package vip.isass.framework.mq.kafka011;
 
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-
 /**
  * @author Rain
  */
-@Configuration
-@ComponentScan
 public class Kafka011AutoConfiguration {
 
 }

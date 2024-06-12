@@ -171,7 +171,6 @@ package vip.isass.framework.mq.ons.producer;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
-import org.springframework.stereotype.Component;
 import vip.isass.framework.mq.core.MessageType;
 import vip.isass.framework.mq.core.MqMessageContext;
 import vip.isass.framework.mq.core.producer.MqProducer;
@@ -192,7 +191,6 @@ import java.util.stream.Collectors;
 /**
  * @author Rain
  */
-@Component
 public class OnsProducerManager implements ProducerManager {
 
     @Resource

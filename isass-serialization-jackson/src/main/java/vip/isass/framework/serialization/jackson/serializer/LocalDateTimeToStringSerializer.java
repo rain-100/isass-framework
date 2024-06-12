@@ -171,7 +171,7 @@ package vip.isass.framework.serialization.jackson.serializer;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
-import vip.isass.framework.core.converter.datatime.LocalDateTimeToStringConverter;
+import vip.isass.framework.core.converter.datatime.LocalDateTimeToDataTimeStringConverter;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -180,7 +180,7 @@ public class LocalDateTimeToStringSerializer extends JsonSerializer<LocalDateTim
 
     @Override
     public void serialize(LocalDateTime value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
-        gen.writeString(LocalDateTimeToStringConverter.convert0(value));
+        gen.writeString(LocalDateTimeToDataTimeStringConverter.doConvert(value));
     }
 
 }

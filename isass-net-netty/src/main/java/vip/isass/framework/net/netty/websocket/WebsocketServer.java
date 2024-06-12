@@ -177,10 +177,6 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationListener;
-import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.stereotype.Component;
 import vip.isass.framework.net.netty.channel.ChannelInitializerHandler;
 
 import javax.annotation.Resource;
@@ -192,13 +188,12 @@ import java.util.concurrent.Executors;
  * @author Rain
  */
 @Slf4j
-@Component
-public class WebsocketServer implements ApplicationListener<ContextRefreshedEvent> {
+public class WebsocketServer {
 
     @Resource
     private ChannelInitializerHandler channelInitializerHandler;
 
-    @Value("${server.websocket.port:20003}")
+    // @Value("${server.websocket.port:20003}")
     private int port;
 
     private ExecutorService executorService;
@@ -253,8 +248,4 @@ public class WebsocketServer implements ApplicationListener<ContextRefreshedEven
 
     }
 
-    @Override
-    public void onApplicationEvent(ContextRefreshedEvent event) {
-        start();
-    }
 }

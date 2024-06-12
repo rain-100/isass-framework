@@ -169,7 +169,6 @@
 package vip.isass.framework.net.netty.request;
 
 import vip.isass.framework.net.netty.request.worker.WorkerPool;
-import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 
@@ -179,7 +178,7 @@ import javax.annotation.Resource;
  *
  * @author Rain
  */
-@Component
+// @Component
 public class RequestManager {
 
     /**

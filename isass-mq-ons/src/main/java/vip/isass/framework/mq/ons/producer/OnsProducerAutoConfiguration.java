@@ -171,7 +171,6 @@ package vip.isass.framework.mq.ons.producer;
 import cn.hutool.core.collection.CollUtil;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Configuration;
 import vip.isass.framework.mq.ons.config.InstanceConfiguration;
 import vip.isass.framework.mq.ons.config.OnsConfiguration;
 import vip.isass.framework.mq.ons.config.ProducerConfiguration;
@@ -189,7 +188,6 @@ import java.util.Objects;
  * @author Rain
  */
 @Slf4j
-@Configuration
 public class OnsProducerAutoConfiguration {
 
     @Resource

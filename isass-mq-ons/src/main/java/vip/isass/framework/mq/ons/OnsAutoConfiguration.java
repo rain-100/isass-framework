@@ -168,14 +168,9 @@
 
 package vip.isass.framework.mq.ons;
 
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-
 /**
  * @author Rain
  */
-@Configuration
-@ComponentScan
 public class OnsAutoConfiguration {
 
 }

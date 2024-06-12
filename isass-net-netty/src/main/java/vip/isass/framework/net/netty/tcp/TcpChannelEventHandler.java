@@ -179,7 +179,6 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 
 import javax.annotation.Resource;
 import java.util.HashMap;
@@ -192,7 +191,7 @@ import java.util.Map;
  */
 @Slf4j
 @ChannelHandler.Sharable
-@ConditionalOnMissingBean(ChannelEventHandler.class)
+// @ConditionalOnMissingBean(ChannelEventHandler.class)
 public class TcpChannelEventHandler extends ChannelInboundHandlerAdapter implements ChannelEventHandler {
 
     @Resource

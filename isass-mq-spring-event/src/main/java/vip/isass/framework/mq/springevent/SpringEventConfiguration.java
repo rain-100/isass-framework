@@ -172,7 +172,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
 @Getter
@@ -180,11 +180,12 @@ import org.springframework.context.annotation.Configuration;
 @ToString
 @Accessors(chain = true)
 @Configuration
-@ConfigurationProperties("mq.spring-event")
 public class SpringEventConfiguration {
 
+    @Value("${mq.spring-event.enable}")
     private boolean enable;
 
+    @Value("${mq.spring-event.defaultTopic}")
     private String defaultTopic = "";
 
 }

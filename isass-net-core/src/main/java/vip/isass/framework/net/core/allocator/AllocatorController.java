@@ -168,35 +168,28 @@
 
 package vip.isass.framework.net.core.allocator;
 
-import cn.hutool.extra.servlet.ServletUtil;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import vip.isass.framework.core.support.Resp;
-
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
 
-@RestController
-@RequestMapping
+// todo 集群模式下的节点分配功能，计划单独新增isass-net-cluster 项目模块实现
+// @RestController
+// @RequestMapping
 public class AllocatorController {
 
     @Resource
     private AllocatorService allocatorService;
 
-    /**
-     * 根据客户端 ip 分配节点
-     *
-     * @param request    request
-     * @param serverName 需分配的服务
-     * @return 分配到的节点
-     */
-    @GetMapping("/{serverName}/allocator/node")
-    public Resp<String> allocate(HttpServletRequest request,
-                                 @PathVariable("serverName") String serverName) {
-        String clientIp = ServletUtil.getClientIP(request);
-        return Resp.bizSuccess(allocatorService.allocateAccessUrl(serverName, clientIp));
-    }
+    // /**
+    //  * 根据客户端 ip 分配节点
+    //  *
+    //  * @param request    request
+    //  * @param serverName 需分配的服务
+    //  * @return 分配到的节点
+    //  */
+    // @GetMapping("/{serverName}/allocator/node")
+    // public Resp<String> allocate(HttpServletRequest request,
+    //                              @PathVariable("serverName") String serverName) {
+    //     String clientIp = ServletUtil.getClientIP(request);
+    //     return Resp.bizSuccess(allocatorService.allocateAccessUrl(serverName, clientIp));
+    // }
 
 }

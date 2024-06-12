@@ -176,11 +176,10 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.internal.EmptyArrays;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import vip.isass.framework.core.serialization.SerializeMode;
-import vip.isass.framework.serialization.jackson.JsonUtil;
 import vip.isass.framework.net.netty.packet.Encoder;
 import vip.isass.framework.net.netty.packet.TcpPacket;
+import vip.isass.framework.serialization.jackson.JsonUtil;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -191,7 +190,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  */
 @Slf4j
 @ChannelHandler.Sharable
-@ConditionalOnMissingBean(Encoder.class)
+// @ConditionalOnMissingBean(Encoder.class)
 public class IsassBinaryPacketEncoder extends Encoder<TcpPacket> {
 
     @Override
