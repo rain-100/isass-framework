@@ -177,7 +177,7 @@ import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
-import vip.isass.framework.core.support.Resp;
+import vip.isass.framework.common.service.Resp;
 import vip.isass.framework.serialization.jackson.JsonUtil;
 
 /**

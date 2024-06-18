@@ -175,7 +175,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import vip.isass.framework.core.support.IsassConfig;
+import vip.isass.framework.common.IsassConst;
 
 import javax.annotation.Resource;
 import java.util.*;
@@ -251,9 +251,9 @@ public class V2DbEntityConvert {
 
     public static Class<?> getDbEntityClass(Class<?> entityClass) {
         return DB_ENTITY_MAP.computeIfAbsent(entityClass, (k) -> {
-            Set<Class<?>> classes = ClassUtil.scanPackageBySuper(IsassConfig.PACKAGE_NAME, entityClass);
+            Set<Class<?>> classes = ClassUtil.scanPackageBySuper(IsassConst.PACKAGE_NAME, entityClass);
             if (classes.isEmpty()) {
-                if (StrUtil.isNotBlank(packageName) && !IsassConfig.PACKAGE_NAME.equals(packageName)) {
+                if (StrUtil.isNotBlank(packageName) && !IsassConst.PACKAGE_NAME.equals(packageName)) {
                     classes = ClassUtil.scanPackageBySuper(packageName, entityClass);
                 } else {
                     log.warn("没有配置info.package，db 实体映射可能失败");

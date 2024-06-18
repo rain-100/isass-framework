@@ -188,7 +188,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import vip.isass.framework.serialization.jackson.JsonUtil;
-import vip.isass.framework.core.support.Resp;
+import vip.isass.framework.common.service.Resp;
 import vip.isass.framework.rpc.okhttp.OkHttpUtil;
 import vip.isass.framework.net.core.NetRedisKey;
 import vip.isass.framework.net.core.message.Message;

@@ -171,9 +171,9 @@ package vip.isass.framework.web.springmvc.execption;
 import cn.hutool.core.map.MapUtil;
 import lombok.Getter;
 import org.springframework.stereotype.Component;
-import vip.isass.framework.core.exception.IStatusMapping;
-import vip.isass.framework.core.exception.code.IStatusMessage;
-import vip.isass.framework.core.exception.code.StatusMessageEnum;
+import vip.isass.framework.common.exception.IStatusMapping;
+import vip.isass.framework.common.exception.code.IStatusMessage;
+import vip.isass.framework.common.exception.code.StatusMessageEnum;
 
 import java.util.Arrays;
 import java.util.Map;

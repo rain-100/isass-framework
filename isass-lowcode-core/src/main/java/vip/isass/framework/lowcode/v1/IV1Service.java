@@ -172,9 +172,9 @@ import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import org.springframework.transaction.annotation.Transactional;
-import vip.isass.framework.core.exception.AbsentException;
-import vip.isass.framework.core.exception.UnifiedException;
-import vip.isass.framework.core.exception.code.IStatusMessage;
+import vip.isass.framework.common.exception.AbsentException;
+import vip.isass.framework.common.exception.UnifiedException;
+import vip.isass.framework.common.exception.code.IStatusMessage;
 import vip.isass.framework.lowcode.v1.criteria.ICriteria;
 import vip.isass.framework.lowcode.v1.repository.IRepository;
 

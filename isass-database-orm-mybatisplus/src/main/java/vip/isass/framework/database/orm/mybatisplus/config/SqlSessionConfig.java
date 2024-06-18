@@ -200,7 +200,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.annotation.TransactionManagementConfigurer;
 import vip.isass.framework.database.orm.mybatisplus.driver.MybatisXmlLanguageDriver;
 import vip.isass.framework.database.orm.mybatisplus.typehandler.DefaultEnumTypeHandler;
-import vip.isass.framework.core.page.PageConst;
+import vip.isass.framework.common.page.PageConst;
 
 import javax.annotation.Resource;
 import javax.sql.DataSource;

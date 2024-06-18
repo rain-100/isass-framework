@@ -169,7 +169,7 @@
 package vip.isass.framework.serialization.jackson.converter;
 
 import cn.hutool.core.util.StrUtil;
-import vip.isass.framework.core.converter.Converter;
+import vip.isass.framework.common.converter.Converter;
 import vip.isass.framework.serialization.jackson.JsonUtil;
 
 import java.util.Map;

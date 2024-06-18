@@ -178,7 +178,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.ResolvableType;
 import org.springframework.stereotype.Component;
-import vip.isass.framework.core.support.Support;
+import vip.isass.framework.common.support.Support;
 
 import java.util.Collection;
 import java.util.Collections;

@@ -179,7 +179,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import vip.isass.framework.core.support.Resp;
+import vip.isass.framework.common.service.Resp;
 import vip.isass.framework.lowcode.v1.IV1Service;
 import vip.isass.framework.lowcode.v1.criteria.ICriteria;
 import vip.isass.framework.lowcode.v1.entity.IdEntity;

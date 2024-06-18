@@ -171,7 +171,7 @@ package vip.isass.framework.lowcode.orm.mybatis.plus;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
 import org.apache.ibatis.reflection.MetaObject;
-import vip.isass.framework.core.support.LocalDateTimeUtil;
+import vip.isass.framework.common.util.LocalDateTimeUtil;
 import vip.isass.framework.lowcode.v1.entity.LogicDeleteEntity;
 import vip.isass.framework.lowcode.v1.entity.TimeTracedEntity;
 import vip.isass.framework.lowcode.v1.entity.UserTracedEntity;

@@ -183,7 +183,7 @@ import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
-import vip.isass.framework.core.function.FunctionUtil;
+import vip.isass.framework.common.util.function.FunctionUtil;
 import vip.isass.framework.mq.core.FailStrategy;
 import vip.isass.framework.mq.core.MessageType;
 import vip.isass.framework.mq.core.MqMessage;

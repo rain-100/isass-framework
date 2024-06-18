@@ -175,18 +175,19 @@
     <!-- 父项目信息 -->
     <parent>
         <groupId>vip.isass</groupId>
-        <artifactId>isass-framework</artifactId>
-        <version>4.0.0-SNAPSHOT</version>
+        <artifactId>isass-framework-parent</artifactId>
+        <version>${revision}</version>
+        <relativePath>../isass-framework-parent</relativePath>
     </parent>
 
     <!-- 本项目信息 -->
     <artifactId>isass-database-core</artifactId>
-    <version>4.0.0-SNAPSHOT</version>
+    <version>${revision}</version>
 
     <dependencies>
         <dependency>
             <groupId>vip.isass</groupId>
-            <artifactId>isass-core</artifactId>
+            <artifactId>isass-common</artifactId>
         </dependency>
 
         <dependency>

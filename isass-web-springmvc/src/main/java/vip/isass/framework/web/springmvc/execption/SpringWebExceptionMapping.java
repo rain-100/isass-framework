@@ -179,9 +179,9 @@ import org.springframework.validation.BindException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
-import vip.isass.framework.core.exception.IExceptionMapping;
-import vip.isass.framework.core.exception.code.IStatusMessage;
-import vip.isass.framework.core.exception.code.StatusMessageEnum;
+import vip.isass.framework.common.exception.IExceptionMapping;
+import vip.isass.framework.common.exception.code.IStatusMessage;
+import vip.isass.framework.common.exception.code.StatusMessageEnum;
 
 import java.util.Map;
 import java.util.stream.Collectors;

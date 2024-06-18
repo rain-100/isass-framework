@@ -171,8 +171,8 @@ package vip.isass.framework.spring.core.exception;
 import cn.hutool.core.exceptions.ExceptionUtil;
 import cn.hutool.core.map.MapUtil;
 import org.springframework.validation.BindException;
-import vip.isass.framework.core.exception.IExceptionMapping;
-import vip.isass.framework.core.exception.code.IStatusMessage;
+import vip.isass.framework.common.exception.IExceptionMapping;
+import vip.isass.framework.common.exception.code.IStatusMessage;
 
 import java.util.Map;
 

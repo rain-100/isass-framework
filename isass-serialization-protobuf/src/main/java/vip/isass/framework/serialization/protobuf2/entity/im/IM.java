@@ -171,6 +171,7 @@
 
 package vip.isass.framework.serialization.protobuf2.entity.im;
 
+@SuppressWarnings("deprecation")
 public final class IM {
   private IM() {}
   public static void registerAllExtensions(

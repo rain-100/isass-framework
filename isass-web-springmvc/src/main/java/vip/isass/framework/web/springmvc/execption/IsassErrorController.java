@@ -178,11 +178,11 @@ import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.ServletWebRequest;
-import vip.isass.framework.core.exception.IStatusMapping;
-import vip.isass.framework.core.exception.UnifiedException;
-import vip.isass.framework.core.exception.code.IStatusMessage;
-import vip.isass.framework.core.exception.code.StatusMessageEnum;
-import vip.isass.framework.core.support.Resp;
+import vip.isass.framework.common.exception.IStatusMapping;
+import vip.isass.framework.common.exception.UnifiedException;
+import vip.isass.framework.common.exception.code.IStatusMessage;
+import vip.isass.framework.common.exception.code.StatusMessageEnum;
+import vip.isass.framework.common.service.Resp;
 
 import javax.annotation.Resource;
 import javax.servlet.RequestDispatcher;

@@ -176,7 +176,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.internal.EmptyArrays;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import vip.isass.framework.core.serialization.SerializeMode;
+import vip.isass.framework.common.serialization.SerializeMode;
 import vip.isass.framework.net.netty.packet.Encoder;
 import vip.isass.framework.net.netty.packet.TcpPacket;
 import vip.isass.framework.serialization.jackson.JsonUtil;

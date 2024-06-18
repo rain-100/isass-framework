@@ -172,7 +172,7 @@ import lombok.SneakyThrows;
 import org.springframework.stereotype.Component;
 import vip.isass.framework.lowcode.v2.criteria.V2WhereCondition;
 import vip.isass.framework.serialization.jackson.JsonUtil;
-import vip.isass.framework.core.converter.Converter;
+import vip.isass.framework.common.converter.Converter;
 
 /**
  * 把 json 字符串类型的 v2查询条件，转换成 V2WhereCondition

@@ -170,7 +170,7 @@ package vip.isass.framework.lowcode.v1;
 
 import cn.hutool.core.lang.Assert;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import vip.isass.framework.core.exception.AbsentException;
+import vip.isass.framework.common.exception.AbsentException;
 import vip.isass.framework.lowcode.v1.criteria.ICriteria;
 import vip.isass.framework.lowcode.v1.repository.IRepository;
 

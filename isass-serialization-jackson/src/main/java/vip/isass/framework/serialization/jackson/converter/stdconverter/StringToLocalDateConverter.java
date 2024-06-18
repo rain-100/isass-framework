@@ -179,7 +179,7 @@ public class StringToLocalDateConverter extends StdConverter<String, LocalDate> 
 
     @Override
     public LocalDate convert(String value) {
-        return vip.isass.framework.core.converter.datatime.StringToLocalDateConverter.doConvert(value);
+        return vip.isass.framework.common.converter.datatime.StringToLocalDateConverter.doConvert(value);
     }
 
 }

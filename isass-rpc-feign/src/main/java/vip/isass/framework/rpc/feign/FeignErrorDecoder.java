@@ -174,10 +174,10 @@ import feign.codec.ErrorDecoder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-import vip.isass.framework.core.exception.UnifiedException;
-import vip.isass.framework.core.exception.code.StatusMessageEnum;
+import vip.isass.framework.common.exception.UnifiedException;
+import vip.isass.framework.common.exception.code.StatusMessageEnum;
 import vip.isass.framework.serialization.jackson.JsonUtil;
-import vip.isass.framework.core.support.Resp;
+import vip.isass.framework.common.service.Resp;
 import vip.isass.framework.web.springmvc.execption.WebStatusMapping;
 
 import java.io.IOException;

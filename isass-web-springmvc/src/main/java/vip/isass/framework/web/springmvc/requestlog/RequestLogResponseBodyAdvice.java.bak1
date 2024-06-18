@@ -191,12 +191,12 @@ import org.springframework.http.server.ServletServerHttpResponse;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
-import requestlog.vip.isass.framework.core.log.IRequestLogService;
-import requestlog.vip.isass.framework.core.log.RequestLog;
+import requestlog.vip.isass.framework.common.log.IRequestLogService;
+import requestlog.vip.isass.framework.common.log.RequestLog;
 import vip.isass.core.login.LoginUser;
 import vip.isass.core.login.LoginUserUtil;
 import vip.isass.core.support.JsonUtil;
-import vip.isass.framework.core.support.SystemClock;
+import vip.isass.framework.common.support.SystemClock;
 
 import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;

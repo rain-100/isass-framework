@@ -176,9 +176,9 @@ import org.apache.ibatis.exceptions.TooManyResultsException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.stereotype.Component;
-import vip.isass.framework.core.exception.IExceptionMapping;
-import vip.isass.framework.core.exception.code.IStatusMessage;
-import vip.isass.framework.core.exception.code.StatusMessageEnum;
+import vip.isass.framework.common.exception.IExceptionMapping;
+import vip.isass.framework.common.exception.code.IStatusMessage;
+import vip.isass.framework.common.exception.code.StatusMessageEnum;
 
 import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.Map;

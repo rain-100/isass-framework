@@ -170,7 +170,7 @@ package vip.isass.framework.web.springmvc.interceptor;
 
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerMapping;
-import vip.isass.framework.core.support.UriRequestMapping;
+import vip.isass.framework.common.service.UriRequestMapping;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;

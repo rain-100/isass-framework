@@ -275,6 +275,10 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
+        configurer.favorParameter(true) // 启用 URL 参数支持
+                .ignoreAcceptHeader(false) // 不忽略 Accept 头
+                .useRegisteredExtensionsOnly(false); // 只使用已注册的扩展名
+
         try {
             org.springframework.core.io.Resource[] resources = ResourcePatternUtils.getResourcePatternResolver(null)
                     .getResources("classpath*:META-INF/mime.type");

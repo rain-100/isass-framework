@@ -168,7 +168,7 @@
 
 package vip.isass.framework.net.netty.packet;
 
-import vip.isass.framework.core.serialization.SerializeMode;
+import vip.isass.framework.common.serialization.SerializeMode;
 
 /**
  * 完整的数据包，此类应该在 net 模块内部使用，不提供给上层应用开发者

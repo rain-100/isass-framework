@@ -169,7 +169,7 @@
 package vip.isass.framework.spring.core.exception;
 
 import lombok.Getter;
-import vip.isass.framework.core.exception.code.IStatusMessage;
+import vip.isass.framework.common.exception.code.IStatusMessage;
 
 /**
  * @author Rain

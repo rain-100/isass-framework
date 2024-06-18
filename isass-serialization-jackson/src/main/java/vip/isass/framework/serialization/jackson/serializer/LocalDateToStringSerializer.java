@@ -171,7 +171,7 @@ package vip.isass.framework.serialization.jackson.serializer;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
-import vip.isass.framework.core.converter.datatime.LocalDateToDateStringConverter;
+import vip.isass.framework.common.converter.datatime.LocalDateToDateStringConverter;
 
 import java.io.IOException;
 import java.time.LocalDate;

@@ -169,8 +169,8 @@
 package vip.isass.framework.security.core.authentication.login;
 
 import lombok.extern.slf4j.Slf4j;
-import vip.isass.framework.core.exception.UnifiedException;
-import vip.isass.framework.core.exception.code.StatusMessageEnum;
+import vip.isass.framework.common.exception.UnifiedException;
+import vip.isass.framework.common.exception.code.StatusMessageEnum;
 
 import java.util.ServiceLoader;
 

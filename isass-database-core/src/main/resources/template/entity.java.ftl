@@ -21,15 +21,15 @@ import lombok.Setter;
 import lombok.SneakyThrows;
 import lombok.experimental.Accessors;
 import vip.isass.core.entity.*;
-import impl.vip.isass.framework.core.sequence.LongSequence;
-import jackson.vip.isass.framework.core.serialization.JsonUtil;
+import impl.vip.isass.framework.common.sequence.LongSequence;
+import jackson.vip.isass.framework.common.serialization.JsonUtil;
 <#list table.fields as field>
 <#if (field.propertyType == "LocalDate"
 || field.propertyType == "LocalTime"
 || field.propertyType == "LocalDateTime")
 && field.name != cfg.timeTracedEntity.CREATED_TIME
 && field.name != cfg.timeTracedEntity.MODIFY_TIME>
-import vip.isass.framework.core.support.LocalDateTimeUtil;
+import vip.isass.framework.common.support.LocalDateTimeUtil;
 <#break>
 </#if>
 </#list>

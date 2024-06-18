@@ -72,3 +72,43 @@ subject是commit目的的简短描述，不超过50个字符。
 
 ## 配置中心
 - spring.cloud.nacos.config.enabled （是否启用 nacos 配置中心，默认true）
+
+## Spring Boot之两种引入spring boot maven依赖的方式
+
+1、方式一：spring-boot-starter-parent
+
+``` xml
+<parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>2.2.1.RELEASE</version>
+</parent>
+```
+
+- 进入spring-boot-starter-parent里，能够发现它其实通过 parent 的方式依赖了咱们下面要讲的spring-boot-dependencies模块
+- 可以通过property覆盖内部的依赖
+2、方式二：使用spring-boot-dependenciesspa
+
+``` xml
+<dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-dependencies</artifactId>
+            <version>2.2.1.RELEASE</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+    </dependencies>
+</dependencyManagement>
+```
+
+- 使用这种方式就不用继承父模块，能够解决单继承的问题。这样就能够继承其余父模块，好比本身建立的父模块。
+- scope=import，type=pom表示在此pom中引入spring-boot-dependencies的pom的全部内容，注意只能在dependencyManagement中使用。
+- 不过这种方式不能使用property的形式覆盖原始的依赖项。如需要改写定义好的版本号，要在dependencyManagement里面的spring-boot-dependencies之前添加依赖的东西
+- 大多数咱们可能用到的包依赖和插件依赖都已经在spring-boot-dependencies中定义好了
+
+> 综上所述，继承 spring-boot-starter-parent 适合于单模块项目或者已经采用 Spring Boot 的项目，而使用 dependencyManagement 元素适合于多模块项目或者需要更灵活依赖管理的场景。
+
+## 版本定义参数
+https://maven.apache.org/maven-ci-friendly.html

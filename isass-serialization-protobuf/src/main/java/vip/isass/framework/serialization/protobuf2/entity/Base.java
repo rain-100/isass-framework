@@ -171,6 +171,7 @@
 
 package vip.isass.framework.serialization.protobuf2.entity;
 
+@SuppressWarnings("deprecation")
 public final class Base {
   private Base() {}
   public static void registerAllExtensions(

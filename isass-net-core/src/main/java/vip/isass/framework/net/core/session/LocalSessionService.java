@@ -173,8 +173,8 @@ import cn.hutool.core.lang.Assert;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.StrUtil;
 import lombok.extern.slf4j.Slf4j;
-import vip.isass.framework.core.map.MultiKeyMultiValueBiMap;
-import vip.isass.framework.core.map.MultiValueBiMap;
+import vip.isass.framework.common.util.map.MultiKeyMultiValueBiMap;
+import vip.isass.framework.common.util.map.MultiValueBiMap;
 import vip.isass.framework.net.core.message.Message;
 
 import javax.annotation.Nonnull;

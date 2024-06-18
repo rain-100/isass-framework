@@ -180,8 +180,8 @@ import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerExecutionChain;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
-import vip.isass.framework.core.exception.UnifiedException;
-import vip.isass.framework.core.exception.code.StatusMessageEnum;
+import vip.isass.framework.common.exception.UnifiedException;
+import vip.isass.framework.common.exception.code.StatusMessageEnum;
 import vip.isass.framework.security.springsecurity.authorization.ConfigAttributeConst;
 
 import javax.servlet.http.HttpServletRequest;

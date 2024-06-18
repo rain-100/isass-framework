@@ -172,7 +172,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.*;
-import vip.isass.framework.core.support.Ordered;
+import vip.isass.framework.common.service.Ordered;
 import vip.isass.framework.lowcode.v2.criteria.IV2Criteria;
 import vip.isass.framework.lowcode.v2.entity.IV2Entity;
 import vip.isass.framework.lowcode.v2.service.IV2LocalService;

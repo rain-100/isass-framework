@@ -176,7 +176,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import vip.isass.framework.core.support.Ordered;
+import vip.isass.framework.common.service.Ordered;
 import vip.isass.framework.lowcode.v2.criteria.IV2Criteria;
 import vip.isass.framework.lowcode.v2.entity.IV2Entity;
 import vip.isass.framework.lowcode.v2.service.IV2Service;

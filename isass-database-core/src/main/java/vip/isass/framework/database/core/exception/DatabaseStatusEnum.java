@@ -170,7 +170,7 @@
 package vip.isass.framework.database.core.exception;
 
 import lombok.Getter;
-import vip.isass.framework.core.exception.code.IStatusMessage;
+import vip.isass.framework.common.exception.code.IStatusMessage;
 
 /**
  * @author Rain

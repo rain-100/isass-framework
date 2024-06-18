@@ -173,7 +173,7 @@ import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.converter.ConverterRegistry;
-import vip.isass.framework.core.converter.ConvertSupport;
+import vip.isass.framework.common.converter.ConvertSupport;
 import vip.isass.framework.spring.core.SpringContextUtil;
 
 import javax.annotation.Resource;
