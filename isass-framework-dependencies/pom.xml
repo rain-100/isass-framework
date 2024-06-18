@@ -1,0 +1,1036 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~                    GNU LESSER GENERAL PUBLIC LICENSE
+  ~                        Version 3, 29 June 2007
+  ~
+  ~  Copyright (C) 2007 Free Software Foundation, Inc. <http://fsf.org />
+  ~  Everyone is permitted to copy and distribute verbatim copies
+  ~  of this license document, but changing it is not allowed.
+  ~
+  ~
+  ~   This version of the GNU Lesser General Public License incorporates
+  ~ the terms and conditions of version 3 of the GNU General Public
+  ~ License, supplemented by the additional permissions listed below.
+  ~
+  ~   0. Additional Definitions.
+  ~
+  ~   As used herein, "this License" refers to version 3 of the GNU Lesser
+  ~ General Public License, and the "GNU GPL" refers to version 3 of the GNU
+  ~ General Public License.
+  ~
+  ~   "The Library" refers to a covered work governed by this License,
+  ~ other than an Application or a Combined Work as defined below.
+  ~
+  ~   An "Application" is any work that makes use of an interface provided
+  ~ by the Library, but which is not otherwise based on the Library.
+  ~ Defining a subclass of a class defined by the Library is deemed a mode
+  ~ of using an interface provided by the Library.
+  ~
+  ~   A "Combined Work" is a work produced by combining or linking an
+  ~ Application with the Library.  The particular version of the Library
+  ~ with which the Combined Work was made is also called the "Linked
+  ~ Version".
+  ~
+  ~   The "Minimal Corresponding Source" for a Combined Work means the
+  ~ Corresponding Source for the Combined Work, excluding any source code
+  ~ for portions of the Combined Work that, considered in isolation, are
+  ~ based on the Application, and not on the Linked Version.
+  ~
+  ~   The "Corresponding Application Code" for a Combined Work means the
+  ~ object code and/or source code for the Application, including any data
+  ~ and utility programs needed for reproducing the Combined Work from the
+  ~ Application, but excluding the System Libraries of the Combined Work.
+  ~
+  ~   1. Exception to Section 3 of the GNU GPL.
+  ~
+  ~   You may convey a covered work under sections 3 and 4 of this License
+  ~ without being bound by section 3 of the GNU GPL.
+  ~
+  ~   2. Conveying Modified Versions.
+  ~
+  ~   If you modify a copy of the Library, and, in your modifications, a
+  ~ facility refers to a function or data to be supplied by an Application
+  ~ that uses the facility (other than as an argument passed when the
+  ~ facility is invoked), then you may convey a copy of the modified
+  ~ version:
+  ~
+  ~    a) under this License, provided that you make a good faith effort to
+  ~    ensure that, in the event an Application does not supply the
+  ~    function or data, the facility still operates, and performs
+  ~    whatever part of its purpose remains meaningful, or
+  ~
+  ~    b) under the GNU GPL, with none of the additional permissions of
+  ~    this License applicable to that copy.
+  ~
+  ~   3. Object Code Incorporating Material from Library Header Files.
+  ~
+  ~   The object code form of an Application may incorporate material from
+  ~ a header file that is part of the Library.  You may convey such object
+  ~ code under terms of your choice, provided that, if the incorporated
+  ~ material is not limited to numerical parameters, data structure
+  ~ layouts and accessors, or small macros, inline functions and templates
+  ~ (ten or fewer lines in length), you do both of the following:
+  ~
+  ~    a) Give prominent notice with each copy of the object code that the
+  ~    Library is used in it and that the Library and its use are
+  ~    covered by this License.
+  ~
+  ~    b) Accompany the object code with a copy of the GNU GPL and this license
+  ~    document.
+  ~
+  ~   4. Combined Works.
+  ~
+  ~   You may convey a Combined Work under terms of your choice that,
+  ~ taken together, effectively do not restrict modification of the
+  ~ portions of the Library contained in the Combined Work and reverse
+  ~ engineering for debugging such modifications, if you also do each of
+  ~ the following:
+  ~
+  ~    a) Give prominent notice with each copy of the Combined Work that
+  ~    the Library is used in it and that the Library and its use are
+  ~    covered by this License.
+  ~
+  ~    b) Accompany the Combined Work with a copy of the GNU GPL and this license
+  ~    document.
+  ~
+  ~    c) For a Combined Work that displays copyright notices during
+  ~    execution, include the copyright notice for the Library among
+  ~    these notices, as well as a reference directing the user to the
+  ~    copies of the GNU GPL and this license document.
+  ~
+  ~    d) Do one of the following:
+  ~
+  ~        0) Convey the Minimal Corresponding Source under the terms of this
+  ~        License, and the Corresponding Application Code in a form
+  ~        suitable for, and under terms that permit, the user to
+  ~        recombine or relink the Application with a modified version of
+  ~        the Linked Version to produce a modified Combined Work, in the
+  ~        manner specified by section 6 of the GNU GPL for conveying
+  ~        Corresponding Source.
+  ~
+  ~        1) Use a suitable shared library mechanism for linking with the
+  ~        Library.  A suitable mechanism is one that (a) uses at run time
+  ~        a copy of the Library already present on the user's computer
+  ~        system, and (b) will operate properly with a modified version
+  ~        of the Library that is interface-compatible with the Linked
+  ~        Version.
+  ~
+  ~    e) Provide Installation Information, but only if you would otherwise
+  ~    be required to provide such information under section 6 of the
+  ~    GNU GPL, and only to the extent that such information is
+  ~    necessary to install and execute a modified version of the
+  ~    Combined Work produced by recombining or relinking the
+  ~    Application with a modified version of the Linked Version. (If
+  ~    you use option 4d0, the Installation Information must accompany
+  ~    the Minimal Corresponding Source and Corresponding Application
+  ~    Code. If you use option 4d1, you must provide the Installation
+  ~    Information in the manner specified by section 6 of the GNU GPL
+  ~    for conveying Corresponding Source.)
+  ~
+  ~   5. Combined Libraries.
+  ~
+  ~   You may place library facilities that are a work based on the
+  ~ Library side by side in a single library together with other library
+  ~ facilities that are not Applications and are not covered by this
+  ~ License, and convey such a combined library under terms of your
+  ~ choice, if you do both of the following:
+  ~
+  ~    a) Accompany the combined library with a copy of the same work based
+  ~    on the Library, uncombined with any other library facilities,
+  ~    conveyed under the terms of this License.
+  ~
+  ~    b) Give prominent notice with the combined library that part of it
+  ~    is a work based on the Library, and explaining where to find the
+  ~    accompanying uncombined form of the same work.
+  ~
+  ~   6. Revised Versions of the GNU Lesser General Public License.
+  ~
+  ~   The Free Software Foundation may publish revised and/or new versions
+  ~ of the GNU Lesser General Public License from time to time. Such new
+  ~ versions will be similar in spirit to the present version, but may
+  ~ differ in detail to address new problems or concerns.
+  ~
+  ~   Each version is given a distinguishing version number. If the
+  ~ Library as you received it specifies that a certain numbered version
+  ~ of the GNU Lesser General Public License "or any later version"
+  ~ applies to it, you have the option of following the terms and
+  ~ conditions either of that published version or of any later version
+  ~ published by the Free Software Foundation. If the Library as you
+  ~ received it does not specify a version number of the GNU Lesser
+  ~ General Public License, you may choose any version of the GNU Lesser
+  ~ General Public License ever published by the Free Software Foundation.
+  ~
+  ~   If the Library as you received it specifies that a proxy can decide
+  ~ whether future versions of the GNU Lesser General Public License shall
+  ~ apply, that proxy's public statement of acceptance of any version is
+  ~ permanent authorization for you to choose that version for the
+  ~ Library.
+  ~
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- 本项目信息 -->
+    <groupId>vip.isass</groupId>
+    <artifactId>isass-framework-dependencies</artifactId>
+    <version>${revision}</version>
+    <packaging>pom</packaging>
+
+    <properties>
+        <!-- region build properties -->
+
+        <java.version>1.8</java.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
+        <maven.compiler.source>${java.version}</maven.compiler.source>
+        <maven.compiler.target>${java.version}</maven.compiler.target>
+
+        <!-- endregion -->
+
+        <!-- region isass-core -->
+
+        <revision>4.0.0-SNAPSHOT</revision>
+        <super-core.version>${revision}</super-core.version>
+
+        <!-- endregion -->
+
+        <!-- region repository -->
+
+        <repository.releases.id>ar-releases</repository.releases.id>
+        <repository.releases.name>ar-releases</repository.releases.name>
+        <repository.releases.url>
+            https://maven.aliyun.com/repository/public
+        </repository.releases.url>
+
+        <repository.snapshot.id>ar-snapshot</repository.snapshot.id>
+        <repository.snapshot.name>ar-snapshot</repository.snapshot.name>
+        <repository.snapshot.url>
+            https://oss.sonatype.org/content/repositories/snapshots
+        </repository.snapshot.url>
+
+        <repository.distribution.releases.id>ar-releases</repository.distribution.releases.id>
+        <repository.distribution.releases.name>ar-releases</repository.distribution.releases.name>
+        <repository.distribution.releases.url>
+            https://oss.sonatype.org/service/local/staging/deploy/maven2
+        </repository.distribution.releases.url>
+
+        <repository.distribution.snapshot.id>ar-snapshots</repository.distribution.snapshot.id>
+        <repository.distribution.snapshot.name>ar-snapshots</repository.distribution.snapshot.name>
+        <repository.distribution.snapshot.url>
+            https://oss.sonatype.org/content/repositories/snapshots
+        </repository.distribution.snapshot.url>
+
+        <!-- endregion -->
+
+        <tomcat.version>9.0.48</tomcat.version>
+
+        <!-- endregion -->
+
+        <!-- spring -->
+        <spring-boot.version>2.2.5.RELEASE</spring-boot.version>
+        <spring.cloud.version>Hoxton.SR3</spring.cloud.version>
+
+        <alibaba-nacos.version>2.2.1.RELEASE</alibaba-nacos.version>
+
+        <skywalking.version>6.6.0</skywalking.version>
+
+        <!-- 数据库 -->
+        <mybatis-plus.version>3.3.1</mybatis-plus.version>
+        <mybatis.version>3.5.7</mybatis.version>
+        <flyway.version>6.3.3</flyway.version>
+        <sharding-jdbc.version>4.0.0-RC2</sharding-jdbc.version>
+        <p6spy.version>3.9.0</p6spy.version>
+        <dynamic-datasource.version>3.2.1</dynamic-datasource.version>
+        <dameng.version>8.1.3.140</dameng.version>
+        <postgresql.version>42.4.3</postgresql.version>
+        <mysql.version>8.0.33</mysql.version>
+
+        <!-- net -->
+        <netty.version>4.1.100.Final</netty.version>
+        <netty-socketio.version>2.0.6</netty-socketio.version>
+        <protobuf-java.version>3.9.0</protobuf-java.version>
+        <protobuf-java-format.version>1.2</protobuf-java-format.version>
+
+        <canal.client.version>1.0.25</canal.client.version>
+        <hutool.version>5.8.27</hutool.version>
+        <rocketmq.version>4.1.0-incubating</rocketmq.version>
+        <ons.version>1.8.0.Final</ons.version>
+
+        <disruptor.version>3.4.2</disruptor.version>
+
+        <guava.version>33.1.0-jre</guava.version>
+        <auto-service.version>1.1.1</auto-service.version>
+
+        <knife4j.version>2.0.5</knife4j.version>
+
+        <jjwt.version>0.9.1</jjwt.version>
+        <activiti.version>6.0.0</activiti.version>
+
+        <hystrix-javanica.version>1.5.18</hystrix-javanica.version>
+        <freemarker.version>2.3.28</freemarker.version>
+
+        <xxl-job.version>2.2.0</xxl-job.version>
+
+        <jasypt.version>2.1.1</jasypt.version>
+
+        <!--<elasticsearch.version>7.2.0</elasticsearch.version>-->
+
+        <poi-ooxml.version>4.1.2</poi-ooxml.version>
+        <xerces.version>2.12.0</xerces.version>
+
+        <klock.version>1.4-RELEASE</klock.version>
+        <lock4j-redisson.version>2.2.2</lock4j-redisson.version>
+        <redisson.version>3.13.1</redisson.version>
+
+        <alipay.version>4.7.12.ALL</alipay.version>
+
+        <feign.form.version>3.8.0</feign.form.version>
+
+        <!-- 分布式事务 -->
+        <tx-lcn.version>5.0.2.RELEASE</tx-lcn.version>
+
+        <findbugs.version>3.0.1</findbugs.version>
+
+        <cglib.version>3.3.0</cglib.version>
+
+        <wxjava.version>4.1.0</wxjava.version>
+
+        <geotools.version>27.4</geotools.version>
+        <jts.version>1.18.1</jts.version>
+        <coordtransform4j.version>1.0.2</coordtransform4j.version>
+        <sqlite-jdbc.version>3.34.0</sqlite-jdbc.version>
+        <fastjson.version>1.2.83</fastjson.version>
+        <logback.version>1.2.3</logback.version>
+        <log4j-to-slf4j.version>2.12.1</log4j-to-slf4j.version>
+        <jul-to-slf4j.version>1.7.30</jul-to-slf4j.version>
+        <commons-compress.version>1.26.1</commons-compress.version>
+        <javassist.version>3.25.0-GA</javassist.version>
+    </properties>
+
+    <dependencies>
+    </dependencies>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring-boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <!-- spring cloud 指定spring cloud 的版本，让子项目引用 -->
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring.cloud.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>com.github.xiaoymin</groupId>
+                <artifactId>knife4j-dependencies</artifactId>
+                <version>${knife4j.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>com.alibaba.cloud</groupId>
+                <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+                <version>${alibaba-nacos.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.alibaba.cloud</groupId>
+                <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
+                <version>${alibaba-nacos.version}</version>
+            </dependency>
+
+            <!-- vip.isass 系列 -->
+            <dependency>
+                <groupId>vip.isass</groupId>
+                <artifactId>isass-common</artifactId>
+                <version>${super-core.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>vip.isass</groupId>
+                <artifactId>isass-spring-core</artifactId>
+                <version>${super-core.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>vip.isass</groupId>
+                <artifactId>isass-packaging</artifactId>
+                <version>${super-core.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>vip.isass</groupId>
+                <artifactId>isass-lowcode-core</artifactId>
+                <version>${super-core.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>vip.isass</groupId>
+                <artifactId>isass-lowcode-generator</artifactId>
+                <version>${super-core.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>vip.isass</groupId>
+                <artifactId>isass-lowcode-spring-boot-starter</artifactId>
+                <version>${super-core.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>vip.isass</groupId>
+                <artifactId>isass-security-core</artifactId>
+                <version>${super-core.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>vip.isass</groupId>
+                <artifactId>isass-security-springsecurity</artifactId>
+                <version>${super-core.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>vip.isass</groupId>
+                <artifactId>isass-rpc-feign</artifactId>
+                <version>${super-core.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>vip.isass</groupId>
+                <artifactId>isass-web-swagger</artifactId>
+                <version>${super-core.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>vip.isass</groupId>
+                <artifactId>isass-serialization-jackson</artifactId>
+                <version>${super-core.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>vip.isass</groupId>
+                <artifactId>isass-serialization-protobuf</artifactId>
+                <version>${super-core.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>vip.isass</groupId>
+                <artifactId>isass-database-redis</artifactId>
+                <version>${super-core.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>vip.isass</groupId>
+                <artifactId>isass-database-core</artifactId>
+                <version>${super-core.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>vip.isass</groupId>
+                <artifactId>isass-database-mysql</artifactId>
+                <version>${super-core.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>vip.isass</groupId>
+                <artifactId>isass-database-postgresql</artifactId>
+                <version>${super-core.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>vip.isass</groupId>
+                <artifactId>isass-database-dameng</artifactId>
+                <version>${super-core.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>vip.isass</groupId>
+                <artifactId>isass-database-orm-mybatisplus</artifactId>
+                <version>${super-core.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>vip.isass</groupId>
+                <artifactId>isass-database-sharding-jdbc</artifactId>
+                <version>${super-core.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>vip.isass</groupId>
+                <artifactId>isass-mq-core</artifactId>
+                <version>${super-core.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>vip.isass</groupId>
+                <artifactId>isass-mq-ons</artifactId>
+                <version>${super-core.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>vip.isass</groupId>
+                <artifactId>isass-mq-spring-event</artifactId>
+                <version>${super-core.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>vip.isass</groupId>
+                <artifactId>isass-mq-kafka011</artifactId>
+                <version>${super-core.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>vip.isass</groupId>
+                <artifactId>isass-net-core</artifactId>
+                <version>${super-core.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>vip.isass</groupId>
+                <artifactId>isass-net-netty</artifactId>
+                <version>${super-core.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>vip.isass</groupId>
+                <artifactId>isass-net-websocket</artifactId>
+                <version>${super-core.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>vip.isass</groupId>
+                <artifactId>isass-net-socketio</artifactId>
+                <version>${super-core.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>vip.isass</groupId>
+                <artifactId>isass-net-proxy-core</artifactId>
+                <version>${super-core.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>vip.isass</groupId>
+                <artifactId>isass-net-proxy-upstream</artifactId>
+                <version>${super-core.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>vip.isass</groupId>
+                <artifactId>isass-net-proxy-server</artifactId>
+                <version>${super-core.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>vip.isass</groupId>
+                <artifactId>isass-database-elasticsearch</artifactId>
+                <version>${super-core.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>vip.isass</groupId>
+                <artifactId>isass-rpc-okhttp</artifactId>
+                <version>${super-core.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>vip.isass</groupId>
+                <artifactId>isass-web-springmvc</artifactId>
+                <version>${super-core.version}</version>
+            </dependency>
+
+            <!-- rocketmq -->
+            <dependency>
+                <groupId>org.apache.rocketmq</groupId>
+                <artifactId>rocketmq-client</artifactId>
+                <version>${rocketmq.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.rocketmq</groupId>
+                <artifactId>rocketmq-common</artifactId>
+                <version>${rocketmq.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.aliyun.openservices</groupId>
+                <artifactId>ons-client</artifactId>
+                <version>${ons.version}</version>
+            </dependency>
+
+            <!-- 数据库 -->
+            <dependency>
+                <groupId>org.apache.shardingsphere</groupId>
+                <artifactId>sharding-jdbc-spring-boot-starter</artifactId>
+                <version>${sharding-jdbc.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.flywaydb</groupId>
+                <artifactId>flyway-core</artifactId>
+                <version>${flyway.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>dynamic-datasource-spring-boot-starter</artifactId>
+                <version>${dynamic-datasource.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.dameng</groupId>
+                <artifactId>DmJdbcDriver18</artifactId>
+                <version>${dameng.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-boot-starter</artifactId>
+                <version>${mybatis-plus.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-generator</artifactId>
+                <version>${mybatis-plus.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-annotation</artifactId>
+                <version>${mybatis-plus.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.mybatis</groupId>
+                        <artifactId>mybatis</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+            <dependency>
+                <groupId>org.mybatis</groupId>
+                <artifactId>mybatis</artifactId>
+                <version>${mybatis.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-extension</artifactId>
+                <version>${mybatis-plus.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-core</artifactId>
+                <version>${mybatis-plus.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>p6spy</groupId>
+                <artifactId>p6spy</artifactId>
+                <version>${p6spy.version}</version>
+            </dependency>
+
+            <!-- net -->
+            <dependency>
+                <groupId>com.google.protobuf</groupId>
+                <artifactId>protobuf-java</artifactId>
+                <version>${protobuf-java.version}</version>
+            </dependency>
+
+            <!-- protobuf与json转换-->
+            <dependency>
+                <groupId>com.googlecode.protobuf-java-format</groupId>
+                <artifactId>protobuf-java-format</artifactId>
+                <version>${protobuf-java-format.version}</version>
+            </dependency>
+
+            <!-- netty -->
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-all</artifactId>
+                <version>${netty.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.corundumstudio.socketio</groupId>
+                <artifactId>netty-socketio</artifactId>
+                <version>${netty-socketio.version}</version>
+            </dependency>
+
+            <!-- 工具类 -->
+            <dependency>
+                <groupId>cn.hutool</groupId>
+                <artifactId>hutool-all</artifactId>
+                <version>${hutool.version}</version>
+            </dependency>
+
+            <!-- alibaba canal-->
+            <dependency>
+                <groupId>com.alibaba.otter</groupId>
+                <artifactId>canal.client</artifactId>
+                <version>${canal.client.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>${guava.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.google.auto.service</groupId>
+                <artifactId>auto-service</artifactId>
+                <version>${auto-service.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.jsonwebtoken</groupId>
+                <artifactId>jjwt</artifactId>
+                <version>${jjwt.version}</version>
+            </dependency>
+
+            <!-- activity -->
+            <dependency>
+                <groupId>org.activiti</groupId>
+                <artifactId>activiti-spring-boot-starter-basic</artifactId>
+                <version>${activiti.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.netflix.hystrix</groupId>
+                <artifactId>hystrix-javanica</artifactId>
+                <version>${hystrix-javanica.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.freemarker</groupId>
+                <artifactId>freemarker</artifactId>
+                <version>${freemarker.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.xuxueli</groupId>
+                <artifactId>xxl-job-core</artifactId>
+                <version>${xxl-job.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.github.ulisesbocchio</groupId>
+                <artifactId>jasypt-spring-boot-starter</artifactId>
+                <version>${jasypt.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.skywalking</groupId>
+                <artifactId>apm-toolkit-logback-1.x</artifactId>
+                <version>${skywalking.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.skywalking</groupId>
+                <artifactId>apm-toolkit-trace</artifactId>
+                <version>${skywalking.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.poi</groupId>
+                <artifactId>poi-ooxml</artifactId>
+                <version>${poi-ooxml.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-compress</artifactId>
+                <version>${commons-compress.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>xerces</groupId>
+                <artifactId>xercesImpl</artifactId>
+                <version>${xerces.version}</version>
+            </dependency>
+
+            <!-- 分布式锁 -->
+            <dependency>
+                <groupId>cn.keking</groupId>
+                <artifactId>spring-boot-klock-starter</artifactId>
+                <version>${klock.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>lock4j-redisson-spring-boot-starter</artifactId>
+                <version>${lock4j-redisson.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.redisson</groupId>
+                        <artifactId>redisson-spring-boot-starter</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+            <dependency>
+                <groupId>org.redisson</groupId>
+                <artifactId>redisson-spring-boot-starter</artifactId>
+                <version>${redisson.version}</version>
+            </dependency>
+
+            <!-- alipay -->
+            <dependency>
+                <groupId>com.alipay.sdk</groupId>
+                <artifactId>alipay-sdk-java</artifactId>
+                <version>${alipay.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.github.openfeign.form</groupId>
+                <artifactId>feign-form</artifactId>
+                <version>${feign.form.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.github.openfeign.form</groupId>
+                <artifactId>feign-form-spring</artifactId>
+                <version>${feign.form.version}</version>
+            </dependency>
+
+            <!-- 分布式事务 -->
+            <dependency>
+                <groupId>com.codingapi.txlcn</groupId>
+                <artifactId>txlcn-tc</artifactId>
+                <version>${tx-lcn.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.codingapi.txlcn</groupId>
+                <artifactId>txlcn-txmsg-netty</artifactId>
+                <version>${tx-lcn.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.google.code.findbugs</groupId>
+                <artifactId>annotations</artifactId>
+                <version>${findbugs.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>cglib</groupId>
+                <artifactId>cglib</artifactId>
+                <version>${cglib.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.github.binarywang</groupId>
+                <artifactId>weixin-java-miniapp</artifactId>
+                <version>${wxjava.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.github.binarywang</groupId>
+                <artifactId>weixin-java-pay</artifactId>
+                <version>${wxjava.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.github.binarywang</groupId>
+                <artifactId>weixin-java-open</artifactId>
+                <version>${wxjava.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.github.binarywang</groupId>
+                <artifactId>weixin-java-mp</artifactId>
+                <version>${wxjava.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.github.binarywang</groupId>
+                <artifactId>weixin-java-cp</artifactId>
+                <version>${wxjava.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>fastjson</artifactId>
+                <version>${fastjson.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.javassist</groupId>
+                <artifactId>javassist</artifactId>
+                <version>${javassist.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.sun</groupId>
+                <artifactId>tools</artifactId>
+                <version>${java.version}</version>
+                <scope>system</scope>
+                <optional>true</optional>
+                <systemPath>${env.JAVA_HOME}/lib/tools.jar</systemPath>
+            </dependency>
+
+            <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-classic</artifactId>
+                <version>${logback.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-to-slf4j</artifactId>
+                <version>${log4j-to-slf4j.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>jul-to-slf4j</artifactId>
+                <version>${jul-to-slf4j.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-source-plugin</artifactId>
+                    <executions>
+                        <execution>
+                            <id>attach-sources</id>
+                            <phase>package</phase>
+                            <goals>
+                                <goal>jar</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.8.1</version>
+                    <configuration>
+                        <source>${maven.compiler.source}</source>
+                        <target>${maven.compiler.target}</target>
+                        <encoding>UTF-8</encoding>
+                        <compilerArgument>-parameters</compilerArgument>
+                    </configuration>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>3.2.5</version>
+                    <configuration>
+                        <skip>true</skip>
+                    </configuration>
+                </plugin>
+
+                <plugin>
+                    <groupId>pl.project13.maven</groupId>
+                    <artifactId>git-commit-id-plugin</artifactId>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>revision</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                    <configuration>
+                        <prefix>git</prefix>
+                        <verbose>true</verbose>
+                        <dateFormat>yyyyMMddHHmmss</dateFormat>
+                        <generateGitPropertiesFile>true</generateGitPropertiesFile>
+                        <generateGitPropertiesFilename>${project.build.outputDirectory}/git.properties
+                        </generateGitPropertiesFilename>
+                        <format>properties</format>
+                        <abbrevLength>8</abbrevLength>
+                        <failOnNoGitDirectory>false</failOnNoGitDirectory>
+                        <failOnUnableToExtractRepoInfo>false</failOnUnableToExtractRepoInfo>
+                        <includeOnlyProperties>
+                            git.build.host,git.remote.origin.url,git.build.version,git.branch,git.commit.time,git.commit.id.abbrev
+                        </includeOnlyProperties>
+                    </configuration>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-release-plugin</artifactId>
+                    <version>2.5.3</version>
+                    <configuration>
+                        <tagNameFormat>@{project.version}</tagNameFormat>
+                        <autoVersionSubmodules>true</autoVersionSubmodules>
+                        <arguments>-DskipTests</arguments>
+                        <useReleaseProfile>false</useReleaseProfile>
+                        <allowTimestampedSnapshots>true</allowTimestampedSnapshots>
+                        <pushChanges>false</pushChanges>
+                        <preparationGoals>clean validate</preparationGoals>
+                        <scmCommentPrefix>chore:</scmCommentPrefix>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+
+    <developers>
+        <developer>
+            <name>Rain Lee</name>
+            <email>lizhirong100@163.com</email>
+            <organization>isass</organization>
+        </developer>
+    </developers>
+
+    <repositories>
+        <repository>
+            <id>${repository.releases.id}</id>
+            <name>${repository.releases.name}</name>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <url>${repository.releases.url}</url>
+        </repository>
+
+        <repository>
+            <id>${repository.snapshot.id}</id>
+            <name>${repository.snapshot.name}</name>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+            <url>${repository.snapshot.url}</url>
+        </repository>
+    </repositories>
+
+    <distributionManagement>
+        <repository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+        </repository>
+
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
+</project>
