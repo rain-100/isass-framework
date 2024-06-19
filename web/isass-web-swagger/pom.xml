@@ -187,7 +187,17 @@
     <dependencies>
         <dependency>
             <groupId>vip.isass</groupId>
-            <artifactId>isass-lowcode-spring-boot-starter</artifactId>
+            <artifactId>isass-lowcode-core</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
         </dependency>
 
         <dependency>

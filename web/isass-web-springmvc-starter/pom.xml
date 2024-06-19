@@ -181,7 +181,7 @@
     </parent>
 
     <!-- 本项目信息 -->
-    <artifactId>isass-security-springsecurity</artifactId>
+    <artifactId>isass-web-springmvc-starter</artifactId>
     <version>${revision}</version>
 
     <properties>
@@ -191,44 +191,23 @@
     <dependencies>
         <dependency>
             <groupId>vip.isass</groupId>
-            <artifactId>isass-common</artifactId>
+            <artifactId>isass-web-springmvc</artifactId>
         </dependency>
 
         <dependency>
             <groupId>vip.isass</groupId>
-            <artifactId>isass-database-redis</artifactId>
+            <artifactId>isass-web-swagger</artifactId>
         </dependency>
 
         <dependency>
             <groupId>vip.isass</groupId>
-            <artifactId>isass-security-core</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-security</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.springframework.security</groupId>
-                    <artifactId>spring-security-web</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework.security</groupId>
-                    <artifactId>spring-security-core</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-web</artifactId>
+            <artifactId>isass-security-springsecurity</artifactId>
             <exclusions>
                 <exclusion>
                     <groupId>org.springframework.security</groupId>
                     <artifactId>spring-security-core</artifactId>
                 </exclusion>
             </exclusions>
-            <version>${spring-security.version}</version>
         </dependency>
 
         <dependency>

@@ -173,9 +173,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import vip.isass.framework.security.springsecurity.authentication.AbstractAuthenticationFilter;
 import vip.isass.framework.security.core.authentication.login.DefaultLoginUser;
-import vip.isass.framework.web.springmvc.header.MsAuthenticationHeaderProvider;
+import vip.isass.framework.security.springsecurity.MsAuthenticationHeaderProvider;
+import vip.isass.framework.security.springsecurity.authentication.AbstractAuthenticationFilter;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -209,11 +209,11 @@ public class MsAuthenticationFilter extends AbstractAuthenticationFilter {
             MsAuthenticationToken authResult = (MsAuthenticationToken) getAuthenticationManager().authenticate(authRequest);
 
             DefaultLoginUser defaultLoginUser = new DefaultLoginUser()
-                .setUserId(authResult.getAppName())
-                .setNickName(authResult.getAppName())
-                .setLoginFrom(authResult.getAppName())
-                .setVersion(1)
-                .setTokenFrom(MsAuthenticationToken.class.getSimpleName());
+                    .setUserId(authResult.getAppName())
+                    .setNickName(authResult.getAppName())
+                    .setLoginFrom(authResult.getAppName())
+                    .setVersion(1)
+                    .setTokenFrom(MsAuthenticationToken.class.getSimpleName());
 
             saveAuthentication(defaultLoginUser, authResult.getAuthorities());
             onSuccessfulAuthentication(request, response, authResult);

@@ -176,8 +176,8 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
-import vip.isass.framework.web.springmvc.header.MsAuthenticationHeaderProvider;
 import vip.isass.framework.security.core.authorization.role.RoleConst;
+import vip.isass.framework.security.springsecurity.MsAuthenticationHeaderProvider;
 
 import javax.annotation.Resource;
 import java.util.Collection;

@@ -391,7 +391,7 @@
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>isass-lowcode-spring-boot-starter</artifactId>
+                <artifactId>isass-lowcode-springboot-starter</artifactId>
                 <version>${isass-framework.version}</version>
             </dependency>
 
@@ -410,12 +410,6 @@
             <dependency>
                 <groupId>vip.isass</groupId>
                 <artifactId>isass-rpc-feign</artifactId>
-                <version>${isass-framework.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>vip.isass</groupId>
-                <artifactId>isass-web-swagger</artifactId>
                 <version>${isass-framework.version}</version>
             </dependency>
 
@@ -563,6 +557,17 @@
                 <version>${isass-framework.version}</version>
             </dependency>
 
+            <dependency>
+                <groupId>vip.isass</groupId>
+                <artifactId>isass-web-springmvc-starter</artifactId>
+                <version>${isass-framework.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>vip.isass</groupId>
+                <artifactId>isass-web-swagger</artifactId>
+                <version>${isass-framework.version}</version>
+            </dependency>
             <!-- rocketmq -->
             <dependency>
                 <groupId>org.apache.rocketmq</groupId>

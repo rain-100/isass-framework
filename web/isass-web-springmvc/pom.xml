@@ -191,35 +191,22 @@
     <dependencies>
         <dependency>
             <groupId>vip.isass</groupId>
-            <artifactId>isass-common</artifactId>
+            <artifactId>isass-serialization-jackson</artifactId>
         </dependency>
 
         <dependency>
             <groupId>vip.isass</groupId>
-            <artifactId>isass-serialization-jackson</artifactId>
+            <artifactId>isass-springboot-starter</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>vip.isass</groupId>
+            <artifactId>isass-security-core</artifactId>
         </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-web</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.springframework.security</groupId>
-                    <artifactId>spring-security-core</artifactId>
-                </exclusion>
-            </exclusions>
-            <version>${spring-security.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-core</artifactId>
-            <version>${spring-security.version}</version>
         </dependency>
     </dependencies>
 </project>

@@ -181,15 +181,10 @@
     </parent>
 
     <!-- 本项目信息 -->
-    <artifactId>isass-lowcode-spring-boot-starter</artifactId>
+    <artifactId>isass-lowcode-springboot-starter</artifactId>
     <version>${revision}</version>
 
     <dependencies>
-        <dependency>
-            <groupId>vip.isass</groupId>
-            <artifactId>isass-common</artifactId>
-        </dependency>
-
         <dependency>
             <groupId>vip.isass</groupId>
             <artifactId>isass-lowcode-core</artifactId>
@@ -197,34 +192,7 @@
 
         <dependency>
             <groupId>vip.isass</groupId>
-            <artifactId>isass-springboot-starter</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>vip.isass</groupId>
-            <artifactId>isass-web-springmvc</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter</artifactId>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-actuator</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
+            <artifactId>isass-web-springmvc-starter</artifactId>
         </dependency>
 
         <dependency>
@@ -232,16 +200,7 @@
             <artifactId>spring-tx</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>org.springframework.retry</groupId>
-            <artifactId>spring-retry</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.github.ulisesbocchio</groupId>
-            <artifactId>jasypt-spring-boot-starter</artifactId>
-        </dependency>
-
+        <!-- 把 mybatisplus 的 IPage 去掉后，即可去掉此依赖-->
         <dependency>
             <groupId>com.baomidou</groupId>
             <artifactId>mybatis-plus-core</artifactId>
@@ -250,11 +209,6 @@
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>io.swagger</groupId>
-            <artifactId>swagger-models</artifactId>
         </dependency>
 
         <dependency>

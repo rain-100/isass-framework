@@ -195,11 +195,6 @@
         </dependency>
 
         <dependency>
-            <groupId>vip.isass</groupId>
-            <artifactId>isass-serialization-jackson</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt</artifactId>
         </dependency>

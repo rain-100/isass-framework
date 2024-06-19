@@ -196,7 +196,7 @@
         <module>ioc/isass-springboot-starter</module>
         <module>lowcode/isass-lowcode-core</module>
         <module>lowcode/isass-lowcode-generator</module>
-        <module>lowcode/isass-lowcode-spring-boot-starter</module>
+        <module>lowcode/isass-lowcode-springboot-starter</module>
         <module>mq/isass-mq-core</module>
         <module>mq/isass-mq-kafka011</module>
         <module>mq/isass-mq-ons</module>
@@ -215,6 +215,7 @@
         <module>serialization/isass-serialization-jackson</module>
         <module>serialization/isass-serialization-protobuf</module>
         <module>web/isass-web-springmvc</module>
+        <module>web/isass-web-springmvc-starter</module>
         <module>web/isass-web-swagger</module>
     </modules>
 

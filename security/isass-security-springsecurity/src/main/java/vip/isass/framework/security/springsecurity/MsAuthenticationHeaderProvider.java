@@ -166,24 +166,58 @@
  * Library.
  */
 
-package vip.isass.framework.web.springmvc.header;
+package vip.isass.framework.security.springsecurity;
+
+import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+import vip.isass.framework.security.core.header.AdditionalRequestHeaderProvider;
 
 /**
  * @author Rain
  */
-public interface AdditionalRequestHeaderProvider {
+@Getter
+@Setter
+@Accessors(chain = true)
+@Component
+public class MsAuthenticationHeaderProvider implements AdditionalRequestHeaderProvider {
 
-    String getHeaderName();
+    public static final String HEADER = "ms-authorization";
 
-    String getValue();
+    @Value("${spring.application.name:unknown}")
+    private String appName;
 
-    /**
-     * 当已存在同名的请求头时，是否覆盖旧的值
-     *
-     * @return is override
-     */
-    boolean override();
+    @Value("${security.ms.secret:qcyAHr35IDzI9FkD}")
+    private String secret;
 
-    boolean support(String method, String uri);
+    @Value(".${security.ms.secret:qcyAHr35IDzI9FkD}")
+    private String dotSecret;
+
+    private String fullMsAuthenticationHeaderValue = "";
+
+    @Override
+    public String getHeaderName() {
+        return HEADER;
+    }
+
+    @Override
+    public String getValue() {
+        if ("".equals(fullMsAuthenticationHeaderValue)) {
+            fullMsAuthenticationHeaderValue = appName + dotSecret;
+        }
+        return fullMsAuthenticationHeaderValue;
+    }
+
+    @Override
+    public boolean override() {
+        return false;
+    }
+
+    @Override
+    public boolean support(String method, String url) {
+        return true;
+    }
 
 }
