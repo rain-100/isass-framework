@@ -172,104 +172,32 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
+    <!-- 父项目信息 -->
+    <parent>
+        <groupId>vip.isass</groupId>
+        <artifactId>isass-framework-parent</artifactId>
+        <version>${revision}</version>
+        <relativePath>../../common/isass-framework-parent</relativePath>
+    </parent>
+
     <!-- 本项目信息 -->
-    <!-- 正式版格式：super.x.y.z-release-->
-    <!-- 快照版格式：super.x.y.z-SNAPSHOT-->
-    <groupId>vip.isass</groupId>
-    <artifactId>isass-framework</artifactId>
+    <artifactId>isass-serialization-protobuf</artifactId>
     <version>${revision}</version>
-    <packaging>pom</packaging>
 
-    <modules>
-        <module>common/isass-build</module>
-        <module>common/isass-common</module>
-        <module>common/isass-framework-dependencies</module>
-        <module>common/isass-framework-parent</module>
-        <module>database/isass-database-core</module>
-        <module>database/isass-database-dameng</module>
-        <module>database/isass-database-elasticsearch</module>
-        <module>database/isass-database-mybatisplus</module>
-        <module>database/isass-database-mysql</module>
-        <module>database/isass-database-postgresql</module>
-        <module>database/isass-database-redis</module>
-        <module>database/isass-database-sharding-jdbc</module>
-        <module>ioc/isass-springboot-starter</module>
-        <module>lowcode/isass-lowcode-core</module>
-        <module>lowcode/isass-lowcode-generator</module>
-        <module>lowcode/isass-lowcode-spring-boot-starter</module>
-        <module>mq/isass-mq-core</module>
-        <module>mq/isass-mq-kafka011</module>
-        <module>mq/isass-mq-ons</module>
-        <module>mq/isass-mq-spring-event</module>
-        <module>net/isass-net-core</module>
-        <module>net/isass-net-netty</module>
-        <module>net/isass-net-proxy-core</module>
-        <module>net/isass-net-proxy-server</module>
-        <module>net/isass-net-proxy-upstream</module>
-        <module>net/isass-net-socketio</module>
-        <module>net/isass-net-websocket</module>
-        <module>rpc/isass-rpc-feign</module>
-        <module>rpc/isass-rpc-okhttp</module>
-        <module>security/isass-security-core</module>
-        <module>security/isass-security-springsecurity</module>
-        <module>serialization/isass-serialization-jackson</module>
-        <module>serialization/isass-serialization-protobuf</module>
-        <module>web/isass-web-springmvc</module>
-        <module>web/isass-web-swagger</module>
-    </modules>
+    <dependencies>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+        </dependency>
 
-    <!-- 配置属性 -->
-    <properties>
-        <!-- region build properties -->
+        <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java</artifactId>
+        </dependency>
 
-        <java.version>1.8</java.version>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
-        <maven.compiler.source>${java.version}</maven.compiler.source>
-        <maven.compiler.target>${java.version}</maven.compiler.target>
-
-        <!-- endregion -->
-
-        <!-- region isass-core -->
-
-        <revision>4.0.0-SNAPSHOT</revision>
-
-        <!-- endregion -->
-    </properties>
-
-    <licenses>
-        <license>
-            <name>GNU Lesser General Public License Version 3</name>
-            <url>http://www.gnu.org/licenses/lgpl.txt</url>
-            <distribution>repo</distribution>
-        </license>
-    </licenses>
-
-    <scm>
-        <tag>master</tag>
-        <url>https://gitee.com/isass/super</url>
-        <connection>scm:git:git@gitee.com:isass/super.git</connection>
-        <developerConnection>scm:git:git@gitee.com:isass/super.git</developerConnection>
-    </scm>
-
-    <developers>
-        <developer>
-            <name>Rain Lee</name>
-            <email>lizhirong100@163.com</email>
-            <organization>isass</organization>
-        </developer>
-    </developers>
-
-    <distributionManagement>
-        <repository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
-        </repository>
-
-        <snapshotRepository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-        </snapshotRepository>
-    </distributionManagement>
+        <dependency>
+            <groupId>com.googlecode.protobuf-java-format</groupId>
+            <artifactId>protobuf-java-format</artifactId>
+        </dependency>
+    </dependencies>
 </project>
