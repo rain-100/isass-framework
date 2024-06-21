@@ -168,7 +168,7 @@
 
 package vip.isass.framework.net.core.allocator;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 
 // todo 集群模式下的节点分配功能，计划单独新增isass-net-cluster 项目模块实现
 // @RestController

@@ -170,6 +170,7 @@ package vip.isass.framework.security.springsecurity.authentication.jwt;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -181,12 +182,11 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 import vip.isass.framework.common.exception.UnifiedException;
 import vip.isass.framework.common.exception.code.StatusMessageEnum;
-import vip.isass.framework.security.springsecurity.authorization.IsassGrantedAuthority;
-import vip.isass.framework.security.springsecurity.metadata.SecurityMetadataSourceProviderManager;
 import vip.isass.framework.security.core.authentication.jwt.JwtInfo;
 import vip.isass.framework.security.core.authentication.jwt.JwtUtil;
+import vip.isass.framework.security.springsecurity.authorization.IsassGrantedAuthority;
+import vip.isass.framework.security.springsecurity.metadata.SecurityMetadataSourceProviderManager;
 
-import javax.annotation.Resource;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.stream.Collectors;

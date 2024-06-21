@@ -181,7 +181,7 @@
     <properties>
         <!-- region build properties -->
 
-        <java.version>1.8</java.version>
+        <java.version>21</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
@@ -227,90 +227,91 @@
 
         <!-- region dependencies version -->
 
-        <tomcat.version>9.0.48</tomcat.version>
-
-
         <!-- spring -->
-        <spring-boot.version>2.2.5.RELEASE</spring-boot.version>
-        <spring.cloud.version>Hoxton.SR3</spring.cloud.version>
+        <spring-boot.version>3.3.0</spring-boot.version>
+        <spring.cloud.version>2023.0.2</spring.cloud.version>
 
-        <alibaba-nacos.version>2.2.1.RELEASE</alibaba-nacos.version>
+        <alibaba-nacos.version>2023.0.1.0</alibaba-nacos.version>
 
-        <skywalking.version>6.6.0</skywalking.version>
+        <jakarta.activation.version>2.1.3</jakarta.activation.version>
+
+        <!-- apm -->
+        <skywalking.version>9.2.0</skywalking.version>
 
         <!-- 数据库 -->
-        <mybatis-plus.version>3.3.1</mybatis-plus.version>
-        <mybatis.version>3.5.7</mybatis.version>
-        <flyway.version>6.3.3</flyway.version>
-        <sharding-jdbc.version>4.0.0-RC2</sharding-jdbc.version>
-        <p6spy.version>3.9.0</p6spy.version>
-        <dynamic-datasource.version>3.2.1</dynamic-datasource.version>
+        <mybatis-plus.version>3.5.7</mybatis-plus.version>
+        <!--<mybatis.version>3.5.7</mybatis.version>-->
+        <flyway.version>10.15.0</flyway.version>
+        <p6spy.version>3.9.1</p6spy.version>
+        <dynamic-datasource.version>4.3.1</dynamic-datasource.version>
         <dameng.version>8.1.3.140</dameng.version>
-        <postgresql.version>42.4.3</postgresql.version>
-        <mysql.version>8.0.33</mysql.version>
+        <postgresql.version>42.7.3</postgresql.version>
+        <mysql.version>8.4.0</mysql.version>
+        <redisson.version>3.31.0</redisson.version>
+        <sqlite-jdbc.version>3.46.0.0</sqlite-jdbc.version>
+        <!--<elasticsearch.version>7.2.0</elasticsearch.version>-->
 
         <!-- net -->
-        <netty.version>4.1.100.Final</netty.version>
-        <netty-socketio.version>2.0.6</netty-socketio.version>
-        <protobuf-java.version>3.9.0</protobuf-java.version>
-        <protobuf-java-format.version>1.2</protobuf-java-format.version>
+        <netty.version>4.1.111.Final</netty.version>
+        <netty-socketio.version>2.0.9</netty-socketio.version>
 
-        <canal.client.version>1.0.25</canal.client.version>
-        <hutool.version>5.8.27</hutool.version>
-        <rocketmq.version>4.1.0-incubating</rocketmq.version>
-        <ons.version>1.8.0.Final</ons.version>
+        <!-- 序列化 -->
+        <protobuf-java.version>4.27.1</protobuf-java.version>
+        <protobuf-java-format.version>1.4</protobuf-java-format.version>
+        <fastjson.version>2.0.51</fastjson.version>
 
-        <disruptor.version>3.4.2</disruptor.version>
+        <!-- mq -->
+        <ons.version>2.0.7.Final</ons.version>
 
-        <guava.version>33.1.0-jre</guava.version>
+        <!-- 工具 -->
+        <hutool.version>5.8.28</hutool.version>
+        <disruptor.version>4.0.0</disruptor.version>
+        <guava.version>33.2.1-jre</guava.version>
         <auto-service.version>1.1.1</auto-service.version>
+        <poi-ooxml.version>5.2.5</poi-ooxml.version>
+        <xerces.version>2.12.2</xerces.version>
+        <findbugs.version>3.0.1</findbugs.version>
+        <cglib.version>3.3.0</cglib.version>
+        <commons-compress.version>1.26.2</commons-compress.version>
+        <javassist.version>3.30.2-GA</javassist.version>
 
-        <knife4j.version>2.0.5</knife4j.version>
+        <!-- api接口文档 -->
+        <knife4j.version>4.5.0</knife4j.version>
 
-        <jjwt.version>0.9.1</jjwt.version>
+        <!-- 安全权限加解密 -->
+        <jjwt.version>0.12.5</jjwt.version>
+        <jasypt.version>3.0.5</jasypt.version>
+
+        <!-- 工作流 -->
         <activiti.version>6.0.0</activiti.version>
 
         <hystrix-javanica.version>1.5.18</hystrix-javanica.version>
-        <freemarker.version>2.3.28</freemarker.version>
 
-        <xxl-job.version>2.2.0</xxl-job.version>
+        <!-- 模板渲染 -->
+        <freemarker.version>2.3.33</freemarker.version>
 
-        <jasypt.version>2.1.1</jasypt.version>
+        <!-- 分布式锁 -->
+        <klock.version>1.5-RELEASE</klock.version>
+        <lock4j-redisson.version>2.2.7</lock4j-redisson.version>
 
-        <!--<elasticsearch.version>7.2.0</elasticsearch.version>-->
 
-        <poi-ooxml.version>4.1.2</poi-ooxml.version>
-        <xerces.version>2.12.0</xerces.version>
+        <!-- 金融支付 -->
+        <alipay.version>4.39.109.ALL</alipay.version>
 
-        <klock.version>1.4-RELEASE</klock.version>
-        <lock4j-redisson.version>2.2.2</lock4j-redisson.version>
-        <redisson.version>3.13.1</redisson.version>
+        <!-- rpc -->
 
-        <alipay.version>4.7.12.ALL</alipay.version>
+        <!-- 微信 -->
+        <wxjava.version>4.6.2.B</wxjava.version>
 
-        <feign.form.version>3.8.0</feign.form.version>
+        <!-- gis -->
+        <geotools.version>31.1</geotools.version>
+        <jts.version>1.19.0</jts.version>
+        <pci.coordtransform4j.version>1.0.2</pci.coordtransform4j.version>
 
-        <!-- 分布式事务 -->
-        <tx-lcn.version>5.0.2.RELEASE</tx-lcn.version>
-
-        <findbugs.version>3.0.1</findbugs.version>
-
-        <cglib.version>3.3.0</cglib.version>
-
-        <wxjava.version>4.1.0</wxjava.version>
-
-        <geotools.version>27.4</geotools.version>
-        <jts.version>1.18.1</jts.version>
-        <coordtransform4j.version>1.0.2</coordtransform4j.version>
-        <sqlite-jdbc.version>3.34.0</sqlite-jdbc.version>
-        <fastjson.version>1.2.83</fastjson.version>
-        <logback.version>1.2.3</logback.version>
-        <log4j-to-slf4j.version>2.12.1</log4j-to-slf4j.version>
-        <jul-to-slf4j.version>1.7.30</jul-to-slf4j.version>
-        <commons-compress.version>1.26.1</commons-compress.version>
-        <javassist.version>3.25.0-GA</javassist.version>
-
-        <!-- endregion -->
+        <!-- 日志打印 -->
+        <logback.version>1.5.6</logback.version>
+        <log4j-to-slf4j.version>2.23.1</log4j-to-slf4j.version>
+        <jul-to-slf4j.version>2.0.13</jul-to-slf4j.version>
 
         <!-- region plugins version-->
         <maven-source-plugin.version>3.3.1</maven-source-plugin.version>
@@ -350,6 +351,12 @@
                 <version>${knife4j.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>jakarta.activation</groupId>
+                <artifactId>jakarta.activation-api</artifactId>
+                <version>${jakarta.activation.version}</version>
             </dependency>
 
             <dependency>
@@ -409,12 +416,6 @@
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>isass-rpc-feign</artifactId>
-                <version>${isass-framework.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>vip.isass</groupId>
                 <artifactId>isass-serialization-jackson</artifactId>
                 <version>${isass-framework.version}</version>
             </dependency>
@@ -458,12 +459,6 @@
             <dependency>
                 <groupId>vip.isass</groupId>
                 <artifactId>isass-database-mybatisplus</artifactId>
-                <version>${isass-framework.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>vip.isass</groupId>
-                <artifactId>isass-database-sharding-jdbc</artifactId>
                 <version>${isass-framework.version}</version>
             </dependency>
 
@@ -564,24 +559,6 @@
             </dependency>
 
             <dependency>
-                <groupId>vip.isass</groupId>
-                <artifactId>isass-web-swagger</artifactId>
-                <version>${isass-framework.version}</version>
-            </dependency>
-            <!-- rocketmq -->
-            <dependency>
-                <groupId>org.apache.rocketmq</groupId>
-                <artifactId>rocketmq-client</artifactId>
-                <version>${rocketmq.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.apache.rocketmq</groupId>
-                <artifactId>rocketmq-common</artifactId>
-                <version>${rocketmq.version}</version>
-            </dependency>
-
-            <dependency>
                 <groupId>com.aliyun.openservices</groupId>
                 <artifactId>ons-client</artifactId>
                 <version>${ons.version}</version>
@@ -589,9 +566,9 @@
 
             <!-- 数据库 -->
             <dependency>
-                <groupId>org.apache.shardingsphere</groupId>
-                <artifactId>sharding-jdbc-spring-boot-starter</artifactId>
-                <version>${sharding-jdbc.version}</version>
+                <groupId>com.mysql</groupId>
+                <artifactId>mysql-connector-j</artifactId>
+                <version>${mysql.version}</version>
             </dependency>
 
             <dependency>
@@ -602,7 +579,7 @@
 
             <dependency>
                 <groupId>com.baomidou</groupId>
-                <artifactId>dynamic-datasource-spring-boot-starter</artifactId>
+                <artifactId>dynamic-datasource-spring-boot3-starter</artifactId>
                 <version>${dynamic-datasource.version}</version>
             </dependency>
 
@@ -614,7 +591,7 @@
 
             <dependency>
                 <groupId>com.baomidou</groupId>
-                <artifactId>mybatis-plus-boot-starter</artifactId>
+                <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
                 <version>${mybatis-plus.version}</version>
             </dependency>
 
@@ -628,19 +605,19 @@
                 <groupId>com.baomidou</groupId>
                 <artifactId>mybatis-plus-annotation</artifactId>
                 <version>${mybatis-plus.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.mybatis</groupId>
-                        <artifactId>mybatis</artifactId>
-                    </exclusion>
-                </exclusions>
+                <!--<exclusions>-->
+                <!--    <exclusion>-->
+                <!--        <groupId>org.mybatis</groupId>-->
+                <!--        <artifactId>mybatis</artifactId>-->
+                <!--    </exclusion>-->
+                <!--</exclusions>-->
             </dependency>
 
-            <dependency>
-                <groupId>org.mybatis</groupId>
-                <artifactId>mybatis</artifactId>
-                <version>${mybatis.version}</version>
-            </dependency>
+            <!--<dependency>-->
+            <!--    <groupId>org.mybatis</groupId>-->
+            <!--    <artifactId>mybatis</artifactId>-->
+            <!--    <version>${mybatis.version}</version>-->
+            <!--</dependency>-->
 
             <dependency>
                 <groupId>com.baomidou</groupId>
@@ -694,13 +671,6 @@
                 <version>${hutool.version}</version>
             </dependency>
 
-            <!-- alibaba canal-->
-            <dependency>
-                <groupId>com.alibaba.otter</groupId>
-                <artifactId>canal.client</artifactId>
-                <version>${canal.client.version}</version>
-            </dependency>
-
             <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
@@ -736,12 +706,6 @@
                 <groupId>org.freemarker</groupId>
                 <artifactId>freemarker</artifactId>
                 <version>${freemarker.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.xuxueli</groupId>
-                <artifactId>xxl-job-core</artifactId>
-                <version>${xxl-job.version}</version>
             </dependency>
 
             <dependency>
@@ -813,31 +777,6 @@
             </dependency>
 
             <dependency>
-                <groupId>io.github.openfeign.form</groupId>
-                <artifactId>feign-form</artifactId>
-                <version>${feign.form.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>io.github.openfeign.form</groupId>
-                <artifactId>feign-form-spring</artifactId>
-                <version>${feign.form.version}</version>
-            </dependency>
-
-            <!-- 分布式事务 -->
-            <dependency>
-                <groupId>com.codingapi.txlcn</groupId>
-                <artifactId>txlcn-tc</artifactId>
-                <version>${tx-lcn.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.codingapi.txlcn</groupId>
-                <artifactId>txlcn-txmsg-netty</artifactId>
-                <version>${tx-lcn.version}</version>
-            </dependency>
-
-            <dependency>
                 <groupId>com.google.code.findbugs</groupId>
                 <artifactId>annotations</artifactId>
                 <version>${findbugs.version}</version>
@@ -851,33 +790,41 @@
 
             <dependency>
                 <groupId>com.github.binarywang</groupId>
-                <artifactId>weixin-java-miniapp</artifactId>
+                <artifactId>wx-java-spring-boot-starters</artifactId>
                 <version>${wxjava.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
 
-            <dependency>
-                <groupId>com.github.binarywang</groupId>
-                <artifactId>weixin-java-pay</artifactId>
-                <version>${wxjava.version}</version>
-            </dependency>
+            <!--<dependency>-->
+            <!--    <groupId>com.github.binarywang</groupId>-->
+            <!--    <artifactId>weixin-java-miniapp</artifactId>-->
+            <!--    <version>${wxjava.version}</version>-->
+            <!--</dependency>-->
 
-            <dependency>
-                <groupId>com.github.binarywang</groupId>
-                <artifactId>weixin-java-open</artifactId>
-                <version>${wxjava.version}</version>
-            </dependency>
+            <!--<dependency>-->
+            <!--    <groupId>com.github.binarywang</groupId>-->
+            <!--    <artifactId>weixin-java-pay</artifactId>-->
+            <!--    <version>${wxjava.version}</version>-->
+            <!--</dependency>-->
 
-            <dependency>
-                <groupId>com.github.binarywang</groupId>
-                <artifactId>weixin-java-mp</artifactId>
-                <version>${wxjava.version}</version>
-            </dependency>
+            <!--<dependency>-->
+            <!--    <groupId>com.github.binarywang</groupId>-->
+            <!--    <artifactId>weixin-java-open</artifactId>-->
+            <!--    <version>${wxjava.version}</version>-->
+            <!--</dependency>-->
 
-            <dependency>
-                <groupId>com.github.binarywang</groupId>
-                <artifactId>weixin-java-cp</artifactId>
-                <version>${wxjava.version}</version>
-            </dependency>
+            <!--<dependency>-->
+            <!--    <groupId>com.github.binarywang</groupId>-->
+            <!--    <artifactId>weixin-java-mp</artifactId>-->
+            <!--    <version>${wxjava.version}</version>-->
+            <!--</dependency>-->
+
+            <!--<dependency>-->
+            <!--    <groupId>com.github.binarywang</groupId>-->
+            <!--    <artifactId>weixin-java-cp</artifactId>-->
+            <!--    <version>${wxjava.version}</version>-->
+            <!--</dependency>-->
 
             <dependency>
                 <groupId>com.alibaba</groupId>

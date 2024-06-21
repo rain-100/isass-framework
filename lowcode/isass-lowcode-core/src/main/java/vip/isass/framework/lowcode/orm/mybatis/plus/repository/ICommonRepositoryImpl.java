@@ -172,12 +172,12 @@ import cn.hutool.core.convert.Convert;
 import cn.hutool.core.lang.Assert;
 import com.baomidou.mybatisplus.core.metadata.TableInfo;
 import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
+import jakarta.annotation.Resource;
+import vip.isass.framework.lowcode.orm.mybatis.plus.mapper.ICommonMapper;
 import vip.isass.framework.lowcode.v1.entity.DbEntityConvert;
 import vip.isass.framework.lowcode.v1.entity.IdEntity;
-import vip.isass.framework.lowcode.orm.mybatis.plus.mapper.ICommonMapper;
 import vip.isass.framework.lowcode.v1.repository.ICommonRepository;
 
-import javax.annotation.Resource;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;

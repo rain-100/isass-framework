@@ -172,6 +172,7 @@ import cn.hutool.core.exceptions.ExceptionUtil;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.listener.ExceptionListener;
 import io.netty.channel.ChannelHandlerContext;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -180,7 +181,6 @@ import vip.isass.framework.net.core.message.MessageCmd;
 import vip.isass.framework.net.core.session.ISessionService;
 import vip.isass.framework.net.core.session.Session;
 
-import javax.annotation.Resource;
 import java.util.List;
 
 /**

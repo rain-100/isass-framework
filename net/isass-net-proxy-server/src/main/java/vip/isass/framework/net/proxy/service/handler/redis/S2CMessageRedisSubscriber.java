@@ -168,6 +168,7 @@
 
 package vip.isass.framework.net.proxy.service.handler.redis;
 
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.listener.ChannelTopic;
@@ -176,8 +177,6 @@ import org.springframework.stereotype.Component;
 import vip.isass.framework.database.redis.IRedisSubscriber;
 import vip.isass.framework.net.core.NetRedisKey;
 import vip.isass.framework.net.core.session.ISessionService;
-
-import javax.annotation.Resource;
 
 /**
  * 服务端推送消息给客户端时，使用 redis 的 pubsub 功能中转消息

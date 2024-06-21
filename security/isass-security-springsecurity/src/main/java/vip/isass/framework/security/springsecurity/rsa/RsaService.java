@@ -176,12 +176,12 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.SecureUtil;
 import cn.hutool.crypto.asymmetric.KeyType;
 import cn.hutool.crypto.asymmetric.RSA;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import vip.isass.framework.security.core.crypto.rsa.RsaKey;
 
-import javax.annotation.Resource;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -211,24 +211,24 @@ public class RsaService {
             if (MapUtil.isEmpty(rsaKeyMap)) {
                 RSA rsa = SecureUtil.rsa();
                 rsaKey = RsaKey.builder()
-                    .rsa(rsa)
-                    .privateKeyStr(rsa.getPrivateKeyBase64())
-                    .publicKeyStr(rsa.getPublicKeyBase64())
-                    .build();
+                        .rsa(rsa)
+                        .privateKeyStr(rsa.getPrivateKeyBase64())
+                        .publicKeyStr(rsa.getPublicKeyBase64())
+                        .build();
                 redisTemplate.opsForValue().set(
-                    key,
-                    MapUtil.<String, String>builder()
-                        .put("privateKeyStr", rsaKey.getPrivateKeyStr())
-                        .put("publicKeyStr", rsaKey.getPublicKeyStr())
-                        .build());
+                        key,
+                        MapUtil.<String, String>builder()
+                                .put("privateKeyStr", rsaKey.getPrivateKeyStr())
+                                .put("publicKeyStr", rsaKey.getPublicKeyStr())
+                                .build());
             } else {
                 String privateKeyStr = MapUtil.getStr(rsaKeyMap, "privateKeyStr");
                 String publicKeyStr = MapUtil.getStr(rsaKeyMap, "publicKeyStr");
                 rsaKey = RsaKey.builder()
-                    .rsa(SecureUtil.rsa(privateKeyStr, publicKeyStr))
-                    .privateKeyStr(privateKeyStr)
-                    .publicKeyStr(publicKeyStr)
-                    .build();
+                        .rsa(SecureUtil.rsa(privateKeyStr, publicKeyStr))
+                        .privateKeyStr(privateKeyStr)
+                        .publicKeyStr(publicKeyStr)
+                        .build();
             }
             return rsaKey;
         });

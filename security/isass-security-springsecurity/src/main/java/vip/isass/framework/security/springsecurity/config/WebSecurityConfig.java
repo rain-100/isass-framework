@@ -168,6 +168,7 @@
 
 package vip.isass.framework.security.springsecurity.config;
 
+import jakarta.annotation.Resource;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -193,7 +194,6 @@ import vip.isass.framework.security.springsecurity.authorization.processor.Affir
 import vip.isass.framework.security.springsecurity.authorization.processor.FilterSecurityInterceptorSourcePostProcessor;
 import vip.isass.framework.security.springsecurity.metadata.SecurityMetadataSourceProviderManager;
 
-import javax.annotation.Resource;
 import java.util.Collection;
 import java.util.List;
 

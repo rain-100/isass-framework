@@ -191,6 +191,7 @@ import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketServerHandshaker;
 import io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory;
 import io.netty.util.CharsetUtil;
+import jakarta.annotation.Resource;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -202,7 +203,6 @@ import vip.isass.framework.net.netty.request.Request;
 import vip.isass.framework.net.netty.request.RequestManager;
 import vip.isass.framework.serialization.jackson.JsonUtil;
 
-import javax.annotation.Resource;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 

@@ -171,14 +171,18 @@ package vip.isass.framework.lowcode.v2.entity;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ClassUtil;
 import cn.hutool.core.util.StrUtil;
+import jakarta.annotation.Resource;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import vip.isass.framework.common.IsassConst;
 
-import javax.annotation.Resource;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -243,10 +247,10 @@ public class V2DbEntityConvert {
 
     public static <E extends IV2Entity<E>, EDB extends IV2DbEntity<E, EDB>> List<E> convertToEntities(Collection<EDB> entities) {
         return entities == null
-            ? null
-            : entities.stream()
-            .map(V2DbEntityConvert::convertToEntity)
-            .collect(Collectors.toList());
+                ? null
+                : entities.stream()
+                .map(V2DbEntityConvert::convertToEntity)
+                .collect(Collectors.toList());
     }
 
     public static Class<?> getDbEntityClass(Class<?> entityClass) {
@@ -260,9 +264,9 @@ public class V2DbEntityConvert {
                 }
             }
             return classes.stream()
-                .filter(IV2DbEntity.class::isAssignableFrom)
-                .findFirst()
-                .orElse(null);
+                    .filter(IV2DbEntity.class::isAssignableFrom)
+                    .findFirst()
+                    .orElse(null);
         });
     }
 

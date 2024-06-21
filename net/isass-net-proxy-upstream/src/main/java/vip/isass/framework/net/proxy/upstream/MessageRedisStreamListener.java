@@ -171,6 +171,8 @@ package vip.isass.framework.net.proxy.upstream;
 import cn.hutool.core.exceptions.ExceptionUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.ReflectUtil;
+import jakarta.annotation.PreDestroy;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.redisson.RedissonShutdownException;
@@ -194,8 +196,6 @@ import vip.isass.framework.net.core.NetRedisKey;
 import vip.isass.framework.net.core.handler.manager.IEventManager;
 import vip.isass.framework.net.core.message.Message;
 
-import javax.annotation.PreDestroy;
-import javax.annotation.Resource;
 import java.lang.reflect.Field;
 import java.time.Duration;
 import java.util.concurrent.ThreadPoolExecutor;

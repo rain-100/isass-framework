@@ -171,6 +171,7 @@ package vip.isass.framework.net.proxy.upstream.cmd;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.SystemClock;
 import com.baomidou.lock.annotation.Lock4j;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -180,7 +181,6 @@ import vip.isass.framework.net.core.handler.OnMessageEventHandler;
 import vip.isass.framework.net.core.message.CmdCollectDto;
 import vip.isass.framework.net.proxy.core.CmdRedisService;
 
-import javax.annotation.Resource;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;

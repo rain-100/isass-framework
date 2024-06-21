@@ -170,6 +170,7 @@ package vip.isass.framework.web.springmvc.config;
 
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.StrUtil;
+import jakarta.annotation.Resource;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -188,7 +189,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import vip.isass.framework.web.springmvc.interceptor.IsassHandlerInterceptor;
 import vip.isass.framework.web.springmvc.interceptor.RestTemplateInterceptor;
 
-import javax.annotation.Resource;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -237,7 +237,6 @@ public class WebConfig implements WebMvcConfigurer {
         HttpComponentsClientHttpRequestFactory httpRequestFactory = new HttpComponentsClientHttpRequestFactory();
         httpRequestFactory.setConnectionRequestTimeout(CONN_TIMEOUT_IN_MILLIS);
         httpRequestFactory.setConnectTimeout(CONN_TIMEOUT_IN_MILLIS);
-        httpRequestFactory.setReadTimeout(READ_TIMEOUT_IN_MILLIS);
 
         RestTemplate restTemplate = new RestTemplate(httpRequestFactory);
         restTemplate.getMessageConverters().add(0, new StringHttpMessageConverter(StandardCharsets.UTF_8));

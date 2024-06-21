@@ -168,9 +168,8 @@
 
 package vip.isass.framework.net.netty.request;
 
+import jakarta.annotation.Resource;
 import vip.isass.framework.net.netty.request.worker.WorkerPool;
-
-import javax.annotation.Resource;
 
 /**
  * 请求管理器

@@ -168,12 +168,11 @@
 
 package vip.isass.framework.net.proxy.service.job;
 
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import vip.isass.framework.net.proxy.service.service.ProxyClientCmdListeningService;
-
-import javax.annotation.Resource;
 
 /**
  * cmd 监听任务，拉取 redis 指定的 key，取出 cmd，供 socketio 框架监听

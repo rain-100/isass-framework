@@ -168,13 +168,13 @@
 
 package vip.isass.framework.net.netty.request.worker.normal;
 
+import jakarta.annotation.Resource;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import vip.isass.framework.net.netty.request.Request;
 import vip.isass.framework.net.netty.request.handler.RequestHandler;
 import vip.isass.framework.net.netty.request.worker.Worker;
 
-import javax.annotation.Resource;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 

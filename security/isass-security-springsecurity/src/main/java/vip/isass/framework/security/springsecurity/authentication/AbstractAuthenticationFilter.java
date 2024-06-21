@@ -169,6 +169,8 @@
 package vip.isass.framework.security.springsecurity.authentication;
 
 import cn.hutool.extra.servlet.ServletUtil;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
@@ -183,8 +185,6 @@ import vip.isass.framework.security.springsecurity.MsAuthenticationHeaderProvide
 import vip.isass.framework.security.springsecurity.authentication.jwt.JwtAuthenticationFilter;
 import vip.isass.framework.security.springsecurity.authentication.ms.MsAuthenticationFilter;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;

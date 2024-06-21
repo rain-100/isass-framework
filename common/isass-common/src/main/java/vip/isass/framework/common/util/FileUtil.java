@@ -170,11 +170,11 @@ package vip.isass.framework.common.util;
 
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
+import jakarta.activation.MimetypesFileTypeMap;
 import lombok.extern.slf4j.Slf4j;
 import vip.isass.framework.common.exception.UnifiedException;
 import vip.isass.framework.common.exception.code.StatusMessageEnum;
 
-import javax.activation.MimetypesFileTypeMap;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;

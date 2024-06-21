@@ -179,6 +179,7 @@ import com.aliyun.openservices.ons.api.Message;
 import com.aliyun.openservices.ons.api.ONSFactory;
 import com.aliyun.openservices.ons.api.PropertyKeyConst;
 import com.aliyun.openservices.ons.api.PropertyValueConst;
+import jakarta.annotation.Resource;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import vip.isass.framework.mq.core.FailStrategy;
@@ -194,7 +195,6 @@ import vip.isass.framework.mq.ons.config.OnsConfiguration;
 import vip.isass.framework.mq.ons.config.RegionConfiguration;
 import vip.isass.framework.serialization.jackson.JsonUtil;
 
-import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;

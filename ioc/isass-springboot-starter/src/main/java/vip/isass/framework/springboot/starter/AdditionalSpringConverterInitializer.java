@@ -168,14 +168,13 @@
 
 package vip.isass.framework.springboot.starter;
 
+import jakarta.annotation.Resource;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.converter.ConverterRegistry;
 import vip.isass.framework.common.converter.ConvertSupport;
-
-import javax.annotation.Resource;
 
 /**
  * 把 isass 的转换器注册为 spring 的转换器

@@ -171,6 +171,7 @@ package vip.isass.framework.mq.core.producer;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
+import jakarta.annotation.Resource;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -179,7 +180,6 @@ import org.springframework.stereotype.Component;
 import vip.isass.framework.mq.core.MqAutoConfiguration;
 import vip.isass.framework.mq.core.MqMessageContext;
 
-import javax.annotation.Resource;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -244,18 +244,18 @@ public class EventPublisher implements SmartLifecycle {
         }
 
         producerManagers.stream()
-            .filter(s -> StrUtil.isBlank(s.manufacturer()))
-            .findFirst()
-            .ifPresent(s -> {
-                throw new IllegalArgumentException(s.getClass().toGenericString() + " 的 manufacturer 不能为空");
-            });
+                .filter(s -> StrUtil.isBlank(s.manufacturer()))
+                .findFirst()
+                .ifPresent(s -> {
+                    throw new IllegalArgumentException(s.getClass().toGenericString() + " 的 manufacturer 不能为空");
+                });
 
         producerManagerMap = producerManagers
-            .stream()
-            .filter(s -> StrUtil.isNotBlank(s.manufacturer()))
-            .filter(ProducerManager::isEnable)
-            .peek(ProducerManager::init)
-            .collect(Collectors.toMap(ProducerManager::manufacturer, Function.identity()));
+                .stream()
+                .filter(s -> StrUtil.isNotBlank(s.manufacturer()))
+                .filter(ProducerManager::isEnable)
+                .peek(ProducerManager::init)
+                .collect(Collectors.toMap(ProducerManager::manufacturer, Function.identity()));
 
         DEFAULT_MANUFACTURER = mqAutoConfiguration.getDefaultManufacturer();
     }

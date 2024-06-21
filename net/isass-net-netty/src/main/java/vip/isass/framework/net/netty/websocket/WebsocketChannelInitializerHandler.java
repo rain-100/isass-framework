@@ -174,12 +174,12 @@ import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.stream.ChunkedWriteHandler;
 import io.netty.handler.timeout.IdleStateHandler;
+import jakarta.annotation.Resource;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import vip.isass.framework.net.netty.channel.ChannelEventHandler;
 import vip.isass.framework.net.netty.channel.ChannelInitializerHandler;
 
-import javax.annotation.Resource;
 import java.util.concurrent.TimeUnit;
 
 /**

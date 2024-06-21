@@ -173,6 +173,7 @@ import cn.hutool.core.lang.ConsistentHash;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
+import jakarta.annotation.Resource;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -183,7 +184,6 @@ import vip.isass.framework.net.core.server.NetProtocol;
 import vip.isass.framework.net.core.server.NetServerInfo;
 import vip.isass.framework.net.core.server.allocator.INodeAllocatorService;
 
-import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Collection;

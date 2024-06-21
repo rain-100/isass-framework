@@ -216,6 +216,11 @@
             <artifactId>jul-to-slf4j</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>jakarta.activation</groupId>
+            <artifactId>jakarta.activation-api</artifactId>
+        </dependency>
+
         <!--<dependency>-->
         <!--    <groupId>com.sun</groupId>-->
         <!--    <artifactId>tools</artifactId>-->

@@ -170,6 +170,7 @@ package vip.isass.framework.net.websocket.allocator;
 
 import cn.hutool.core.net.NetUtil;
 import cn.hutool.core.util.StrUtil;
+import jakarta.annotation.Resource;
 import lombok.Getter;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
@@ -180,7 +181,6 @@ import vip.isass.framework.net.core.server.NetServerInfo;
 import vip.isass.framework.net.core.server.allocator.INodeAllocatorService;
 import vip.isass.framework.net.websocket.WebsocketProperties;
 
-import javax.annotation.Resource;
 import java.util.Collection;
 import java.util.Collections;
 

@@ -168,14 +168,13 @@
 
 package vip.isass.framework.mq.springevent.producer;
 
+import jakarta.annotation.Resource;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 import vip.isass.framework.mq.core.MqMessageContext;
 import vip.isass.framework.mq.core.producer.ProducerManager;
 import vip.isass.framework.mq.springevent.SpringEventConfiguration;
 import vip.isass.framework.mq.springevent.SpringEventConst;
-
-import javax.annotation.Resource;
 
 /**
  * @author Rain

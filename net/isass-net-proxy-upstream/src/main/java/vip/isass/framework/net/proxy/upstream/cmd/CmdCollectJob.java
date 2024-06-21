@@ -168,11 +168,10 @@
 
 package vip.isass.framework.net.proxy.upstream.cmd;
 
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-
-import javax.annotation.Resource;
 
 /**
  * cmd 收集定时任务

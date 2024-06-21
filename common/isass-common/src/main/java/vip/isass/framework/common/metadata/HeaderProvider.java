@@ -166,105 +166,24 @@
  * Library.
  */
 
-package vip.isass.framework.rpc.feign;
+package vip.isass.framework.common.metadata;
 
-import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.lang.Assert;
-import cn.hutool.core.map.MapUtil;
-import cn.hutool.core.util.StrUtil;
-import feign.QueryMapEncoder;
-import feign.codec.EncodeException;
-import vip.isass.framework.common.converter.Iterator.CollectionToQueryStringConverter;
-import vip.isass.framework.serialization.jackson.JsonUtil;
-import vip.isass.framework.lowcode.v2.criteria.IV2Criteria;
-import vip.isass.framework.lowcode.v2.criteria.impl.type.V2Condition;
+/**
+ * @author Rain
+ */
+public interface HeaderProvider {
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
+    String getHeaderName();
 
-public class IsassV2QueryMapEncoder implements QueryMapEncoder {
+    String getValue();
 
-    private final QueryMapEncoder queryMapEncoder;
+    /**
+     * 当已存在同名的请求头时，是否覆盖旧的值
+     *
+     * @return is override
+     */
+    boolean override();
 
-    public IsassV2QueryMapEncoder(QueryMapEncoder queryMapEncoder) {
-        this.queryMapEncoder = queryMapEncoder;
-    }
-
-    @Override
-    @SuppressWarnings("rawtypes")
-    public Map<String, Object> encode(Object object) throws EncodeException {
-        if (!(object instanceof IV2Criteria)) {
-            return queryMapEncoder.encode(object);
-        }
-
-        return convertToMap((IV2Criteria) object);
-    }
-
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    private Map<String, Object> convertToMap(IV2Criteria object) {
-        Map<String, ?> map = JsonUtil.NOT_NULL_INSTANCE.convertValue(object, HashMap.class);
-        Map<String, Object> queries = MapUtil.newHashMap(map.size());
-
-        for (Map.Entry<String, ?> entry : map.entrySet()) {
-            Object value = entry.getValue();
-            if (value == null) {
-                continue;
-            }
-            String key = entry.getKey();
-
-            if ("whereConditions".equals(key)) {
-                Map<String, Object> whereConditionMap = parseWhereConditionsToQueryString((List<Map<String, Object>>) value);
-                if (!whereConditionMap.isEmpty()) {
-                    queries.putAll(whereConditionMap);
-                }
-                continue;
-            }
-
-            String convert = null;
-            if (value instanceof Collection) {
-                convert = CollectionToQueryStringConverter.doConvert((Collection) value);
-            }
-            String s = StrUtil.nullToDefault(convert, value.toString());
-            if (s.length() != 0) {
-                queries.put(key, s);
-            }
-        }
-        return queries;
-    }
-
-    private Map<String, Object> parseWhereConditionsToQueryString(List<Map<String, Object>> whereConditionCriteria) {
-        if (CollUtil.isEmpty(whereConditionCriteria)) {
-            return Collections.emptyMap();
-        }
-
-        Map<String, Object> whereConditionMap = MapUtil.newHashMap(whereConditionCriteria.size());
-        AtomicBoolean lastLoopIsOrCondition = new AtomicBoolean(false);
-
-        for (Map<String, Object> criteria : whereConditionCriteria) {
-            V2Condition v2Condition = V2Condition.valueOf((String) criteria.get("condition"));
-            if (v2Condition == V2Condition.OR) {
-                Assert.isFalse(
-                        lastLoopIsOrCondition.get(),
-                        "v2WhereCondition逻辑错误，本次循环是or条件，但上一次循环也是or条件");
-                lastLoopIsOrCondition.set(true);
-                continue;
-            }
-
-            String key;
-            String propertyName = (String) criteria.get("propertyName");
-            if (lastLoopIsOrCondition.get()) {
-                key = "or" + StrUtil.upperFirst(propertyName) + v2Condition.getPropertyNameSuffix();
-                lastLoopIsOrCondition.set(false);
-            } else {
-                key = propertyName + v2Condition.getPropertyNameSuffix();
-            }
-            whereConditionMap.put(key, criteria.get("value"));
-        }
-        return whereConditionMap;
-    }
+    boolean support(String method, String uri);
 
 }

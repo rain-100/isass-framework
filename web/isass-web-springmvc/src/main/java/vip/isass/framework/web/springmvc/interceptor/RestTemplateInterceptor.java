@@ -175,7 +175,7 @@ import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.stereotype.Component;
-import vip.isass.framework.security.core.header.AdditionalRequestHeaderProvider;
+import vip.isass.framework.common.metadata.HeaderProvider;
 
 import java.io.IOException;
 import java.util.List;
@@ -187,20 +187,20 @@ import java.util.List;
 public class RestTemplateInterceptor implements ClientHttpRequestInterceptor {
 
     @Autowired(required = false)
-    private List<AdditionalRequestHeaderProvider> additionalHeaderProviders;
+    private List<HeaderProvider> headerProviders;
 
     /**
      * todo 如果访问的url是微服务集群内部服务，添加头信息
      */
     @Override
     public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution) throws IOException {
-        if (additionalHeaderProviders == null) {
+        if (headerProviders == null) {
             return execution.execute(request, body);
         }
 
         HttpHeaders headers = request.getHeaders();
-        additionalHeaderProviders.forEach(h -> {
-            if (!h.support(request.getMethodValue(), request.getURI().getHost())) {
+        headerProviders.forEach(h -> {
+            if (!h.support(request.getMethod().name(), request.getURI().toString())) {
                 return;
             }
             if (h.override()) {

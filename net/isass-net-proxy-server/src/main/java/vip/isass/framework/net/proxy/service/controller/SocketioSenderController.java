@@ -169,6 +169,7 @@
 package vip.isass.framework.net.proxy.service.controller;
 
 import cn.hutool.core.collection.CollUtil;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.connection.stream.RecordId;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -182,8 +183,6 @@ import vip.isass.framework.net.core.message.Message;
 import vip.isass.framework.net.core.session.ISessionService;
 import vip.isass.framework.net.proxy.service.service.GatewayToRedisMessageService;
 import vip.isass.framework.net.proxy.service.service.RemoveC2SMessageService;
-
-import javax.annotation.Resource;
 
 /**
  * @author rain

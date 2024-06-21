@@ -170,6 +170,7 @@ package vip.isass.framework.security.springsecurity.metadata;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.access.SecurityConfig;
@@ -184,7 +185,6 @@ import vip.isass.framework.common.exception.UnifiedException;
 import vip.isass.framework.common.exception.code.StatusMessageEnum;
 import vip.isass.framework.security.springsecurity.authorization.ConfigAttributeConst;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;

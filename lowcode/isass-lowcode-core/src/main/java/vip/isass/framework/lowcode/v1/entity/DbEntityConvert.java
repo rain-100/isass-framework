@@ -177,8 +177,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import vip.isass.framework.common.IsassConst;
 
-import javax.annotation.Resource;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -249,10 +252,10 @@ public class DbEntityConvert {
 
     public static <E extends IEntity<E>, EDB extends DbEntity<E, EDB>> List<E> convertToEntities(Collection<EDB> entities) {
         return entities == null
-            ? null
-            : entities.stream()
-            .map(DbEntityConvert::convertToEntity)
-            .collect(Collectors.toList());
+                ? null
+                : entities.stream()
+                .map(DbEntityConvert::convertToEntity)
+                .collect(Collectors.toList());
     }
 
     public static Class<?> getDbEntityClass(Class<?> entityClass) {
@@ -266,9 +269,9 @@ public class DbEntityConvert {
                 }
             }
             return classes.stream()
-                .filter(DbEntity.class::isAssignableFrom)
-                .findFirst()
-                .orElse(null);
+                    .filter(DbEntity.class::isAssignableFrom)
+                    .findFirst()
+                    .orElse(null);
         });
     }
 

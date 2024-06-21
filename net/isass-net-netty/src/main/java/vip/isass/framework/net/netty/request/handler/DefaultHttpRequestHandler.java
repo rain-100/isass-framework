@@ -168,13 +168,10 @@
 
 package vip.isass.framework.net.netty.request.handler;
 
-import com.googlecode.protobuf.format.JsonFormat;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import vip.isass.framework.net.netty.config.NetProperties;
 import vip.isass.framework.net.netty.request.Request;
-import vip.isass.framework.serialization.protobuf2.entity.im.IM;
-
-import javax.annotation.Resource;
 
 /**
  * @author Rain
@@ -312,12 +309,6 @@ public class DefaultHttpRequestHandler implements RequestHandler {
     //     // 推送结果给客户端
     //     request.sendResponse(packet);
     // }
-
-    public static void main(String[] args) throws JsonFormat.ParseException {
-        String json = "{\"success\":true,\"errorCode\":0,\"errorMsg\":null,\"errorDetail\":null,\"data\":{\"toUserId\":111,\"message\":\"test内容\"}}";
-        IM.SendTextToUserS2C.Builder builder = IM.SendTextToUserS2C.newBuilder();
-        JsonFormat.merge(json, builder);
-    }
 
     // private ResponseEntity<String> httpForward(RestTemplate restTemplate, HttpContent httpContent) {
     //     ResponseEntity<String> resp;

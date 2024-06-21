@@ -171,6 +171,7 @@ package vip.isass.framework.mq.springevent.consumer;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.exceptions.ExceptionUtil;
 import cn.hutool.core.util.StrUtil;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
@@ -183,7 +184,6 @@ import vip.isass.framework.mq.springevent.IsassMqEvent;
 import vip.isass.framework.mq.springevent.SpringEventConfiguration;
 import vip.isass.framework.mq.springevent.SpringEventConst;
 
-import javax.annotation.Resource;
 import java.util.List;
 import java.util.stream.Collectors;
 

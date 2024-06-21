@@ -168,11 +168,11 @@
 
 package vip.isass.framework.security.springsecurity.metadata;
 
+import jakarta.annotation.Resource;
 import org.springframework.stereotype.Component;
 import vip.isass.framework.security.core.authorization.role.IRoleCodeService;
 import vip.isass.framework.security.core.authorization.role.UriRoleCodesReq;
 
-import javax.annotation.Resource;
 import java.util.Collection;
 
 /**

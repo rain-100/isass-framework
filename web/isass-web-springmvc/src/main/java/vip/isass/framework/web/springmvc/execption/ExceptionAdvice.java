@@ -170,6 +170,7 @@ package vip.isass.framework.web.springmvc.execption;
 
 import cn.hutool.core.exceptions.ExceptionUtil;
 import cn.hutool.core.util.ObjectUtil;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -179,9 +180,7 @@ import vip.isass.framework.common.exception.code.IStatusMessage;
 import vip.isass.framework.common.exception.code.StatusMessageEnum;
 import vip.isass.framework.common.service.Resp;
 
-import javax.annotation.Resource;
 import java.util.List;
-
 
 /**
  * 所有异常转换成 Resp

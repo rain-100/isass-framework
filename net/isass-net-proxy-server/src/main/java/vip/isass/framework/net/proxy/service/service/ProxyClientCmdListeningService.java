@@ -170,6 +170,7 @@ package vip.isass.framework.net.proxy.service.service;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -180,7 +181,6 @@ import vip.isass.framework.net.core.message.CmdCollectDto;
 import vip.isass.framework.net.core.message.MessageCmd;
 import vip.isass.framework.net.proxy.core.CmdRedisService;
 
-import javax.annotation.Resource;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;

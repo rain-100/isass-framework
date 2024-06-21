@@ -177,8 +177,6 @@ import vip.isass.framework.net.core.message.Message;
 import vip.isass.framework.net.core.message.MessageCmd;
 import vip.isass.framework.net.proxy.service.service.GatewayToRedisMessageService;
 
-import javax.annotation.Resource;
-
 /**
  * 消息分发器，收到客户端消息时，应该由网关直接消费，还是分发到各微服务
  *

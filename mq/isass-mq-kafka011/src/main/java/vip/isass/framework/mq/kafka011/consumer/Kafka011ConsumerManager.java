@@ -173,6 +173,7 @@ import cn.hutool.core.exceptions.ExceptionUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.StrUtil;
+import jakarta.annotation.Resource;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.SneakyThrows;
@@ -196,7 +197,6 @@ import vip.isass.framework.mq.kafka011.config.Kafka011ConfigUtil;
 import vip.isass.framework.mq.kafka011.config.Kafka011Configuration;
 import vip.isass.framework.serialization.jackson.JsonUtil;
 
-import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -331,21 +331,14 @@ public class Kafka011ConsumerManager implements MqConsumerManager {
         if (StrUtil.isNotBlank(mqConsumer.getTopic())) {
             return mqConsumer.getTopic();
         }
-        switch (mqConsumer.getMessageType()) {
-            case MessageType.COMMON_MESSAGE:
-                return instanceConfiguration.getCommonMessageTopic();
-            case MessageType.TIMING_MESSAGE:
-            case MessageType.DELAY_MESSAGE:
-                return instanceConfiguration.getTimingMessageTopic();
-            case MessageType.TRANSACTION_MESSAGE:
-                throw new UnsupportedOperationException("未支持事务消息");
-            case MessageType.SHARDING_SEQUENTIAL_MESSAGE:
-                return instanceConfiguration.getShardingSequentialMessageTopic();
-            case MessageType.GLOBAL_SEQUENTIAL_MESSAGE:
-                return instanceConfiguration.getGlobalSequentialMessageTopic();
-            default:
-                throw new UnsupportedOperationException("未支持消息类型:" + mqConsumer.getMessageType());
-        }
+        return switch (mqConsumer.getMessageType()) {
+            case MessageType.COMMON_MESSAGE -> instanceConfiguration.getCommonMessageTopic();
+            case MessageType.TIMING_MESSAGE, MessageType.DELAY_MESSAGE -> instanceConfiguration.getTimingMessageTopic();
+            case MessageType.TRANSACTION_MESSAGE -> throw new UnsupportedOperationException("未支持事务消息");
+            case MessageType.SHARDING_SEQUENTIAL_MESSAGE -> instanceConfiguration.getShardingSequentialMessageTopic();
+            case MessageType.GLOBAL_SEQUENTIAL_MESSAGE -> instanceConfiguration.getGlobalSequentialMessageTopic();
+            default -> throw new UnsupportedOperationException("未支持消息类型:" + mqConsumer.getMessageType());
+        };
     }
 
     @SneakyThrows

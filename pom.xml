@@ -192,7 +192,6 @@
         <module>database/isass-database-mysql</module>
         <module>database/isass-database-postgresql</module>
         <module>database/isass-database-redis</module>
-        <module>database/isass-database-sharding-jdbc</module>
         <module>ioc/isass-springboot-starter</module>
         <module>lowcode/isass-lowcode-core</module>
         <module>lowcode/isass-lowcode-generator</module>
@@ -208,7 +207,6 @@
         <module>net/isass-net-proxy-upstream</module>
         <module>net/isass-net-socketio</module>
         <module>net/isass-net-websocket</module>
-        <module>rpc/isass-rpc-feign</module>
         <module>rpc/isass-rpc-okhttp</module>
         <module>security/isass-security-core</module>
         <module>security/isass-security-springsecurity</module>
@@ -216,14 +214,13 @@
         <module>serialization/isass-serialization-protobuf</module>
         <module>web/isass-web-springmvc</module>
         <module>web/isass-web-springmvc-starter</module>
-        <module>web/isass-web-swagger</module>
     </modules>
 
     <!-- 配置属性 -->
     <properties>
         <!-- region build properties -->
 
-        <java.version>1.8</java.version>
+        <java.version>21</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.compiler.encoding>UTF-8</maven.compiler.encoding>

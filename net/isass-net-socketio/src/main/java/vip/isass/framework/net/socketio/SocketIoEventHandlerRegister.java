@@ -169,6 +169,7 @@
 package vip.isass.framework.net.socketio;
 
 import cn.hutool.core.collection.CollUtil;
+import jakarta.annotation.Resource;
 import org.springframework.stereotype.Component;
 import vip.isass.framework.net.core.handler.IMessageEventRegister;
 import vip.isass.framework.net.core.handler.manager.EventManager;
@@ -176,7 +177,6 @@ import vip.isass.framework.net.core.message.Message;
 import vip.isass.framework.net.core.session.ISessionService;
 import vip.isass.framework.net.core.session.Session;
 
-import javax.annotation.Resource;
 import java.util.Collection;
 
 /**

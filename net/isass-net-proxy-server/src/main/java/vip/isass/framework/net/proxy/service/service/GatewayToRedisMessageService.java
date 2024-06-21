@@ -168,6 +168,7 @@
 
 package vip.isass.framework.net.proxy.service.service;
 
+import jakarta.annotation.Resource;
 import org.springframework.data.redis.connection.stream.ObjectRecord;
 import org.springframework.data.redis.connection.stream.RecordId;
 import org.springframework.data.redis.connection.stream.StreamRecords;
@@ -176,7 +177,6 @@ import org.springframework.stereotype.Service;
 import vip.isass.framework.net.core.NetRedisKey;
 import vip.isass.framework.net.core.message.Message;
 
-import javax.annotation.Resource;
 import java.util.Map;
 
 /**

@@ -168,9 +168,9 @@
 
 package vip.isass.framework.net.core.server;
 
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.annotation.Resource;
 import java.util.List;
 
 /**

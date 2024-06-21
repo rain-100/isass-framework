@@ -175,12 +175,14 @@ import cn.hutool.core.util.StrUtil;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.Keys;
 import vip.isass.framework.common.exception.UnifiedException;
 import vip.isass.framework.common.exception.code.StatusMessageEnum;
 import vip.isass.framework.common.util.LocalDateTimeUtil;
 import vip.isass.framework.security.core.authentication.login.LoginUser;
 
+import javax.crypto.SecretKey;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.Map;
@@ -196,6 +198,15 @@ public class JwtUtil {
 
     public static final String DEFAULT_SECRET = "FtvTa6nt4vfDFVST";
 
+    private static final SecretKey DEFAULT_SECRET_KEY = Keys.hmacShaKeyFor(Decoders.BASE64.decode(DEFAULT_SECRET));
+
+    private static SecretKey getSecretKey(String secret) {
+        return DEFAULT_SECRET.equals(secret)
+                ? DEFAULT_SECRET_KEY
+                : Keys.hmacShaKeyFor(Decoders.BASE64.decode(secret));
+    }
+
+
     public static String generateToken(LoginUser loginUser, String secret) {
         // 生产 token
         Map<String, Object> map = MapUtil.<String, Object>builder()
@@ -205,20 +216,22 @@ public class JwtUtil {
                 .put(JwtInfo.VERSION, loginUser.getVersion())
                 .build();
         return Jwts.builder()
-                .setClaims(map)
-                .setExpiration(new Date(SystemClock.now() + TOKEN_EFFECTIVE_MILLS))
-                .signWith(SignatureAlgorithm.HS256, secret)
+                .claims(map)
+                .expiration(new Date(SystemClock.now() + TOKEN_EFFECTIVE_MILLS))
+                .signWith(getSecretKey(secret))
                 .compact();
     }
 
     public static JwtInfo parse(String token, String secret) {
         secret = StrUtil.blankToDefault(secret, DEFAULT_SECRET);
+        SecretKey secretKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(secret));
         Claims claims;
         try {
             claims = Jwts.parser()
-                    .setSigningKey(secret)
-                    .parseClaimsJws(token)
-                    .getBody();
+                    .verifyWith(secretKey)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
         } catch (ExpiredJwtException e) {
             throw new UnifiedException(StatusMessageEnum.TOKEN_EXPIRED);
         } catch (Exception e) {

@@ -169,8 +169,13 @@
 package vip.isass.framework.web.springmvc.execption;
 
 import cn.hutool.core.util.StrUtil;
+import jakarta.annotation.Resource;
+import jakarta.servlet.RequestDispatcher;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfigureOrder;
+import org.springframework.boot.web.error.ErrorAttributeOptions;
 import org.springframework.boot.web.servlet.error.ErrorAttributes;
 import org.springframework.boot.web.servlet.error.ErrorController;
 import org.springframework.core.Ordered;
@@ -184,10 +189,6 @@ import vip.isass.framework.common.exception.code.IStatusMessage;
 import vip.isass.framework.common.exception.code.StatusMessageEnum;
 import vip.isass.framework.common.service.Resp;
 
-import javax.annotation.Resource;
-import javax.servlet.RequestDispatcher;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 import java.util.Map;
 
@@ -211,11 +212,6 @@ public class IsassErrorController implements ErrorController {
         this.errorAttributes = errorAttributes;
     }
 
-    @Override
-    public String getErrorPath() {
-        return PATH;
-    }
-
     /**
      * 处理还没进入 controller 就抛出的异常
      *
@@ -225,7 +221,7 @@ public class IsassErrorController implements ErrorController {
      */
     @RequestMapping(value = PATH, produces = "application/json;charset=UTF-8")
     public Resp<?> errorJson(HttpServletRequest request, HttpServletResponse response) {
-        Map<String, Object> errorAttributes = getErrorAttributes(request, true);
+        Map<String, Object> errorAttributes = getErrorAttributes(request);
         Object exception = errorAttributes.get(RequestDispatcher.ERROR_EXCEPTION);
         if (exception instanceof UnifiedException) {
             return new Resp<>(
@@ -259,9 +255,16 @@ public class IsassErrorController implements ErrorController {
                         errorAttributes.get("error")));
     }
 
-    protected Map<String, Object> getErrorAttributes(HttpServletRequest request, boolean includeStackTrace) {
+    protected Map<String, Object> getErrorAttributes(HttpServletRequest request) {
         ServletWebRequest servletWebRequest = new ServletWebRequest(request);
-        Map<String, Object> errorAttributes = this.errorAttributes.getErrorAttributes(servletWebRequest, includeStackTrace);
+        Map<String, Object> errorAttributes = this.errorAttributes.getErrorAttributes(
+                servletWebRequest,
+                ErrorAttributeOptions.of(
+                        ErrorAttributeOptions.Include.EXCEPTION,
+                        ErrorAttributeOptions.Include.STACK_TRACE,
+                        ErrorAttributeOptions.Include.MESSAGE,
+                        ErrorAttributeOptions.Include.BINDING_ERRORS,
+                        ErrorAttributeOptions.Include.PATH));
         Throwable error = this.errorAttributes.getError(servletWebRequest);
         if (error != null) {
             errorAttributes.put(RequestDispatcher.ERROR_EXCEPTION, error);

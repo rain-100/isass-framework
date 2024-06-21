@@ -206,6 +206,14 @@ public class ExceptionCatcher {
         }
     }
 
+    public static <T> void consumeOrErrorLog(T t, Consumer<T> consumer) {
+        try {
+            consumer.accept(t);
+        } catch (Throwable e) {
+            log.error("catch exception: {}", e.getMessage(), e);
+        }
+    }
+
     public static <T, U> void biConsume(BiConsumer<T, U> consumer, T t, U u) {
         try {
             consumer.accept(t, u);
@@ -238,6 +246,15 @@ public class ExceptionCatcher {
             log.trace("ignore exception: ", e);
         }
         return defaultValue;
+    }
+
+    public static <T> T supplierOrError(Supplier<T> supplier) {
+        try {
+            return supplier.get();
+        } catch (Throwable e) {
+            log.error("catch exception: {}", e.getMessage(), e);
+        }
+        return null;
     }
 
     public static <T> boolean isNull(Supplier<T> supplier) {

@@ -168,11 +168,10 @@
 
 package vip.isass.framework.net.core.handler;
 
+import jakarta.annotation.Resource;
 import vip.isass.framework.net.core.message.Message;
 import vip.isass.framework.net.core.message.MessageCmd;
 import vip.isass.framework.net.core.session.ISessionService;
-
-import javax.annotation.Resource;
 
 /**
  * 客户端发送的广播事件处理器

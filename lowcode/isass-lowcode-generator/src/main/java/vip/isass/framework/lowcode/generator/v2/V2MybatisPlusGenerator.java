@@ -169,34 +169,22 @@
 package vip.isass.framework.lowcode.generator.v2;
 
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.map.MapUtil;
+import cn.hutool.core.util.ReflectUtil;
 import com.baomidou.mybatisplus.annotation.FieldFill;
-import com.baomidou.mybatisplus.generator.AutoGenerator;
-import com.baomidou.mybatisplus.generator.InjectionConfig;
-import com.baomidou.mybatisplus.generator.config.DataSourceConfig;
-import com.baomidou.mybatisplus.generator.config.FileOutConfig;
-import com.baomidou.mybatisplus.generator.config.GlobalConfig;
-import com.baomidou.mybatisplus.generator.config.ITypeConvert;
-import com.baomidou.mybatisplus.generator.config.PackageConfig;
-import com.baomidou.mybatisplus.generator.config.StrategyConfig;
-import com.baomidou.mybatisplus.generator.config.TemplateConfig;
-import com.baomidou.mybatisplus.generator.config.po.TableFill;
-import com.baomidou.mybatisplus.generator.config.po.TableInfo;
+import com.baomidou.mybatisplus.generator.FastAutoGenerator;
+import com.baomidou.mybatisplus.generator.config.builder.CustomFile;
 import com.baomidou.mybatisplus.generator.config.rules.NamingStrategy;
 import com.baomidou.mybatisplus.generator.engine.FreemarkerTemplateEngine;
+import com.baomidou.mybatisplus.generator.fill.Property;
 import freemarker.ext.beans.BeansWrapper;
 import freemarker.ext.beans.BeansWrapperBuilder;
 import freemarker.template.TemplateHashModel;
-import freemarker.template.TemplateModelException;
 import freemarker.template.Version;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import vip.isass.framework.common.util.function.ExceptionCatcher;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
 import java.util.regex.Pattern;
 
 @Slf4j
@@ -220,292 +208,157 @@ public class V2MybatisPlusGenerator {
 
     @SneakyThrows
     public static void generate(MybatisPlusGeneratorMeta meta) {
-        // 数据源配置
-        DataSourceConfig dataSourceConfig = new DataSourceConfig()
-                .setDbType(meta.getDbType())
-                .setUrl(meta.getDataSourceUrl())
-                .setSchemaName(meta.getSchemaName())
-                .setUsername(meta.getDataSourceUserName())
-                .setPassword(meta.getDataSourcePassword());
+        FastAutoGenerator.create(meta.getDataSourceUrl(), meta.getDataSourceUserName(), meta.getDataSourcePassword())
+                .globalConfig(builder -> {
+                    builder.author("isass") // 设置作者
+                            .outputDir(meta.getOutputDir());// 输出目录
 
-        switch (meta.getDbType()) {
-            case MYSQL:
-                dataSourceConfig.setDriverName("com.mysql.cj.jdbc.Driver");
-                try {
-                    dataSourceConfig.setTypeConvert(
-                            (ITypeConvert) Class.forName("vip.isass.core.database.mysql.IsassMySqlTypeConvert").newInstance());
-                } catch (Exception e) {
-                    log.warn(e.getMessage(), e);
-                }
-                break;
-            case POSTGRE_SQL:
-                dataSourceConfig.setDriverName("org.postgresql.Driver");
-                try {
-                    dataSourceConfig.setTypeConvert(
-                            (ITypeConvert) Class.forName("vip.isass.core.database.postgresql.convert.PostgreSqlTypeConvert").newInstance());
-                } catch (Exception e) {
-                    log.warn("找不到vip.isass.core.database.postgresql.convert.PostgreSqlTypeConvert");
-                }
-                break;
-            case MARIADB:
-            case ORACLE:
-            case DB2:
-            case H2:
-            case HSQL:
-            case SQLITE:
-            case SQL_SERVER2005:
-            case SQL_SERVER:
-            case DM:
-            case OTHER:
-                break;
-            default:
-        }
+                })
+                .dataSourceConfig(builder -> {
+                    builder.schema(meta.getSchemaName())
+                            .typeConvert(ExceptionCatcher.supplierOrError(() -> switch (meta.getDbType()) {
+                                case MYSQL ->
+                                        ReflectUtil.newInstance("vip.isass.core.database.mysql.IsassMySqlTypeConvert");
+                                case POSTGRE_SQL ->
+                                        ReflectUtil.newInstance("vip.isass.core.database.postgresql.convert.PostgreSqlTypeConvert");
+                                default -> null;
+                            }));
 
-        // 策略配置
-        StrategyConfig strategyConfig = new StrategyConfig()
-                // 是否跳过视图
-                .setSkipView(true)
+                })
+                .packageConfig(builder -> {
+                    builder.parent(meta.getParentPackageName()) // 设置父包名
+                            .moduleName(meta.getModuleName()) // 设置模块名（即微服务名）
+                            // 取消默认模板的代码生成，改用自己编写的模板
+                            .entity(null)
+                            .mapper(null)
+                            .service(null)
+                            .serviceImpl(null)
+                            .controller(null)
+                            .xml(null);
+                })
+                .injectionConfig(builder -> {
+                    // 注入模板变量
+                    ExceptionCatcher.consumeOrErrorLog(builder, b -> {
+                        BeansWrapper wrapper = new BeansWrapperBuilder(new Version("2.3.33")).build();
+                        try {
+                            TemplateHashModel staticModels = wrapper.getStaticModels();
+                            TemplateHashModel idEntity = (TemplateHashModel) staticModels.get("vip.isass.framework.lowcode.v2.entity.IV2IdEntity");
+                            TemplateHashModel parentIdEntity = (TemplateHashModel) staticModels.get("vip.isass.framework.lowcode.v2.entity.IV2ParentIdEntity");
+                            TemplateHashModel logicDeleteEntity = (TemplateHashModel) staticModels.get("vip.isass.framework.lowcode.v2.entity.IV2LogicDeleteEntity");
+                            TemplateHashModel v2TenantEntity = (TemplateHashModel) staticModels.get("vip.isass.framework.lowcode.v2.entity.IV2TenantEntity");
+                            TemplateHashModel tracedEntity = (TemplateHashModel) staticModels.get("vip.isass.framework.lowcode.v2.entity.IV2TraceEntity");
+                            TemplateHashModel versionEntity = (TemplateHashModel) staticModels.get("vip.isass.framework.lowcode.v2.entity.IV2VersionEntity");
+                            b.customMap(MapUtil.<String, Object>builder()
+                                    .put("package", meta.getParentPackageName())
+                                    .put("moduleName", meta.getModuleName())
+                                    .put("tablePrefix", meta.getTablePrefix())
 
-                // 是否大写命名
-                .setCapitalMode(true)
+                                    .put("entityPackageName", meta.getParentPackageName() + "." + meta.getModuleName() + ".api.model.entity")
+                                    .put("entityDbPackageName", meta.getParentPackageName() + "." + meta.getModuleName() + ".db.model")
+                                    .put("criteriaPackageName", meta.getParentPackageName() + "." + meta.getModuleName() + ".api.model.criteria")
 
-                // 是否为lombok模型
-                .setEntityLombokModel(true)
+                                    .put("mapperPackageName", meta.getParentPackageName() + "." + meta.getModuleName() + ".db.mapper")
+                                    .put("servicePackageName", meta.getParentPackageName() + "." + meta.getModuleName() + ".service")
+                                    .put("controllerPackageName", meta.getParentPackageName() + "." + meta.getModuleName() + ".controller")
+                                    .put("controllerPrefix", meta.getControllerPrefix())
+                                    .put("feignPackage", meta.getParentPackageName() + "." + meta.getModuleName() + ".api.feign")
 
-                // 是否生成字段常量
-                .setEntityColumnConstant(true)
+                                    .put("idEntity", idEntity)
+                                    .put("parentIdEntity", parentIdEntity)
+                                    .put("logicDeleteEntity", logicDeleteEntity)
+                                    .put("tenantEntity", v2TenantEntity)
+                                    .put("traceEntity", tracedEntity)
+                                    .put("versionEntity", versionEntity)
+                                    .build());
+                        } catch (Exception e) {
+                            log.error(e.getMessage(), e);
+                        }
+                    });
 
-                // 数据库表映射到实体的命名策略
-                .setNaming(NamingStrategy.underline_to_camel)
+                    // 配置模板文件路径
+                    builder.customFile(CollUtil.newArrayList(
+                            new CustomFile.Builder()
+                                    .templatePath("/v2Template/entity.java.ftl")
+                                    .packageName(meta.getParentPackageName() + ".api.model.entity")
+                                    .formatNameFunction(tableInfo -> "V2" + tableInfo.getEntityName() + ".java")
+                                    .build(),
+                            new CustomFile.Builder()
+                                    .templatePath("/v2Template/criteria.java.ftl")
+                                    .packageName(meta.getParentPackageName() + ".api.model.criteria")
+                                    .formatNameFunction(tableInfo -> "V2" + tableInfo.getEntityName() + "Criteria.java")
+                                    .build(),
+                            new CustomFile.Builder()
+                                    .templatePath("/v2Template/entityDb.java.ftl")
+                                    .packageName(meta.getParentPackageName() + ".db.model")
+                                    .formatNameFunction(tableInfo -> "V2" + tableInfo.getEntityName() + "Db.java")
+                                    .build(),
+                            new CustomFile.Builder()
+                                    .templatePath("/v2Template/mapper.java.ftl")
+                                    .packageName(meta.getParentPackageName() + ".db.mapper")
+                                    .formatNameFunction(tableInfo -> "V2" + tableInfo.getEntityName() + "Mapper.java")
+                                    .build(),
+                            new CustomFile.Builder()
+                                    .templatePath("/v2Template/mapper.xml.ftl")
+                                    .packageName(meta.getParentPackageName() + ".db.mapper.xml")
+                                    .formatNameFunction(tableInfo -> "V2" + tableInfo.getEntityName() + "Mapper.xml")
+                                    .build(),
+                            new CustomFile.Builder()
+                                    .templatePath("/v2Template/repository.java.ftl")
+                                    .packageName(meta.getParentPackageName() + ".db.repository")
+                                    .formatNameFunction(tableInfo -> "V2" + tableInfo.getEntityName() + "Repository.java")
+                                    .build(),
+                            new CustomFile.Builder()
+                                    .templatePath("/v2Template/localService.java.ftl")
+                                    .packageName(meta.getParentPackageName() + ".service")
+                                    .formatNameFunction(tableInfo -> "V2" + tableInfo.getEntityName() + "Service.java")
+                                    .build(),
+                            new CustomFile.Builder()
+                                    .templatePath("/v2Template/iSservice.java.ftl")
+                                    .packageName(meta.getParentPackageName() + ".api.service")
+                                    .formatNameFunction(tableInfo -> "V2" + tableInfo.getEntityName() + "Service.java")
+                                    .build(),
+                            new CustomFile.Builder()
+                                    .templatePath("/v2Template/feignService.java.ftl")
+                                    .packageName(meta.getParentPackageName() + ".api.feign")
+                                    .formatNameFunction(tableInfo -> "V2" + tableInfo.getEntityName() + "FeignService.java")
+                                    .build(),
+                            new CustomFile.Builder()
+                                    .templatePath("/v2Template/controller.java.ftl")
+                                    .packageName(meta.getParentPackageName() + ".controller")
+                                    .formatNameFunction(tableInfo -> "V2" + tableInfo.getEntityName() + "Controller.java")
+                                    .build()
+                    ));
+                })
+                .strategyConfig(builder -> {
+                    builder.enableSkipView()
+                            .enableCapitalMode()
+                            .addTablePrefix(meta.getTablePrefix())
+                            .addInclude(meta.getIncludeTables()) // 设置需要生成的表名，允许正则表达式（与exclude二选一配置）
+                            .addExclude(meta.getExcludeTables()) // 需要排除的表名，允许正则表达式
 
-                // 数据库表字段映射到实体的命名策略
-                .setColumnNaming(NamingStrategy.underline_to_camel)
+                            .entityBuilder()
+                            .enableLombok() // 启用 Lombok
+                            .enableColumnConstant()
+                            .enableTableFieldAnnotation() // 启用字段注解
+                            .naming(NamingStrategy.underline_to_camel)
+                            .columnNaming(NamingStrategy.underline_to_camel)
+                            .enableFileOverride()
+                            .versionPropertyName("version")
+                            .logicDeletePropertyName("deleteFlag")
+                            .addTableFills(new Property("version", FieldFill.INSERT),
+                                    new Property("create_user_id", FieldFill.INSERT),
+                                    new Property("create_user_name", FieldFill.INSERT),
+                                    new Property("create_time", FieldFill.INSERT),
+                                    new Property("modify_user_id", FieldFill.INSERT_UPDATE),
+                                    new Property("modify_user_name", FieldFill.INSERT_UPDATE),
+                                    new Property("modify_time", FieldFill.INSERT_UPDATE),
+                                    new Property("delete_flag", FieldFill.INSERT))
 
-                // 表前缀
-                .setTablePrefix(meta.getTablePrefix())
-
-                // 需要包含的表名，允许正则表达式（与exclude二选一配置）
-                .setInclude(meta.getIncludeTables())
-
-                // 需要排除的表名，允许正则表达式
-                .setExclude(meta.getExcludeTables())
-
-                // 乐观锁属性名称
-                .setVersionFieldName("version")
-
-                // 逻辑删除属性名称
-                .setLogicDeleteFieldName("deleteFlag")
-
-                // 需要自动填充的字段
-                .setTableFillList(Arrays.asList(
-                        new TableFill("version", FieldFill.INSERT),
-                        new TableFill("create_user_id", FieldFill.INSERT),
-                        new TableFill("create_user_name", FieldFill.INSERT),
-                        new TableFill("create_time", FieldFill.INSERT),
-                        new TableFill("modify_user_id", FieldFill.INSERT_UPDATE),
-                        new TableFill("modify_user_name", FieldFill.INSERT_UPDATE),
-                        new TableFill("modify_time", FieldFill.INSERT_UPDATE),
-                        new TableFill("delete_flag", FieldFill.INSERT))
-                );
-
-        // 全局配置
-        GlobalConfig config = new GlobalConfig()
-                .setActiveRecord(false)
-                .setEnableCache(false)
-                .setAuthor("isass")
-                .setEntityName("%s")
-                .setControllerName("V2%sController")
-                .setServiceName("IV2%sService")
-                .setServiceImplName("%sService")
-                .setMapperName("%sMapper")
-                .setBaseColumnList(true)
-                .setBaseResultMap(true)
-                .setOutputDir(meta.getOutputDir() + "/src/main/java")
-                .setOpen(false)
-                .setFileOverride(true)
-                .setSwagger2(true);
-
-        BeansWrapper wrapper = new BeansWrapperBuilder(new Version("2.3.28")).build();
-
-        // 自定义新模板
-        InjectionConfig injectionConfig = new InjectionConfig() {
-            @Override
-            public void initMap() {
-                this.setMap(new HashMap<String, Object>(16) {{
-                    put("moduleName", meta.getModuleName());
-                    put("controllerPrefix", meta.getControllerPrefix());
-                    put("package", meta.getPackageName());
-                    put("entityPackageName", meta.getPackageName() + "." + meta.getModuleName() + ".api.model.entity");
-                    put("entityDbPackageName", meta.getPackageName() + "." + meta.getModuleName() + ".db.model");
-                    put("criteriaPackageName", meta.getPackageName() + "." + meta.getModuleName() + ".api.model.criteria");
-                    put("mapperPackageName", meta.getPackageName() + "." + meta.getModuleName() + ".db.mapper");
-                    put("servicePackageName", meta.getPackageName() + "." + meta.getModuleName() + ".service");
-                    put("controllerPackageName", meta.getPackageName() + "." + meta.getModuleName() + ".controller");
-                    put("feignPackage", meta.getPackageName() + "." + meta.getModuleName() + ".api.feign");
-                    put("tablePrefix", meta.getTablePrefix());
-
-                    try {
-                        TemplateHashModel staticModels = wrapper.getStaticModels();
-
-                        TemplateHashModel idEntity = (TemplateHashModel) staticModels.get("vip.isass.core.structure.entity.IV2IdEntity");
-                        put("idEntity", idEntity);
-                        TemplateHashModel parentIdEntity = (TemplateHashModel) staticModels.get("vip.isass.core.structure.entity.IV2ParentIdEntity");
-                        put("parentIdEntity", parentIdEntity);
-                        TemplateHashModel logicDeleteEntity = (TemplateHashModel) staticModels.get("vip.isass.core.structure.entity.IV2LogicDeleteEntity");
-                        put("logicDeleteEntity", logicDeleteEntity);
-                        TemplateHashModel v2TenantEntity = (TemplateHashModel) staticModels.get("vip.isass.core.structure.entity.IV2TenantEntity");
-                        put("tenantEntity", v2TenantEntity);
-                        TemplateHashModel tracedEntity = (TemplateHashModel) staticModels.get("vip.isass.core.structure.entity.IV2TraceEntity");
-                        put("traceEntity", tracedEntity);
-                        TemplateHashModel versionEntity = (TemplateHashModel) staticModels.get("vip.isass.core.structure.entity.IV2VersionEntity");
-                        put("versionEntity", versionEntity);
-                    } catch (TemplateModelException e) {
-                        log.error(e.getMessage(), e);
-                    }
-                }});
-            }
-        };
-        List<FileOutConfig> focList = new ArrayList<>();
-        focList.addAll(CollUtil.newArrayList(
-                new FileOutConfig("/v2Template/entity.java.ftl") {
-                    @Override
-                    public String outputFile(TableInfo tableInfo) {
-                        // 自定义输入文件名称
-                        String path = config.getOutputDir() +
-                                "/" + meta.getPackageName().replaceAll("\\.", "/") +
-                                "/" + meta.getModuleName() + "/api/model/entity/";
-                        return path + "V2" + tableInfo.getEntityName() + ".java";
-                    }
-                }, new FileOutConfig("/v2Template/criteria.java.ftl") {
-                    @Override
-                    public String outputFile(TableInfo tableInfo) {
-                        // 自定义输入文件名称
-                        String path = config.getOutputDir() +
-                                "/" + meta.getPackageName().replaceAll("\\.", "/") +
-                                "/" + meta.getModuleName() + "/api/model/criteria/";
-                        return path + "V2" + tableInfo.getEntityName() + "Criteria.java";
-                    }
-                }, new FileOutConfig("/v2Template/entityDb.java.ftl") {
-                    @Override
-                    public String outputFile(TableInfo tableInfo) {
-                        // 自定义输入文件名称
-                        String path = config.getOutputDir() +
-                                "/" + meta.getPackageName().replaceAll("\\.", "/") +
-                                "/" + meta.getModuleName() + "/db/model/";
-                        return path + "V2" + tableInfo.getEntityName() + "Db.java";
-                    }
-                }, new FileOutConfig("/v2Template/mapper.java.ftl") {
-                    @Override
-                    public String outputFile(TableInfo tableInfo) {
-                        // 自定义输入文件名称
-                        String path = config.getOutputDir() +
-                                "/" + meta.getPackageName().replaceAll("\\.", "/") +
-                                "/" + meta.getModuleName() + "/db/mapper/";
-                        return path + "V2" + tableInfo.getEntityName() + "Mapper.java";
-                    }
-                }, new FileOutConfig("/v2Template/mapper.xml.ftl") {
-                    @Override
-                    public String outputFile(TableInfo tableInfo) {
-                        // 自定义输入文件名称
-                        String path = config.getOutputDir() +
-                                "/" + meta.getPackageName().replaceAll("\\.", "/") +
-                                "/" + meta.getModuleName() + "/db/mapper/xml/";
-                        return path + "V2" + tableInfo.getEntityName() + "Mapper.xml";
-                    }
-                }, new FileOutConfig("/v2Template/repository.java.ftl") {
-                    @Override
-                    public String outputFile(TableInfo tableInfo) {
-                        // 自定义输入文件名称
-                        String path = config.getOutputDir() +
-                                "/" + meta.getPackageName().replaceAll("\\.", "/") +
-                                "/" + meta.getModuleName() + "/db/repository/";
-                        return path + "V2" + tableInfo.getEntityName() + "Repository.java";
-                    }
-                }, new FileOutConfig("/v2Template/localService.java.ftl") {
-                    @Override
-                    public String outputFile(TableInfo tableInfo) {
-                        // 自定义输入文件名称
-                        String path = config.getOutputDir() +
-                                "/" + meta.getPackageName().replaceAll("\\.", "/") +
-                                "/" + meta.getModuleName() + "/service/";
-                        return path + "V2" + tableInfo.getEntityName() + "Service.java";
-                    }
-                }, new FileOutConfig("/v2Template/iSservice.java.ftl") {
-                    @Override
-                    public String outputFile(TableInfo tableInfo) {
-                        // 自定义输入文件名称
-                        String path = config.getOutputDir() +
-                                "/" + meta.getPackageName().replaceAll("\\.", "/") +
-                                "/" + meta.getModuleName() + "/api/service/";
-                        return path + "IV2" + tableInfo.getEntityName() + "Service.java";
-                    }
-                }, new FileOutConfig("/v2Template/feignService.java.ftl") {
-                    @Override
-                    public String outputFile(TableInfo tableInfo) {
-                        // 自定义输入文件名称
-                        String path = config.getOutputDir() +
-                                "/" + meta.getPackageName().replaceAll("\\.", "/") +
-                                "/" + meta.getModuleName() + "/api/feign/";
-                        return path + "V2" + tableInfo.getEntityName() + "FeignService.java";
-                    }
-                }, new FileOutConfig("/v2Template/controller.java.ftl") {
-                    @Override
-                    public String outputFile(TableInfo tableInfo) {
-                        // 自定义输入文件名称
-                        String path = config.getOutputDir() +
-                                "/" + meta.getPackageName().replaceAll("\\.", "/") +
-                                "/" + meta.getModuleName() + "/controller/";
-                        return path + "V2" + tableInfo.getEntityName() + "Controller.java";
-                    }
-                }
-        ));
-        injectionConfig.setFileOutConfigList(focList);
-
-        injectionConfig.setFileCreate((configBuilder, fileType, filePath) -> {
-            System.out.println();
-            filePath = filePath.replaceAll("\\\\", "/");
-            File file = new File(filePath);
-            boolean exist = file.exists();
-            if (exist && configBuilder.getGlobalConfig().isFileOverride()) {
-                for (Pattern pattern : FILE_OVERRIDE_PATTERNS) {
-                    if (pattern.matcher(filePath).matches()) {
-                        log.info(file.getName() + " --> {}", "覆盖策略：覆盖");
-                        return true;
-                    }
-                }
-                log.info(file.getName() + " --> {}", "覆盖策略：不覆盖");
-                return false;
-            } else {
-                FileUtil.mkdir(file.getParentFile());
-                log.info(file.getName() + " --> {}", "覆盖策略：覆盖");
-                return true;
-            }
-        });
-
-        new AutoGenerator()
-                .setGlobalConfig(config)
-                .setDataSource(dataSourceConfig)
-                .setStrategy(strategyConfig)
-                .setPackageInfo(
-                        new PackageConfig()
-                                .setParent(meta.getPackageName())
-                                .setMapper(null)
-                                .setXml(null)
-                                .setEntity(null)
-                                .setService(null)
-                                .setController(null)
-                                .setModuleName(meta.getModuleName()))
-                .setTemplate(
-                        new TemplateConfig()
-                                .setEntity(null)
-                                .setMapper(null)
-                                .setXml(null)
-                                .setService(null)
-                                .setServiceImpl(null)
-                                .setController(null))
-                .setCfg(injectionConfig)
-                .setTemplateEngine(new FreemarkerTemplateEngine())
-                .execute();
+                            .controllerBuilder()
+                            .enableRestStyle(); // 启用 REST 风格
+                })
+                .templateEngine(new FreemarkerTemplateEngine()) // 使用 Freemarker 模板引擎
+                .execute(); // 执行生成
     }
 
 }

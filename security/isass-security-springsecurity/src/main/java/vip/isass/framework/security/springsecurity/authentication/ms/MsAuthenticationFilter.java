@@ -169,6 +169,10 @@
 package vip.isass.framework.security.springsecurity.authentication.ms;
 
 import cn.hutool.core.util.StrUtil;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
@@ -177,10 +181,6 @@ import vip.isass.framework.security.core.authentication.login.DefaultLoginUser;
 import vip.isass.framework.security.springsecurity.MsAuthenticationHeaderProvider;
 import vip.isass.framework.security.springsecurity.authentication.AbstractAuthenticationFilter;
 
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**

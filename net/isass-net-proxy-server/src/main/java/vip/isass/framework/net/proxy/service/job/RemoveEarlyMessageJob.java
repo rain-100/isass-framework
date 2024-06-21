@@ -168,11 +168,10 @@
 
 package vip.isass.framework.net.proxy.service.job;
 
+import jakarta.annotation.Resource;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import vip.isass.framework.net.proxy.service.service.RemoveC2SMessageService;
-
-import javax.annotation.Resource;
 
 /**
  * 定时删除 redis 旧的中转消息

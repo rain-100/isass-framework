@@ -168,14 +168,12 @@
 
 package vip.isass.framework.net.core.handler;
 
-import lombok.Value;
+import jakarta.annotation.Resource;
 import vip.isass.framework.net.core.message.Message;
 import vip.isass.framework.net.core.message.MessageCmd;
 import vip.isass.framework.net.core.session.ISessionService;
 import vip.isass.framework.security.core.authentication.jwt.JwtInfo;
 import vip.isass.framework.security.core.authentication.jwt.JwtUtil;
-
-import javax.annotation.Resource;
 
 /**
  * 登录事件处理器

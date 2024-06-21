@@ -168,11 +168,10 @@
 
 package vip.isass.framework.lowcode.generator.v2;
 
+import com.baomidou.mybatisplus.annotation.DbType;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-
-import com.baomidou.mybatisplus.annotation.DbType;
 
 /**
  * @author Rain
@@ -196,7 +195,7 @@ public class MybatisPlusGeneratorMeta {
 
     private String moduleName;
 
-    private String packageName;
+    private String parentPackageName;
 
     private String[] tablePrefix;
 

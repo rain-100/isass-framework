@@ -176,11 +176,11 @@ import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.stream.ChunkedWriteHandler;
 import io.netty.handler.timeout.IdleStateHandler;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import vip.isass.framework.net.websocket.WebsocketProperties;
 
-import javax.annotation.Resource;
 import java.util.concurrent.TimeUnit;
 
 /**

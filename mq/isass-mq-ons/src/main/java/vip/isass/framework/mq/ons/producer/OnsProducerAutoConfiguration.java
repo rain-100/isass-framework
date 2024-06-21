@@ -169,6 +169,9 @@
 package vip.isass.framework.mq.ons.producer;
 
 import cn.hutool.core.collection.CollUtil;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
+import jakarta.annotation.Resource;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import vip.isass.framework.mq.ons.config.InstanceConfiguration;
@@ -177,9 +180,6 @@ import vip.isass.framework.mq.ons.config.ProducerConfiguration;
 import vip.isass.framework.mq.ons.config.ProducerProperties;
 import vip.isass.framework.mq.ons.config.RegionConfiguration;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;

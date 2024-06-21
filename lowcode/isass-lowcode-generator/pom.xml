@@ -186,6 +186,11 @@
 
     <dependencies>
         <dependency>
+            <groupId>vip.isass</groupId>
+            <artifactId>isass-common</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>com.baomidou</groupId>
             <artifactId>mybatis-plus-generator</artifactId>
         </dependency>
@@ -193,6 +198,11 @@
         <dependency>
             <groupId>org.freemarker</groupId>
             <artifactId>freemarker</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-annotation</artifactId>
         </dependency>
     </dependencies>
 </project>

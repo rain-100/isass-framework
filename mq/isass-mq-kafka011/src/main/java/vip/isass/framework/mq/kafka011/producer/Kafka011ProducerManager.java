@@ -171,6 +171,7 @@ package vip.isass.framework.mq.kafka011.producer;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
+import jakarta.annotation.Resource;
 import vip.isass.framework.mq.core.MessageType;
 import vip.isass.framework.mq.core.MqMessageContext;
 import vip.isass.framework.mq.core.producer.MqProducer;
@@ -181,7 +182,6 @@ import vip.isass.framework.mq.kafka011.config.Kafka011ConfigUtil;
 import vip.isass.framework.mq.kafka011.config.Kafka011Configuration;
 import vip.isass.framework.mq.kafka011.config.ProducerConfiguration;
 
-import javax.annotation.Resource;
 import java.util.Collections;
 import java.util.Map;
 import java.util.function.Function;

@@ -169,6 +169,7 @@
 package vip.isass.framework.net.proxy.service.service;
 
 import com.baomidou.lock.annotation.Lock4j;
+import jakarta.annotation.Resource;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -180,7 +181,6 @@ import vip.isass.framework.common.util.LocalDateTimeUtil;
 import vip.isass.framework.net.core.NetRedisKey;
 import vip.isass.framework.net.core.message.Message;
 
-import javax.annotation.Resource;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;

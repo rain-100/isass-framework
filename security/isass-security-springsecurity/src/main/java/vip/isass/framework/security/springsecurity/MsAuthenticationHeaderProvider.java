@@ -173,7 +173,7 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import vip.isass.framework.security.core.header.AdditionalRequestHeaderProvider;
+import vip.isass.framework.common.metadata.HeaderProvider;
 
 /**
  * @author Rain
@@ -182,7 +182,7 @@ import vip.isass.framework.security.core.header.AdditionalRequestHeaderProvider;
 @Setter
 @Accessors(chain = true)
 @Component
-public class MsAuthenticationHeaderProvider implements AdditionalRequestHeaderProvider {
+public class MsAuthenticationHeaderProvider implements HeaderProvider {
 
     public static final String HEADER = "ms-authorization";
 

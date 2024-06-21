@@ -171,6 +171,7 @@ package vip.isass.framework.net.proxy.service.controller;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -184,7 +185,6 @@ import vip.isass.framework.net.core.message.Message;
 import vip.isass.framework.net.core.session.ISessionService;
 import vip.isass.framework.net.core.session.SessionBindingInfoChangeReq;
 
-import javax.annotation.Resource;
 import java.util.Collection;
 import java.util.Map;
 

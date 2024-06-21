@@ -170,13 +170,13 @@ package vip.isass.framework.security.springsecurity.authentication.jwt;
 
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.map.MapUtil;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import vip.isass.framework.security.core.authentication.jwt.IJwtService;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;

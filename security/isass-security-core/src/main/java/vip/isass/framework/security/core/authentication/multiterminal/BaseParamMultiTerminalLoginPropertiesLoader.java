@@ -179,7 +179,6 @@
 //import vip.isass.core.web.security.authentication.jwt.TerminalOnlineProperties;
 //import vip.isass.core.web.security.authentication.jwt.TerminalPropertiesLoader;
 //
-//import javax.annotation.Resource;
 //import java.util.List;
 //
 ///**

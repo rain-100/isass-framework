@@ -168,6 +168,7 @@
 
 package vip.isass.framework.security.springsecurity.authentication.ms;
 
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -179,7 +180,6 @@ import org.springframework.stereotype.Component;
 import vip.isass.framework.security.core.authorization.role.RoleConst;
 import vip.isass.framework.security.springsecurity.MsAuthenticationHeaderProvider;
 
-import javax.annotation.Resource;
 import java.util.Collection;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;

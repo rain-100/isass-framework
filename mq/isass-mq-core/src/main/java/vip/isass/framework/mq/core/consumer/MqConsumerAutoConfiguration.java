@@ -169,13 +169,13 @@
 package vip.isass.framework.mq.core.consumer;
 
 import cn.hutool.core.collection.CollUtil;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.stereotype.Component;
 import vip.isass.framework.mq.core.MqAutoConfiguration;
 
-import javax.annotation.Resource;
 import java.util.List;
 
 /**
@@ -209,9 +209,9 @@ public class MqConsumerAutoConfiguration implements SmartLifecycle {
             return;
         }
         mqConsumerManagers
-            .stream()
-            .filter(MqConsumerManager::isEnable)
-            .forEach(MqConsumerManager::subscribe);
+                .stream()
+                .filter(MqConsumerManager::isEnable)
+                .forEach(MqConsumerManager::subscribe);
     }
 
     @Override
