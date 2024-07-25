@@ -257,8 +257,8 @@ public abstract class ConsistentHashNodeAllocatorService implements INodeAllocat
                     .netProtocol(netProtocol)
                     .externalIp(metadata.get("externalIp"))
                     .internalIp(MapUtil.getStr(metadata, "internalIp", instance.getHost()))
-                    .httpPort(instance.getPort())
-                    .httpSecure(instance.isSecure())
+                    .httpPort(MapUtil.getInt(metadata, "httpPort", instance.getPort()))
+                    .httpSecure(MapUtil.getBool(metadata, "isSecure", instance.isSecure()))
                     .netExternalPort(MapUtil.getInt(metadata, "netExternalPort"))
                     .netExternalUrl(metadata.get("netExternalUrl"))
                     .build();
