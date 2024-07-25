@@ -167,22 +167,71 @@
  *
  */
 
-package vip.isass.core.web.security.authentication.jwt;
+package vip.isass.core.web.security.authentication.multilogin;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.experimental.SuperBuilder;
 
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
 /**
- * @author Rain
+ * <p>
+ * 多端登陆配置
+ * </p>
+ *
+ * @author isass
  */
-public interface IJwtService {
+@Getter
+@Setter
+@ToString
+@SuperBuilder
+@NoArgsConstructor
+@AllArgsConstructor
+public class MultiTerminalLoginConfig {
 
-    Integer getForceOfflineVersion(String userId);
+    /**
+     * 主键
+     */
+    private Long id;
 
-    Integer getVersionByTerminal(String userId, String loginFrom);
+    /**
+     * 策略名称
+     */
+    private String name;
 
-    Map<String, Integer> getVersionByTerminals(String userId, List<String> terminals);
+    /**
+     * 禁止在线的终端。此列表的终端不允许登陆。比“允许在线的终端”优先
+     */
+    private Set<String> forbidOnlineTerminals;
 
-    Integer increaseVersionByTerminal(String id, String from);
+    /**
+     * 允许在线的终端。不在此列表的终端不允许登陆。不填则不限制
+     */
+    private Set<String> allowOnlineTerminals;
+
+    /**
+     * 互斥终端列表，只能在其中一个端上线
+     */
+    private List<String> mutexTerminals;
+
+    /**
+     * 禁止同一终端多登的终端列表(同端多登)
+     */
+    private Set<String> forbidSameTerminalMultiOnlineTerminals;
+
+    /**
+     * 最新登录的终端会优先上线的终端列表。如果用户登陆时，符合了禁止多端登录的条件，则列表中的终端会登陆成功，其他端会被踢下线，否则本次登录会失败
+     */
+    private Set<String> latestOnlineTerminals;
+
+    /**
+     * 租户ID
+     */
+    private Long tenantId;
 
 }

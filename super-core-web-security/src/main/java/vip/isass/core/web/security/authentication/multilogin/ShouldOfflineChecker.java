@@ -164,88 +164,61 @@
  * apply, that proxy's public statement of acceptance of any version is
  * permanent authorization for you to choose that version for the
  * Library.
- *
  */
 
-package vip.isass.core.web.security.authentication.jwt;
+package vip.isass.core.web.security.authentication.multilogin;
 
-import cn.hutool.core.util.StrUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.core.AuthenticationException;
-import vip.isass.core.login.DefaultLoginUser;
-import vip.isass.core.security.jwt.JwtInfo;
-import vip.isass.core.web.security.authentication.AbstractAuthenticationFilter;
-import vip.isass.core.web.security.authentication.multilogin.ShouldOfflineChecker;
+import org.springframework.stereotype.Service;
+import vip.isass.core.exception.UnifiedException;
+import vip.isass.core.login.LoginUser;
+import vip.isass.core.web.security.exception.SecurityCoreStatusEnum;
 
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+import javax.annotation.Resource;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 /**
- * @author Rain
+ * 是否需要下线检查器
+ * 检查请求的 token 是否需要被下线
  */
 @Slf4j
-public class JwtAuthenticationFilter extends AbstractAuthenticationFilter {
+@Service
+public class ShouldOfflineChecker {
 
-    private ShouldOfflineChecker shouldOfflineChecker;
+    @Resource
+    private MultiTerminalLoginConfiguration multiTerminalLoginConfiguration;
 
-    public JwtAuthenticationFilter(AuthenticationManager authenticationManager,
-                                   ShouldOfflineChecker shouldOfflineChecker) {
-        super(authenticationManager);
-        this.shouldOfflineChecker = shouldOfflineChecker;
+    /**
+     * 根据终端列表获取 version
+     */
+    public Map<String, Integer> getVersionByTerminals(String userId, List<String> terminals) {
+        return Collections.emptyMap();
     }
 
-    @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException, ServletException {
-        String header = request.getHeader(JwtConst.HEADER_NAME);
-
-        if (StrUtil.isEmpty(header)) {
-            chain.doFilter(request, response);
+    /**
+     * 检查 token 是否需要被下线
+     */
+    public void checkShouldOffline(LoginUser loginUser) {
+        MultiTerminalLoginConfig multiTerminalLoginConfig = multiTerminalLoginConfiguration.getMultiTerminalLoginConfig(loginUser.getTenantId());
+        if (multiTerminalLoginConfig == null) {
             return;
         }
 
-        String token;
-        if (header.startsWith(JwtConst.PREFIX)) {
-            token = header.replace(JwtConst.PREFIX, "");
-        } else if (header.startsWith(JwtConst.PREFIX_URL_ENCODED)) {
-            token = header.replace(JwtConst.PREFIX_URL_ENCODED, "");
-        } else {
-            chain.doFilter(request, response);
-            return;
+        // 找出互斥终端中最高版本的终端
+        String maxTerminal = null;
+        Integer maxVersion = null;
+
+        if (maxTerminal == null) {
+            // 没有终端记录，即此 token 是启用多端验证前生成的，则强制下线
+            throw new UnifiedException(SecurityCoreStatusEnum.TOKEN_INVALID);
         }
 
-        try {
-            JwtAuthenticationToken authResult = (JwtAuthenticationToken) getAuthenticationManager()
-                    .authenticate(new JwtAuthenticationToken(token));
-
-            JwtInfo jwtClaim = authResult.getJwtClaim();
-            DefaultLoginUser defaultLoginUser = new DefaultLoginUser()
-                    .setUserId(jwtClaim.getUid())
-                    .setNickName(jwtClaim.getName())
-                    .setTenantId(jwtClaim.getTenantId())
-                    .setLoginFrom(jwtClaim.getFr())
-                    .setVersion(jwtClaim.getV())
-                    .setTokenFrom(JwtAuthenticationToken.class.getSimpleName());
-
-            // todo 判断账号是否禁用
-
-            // 处理多端登录
-            shouldOfflineChecker.checkShouldOffline(defaultLoginUser);
-
-            // 保存已验证的权限信息
-            saveAuthentication(defaultLoginUser, authResult.getAuthorities());
-
-            // 权限认证成功方法
-            onSuccessfulAuthentication(request, response, authResult);
-        } catch (AuthenticationException failed) {
-            onUnsuccessfulAuthentication(request, response, failed);
+        // 如果最大版本的终端，不是此次 token 的终端，则强制下线
+        if (!maxTerminal.equals(loginUser.getLoginFrom())) {
+            throw new UnifiedException(SecurityCoreStatusEnum.FORCE_OFFLINE);
         }
-
-        chain.doFilter(request, response);
     }
-
 
 }

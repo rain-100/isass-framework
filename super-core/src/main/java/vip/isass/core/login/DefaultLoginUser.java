@@ -181,6 +181,8 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 public class DefaultLoginUser implements LoginUser {
 
+    private Long tenantId;
+
     private String userId;
 
     private String nickName;
@@ -190,6 +192,8 @@ public class DefaultLoginUser implements LoginUser {
     private Integer version;
 
     private String tokenFrom;
+
+    private Long expireAt;
 
     @Override
     public String getAllUserId() {

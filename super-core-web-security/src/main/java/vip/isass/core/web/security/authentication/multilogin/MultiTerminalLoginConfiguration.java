@@ -164,88 +164,86 @@
  * apply, that proxy's public statement of acceptance of any version is
  * permanent authorization for you to choose that version for the
  * Library.
- *
  */
 
-package vip.isass.core.web.security.authentication.jwt;
+package vip.isass.core.web.security.authentication.multilogin;
 
-import cn.hutool.core.util.StrUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.core.AuthenticationException;
-import vip.isass.core.login.DefaultLoginUser;
-import vip.isass.core.security.jwt.JwtInfo;
-import vip.isass.core.web.security.authentication.AbstractAuthenticationFilter;
-import vip.isass.core.web.security.authentication.multilogin.ShouldOfflineChecker;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.SmartLifecycle;
+import org.springframework.stereotype.Component;
 
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
+ * 多端登陆配置
+ *
  * @author Rain
  */
 @Slf4j
-public class JwtAuthenticationFilter extends AbstractAuthenticationFilter {
+@Component
+public class MultiTerminalLoginConfiguration implements SmartLifecycle {
 
-    private ShouldOfflineChecker shouldOfflineChecker;
+    private static boolean IS_RUNNING = false;
 
-    public JwtAuthenticationFilter(AuthenticationManager authenticationManager,
-                                   ShouldOfflineChecker shouldOfflineChecker) {
-        super(authenticationManager);
-        this.shouldOfflineChecker = shouldOfflineChecker;
+    @Autowired(required = false)
+    private MultiTerminalLoginConfigLoader multiTerminalLoginConfigLoader;
+
+    /**
+     * 全局的多端登陆策略
+     * <p>
+     * tenantId 为 null 的就代表全局
+     * </p>
+     */
+    private MultiTerminalLoginConfig globalMultiTerminalLoginConfig;
+
+    /**
+     * 多端登陆策略缓存
+     */
+    private Map<String, MultiTerminalLoginConfig> multiTerminalLoginConfigs = new HashMap<>();
+
+    public MultiTerminalLoginConfig getMultiTerminalLoginConfig(Long tenantId) {
+        return tenantId == null
+                ? globalMultiTerminalLoginConfig
+                : multiTerminalLoginConfigs.get(tenantId.toString());
+    }
+
+    private void init() {
+        if (multiTerminalLoginConfigLoader == null) {
+            log.info("当前服务未添加多端登录配置加载器");
+            multiTerminalLoginConfigs = Collections.emptyMap();
+        }
+        Map<String, MultiTerminalLoginConfig> configMap = new HashMap<>();
+        multiTerminalLoginConfigLoader.load()
+                .forEach(c -> {
+                    if (c.getTenantId() == null) {
+                        globalMultiTerminalLoginConfig = c;
+                    } else {
+                        configMap.put(c.getTenantId().toString(), c);
+                    }
+                });
+        multiTerminalLoginConfigs = configMap;
+    }
+
+    public void reload() {
+        init();
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException, ServletException {
-        String header = request.getHeader(JwtConst.HEADER_NAME);
-
-        if (StrUtil.isEmpty(header)) {
-            chain.doFilter(request, response);
-            return;
-        }
-
-        String token;
-        if (header.startsWith(JwtConst.PREFIX)) {
-            token = header.replace(JwtConst.PREFIX, "");
-        } else if (header.startsWith(JwtConst.PREFIX_URL_ENCODED)) {
-            token = header.replace(JwtConst.PREFIX_URL_ENCODED, "");
-        } else {
-            chain.doFilter(request, response);
-            return;
-        }
-
-        try {
-            JwtAuthenticationToken authResult = (JwtAuthenticationToken) getAuthenticationManager()
-                    .authenticate(new JwtAuthenticationToken(token));
-
-            JwtInfo jwtClaim = authResult.getJwtClaim();
-            DefaultLoginUser defaultLoginUser = new DefaultLoginUser()
-                    .setUserId(jwtClaim.getUid())
-                    .setNickName(jwtClaim.getName())
-                    .setTenantId(jwtClaim.getTenantId())
-                    .setLoginFrom(jwtClaim.getFr())
-                    .setVersion(jwtClaim.getV())
-                    .setTokenFrom(JwtAuthenticationToken.class.getSimpleName());
-
-            // todo 判断账号是否禁用
-
-            // 处理多端登录
-            shouldOfflineChecker.checkShouldOffline(defaultLoginUser);
-
-            // 保存已验证的权限信息
-            saveAuthentication(defaultLoginUser, authResult.getAuthorities());
-
-            // 权限认证成功方法
-            onSuccessfulAuthentication(request, response, authResult);
-        } catch (AuthenticationException failed) {
-            onUnsuccessfulAuthentication(request, response, failed);
-        }
-
-        chain.doFilter(request, response);
+    public void start() {
+        init();
+        IS_RUNNING = true;
     }
 
+    @Override
+    public void stop() {
+        IS_RUNNING = false;
+    }
 
+    @Override
+    public boolean isRunning() {
+        return IS_RUNNING;
+    }
 }

@@ -237,6 +237,15 @@ public class LoginUserTokenWrapper extends AbstractAuthenticationToken implement
     }
 
     @Override
+    public Long getTenantId() {
+        return loginUsers == null ? null : loginUsers.stream()
+                .filter(l -> JwtAuthenticationToken.class.getSimpleName().equals(l.getTokenFrom()))
+                .map(LoginUser::getTenantId)
+                .findFirst()
+                .orElse(null);
+    }
+
+    @Override
     public String getUserId() {
         return loginUsers == null ? null : loginUsers.stream()
             .filter(l -> JwtAuthenticationToken.class.getSimpleName().equals(l.getTokenFrom()))
@@ -277,6 +286,15 @@ public class LoginUserTokenWrapper extends AbstractAuthenticationToken implement
     @Override
     public Integer getVersion() {
         return loginUsers == null ? null : loginUsers.stream().map(LoginUser::getVersion).filter(Objects::nonNull).findFirst().orElse(null);
+    }
+
+    @Override
+    public Long getExpireAt() {
+        return loginUsers == null ? null : loginUsers.stream()
+                .filter(l -> JwtAuthenticationToken.class.getSimpleName().equals(l.getTokenFrom()))
+                .map(LoginUser::getExpireAt)
+                .findFirst()
+                .orElse(null);
     }
 
     @Override

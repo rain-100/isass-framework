@@ -193,9 +193,8 @@ public class SwaggerPermitUrlProvider implements PermitUrlProvider {
             "/swagger-resources/configuration/ui",
             "/v2/api-docs",
             "/v2/api-docs-ext",
-            "/webjars/css/app.3167b4c3.css",
-            "/webjars/js/app.e4826b43.js",
-            "/webjars/js/chunk-vendors.86544bae.js");
+            "/webjars/css/**",
+            "/webjars/js/**");
 
         if (StrUtil.isNotBlank(appName)) {
             List<String> collect = list.stream()

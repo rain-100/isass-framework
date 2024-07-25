@@ -175,6 +175,13 @@ package vip.isass.core.login;
 public interface LoginUser {
 
     /**
+     * 该用户在哪个租户的应用上登陆
+     *
+     * @return 租户 id
+     */
+    Long getTenantId();
+
+    /**
      * @return auth_user 的用户id
      */
     String getUserId();
@@ -201,5 +208,10 @@ public interface LoginUser {
     String getLoginFrom();
 
     Integer getVersion();
+
+    /**
+     * token 过期时间
+     */
+    Long getExpireAt();
 
 }

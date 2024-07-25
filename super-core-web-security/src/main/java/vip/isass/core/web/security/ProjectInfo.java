@@ -164,18 +164,14 @@
  * apply, that proxy's public statement of acceptance of any version is
  * permanent authorization for you to choose that version for the
  * Library.
- *
  */
 
-package vip.isass.core.web.security.authentication.jwt;
+package vip.isass.core.web.security;
 
-/**
- * 多端登录配置加载器
- *
- * @author Rain
- */
-public interface TerminalPropertiesLoader {
+public interface ProjectInfo {
 
-    TerminalOnlineProperties load();
+    Integer CODE = 10025;
+
+    Integer STATUS_CODE_PREFIX = ProjectInfo.CODE * 10000;
 
 }

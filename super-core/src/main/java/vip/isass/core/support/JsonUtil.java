@@ -203,10 +203,12 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Rain
@@ -265,33 +267,50 @@ public class JsonUtil {
 
     @SuppressWarnings("unchecked")
     public static <T> List<T> convertArrayNodeToSimpleObjectList(JsonNode jsonNode, Class<T> clazz) {
+        return convertArrayNodeToSimpleObjectCollection(jsonNode, List.class, clazz);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> Set<T> convertArrayNodeToSimpleObjectSet(JsonNode jsonNode, Class<T> clazz) {
+        return convertArrayNodeToSimpleObjectCollection(jsonNode, Set.class, clazz);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <C extends Collection<T>, T> C convertArrayNodeToSimpleObjectCollection(JsonNode jsonNode, Class<C> collType, Class<T> clazz) {
+        C coll;
+        if (Set.class.isAssignableFrom(collType)) {
+            coll = (C) new HashSet<>();
+        } else if (List.class.isAssignableFrom(collType)) {
+            coll = (C) new ArrayList<>();
+        } else {
+            throw new UnsupportedOperationException("未支持的集合类型：" + collType);
+        }
         if (jsonNode == null || !jsonNode.isArray()) {
-            return Collections.emptyList();
+            return coll;
         }
 
-        List<T> list = new ArrayList<>(jsonNode.size());
         Iterator<JsonNode> elements = jsonNode.elements();
         while (elements.hasNext()) {
             JsonNode next = elements.next();
             if (clazz == String.class) {
-                list.add((T) next.asText());
+                coll.add((T) next.asText());
             } else if (clazz == Integer.class) {
-                list.add((T) Integer.valueOf(next.asInt()));
+                coll.add((T) Integer.valueOf(next.asInt()));
             } else if (clazz == Long.class) {
-                list.add((T) Long.valueOf(next.asLong()));
+                coll.add((T) Long.valueOf(next.asLong()));
             } else if (clazz == Byte.class) {
-                list.add((T) Boolean.valueOf(next.asBoolean()));
+                coll.add((T) Boolean.valueOf(next.asBoolean()));
             } else if (clazz == BigDecimal.class) {
-                list.add((T) new BigDecimal(next.asText()));
+                coll.add((T) new BigDecimal(next.asText()));
             } else if (clazz == Float.class) {
-                list.add((T) Float.valueOf(next.floatValue()));
+                coll.add((T) Float.valueOf(next.floatValue()));
             } else if (clazz == Double.class) {
-                list.add((T) Double.valueOf(next.asDouble()));
+                coll.add((T) Double.valueOf(next.asDouble()));
             } else {
                 throw new UnsupportedOperationException("不支持的类型转换：" + clazz.getName());
             }
         }
-        return list;
+        return coll;
     }
 
     @SneakyThrows
@@ -345,6 +364,9 @@ public class JsonUtil {
     public enum TypeReferences {
 
         STRING_LIST(new TypeReference<List<String>>() {
+        }),
+
+        STRING_SET(new TypeReference<Set<String>>() {
         }),
 
         MAP(new TypeReference<Map<String, Object>>() {

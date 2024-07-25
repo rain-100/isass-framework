@@ -164,75 +164,19 @@
  * apply, that proxy's public statement of acceptance of any version is
  * permanent authorization for you to choose that version for the
  * Library.
- *
  */
 
-package vip.isass.core.web.security.authentication.jwt;
-
-import cn.hutool.core.util.ObjectUtil;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.SmartLifecycle;
-import org.springframework.context.annotation.Configuration;
+package vip.isass.core.web.security.authentication.multilogin;
 
 import java.util.List;
 
 /**
- * 终端配置
+ * 多端登录配置加载器
  *
  * @author Rain
  */
-@Configuration
-public class TerminalOnlineConfiguration implements SmartLifecycle {
+public interface MultiTerminalLoginConfigLoader {
 
-    @Autowired(required = false)
-    private TerminalPropertiesLoader terminalPropertiesLoader;
+    List<MultiTerminalLoginConfig> load();
 
-    private TerminalOnlineProperties terminalOnlineProperties;
-
-    public boolean isDirectOnlineTerminal(String terminal) {
-        return this.terminalOnlineProperties.getDirectOnlineTerminals().contains(terminal.toLowerCase());
-    }
-
-    public boolean canSameTerminalsOnlineAtSameTime(String terminal) {
-        return this.terminalOnlineProperties.getSameTerminalsOnlineAtSameTimeTerminals().contains(terminal.toLowerCase());
-    }
-
-    public boolean isMutexTerminal(String terminal) {
-        return this.terminalOnlineProperties.getMutexTerminals().contains(terminal.toLowerCase());
-    }
-
-    public boolean isEnableAllTerminalSameTimeOnline() {
-        return this.terminalOnlineProperties.getEnableAllTerminalSameTimeOnline();
-    }
-
-    public Boolean isEnableForceOfflineIfTerminalNotConfigured() {
-        return this.terminalOnlineProperties.getEnableForceOfflineIfTerminalNotConfigured();
-    }
-
-    public List<String> getMutexTerminals() {
-        return this.terminalOnlineProperties.getMutexTerminals();
-    }
-
-    public void init() {
-        if (terminalPropertiesLoader == null) {
-            terminalOnlineProperties = new TerminalOnlineProperties();
-        } else {
-            terminalOnlineProperties = ObjectUtil.defaultIfNull(terminalPropertiesLoader.load(), new TerminalOnlineProperties());
-        }
-    }
-
-    @Override
-    public void start() {
-        init();
-    }
-
-    @Override
-    public void stop() {
-
-    }
-
-    @Override
-    public boolean isRunning() {
-        return terminalOnlineProperties != null;
-    }
 }

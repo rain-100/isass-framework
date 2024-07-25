@@ -191,6 +191,8 @@ public class JwtInfo {
 
     public static final String NICK_NAME = "name";
 
+    public static final String TENANT_ID = "tid";
+
     public static final String FROM = "fr";
 
     public static final String VERSION = "v";
@@ -204,6 +206,11 @@ public class JwtInfo {
      * 用户昵称
      */
     private String name;
+
+    /**
+     * 租户 id
+     */
+    private Long tenantId;
 
     /**
      * 登录渠道，从什么产品登录

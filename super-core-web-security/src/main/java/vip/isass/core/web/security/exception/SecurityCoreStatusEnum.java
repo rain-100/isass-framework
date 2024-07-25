@@ -167,91 +167,33 @@
  *
  */
 
-package vip.isass.core.web.security.authentication.jwt;
+package vip.isass.core.web.security.exception;
 
-import cn.hutool.core.collection.CollUtil;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-
-import java.util.List;
+import lombok.Getter;
+import vip.isass.core.exception.code.IStatusMessage;
+import vip.isass.core.web.security.ProjectInfo;
 
 /**
- * 终端配置
- * 如果启用多终端配置，需依赖 redis 记录已登录终端
- *
  * @author Rain
  */
-@Setter
-@Accessors(chain = true)
-public class TerminalOnlineProperties {
-    /**
-     * 多终端登录配置 key
-     */
-    public static final String TERMINAL_ONLINE_PROPERTIES_KEY = "TerminalOnline";
+@Getter
+public enum SecurityCoreStatusEnum implements IStatusMessage {
+    // UN_LOGIN(16, "未登录系统"),
 
-    public static final String ENABLE_ALL_TERMINAL_SAME_TIME_ONLINE = "enableAllTerminalSameTimeOnline";
+    FORCE_OFFLINE(ProjectInfo.STATUS_CODE_PREFIX + 1001, "已在其他设备登陆"),
+    FORBID_ONLINE_TERMINAL(ProjectInfo.STATUS_CODE_PREFIX + 1002, "终端已被禁用"),
+    NOT_IN_ALLOW_TERMINAL_LIST(ProjectInfo.STATUS_CODE_PREFIX + 1003, "不在允许上线终端列表中"),
+    TOKEN_INVALID(ProjectInfo.STATUS_CODE_PREFIX + 1004, "token 无效"),
+    OTHER_TERMINAL_ALREADY_LOGIN(ProjectInfo.STATUS_CODE_PREFIX + 1005, "登录失败，已在其他设备登陆"),
+    ;
 
-    public static final String ENABLE_FORCE_OFFLINE_IF_TERMINAL_NOT_CONFIGURED = "enableForceOfflineIfTerminalNotConfigured";
+    private final Integer status;
 
-    public static final String DIRECT_ONLINE_TERMINALS = "directOnlineTerminals";
+    private final String msg;
 
-    public static final String MUTEX_TERMINAL = "mutexTerminals";
-
-    public static final String SAME_TERMINALS_ONLINE_AT_SAME_TIME_TERMINALS = "sameTerminalsOnlineAtSameTimeTerminals";
-
-    /**
-     * 是否允许所有终端同时在线,是则放弃所有判断，直接在线
-     */
-    private Boolean enableAllTerminalSameTimeOnline;
-
-    /**
-     * 是否允许没配置的终端，强制下线
-     */
-    private Boolean enableForceOfflineIfTerminalNotConfigured;
-
-    /**
-     * 直接上线终端，不需要管其他终端有没有在线的终端，如果需要同端多登，还需要配置 sameEndsOnline
-     */
-    private List<String> directOnlineTerminals;
-
-    /**
-     * 互斥终端，只能其中一个在线
-     */
-    private List<String> mutexTerminals;
-
-    /**
-     * 同端多登，可以多台同一终端类型同时在线的终端
-     */
-    private List<String> sameTerminalsOnlineAtSameTimeTerminals;
-
-    public Boolean getEnableAllTerminalSameTimeOnline() {
-        return enableAllTerminalSameTimeOnline == null
-            ? true
-            : enableAllTerminalSameTimeOnline;
-    }
-
-    public Boolean getEnableForceOfflineIfTerminalNotConfigured() {
-        return enableForceOfflineIfTerminalNotConfigured == null
-            ? false
-            : enableForceOfflineIfTerminalNotConfigured;
-    }
-
-    public List<String> getDirectOnlineTerminals() {
-        return directOnlineTerminals == null
-            ? CollUtil.newArrayList("ipad", "web-pc", "web-h5", "web-apidoc", "windows", "mac")
-            : directOnlineTerminals;
-    }
-
-    public List<String> getMutexTerminals() {
-        return mutexTerminals == null
-            ? CollUtil.newArrayList("ios", "android")
-            : mutexTerminals;
-    }
-
-    public List<String> getSameTerminalsOnlineAtSameTimeTerminals() {
-        return sameTerminalsOnlineAtSameTimeTerminals == null
-            ? CollUtil.newArrayList("web-pc", "web-h5", "web-apidoc")
-            : sameTerminalsOnlineAtSameTimeTerminals;
+    SecurityCoreStatusEnum(Integer status, String msg) {
+        this.status = status;
+        this.msg = msg;
     }
 
 }

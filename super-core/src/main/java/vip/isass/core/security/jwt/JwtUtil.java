@@ -207,7 +207,9 @@ public class JwtUtil {
                 .build();
         return Jwts.builder()
                 .setClaims(map)
-                .setExpiration(new Date(SystemClock.now() + TOKEN_EFFECTIVE_MILLS))
+                .setExpiration(new Date(loginUser.getExpireAt() == null
+                        ? SystemClock.now() + TOKEN_EFFECTIVE_MILLS
+                        : loginUser.getExpireAt()))
                 .signWith(SignatureAlgorithm.HS256, secret)
                 .compact();
     }
