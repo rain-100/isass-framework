@@ -176,7 +176,6 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -217,7 +216,7 @@ public class MultiTerminalLoginConfig {
     /**
      * 互斥终端列表，只能在其中一个端上线
      */
-    private List<String> mutexTerminals;
+    private Set<String> mutexTerminals;
 
     /**
      * 禁止同一终端多登的终端列表(同端多登)
