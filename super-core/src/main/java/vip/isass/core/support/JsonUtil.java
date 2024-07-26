@@ -360,8 +360,7 @@ public class JsonUtil {
         return NOT_NULL_INSTANCE.writeValueAsString(object);
     }
 
-    @SuppressWarnings("unchecked")
-    public static <T> Set<T> arrayNodeToSet(JsonNode jsonNode) {
+    public static <T> Set<T> arrayNodeToSet(JsonNode jsonNode, Class<T> itemType) {
         if (jsonNode == null) {
             return null;
         }
@@ -369,11 +368,12 @@ public class JsonUtil {
         ArrayNode arrayNode = (ArrayNode) jsonNode;
         Set<T> set = new HashSet<>();
         for (JsonNode next : arrayNode) {
-            set.add((T) next);
+            set.add((T) convertValue(next, itemType));
         }
         return set;
     }
 
+    @SuppressWarnings("unchecked")
     public static <T> ArrayNode distinctMerge(Supplier<JsonNode> sourceJsonNodeGetter, Collection<T> tobeMergeItems) {
         if (CollUtil.isEmpty(tobeMergeItems)) {
             return sourceJsonNodeGetter.get() == null ? null : (ArrayNode) sourceJsonNodeGetter.get();
@@ -382,7 +382,7 @@ public class JsonUtil {
         JsonNode jsonNode = sourceJsonNodeGetter.get();
         Set<T> itemSet = jsonNode == null
                 ? new HashSet<>()
-                : JsonUtil.arrayNodeToSet(jsonNode);
+                : JsonUtil.arrayNodeToSet(jsonNode, (Class<T>) tobeMergeItems.iterator().next().getClass());
 
         itemSet.addAll(tobeMergeItems);
         return JsonUtil.convertValue(itemSet, ArrayNode.class);
