@@ -170,9 +170,7 @@ package vip.isass.core.web.security.authentication.multilogin;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import vip.isass.core.exception.UnifiedException;
 import vip.isass.core.login.LoginUser;
-import vip.isass.core.web.security.exception.SecurityCoreStatusEnum;
 
 import javax.annotation.Resource;
 import java.util.Collections;
@@ -205,20 +203,20 @@ public class ShouldOfflineChecker {
         if (multiTerminalLoginConfig == null) {
             return;
         }
-
+        // todo checkShouldOffline
         // 找出互斥终端中最高版本的终端
-        String maxTerminal = null;
-        Integer maxVersion = null;
-
-        if (maxTerminal == null) {
-            // 没有终端记录，即此 token 是启用多端验证前生成的，则强制下线
-            throw new UnifiedException(SecurityCoreStatusEnum.TOKEN_INVALID);
-        }
-
-        // 如果最大版本的终端，不是此次 token 的终端，则强制下线
-        if (!maxTerminal.equals(loginUser.getLoginFrom())) {
-            throw new UnifiedException(SecurityCoreStatusEnum.FORCE_OFFLINE);
-        }
+        // String maxTerminal = null;
+        // Integer maxVersion = null;
+        //
+        // if (maxTerminal == null) {
+        //     // 没有终端记录，即此 token 是启用多端验证前生成的，则强制下线
+        //     throw new UnifiedException(SecurityCoreStatusEnum.TOKEN_INVALID);
+        // }
+        //
+        // // 如果最大版本的终端，不是此次 token 的终端，则强制下线
+        // if (!maxTerminal.equals(loginUser.getLoginFrom())) {
+        //     throw new UnifiedException(SecurityCoreStatusEnum.FORCE_OFFLINE);
+        // }
     }
 
 }

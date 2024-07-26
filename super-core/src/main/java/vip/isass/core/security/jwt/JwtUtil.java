@@ -202,6 +202,7 @@ public class JwtUtil {
         Map<String, Object> map = MapUtil.<String, Object>builder()
                 .put(JwtInfo.USER_ID, loginUser.getUserId())
                 .put(JwtInfo.NICK_NAME, loginUser.getNickName())
+                .put(JwtInfo.TENANT_ID, loginUser.getTenantId())
                 .put(JwtInfo.FROM, loginUser.getLoginFrom())
                 .put(JwtInfo.VERSION, loginUser.getVersion())
                 .build();
