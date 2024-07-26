@@ -194,10 +194,10 @@ import java.util.Map;
  * @author rain
  */
 @Slf4j
-@Api(tags = "socketio服务")
+@Api(tags = "网络会话服务")
 @RestController
 @RequestMapping("/${spring.application.name}/session")
-public class SocketioSessionController {
+public class NetSessionController {
 
     @Resource
     private ISessionService sessionService;

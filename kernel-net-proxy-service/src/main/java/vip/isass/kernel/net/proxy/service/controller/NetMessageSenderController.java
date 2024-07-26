@@ -194,7 +194,7 @@ import javax.annotation.Resource;
 @Api(tags = "网络通信消息发送")
 @RestController
 @RequestMapping("/${spring.application.name}/sender")
-public class SocketioSenderController {
+public class NetMessageSenderController {
 
     @Resource
     private ISessionService sessionService;
