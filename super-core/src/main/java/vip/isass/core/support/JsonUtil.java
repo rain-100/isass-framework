@@ -169,6 +169,8 @@
 
 package vip.isass.core.support;
 
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.lang.Assert;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
@@ -181,6 +183,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.deser.std.StdDelegatingDeserializer;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.ser.std.NumberSerializer;
 import com.fasterxml.jackson.databind.ser.std.StdDelegatingSerializer;
 import lombok.Getter;
@@ -209,6 +212,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 
 /**
  * @author Rain
@@ -354,6 +358,34 @@ public class JsonUtil {
     @SneakyThrows
     public static String writeValueWithNotNullInstance(Object object) {
         return NOT_NULL_INSTANCE.writeValueAsString(object);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> Set<T> arrayNodeToSet(JsonNode jsonNode) {
+        if (jsonNode == null) {
+            return null;
+        }
+        Assert.isTrue(jsonNode.isArray(), "jsonNode must be ArrayNode");
+        ArrayNode arrayNode = (ArrayNode) jsonNode;
+        Set<T> set = new HashSet<>();
+        for (JsonNode next : arrayNode) {
+            set.add((T) next);
+        }
+        return set;
+    }
+
+    public static <T> ArrayNode distinctMerge(Supplier<JsonNode> sourceJsonNodeGetter, Collection<T> tobeMergeItems) {
+        if (CollUtil.isEmpty(tobeMergeItems)) {
+            return sourceJsonNodeGetter.get() == null ? null : (ArrayNode) sourceJsonNodeGetter.get();
+        }
+
+        JsonNode jsonNode = sourceJsonNodeGetter.get();
+        Set<T> itemSet = jsonNode == null
+                ? new HashSet<>()
+                : JsonUtil.arrayNodeToSet(jsonNode);
+
+        itemSet.addAll(tobeMergeItems);
+        return JsonUtil.convertValue(itemSet, ArrayNode.class);
     }
 
     public static Json fromObject(Object object) {

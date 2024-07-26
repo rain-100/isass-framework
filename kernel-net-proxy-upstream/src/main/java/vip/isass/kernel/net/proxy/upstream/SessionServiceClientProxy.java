@@ -182,12 +182,13 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.MediaType;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import vip.isass.core.support.JsonUtil;
+import vip.isass.core.support.SpringContextUtil;
 import vip.isass.core.support.okhttp.OkHttpUtil;
 import vip.isass.core.web.Resp;
 import vip.isass.kernel.net.core.NetRedisKey;
@@ -204,7 +205,6 @@ import javax.annotation.Resource;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -241,6 +241,9 @@ public class SessionServiceClientProxy implements ISessionService {
                 .build();
     }
 
+    @Value("${kernel.net.defaultProtocol:}")
+    private String defaultProtocol;
+
     private NetProtocol defaultNetProtocol;
 
     @Resource
@@ -248,9 +251,14 @@ public class SessionServiceClientProxy implements ISessionService {
 
     private Map<NetProtocol, INodeAllocatorService> nodeAllocatorServiceMap;
 
-    @Autowired
-    private void setNodeAllocatorServiceMap(@Value("${kernel.net.defaultProtocol:}") String defaultProtocol,
-                                            List<INodeAllocatorService> nodeAllocatorServices) {
+    @Scheduled(fixedDelay = 10 * 1000)
+    private void reloadNodeAllocatorService() {
+        Collection<INodeAllocatorService> nodeAllocatorServices = SpringContextUtil.getBeans(INodeAllocatorService.class);
+        if (CollUtil.isEmpty(nodeAllocatorServices)) {
+            this.nodeAllocatorServiceMap = Collections.emptyMap();
+            return;
+        }
+
         this.nodeAllocatorServiceMap = nodeAllocatorServices.stream()
                 .collect(Collectors.toMap(INodeAllocatorService::getNetProtocol, Function.identity()));
 
