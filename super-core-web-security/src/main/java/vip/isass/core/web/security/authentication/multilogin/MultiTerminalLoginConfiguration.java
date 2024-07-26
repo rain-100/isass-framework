@@ -171,6 +171,7 @@ package vip.isass.core.web.security.authentication.multilogin;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.SmartLifecycle;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
@@ -211,10 +212,6 @@ public class MultiTerminalLoginConfiguration implements SmartLifecycle {
     }
 
     private void init() {
-        if (multiTerminalLoginConfigLoader == null) {
-            log.info("当前服务未添加多端登录配置加载器");
-            multiTerminalLoginConfigs = Collections.emptyMap();
-        }
         Map<String, MultiTerminalLoginConfig> configMap = new HashMap<>();
         multiTerminalLoginConfigLoader.load()
                 .forEach(c -> {
@@ -227,14 +224,23 @@ public class MultiTerminalLoginConfiguration implements SmartLifecycle {
         multiTerminalLoginConfigs = configMap;
     }
 
+    /**
+     * 每2分钟向刷新一次
+     */
+    @Scheduled(initialDelay = 2 * 60 * 1000, fixedDelay = 2 * 60 * 1000)
     public void reload() {
         init();
     }
 
     @Override
     public void start() {
-        init();
         IS_RUNNING = true;
+        if (multiTerminalLoginConfigLoader == null) {
+            log.info("当前服务未添加多端登录配置加载器");
+            multiTerminalLoginConfigs = Collections.emptyMap();
+            return;
+        }
+        init();
     }
 
     @Override
