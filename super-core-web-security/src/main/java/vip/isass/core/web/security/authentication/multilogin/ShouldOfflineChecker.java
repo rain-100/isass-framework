@@ -186,7 +186,7 @@ import java.util.Map;
 public class ShouldOfflineChecker {
 
     @Resource
-    private MultiTerminalLoginConfiguration multiTerminalLoginConfiguration;
+    private TerminalLoginConfiguration terminalLoginConfiguration;
 
     /**
      * 根据终端列表获取 version
@@ -199,8 +199,8 @@ public class ShouldOfflineChecker {
      * 检查 token 是否需要被下线
      */
     public void checkShouldOffline(LoginUser loginUser) {
-        MultiTerminalLoginConfig multiTerminalLoginConfig = multiTerminalLoginConfiguration.getMultiTerminalLoginConfig(loginUser.getTenantId());
-        if (multiTerminalLoginConfig == null) {
+        TerminalLoginConfig terminalLoginConfig = terminalLoginConfiguration.getTerminalLoginConfig(loginUser.getTenantId());
+        if (terminalLoginConfig == null) {
             return;
         }
         // todo checkShouldOffline

@@ -168,88 +168,15 @@
 
 package vip.isass.core.web.security.authentication.multilogin;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.SmartLifecycle;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
 /**
- * 多端登陆配置
+ * 多端登录配置加载器
  *
  * @author Rain
  */
-@Slf4j
-@Component
-public class MultiTerminalLoginConfiguration implements SmartLifecycle {
+public interface TerminalLoginConfigLoader {
 
-    private static boolean IS_RUNNING = false;
+    List<TerminalLoginConfig> load();
 
-    @Autowired(required = false)
-    private MultiTerminalLoginConfigLoader multiTerminalLoginConfigLoader;
-
-    /**
-     * 全局的多端登陆策略
-     * <p>
-     * tenantId 为 null 的就代表全局
-     * </p>
-     */
-    private MultiTerminalLoginConfig globalMultiTerminalLoginConfig;
-
-    /**
-     * 多端登陆策略缓存
-     */
-    private Map<String, MultiTerminalLoginConfig> multiTerminalLoginConfigs = new HashMap<>();
-
-    public MultiTerminalLoginConfig getMultiTerminalLoginConfig(Long tenantId) {
-        return tenantId == null
-                ? globalMultiTerminalLoginConfig
-                : multiTerminalLoginConfigs.get(tenantId.toString());
-    }
-
-    private void init() {
-        Map<String, MultiTerminalLoginConfig> configMap = new HashMap<>();
-        multiTerminalLoginConfigLoader.load()
-                .forEach(c -> {
-                    if (c.getTenantId() == null) {
-                        globalMultiTerminalLoginConfig = c;
-                    } else {
-                        configMap.put(c.getTenantId().toString(), c);
-                    }
-                });
-        multiTerminalLoginConfigs = configMap;
-    }
-
-    /**
-     * 每2分钟向刷新一次
-     */
-    @Scheduled(initialDelay = 2 * 60 * 1000, fixedDelay = 2 * 60 * 1000)
-    public void reload() {
-        init();
-    }
-
-    @Override
-    public void start() {
-        IS_RUNNING = true;
-        if (multiTerminalLoginConfigLoader == null) {
-            log.info("当前服务未添加多端登录配置加载器");
-            multiTerminalLoginConfigs = Collections.emptyMap();
-            return;
-        }
-        init();
-    }
-
-    @Override
-    public void stop() {
-        IS_RUNNING = false;
-    }
-
-    @Override
-    public boolean isRunning() {
-        return IS_RUNNING;
-    }
 }

@@ -164,19 +164,78 @@
  * apply, that proxy's public statement of acceptance of any version is
  * permanent authorization for you to choose that version for the
  * Library.
+ *
  */
 
 package vip.isass.core.web.security.authentication.multilogin;
 
-import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.experimental.SuperBuilder;
+
+import java.util.Set;
 
 /**
- * 多端登录配置加载器
+ * <p>
+ * 多端登陆配置
+ * </p>
  *
- * @author Rain
+ * @author isass
  */
-public interface MultiTerminalLoginConfigLoader {
+@Getter
+@Setter
+@ToString
+@SuperBuilder
+@NoArgsConstructor
+@AllArgsConstructor
+public class TerminalLoginConfig {
 
-    List<MultiTerminalLoginConfig> load();
+    /**
+     * 主键
+     */
+    private Long id;
+
+    /**
+     * 策略名称
+     */
+    private String name;
+
+    /**
+     * 黑名单[禁止登录的终端列表。比白名单优先]
+     */
+    private Set<String> blockList;
+
+    /**
+     * 白名单[允许登录的终端列表。不填则不限制]
+     */
+    private Set<String> allowList;
+
+    /**
+     * 互斥终端[列表中只能同时有一种端在线]
+     */
+    private Set<String> mutexTerminals;
+
+    /**
+     * 同端多登黑名单[禁止同种终端同时在线]
+     */
+    private Set<String> sameTerminalOnlineBlockList;
+
+    /**
+     * 优先在线终端[如果匹配到互斥终端或同端黑名单，则根据此配置判断新端不能登录或旧端需要下线]
+     */
+    private Set<String> preferOnlineTerminals;
+
+    /**
+     * 应用组
+     */
+    private String appGroup;
+
+    /**
+     * 租户ID
+     */
+    private Long tenantId;
 
 }

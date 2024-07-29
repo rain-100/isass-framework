@@ -164,73 +164,92 @@
  * apply, that proxy's public statement of acceptance of any version is
  * permanent authorization for you to choose that version for the
  * Library.
- *
  */
 
 package vip.isass.core.web.security.authentication.multilogin;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
-import lombok.experimental.SuperBuilder;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.SmartLifecycle;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 
-import java.util.Set;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * <p>
  * 多端登陆配置
- * </p>
  *
- * @author isass
+ * @author Rain
  */
-@Getter
-@Setter
-@ToString
-@SuperBuilder
-@NoArgsConstructor
-@AllArgsConstructor
-public class MultiTerminalLoginConfig {
+@Slf4j
+@Component
+public class TerminalLoginConfiguration implements SmartLifecycle {
+
+    private static boolean IS_RUNNING = false;
+
+    @Autowired(required = false)
+    private TerminalLoginConfigLoader terminalLoginConfigLoader;
 
     /**
-     * 主键
+     * 全局的多端登陆策略
+     * <p>
+     * tenantId 为 null 的就代表全局
+     * </p>
      */
-    private Long id;
+    private TerminalLoginConfig globalTerminalLoginConfig;
 
     /**
-     * 策略名称
+     * 多端登陆策略缓存
      */
-    private String name;
+    private Map<String, TerminalLoginConfig> terminalLoginConfigs = new HashMap<>();
+
+    public TerminalLoginConfig getTerminalLoginConfig(Long tenantId) {
+        return tenantId == null
+                ? globalTerminalLoginConfig
+                : terminalLoginConfigs.get(tenantId.toString());
+    }
+
+    private void init() {
+        Map<String, TerminalLoginConfig> configMap = new HashMap<>();
+        terminalLoginConfigLoader.load()
+                .forEach(c -> {
+                    if (c.getTenantId() == null) {
+                        globalTerminalLoginConfig = c;
+                    } else {
+                        configMap.put(c.getTenantId().toString(), c);
+                    }
+                });
+        terminalLoginConfigs = configMap;
+    }
 
     /**
-     * 禁止在线的终端。此列表的终端不允许登陆。比“允许在线的终端”优先
+     * 每2分钟向刷新一次
      */
-    private Set<String> forbidOnlineTerminals;
+    @Scheduled(initialDelay = 2 * 60 * 1000, fixedDelay = 2 * 60 * 1000)
+    public void reload() {
+        init();
+    }
 
-    /**
-     * 允许在线的终端。不在此列表的终端不允许登陆。不填则不限制
-     */
-    private Set<String> allowOnlineTerminals;
+    @Override
+    public void start() {
+        IS_RUNNING = true;
+        if (terminalLoginConfigLoader == null) {
+            log.info("当前服务未添加多端登录配置加载器");
+            terminalLoginConfigs = Collections.emptyMap();
+            return;
+        }
+        init();
+    }
 
-    /**
-     * 互斥终端列表，只能在其中一个端上线
-     */
-    private Set<String> mutexTerminals;
+    @Override
+    public void stop() {
+        IS_RUNNING = false;
+    }
 
-    /**
-     * 禁止同一终端多登的终端列表(同端多登)
-     */
-    private Set<String> forbidSameTerminalMultiOnlineTerminals;
-
-    /**
-     * 最新登录的终端会优先上线的终端列表。如果用户登陆时，符合了禁止多端登录的条件，则列表中的终端会登陆成功，其他端会被踢下线，否则本次登录会失败
-     */
-    private Set<String> latestOnlineTerminals;
-
-    /**
-     * 租户ID
-     */
-    private Long tenantId;
-
+    @Override
+    public boolean isRunning() {
+        return IS_RUNNING;
+    }
 }
