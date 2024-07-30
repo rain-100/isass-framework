@@ -164,42 +164,27 @@
  * apply, that proxy's public statement of acceptance of any version is
  * permanent authorization for you to choose that version for the
  * Library.
- *
  */
 
-package vip.isass.core.login;
+package vip.isass.core.web.security.authentication.multilogin;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.experimental.Accessors;
+import lombok.ToString;
+import lombok.experimental.SuperBuilder;
 
-/**
- * @author Rain
- */
+import java.util.Set;
+
 @Getter
 @Setter
-@Accessors(chain = true)
-public class DefaultLoginUser implements LoginUser {
+@ToString
+@SuperBuilder
+@NoArgsConstructor
+@AllArgsConstructor
+public class TerminalGroup {
 
-    private Long tenantId;
-
-    private String userId;
-
-    private String nickName;
-
-    private String loginFrom;
-
-    private Integer version;
-
-    private String tokenFrom;
-
-    private Long expireAt;
-
-    private TerminalType terminalType;
-
-    @Override
-    public String getAllUserId() {
-        return this.userId;
-    }
+    private Set<Terminal> terminals;
 
 }

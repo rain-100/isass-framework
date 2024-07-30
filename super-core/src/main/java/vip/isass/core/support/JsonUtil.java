@@ -311,7 +311,7 @@ public class JsonUtil {
             } else if (clazz == Double.class) {
                 coll.add((T) Double.valueOf(next.asDouble()));
             } else {
-                throw new UnsupportedOperationException("不支持的类型转换：" + clazz.getName());
+                coll.add((T) DEFAULT_INSTANCE.convertValue(next, clazz));
             }
         }
         return coll;
@@ -332,6 +332,11 @@ public class JsonUtil {
     @SneakyThrows
     public static <T> T convertValue(Object fromValue, Class<T> clazz) {
         return DEFAULT_INSTANCE.convertValue(fromValue, clazz);
+    }
+
+    @SneakyThrows
+    public static <T> T convertValue(Object fromValue, TypeReference<T> typeReference) {
+        return DEFAULT_INSTANCE.convertValue(fromValue, typeReference);
     }
 
     @SneakyThrows

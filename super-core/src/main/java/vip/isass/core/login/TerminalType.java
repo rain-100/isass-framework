@@ -164,42 +164,52 @@
  * apply, that proxy's public statement of acceptance of any version is
  * permanent authorization for you to choose that version for the
  * Library.
- *
  */
 
 package vip.isass.core.login;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.experimental.Accessors;
+import lombok.ToString;
+import lombok.experimental.SuperBuilder;
 
 /**
- * @author Rain
+ * 终端运行时参数
  */
 @Getter
 @Setter
-@Accessors(chain = true)
-public class DefaultLoginUser implements LoginUser {
+@ToString
+@SuperBuilder
+@NoArgsConstructor
+@AllArgsConstructor
+public class TerminalType {
 
-    private Long tenantId;
+    /**
+     * 设备类型
+     */
+    private String deviceType;
 
-    private String userId;
+    /**
+     * 操作系统
+     */
+    private String os;
 
-    private String nickName;
+    /**
+     * 设备品牌
+     */
+    private String brand;
 
-    private String loginFrom;
+    /**
+     * 浏览器类型
+     * 如果是混合架构开发，则应视为 app，不用填写浏览器类型
+     */
+    private String browserType;
 
-    private Integer version;
-
-    private String tokenFrom;
-
-    private Long expireAt;
-
-    private TerminalType terminalType;
-
-    @Override
-    public String getAllUserId() {
-        return this.userId;
-    }
+    /**
+     * 网络类型
+     */
+    private String netType;
 
 }

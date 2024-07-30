@@ -214,4 +214,8 @@ public interface LoginUser {
      */
     Long getExpireAt();
 
+    /**
+     * 终端运行时
+     */
+    TerminalType getTerminalType();
 }

@@ -216,7 +216,7 @@ public class TerminalLoginConfig {
     /**
      * 互斥终端[列表中只能同时有一种端在线]
      */
-    private Set<String> mutexTerminals;
+    private Set<TerminalGroup> mutexTerminals;
 
     /**
      * 同端多登黑名单[禁止同种终端同时在线]

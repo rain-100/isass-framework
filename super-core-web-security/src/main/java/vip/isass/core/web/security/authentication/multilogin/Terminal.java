@@ -164,42 +164,58 @@
  * apply, that proxy's public statement of acceptance of any version is
  * permanent authorization for you to choose that version for the
  * Library.
- *
  */
 
-package vip.isass.core.login;
+package vip.isass.core.web.security.authentication.multilogin;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.experimental.Accessors;
+import lombok.ToString;
+import lombok.experimental.SuperBuilder;
+
+import java.util.Objects;
 
 /**
- * @author Rain
+ * 终端运行时参数
  */
 @Getter
 @Setter
-@Accessors(chain = true)
-public class DefaultLoginUser implements LoginUser {
+@ToString
+@SuperBuilder
+@NoArgsConstructor
+@AllArgsConstructor
+public class Terminal {
 
-    private Long tenantId;
+    /**
+     * 设备类型
+     */
+    private String deviceType;
 
-    private String userId;
+    /**
+     * 操作系统
+     */
+    private String os;
 
-    private String nickName;
-
-    private String loginFrom;
-
-    private Integer version;
-
-    private String tokenFrom;
-
-    private Long expireAt;
-
-    private TerminalType terminalType;
+    /**
+     * 优先终端
+     * 如果匹配到互斥终端，则根据此配置判断新端不能登录或旧端需要下线
+     * <br>
+     * 同一互斥组只只能有一个是优先终端。如果都是 false，则互踢
+     */
+    private Boolean prefer;
 
     @Override
-    public String getAllUserId() {
-        return this.userId;
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Terminal terminal = (Terminal) o;
+        return Objects.equals(deviceType, terminal.deviceType) && Objects.equals(os, terminal.os);
     }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(deviceType, os);
+    }
 }

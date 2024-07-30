@@ -174,6 +174,7 @@ import lombok.Getter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import vip.isass.core.login.LoginUser;
+import vip.isass.core.login.TerminalType;
 import vip.isass.core.web.security.authentication.jwt.JwtAuthenticationToken;
 
 import java.util.Collection;
@@ -224,7 +225,7 @@ public class LoginUserTokenWrapper extends AbstractAuthenticationToken implement
     public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {
         if (isAuthenticated) {
             throw new IllegalArgumentException(
-                "Cannot set this token to trusted - use constructor which takes a GrantedAuthority list instead");
+                    "Cannot set this token to trusted - use constructor which takes a GrantedAuthority list instead");
         }
 
         super.setAuthenticated(false);
@@ -248,10 +249,10 @@ public class LoginUserTokenWrapper extends AbstractAuthenticationToken implement
     @Override
     public String getUserId() {
         return loginUsers == null ? null : loginUsers.stream()
-            .filter(l -> JwtAuthenticationToken.class.getSimpleName().equals(l.getTokenFrom()))
-            .map(LoginUser::getUserId)
-            .findFirst()
-            .orElse(null);
+                .filter(l -> JwtAuthenticationToken.class.getSimpleName().equals(l.getTokenFrom()))
+                .map(LoginUser::getUserId)
+                .findFirst()
+                .orElse(null);
     }
 
     @Override
@@ -262,10 +263,10 @@ public class LoginUserTokenWrapper extends AbstractAuthenticationToken implement
     @Override
     public String getNickName() {
         return loginUsers == null ? null : loginUsers.stream()
-            .filter(l -> JwtAuthenticationToken.class.getSimpleName().equals(l.getTokenFrom()))
-            .map(LoginUser::getNickName)
-            .findFirst()
-            .orElse(null);
+                .filter(l -> JwtAuthenticationToken.class.getSimpleName().equals(l.getTokenFrom()))
+                .map(LoginUser::getNickName)
+                .findFirst()
+                .orElse(null);
     }
 
     @Override
@@ -298,16 +299,25 @@ public class LoginUserTokenWrapper extends AbstractAuthenticationToken implement
     }
 
     @Override
+    public TerminalType getTerminalType() {
+        return loginUsers == null ? null : loginUsers.stream()
+                .filter(l -> JwtAuthenticationToken.class.getSimpleName().equals(l.getTokenFrom()))
+                .map(LoginUser::getTerminalType)
+                .findFirst()
+                .orElse(null);
+    }
+
+    @Override
     public String toString() {
         return new StringBuilder("{")
-            .append("\"userId\":\"")
-            .append(getAllUserId()).append('\"')
-            .append(",\"nickName\":\"")
-            .append(getAllNickName()).append('\"')
-            .append(",\"loginFrom\":\"")
-            .append(getLoginFrom()).append('\"')
-            .append('}')
-            .toString();
+                .append("\"userId\":\"")
+                .append(getAllUserId()).append('\"')
+                .append(",\"nickName\":\"")
+                .append(getAllNickName()).append('\"')
+                .append(",\"loginFrom\":\"")
+                .append(getLoginFrom()).append('\"')
+                .append('}')
+                .toString();
     }
 
 }
