@@ -175,6 +175,7 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
+import java.util.Objects;
 import java.util.Set;
 
 @Getter
@@ -187,4 +188,16 @@ public class TerminalGroup {
 
     private Set<Terminal> terminals;
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        TerminalGroup that = (TerminalGroup) o;
+        return Objects.equals(terminals, that.terminals);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(terminals);
+    }
 }

@@ -212,6 +212,10 @@ public class TerminalLoginConfiguration implements SmartLifecycle {
     }
 
     private void init() {
+        if (terminalLoginConfigLoader == null) {
+            return;
+        }
+
         Map<String, TerminalLoginConfig> configMap = new HashMap<>();
         terminalLoginConfigLoader.load()
                 .forEach(c -> {
