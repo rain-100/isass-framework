@@ -229,9 +229,9 @@ public class TerminalLoginConfig {
     private Set<String> preferOnlineTerminals;
 
     /**
-     * 应用组
+     * 应用组ID
      */
-    private String appGroup;
+    private Long appGroupId;
 
     /**
      * 租户ID
