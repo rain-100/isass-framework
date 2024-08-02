@@ -186,7 +186,7 @@ import java.util.Set;
 @AllArgsConstructor
 public class TerminalGroup {
 
-    private Set<Terminal> terminals;
+    private Set<PriorityTerminal> terminals;
 
     @Override
     public boolean equals(Object o) {
