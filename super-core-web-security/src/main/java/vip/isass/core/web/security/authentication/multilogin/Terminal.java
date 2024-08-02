@@ -198,14 +198,6 @@ public class Terminal {
      */
     private String os;
 
-    /**
-     * 优先终端
-     * 如果匹配到互斥终端，则根据此配置判断新端不能登录或旧端需要下线
-     * <br>
-     * 同一互斥组只只能有一个是优先终端。如果都是 false，则互踢
-     */
-    private Boolean prefer;
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

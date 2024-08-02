@@ -181,6 +181,8 @@ public interface LoginUser {
      */
     Long getTenantId();
 
+    Long getAppId();
+
     /**
      * @return auth_user 的用户id
      */
@@ -200,13 +202,6 @@ public interface LoginUser {
      */
     String getNickName();
 
-    /**
-     * 登录产品，从什么产品登录
-     *
-     * @return login from
-     */
-    String getLoginFrom();
-
     Integer getVersion();
 
     /**
@@ -218,4 +213,9 @@ public interface LoginUser {
      * 终端运行时
      */
     TerminalType getTerminalType();
+
+    /**
+     * 登录日志id
+     */
+    Long getLoginLogId();
 }

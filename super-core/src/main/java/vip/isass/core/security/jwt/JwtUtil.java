@@ -203,7 +203,9 @@ public class JwtUtil {
                 .put(JwtInfo.USER_ID, loginUser.getUserId())
                 .put(JwtInfo.NICK_NAME, loginUser.getNickName())
                 .put(JwtInfo.TENANT_ID, loginUser.getTenantId())
-                .put(JwtInfo.FROM, loginUser.getLoginFrom())
+                .put(JwtInfo.APP_ID, loginUser.getAppId())
+                .put(JwtInfo.TERMINAL_TYPE, loginUser.getTerminalType())
+                .put(JwtInfo.LOGIN_LOG_ID, loginUser.getLoginLogId())
                 .put(JwtInfo.VERSION, loginUser.getVersion())
                 .build();
         return Jwts.builder()

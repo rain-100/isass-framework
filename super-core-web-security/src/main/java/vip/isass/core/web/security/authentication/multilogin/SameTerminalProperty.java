@@ -164,7 +164,6 @@
  * apply, that proxy's public statement of acceptance of any version is
  * permanent authorization for you to choose that version for the
  * Library.
- *
  */
 
 package vip.isass.core.web.security.authentication.multilogin;
@@ -176,66 +175,21 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
-import java.util.Set;
-
-/**
- * <p>
- * 多端登陆配置
- * </p>
- *
- * @author isass
- */
 @Getter
 @Setter
 @ToString
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TerminalLoginConfig {
+public class SameTerminalProperty {
+
+    private Terminal terminal;
+
+    private Integer maxOnlineCount;
 
     /**
-     * 主键
+     * 如果同端登录已达到上限值，是否新登录的更加优先。(即新登录可以成功，需要踢一个旧端下线)
      */
-    private Long id;
-
-    /**
-     * 策略名称
-     */
-    private String name;
-
-    /**
-     * 在线上限数[超过上限则不能登录。最大127]
-     */
-    private Integer onlineLimit;
-
-    /**
-     * 黑名单[禁止登录的终端列表。比白名单优先]
-     */
-    private Set<Terminal> blockList;
-
-    /**
-     * 白名单[允许登录的终端列表。不填则不限制]
-     */
-    private Set<Terminal> allowList;
-
-    /**
-     * 互斥终端[列表中只能同时有一种端在线]
-     */
-    private Set<TerminalGroup> mutexTerminals;
-
-    /**
-     * 同端多登[同种终端同时在线上限]
-     */
-    private Set<SameTerminalProperty> sameTerminals;
-
-    /**
-     * 应用组ID
-     */
-    private Long appGroupId;
-
-    /**
-     * 租户ID
-     */
-    private Long tenantId;
+    private Boolean preferNewLogin;
 
 }

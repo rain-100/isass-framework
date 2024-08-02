@@ -225,9 +225,10 @@ public class JwtAuthenticationFilter extends AbstractAuthenticationFilter {
             DefaultLoginUser defaultLoginUser = new DefaultLoginUser()
                     .setUserId(jwtClaim.getUid())
                     .setNickName(jwtClaim.getName())
-                    .setTenantId(jwtClaim.getTenantId())
-                    .setLoginFrom(jwtClaim.getFr())
+                    .setTenantId(jwtClaim.getTid())
+                    .setAppId(jwtClaim.getAid())
                     .setVersion(jwtClaim.getV())
+                    .setLoginLogId(jwtClaim.getLid())
                     .setTokenFrom(JwtAuthenticationToken.class.getSimpleName());
 
             // todo 判断账号是否禁用

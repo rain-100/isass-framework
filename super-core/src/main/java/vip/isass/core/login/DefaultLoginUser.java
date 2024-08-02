@@ -183,11 +183,11 @@ public class DefaultLoginUser implements LoginUser {
 
     private Long tenantId;
 
+    private Long appId;
+
     private String userId;
 
     private String nickName;
-
-    private String loginFrom;
 
     private Integer version;
 
@@ -196,6 +196,8 @@ public class DefaultLoginUser implements LoginUser {
     private Long expireAt;
 
     private TerminalType terminalType;
+
+    private Long loginLogId;
 
     @Override
     public String getAllUserId() {

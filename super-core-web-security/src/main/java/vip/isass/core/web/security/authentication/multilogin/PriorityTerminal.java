@@ -164,7 +164,6 @@
  * apply, that proxy's public statement of acceptance of any version is
  * permanent authorization for you to choose that version for the
  * Library.
- *
  */
 
 package vip.isass.core.web.security.authentication.multilogin;
@@ -176,14 +175,10 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
-import java.util.Set;
+import java.util.Objects;
 
 /**
- * <p>
- * 多端登陆配置
- * </p>
- *
- * @author isass
+ * 终端运行时参数
  */
 @Getter
 @Setter
@@ -191,51 +186,27 @@ import java.util.Set;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TerminalLoginConfig {
+public class PriorityTerminal extends Terminal{
 
     /**
-     * 主键
+     * 优先终端
+     * 如果匹配到互斥终端，则根据此配置判断新端不能登录或旧端需要下线
+     * <br>
+     * 同一互斥组只只能有一个是优先终端。如果都是 false，则互踢
      */
-    private Long id;
+    private Boolean prefer;
 
-    /**
-     * 策略名称
-     */
-    private String name;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        PriorityTerminal that = (PriorityTerminal) o;
+        return Objects.equals(prefer, that.prefer);
+    }
 
-    /**
-     * 在线上限数[超过上限则不能登录。最大127]
-     */
-    private Integer onlineLimit;
-
-    /**
-     * 黑名单[禁止登录的终端列表。比白名单优先]
-     */
-    private Set<Terminal> blockList;
-
-    /**
-     * 白名单[允许登录的终端列表。不填则不限制]
-     */
-    private Set<Terminal> allowList;
-
-    /**
-     * 互斥终端[列表中只能同时有一种端在线]
-     */
-    private Set<TerminalGroup> mutexTerminals;
-
-    /**
-     * 同端多登[同种终端同时在线上限]
-     */
-    private Set<SameTerminalProperty> sameTerminals;
-
-    /**
-     * 应用组ID
-     */
-    private Long appGroupId;
-
-    /**
-     * 租户ID
-     */
-    private Long tenantId;
-
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), prefer);
+    }
 }

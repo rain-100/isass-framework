@@ -175,6 +175,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import vip.isass.core.login.TerminalType;
 
 /**
  * @author Rain
@@ -193,7 +194,11 @@ public class JwtInfo {
 
     public static final String TENANT_ID = "tid";
 
-    public static final String FROM = "fr";
+    public static final String APP_ID = "aid";
+
+    public static final String TERMINAL_TYPE = "tt";
+
+    public static final String LOGIN_LOG_ID = "lid";
 
     public static final String VERSION = "v";
 
@@ -210,12 +215,22 @@ public class JwtInfo {
     /**
      * 租户 id
      */
-    private Long tenantId;
+    private Long tid;
 
     /**
-     * 登录渠道，从什么产品登录
+     * 应用 id
      */
-    private String fr;
+    private Long aid;
+
+    /**
+     * 终端类型
+     */
+    private TerminalType tt;
+
+    /**
+     * 登录日志 id
+     */
+    private Long lid;
 
     /**
      * 版本，当服务端记录对应的登录渠道的版本，大于此值时，此 token 应当失效。
