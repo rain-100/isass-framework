@@ -202,13 +202,39 @@ public class TerminalLoginConfiguration implements SmartLifecycle {
 
     /**
      * 多端登陆策略缓存
+     * <br>
+     * key: tenantId
      */
-    private Map<String, TerminalLoginConfig> terminalLoginConfigs = new HashMap<>();
+    private Map<String, TerminalLoginConfig> tenantIdAndTerminalLoginConfigs = new HashMap<>();
 
-    public TerminalLoginConfig getTerminalLoginConfig(Long tenantId) {
-        return tenantId == null
-                ? globalTerminalLoginConfig
-                : terminalLoginConfigs.get(tenantId.toString());
+    /**
+     * 多端登陆策略缓存
+     * <br>
+     * key: appGroupId
+     */
+    private Map<String, TerminalLoginConfig> appGroupIdAndTerminalLoginConfigs = new HashMap<>();
+
+
+    /**
+     * 获取多端登陆策略，匹配优先级：appGroupId、tenantId、全局
+     *
+     * @param tenantId   租户 id
+     * @param appGroupId 应用组 id
+     * @return 登录策略
+     */
+    public TerminalLoginConfig getTerminalLoginConfig(Long tenantId, Long appGroupId) {
+        TerminalLoginConfig terminalLoginConfig = null;
+        if (appGroupId != null) {
+            terminalLoginConfig = appGroupIdAndTerminalLoginConfigs.get(appGroupId.toString());
+        }
+        if (terminalLoginConfig != null) {
+            return terminalLoginConfig;
+        }
+
+        if (tenantId != null) {
+            terminalLoginConfig = tenantIdAndTerminalLoginConfigs.get(tenantId.toString());
+        }
+        return terminalLoginConfig == null ? globalTerminalLoginConfig : terminalLoginConfig;
     }
 
     private void init() {
@@ -216,16 +242,20 @@ public class TerminalLoginConfiguration implements SmartLifecycle {
             return;
         }
 
-        Map<String, TerminalLoginConfig> configMap = new HashMap<>();
+        Map<String, TerminalLoginConfig> tenantIdAndConfigMap = new HashMap<>();
+        Map<String, TerminalLoginConfig> appGroupIdAndConfigMap = new HashMap<>();
         terminalLoginConfigLoader.load()
                 .forEach(c -> {
-                    if (c.getTenantId() == null) {
-                        globalTerminalLoginConfig = c;
+                    if (c.getAppGroupId() != null) {
+                        appGroupIdAndConfigMap.put(c.getAppGroupId().toString(), c);
+                    } else if (c.getTenantId() != null) {
+                        tenantIdAndConfigMap.put(c.getTenantId().toString(), c);
                     } else {
-                        configMap.put(c.getTenantId().toString(), c);
+                        globalTerminalLoginConfig = c;
                     }
                 });
-        terminalLoginConfigs = configMap;
+        tenantIdAndTerminalLoginConfigs = tenantIdAndConfigMap;
+        appGroupIdAndTerminalLoginConfigs = appGroupIdAndConfigMap;
     }
 
     /**
@@ -241,7 +271,7 @@ public class TerminalLoginConfiguration implements SmartLifecycle {
         IS_RUNNING = true;
         if (terminalLoginConfigLoader == null) {
             log.info("当前服务未添加多端登录配置加载器");
-            terminalLoginConfigs = Collections.emptyMap();
+            tenantIdAndTerminalLoginConfigs = Collections.emptyMap();
             return;
         }
         init();

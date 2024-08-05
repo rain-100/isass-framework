@@ -199,7 +199,9 @@ public class ShouldOfflineChecker {
      * 检查 token 是否需要被下线
      */
     public void checkShouldOffline(LoginUser loginUser) {
-        TerminalLoginConfig terminalLoginConfig = terminalLoginConfiguration.getTerminalLoginConfig(loginUser.getTenantId());
+        TerminalLoginConfig terminalLoginConfig = terminalLoginConfiguration.getTerminalLoginConfig(
+                loginUser.getTenantId(),
+                loginUser.getAppGroupId());
         if (terminalLoginConfig == null) {
             return;
         }

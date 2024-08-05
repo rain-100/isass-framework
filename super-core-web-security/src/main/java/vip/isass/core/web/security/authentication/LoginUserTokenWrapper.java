@@ -258,6 +258,16 @@ public class LoginUserTokenWrapper extends AbstractAuthenticationToken implement
     }
 
     @Override
+    public Long getAppGroupId() {
+        return loginUsers == null ? null : loginUsers.stream()
+                .filter(l -> JwtAuthenticationToken.class.getSimpleName().equals(l.getTokenFrom()))
+                .map(LoginUser::getAppGroupId)
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
+    }
+
+    @Override
     public String getUserId() {
         return loginUsers == null ? null : loginUsers.stream()
                 .filter(l -> JwtAuthenticationToken.class.getSimpleName().equals(l.getTokenFrom()))

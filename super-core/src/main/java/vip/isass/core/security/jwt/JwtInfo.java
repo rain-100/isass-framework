@@ -196,6 +196,8 @@ public class JwtInfo {
 
     public static final String APP_ID = "aid";
 
+    public static final String APP_GROUP_ID = "agid";
+
     public static final String TERMINAL_TYPE = "tt";
 
     public static final String LOGIN_LOG_ID = "lid";
@@ -221,6 +223,11 @@ public class JwtInfo {
      * 应用 id
      */
     private Long aid;
+
+    /**
+     * 应用组 id
+     */
+    private Long agid;
 
     /**
      * 终端类型

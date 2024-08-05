@@ -204,6 +204,7 @@ public class JwtUtil {
                 .put(JwtInfo.NICK_NAME, loginUser.getNickName())
                 .put(JwtInfo.TENANT_ID, loginUser.getTenantId())
                 .put(JwtInfo.APP_ID, loginUser.getAppId())
+                .put(JwtInfo.APP_GROUP_ID, loginUser.getAppGroupId())
                 .put(JwtInfo.TERMINAL_TYPE, loginUser.getTerminalType())
                 .put(JwtInfo.LOGIN_LOG_ID, loginUser.getLoginLogId())
                 .put(JwtInfo.VERSION, loginUser.getVersion())
