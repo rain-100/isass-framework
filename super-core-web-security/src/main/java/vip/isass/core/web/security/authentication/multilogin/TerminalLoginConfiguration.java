@@ -248,9 +248,13 @@ public class TerminalLoginConfiguration implements SmartLifecycle {
                 .forEach(c -> {
                     if (c.getAppGroupId() != null) {
                         appGroupIdAndConfigMap.put(c.getAppGroupId().toString(), c);
-                    } else if (c.getTenantId() != null) {
+                    }
+
+                    if (c.getTenantId() != null) {
                         tenantIdAndConfigMap.put(c.getTenantId().toString(), c);
-                    } else {
+                    }
+
+                    if (c.getTenantId() == null && c.getAppGroupId() == null) {
                         globalTerminalLoginConfig = c;
                     }
                 });
