@@ -172,11 +172,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import vip.isass.core.login.LoginUser;
 
-import javax.annotation.Resource;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
 /**
  * 是否需要下线检查器
  * 检查请求的 token 是否需要被下线
@@ -185,40 +180,11 @@ import java.util.Map;
 @Service
 public class ShouldOfflineChecker {
 
-    @Resource
-    private TerminalLoginConfiguration terminalLoginConfiguration;
-
-    /**
-     * 根据终端列表获取 version
-     */
-    public Map<String, Integer> getVersionByTerminals(String userId, List<String> terminals) {
-        return Collections.emptyMap();
-    }
-
     /**
      * 检查 token 是否需要被下线
      */
     public void checkShouldOffline(LoginUser loginUser) {
-        TerminalLoginConfig terminalLoginConfig = terminalLoginConfiguration.getTerminalLoginConfig(
-                loginUser.getTenantId(),
-                loginUser.getAppGroupId());
-        if (terminalLoginConfig == null) {
-            return;
-        }
-        // todo checkShouldOffline
-        // 找出互斥终端中最高版本的终端
-        // String maxTerminal = null;
-        // Integer maxVersion = null;
-        //
-        // if (maxTerminal == null) {
-        //     // 没有终端记录，即此 token 是启用多端验证前生成的，则强制下线
-        //     throw new UnifiedException(SecurityCoreStatusEnum.TOKEN_INVALID);
-        // }
-        //
-        // // 如果最大版本的终端，不是此次 token 的终端，则强制下线
-        // if (!maxTerminal.equals(loginUser.getLoginFrom())) {
-        //     throw new UnifiedException(SecurityCoreStatusEnum.FORCE_OFFLINE);
-        // }
+
     }
 
 }

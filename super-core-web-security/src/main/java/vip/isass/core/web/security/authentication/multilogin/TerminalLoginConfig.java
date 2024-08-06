@@ -209,16 +209,6 @@ public class TerminalLoginConfig {
     private Integer onlineLimit;
 
     /**
-     * 黑名单[禁止登录的终端列表。比白名单优先]
-     */
-    private Set<Terminal> blockList;
-
-    /**
-     * 白名单[允许登录的终端列表。不填则不限制]
-     */
-    private Set<Terminal> allowList;
-
-    /**
      * 互斥终端[列表中只能同时有一种端在线]
      */
     private Set<TerminalGroup> mutexTerminals;
@@ -227,11 +217,6 @@ public class TerminalLoginConfig {
      * 同端多登[同种终端同时在线上限]
      */
     private Set<SameTerminalProperty> sameTerminals;
-
-    /**
-     * 应用组ID
-     */
-    private Long appGroupId;
 
     /**
      * 租户ID

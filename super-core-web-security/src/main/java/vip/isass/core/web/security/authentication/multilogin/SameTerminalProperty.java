@@ -183,7 +183,7 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 public class SameTerminalProperty {
 
-    private Terminal terminal;
+    private Long appId;
 
     private Integer maxOnlineCount;
 

@@ -186,7 +186,12 @@ import java.util.Objects;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PriorityTerminal extends Terminal{
+public class PriorityTerminal {
+
+    /**
+     * 应用 id
+     */
+    private Long appId;
 
     /**
      * 优先终端
@@ -199,14 +204,13 @@ public class PriorityTerminal extends Terminal{
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
+        if (!(o instanceof PriorityTerminal)) return false;
         PriorityTerminal that = (PriorityTerminal) o;
-        return Objects.equals(prefer, that.prefer);
+        return Objects.equals(appId, that.appId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), prefer);
+        return Objects.hash(appId);
     }
 }
