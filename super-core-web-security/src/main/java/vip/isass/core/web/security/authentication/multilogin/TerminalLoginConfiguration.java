@@ -226,7 +226,7 @@ public class TerminalLoginConfiguration implements SmartLifecycle {
                     if (mutexTerminals != null) {
                         for (TerminalGroup terminalGroup : mutexTerminals) {
                             for (PriorityTerminal terminal : terminalGroup.getTerminals()) {
-                                appIdIdAndTerminalLoginConfigs
+                                appIdAndConfigMap
                                         .computeIfAbsent(terminal.getAppId().toString(), k -> new HashSet<>())
                                         .add(c);
                             }
@@ -236,7 +236,7 @@ public class TerminalLoginConfiguration implements SmartLifecycle {
                     Set<SameTerminalProperty> sameTerminals = c.getSameTerminals();
                     if (sameTerminals != null) {
                         for (SameTerminalProperty property : sameTerminals) {
-                            appIdIdAndTerminalLoginConfigs
+                            appIdAndConfigMap
                                     .computeIfAbsent(property.getAppId().toString(), k -> new HashSet<>())
                                     .add(c);
                         }
