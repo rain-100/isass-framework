@@ -227,7 +227,6 @@ public class JwtAuthenticationFilter extends AbstractAuthenticationFilter {
                     .setNickName(jwtClaim.getName())
                     .setTenantId(jwtClaim.getTid())
                     .setAppId(jwtClaim.getAid())
-                    .setVersion(jwtClaim.getV())
                     .setLoginLogId(jwtClaim.getLid())
                     .setTokenFrom(JwtAuthenticationToken.class.getSimpleName());
 

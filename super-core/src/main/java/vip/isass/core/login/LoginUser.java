@@ -204,8 +204,6 @@ public interface LoginUser {
      */
     String getNickName();
 
-    Integer getVersion();
-
     /**
      * token 过期时间
      */

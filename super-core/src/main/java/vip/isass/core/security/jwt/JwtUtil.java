@@ -207,7 +207,6 @@ public class JwtUtil {
                 .put(JwtInfo.APP_GROUP_ID, loginUser.getAppGroupId())
                 .put(JwtInfo.TERMINAL_TYPE, loginUser.getTerminalType())
                 .put(JwtInfo.LOGIN_LOG_ID, loginUser.getLoginLogId())
-                .put(JwtInfo.VERSION, loginUser.getVersion())
                 .build();
         return Jwts.builder()
                 .setClaims(map)
