@@ -200,11 +200,10 @@ public class JwtUtil {
     public static String generateToken(LoginUser loginUser, String secret) {
         // 生产 token
         Map<String, Object> map = MapUtil.<String, Object>builder()
-                .put(JwtInfo.USER_ID, loginUser.getUserId())
-                .put(JwtInfo.NICK_NAME, loginUser.getNickName())
                 .put(JwtInfo.TENANT_ID, loginUser.getTenantId())
                 .put(JwtInfo.APP_ID, loginUser.getAppId())
-                .put(JwtInfo.APP_GROUP_ID, loginUser.getAppGroupId())
+                .put(JwtInfo.USER_ID, loginUser.getUserId())
+                .put(JwtInfo.NICK_NAME, loginUser.getNickName())
                 .put(JwtInfo.TERMINAL_TYPE, loginUser.getTerminalType())
                 .put(JwtInfo.LOGIN_LOG_ID, loginUser.getLoginLogId())
                 .build();

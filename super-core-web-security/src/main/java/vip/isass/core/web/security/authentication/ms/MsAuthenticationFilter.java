@@ -211,7 +211,6 @@ public class MsAuthenticationFilter extends AbstractAuthenticationFilter {
             DefaultLoginUser defaultLoginUser = new DefaultLoginUser()
                     .setUserId(authResult.getAppName())
                     .setNickName(authResult.getAppName())
-                    .setVersion(1)
                     .setTokenFrom(MsAuthenticationToken.class.getSimpleName());
 
             saveAuthentication(defaultLoginUser, authResult.getAuthorities());

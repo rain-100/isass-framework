@@ -183,8 +183,6 @@ public interface LoginUser {
 
     Long getAppId();
 
-    Long getAppGroupId();
-
     /**
      * @return auth_user 的用户id
      */

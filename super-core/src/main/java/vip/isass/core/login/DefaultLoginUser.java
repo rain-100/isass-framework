@@ -185,13 +185,9 @@ public class DefaultLoginUser implements LoginUser {
 
     private Long appId;
 
-    private Long appGroupId;
-
     private String userId;
 
     private String nickName;
-
-    private Integer version;
 
     private String tokenFrom;
 

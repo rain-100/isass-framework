@@ -186,6 +186,7 @@ public enum SecurityCoreStatusEnum implements IStatusMessage {
     TOKEN_INVALID(ProjectInfo.STATUS_CODE_PREFIX + 1004, "token 无效"),
     OTHER_TERMINAL_ALREADY_LOGIN(ProjectInfo.STATUS_CODE_PREFIX + 1005, "登录失败，已在其他设备登陆"),
     APP_FORBID_ONLINE(ProjectInfo.STATUS_CODE_PREFIX + 1006, "应用已被禁用"),
+    MAX_ONLINE_LIMIT(ProjectInfo.STATUS_CODE_PREFIX + 1007, "登录失败，已达到允许登录上限"),
     ;
 
     private final Integer status;

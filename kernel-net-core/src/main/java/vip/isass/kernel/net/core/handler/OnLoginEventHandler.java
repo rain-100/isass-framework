@@ -182,6 +182,8 @@ import vip.isass.kernel.net.core.message.MessageCmd;
 import vip.isass.kernel.net.core.server.Server;
 import vip.isass.kernel.net.core.session.ISessionService;
 
+import java.util.Collections;
+
 /**
  * 登录事件处理器
  *
@@ -207,6 +209,10 @@ public class OnLoginEventHandler implements OnMessageEventHandler<String> {
     public Object onMessage(Message message, String token) {
         JwtInfo jwtInfo = JwtUtil.parse(token, secret);
         sessionService.setUserId(message.getSenderSessionId(), jwtInfo.getUid());
+        Long appId = jwtInfo.getAid();
+        if (appId != null) {
+            sessionService.setTags(message.getSenderSessionId(), Collections.singleton("appId:" + appId.toString()));
+        }
         return Resp.bizSuccess(jwtInfo);
     }
 
