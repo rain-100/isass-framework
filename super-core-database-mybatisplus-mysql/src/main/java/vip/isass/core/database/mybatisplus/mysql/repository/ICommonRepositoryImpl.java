@@ -169,8 +169,10 @@
 
 package vip.isass.core.database.mybatisplus.mysql.repository;
 
-import cn.hutool.core.convert.Convert;
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.bean.copier.CopyOptions;
 import cn.hutool.core.lang.Assert;
+import com.baomidou.mybatisplus.core.metadata.TableFieldInfo;
 import com.baomidou.mybatisplus.core.metadata.TableInfo;
 import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
 import org.springframework.stereotype.Repository;
@@ -191,6 +193,21 @@ public class ICommonRepositoryImpl implements ICommonRepository {
     @Resource
     private ICommonMapper iCommonMapper;
 
+    //    @Resource
+    //    private DatabaseIdProvider databaseIdProvider;
+    //
+    //
+    //    private final DataSource dataSource;
+    //
+    //    public ICommonRepositoryImpl(DataSource dataSource) {
+    //        this.dataSource = dataSource;
+    //    }
+    //
+    //    @SneakyThrows
+    //    private String getDataBaseId() {
+    //        return databaseIdProvider.getDatabaseId(dataSource);
+    //    }
+
     @Override
     public <PK extends Serializable, E extends IdEntity<PK, E>> List<E>
     findAllSubRecords(Class<E> entityClass,
@@ -202,15 +219,20 @@ public class ICommonRepositoryImpl implements ICommonRepository {
         TableInfo tableInfo = TableInfoHelper.getTableInfo(edbClass);
         String logicDeleteSql = tableInfo.getLogicDeleteSql(false, true);
         Assert.notNull(tableInfo, "解析不到[{}]的tableInfo", entityClass.getName());
+        List<String> columnNameList = tableInfo.getFieldList().stream().map(TableFieldInfo::getColumn).collect(Collectors.toList());
+        columnNameList.add(tableInfo.getKeyColumn());
         List<Map<String, Object>> list = iCommonMapper
-            .findAllSubRecords(
-                tableInfo.getTableName(),
-                idColumnName,
-                parentIdColumnName,
-                id,
-                returnIdRecord,
-                logicDeleteSql);
-        return list.stream().map(l -> Convert.convert(entityClass, l)).collect(Collectors.toList());
+                .findAllSubRecords(
+                        tableInfo.getTableName(),
+                        idColumnName,
+                        parentIdColumnName,
+                        id,
+                        returnIdRecord,
+                        logicDeleteSql,
+                        columnNameList
+                );
+        //        return list.stream().map(l -> Convert.convert(entityClass, l)).collect(Collectors.toList());
+        return list.stream().map(l -> BeanUtil.toBean(l, entityClass, new CopyOptions().setIgnoreCase(true))).collect(Collectors.toList());
     }
 
 }

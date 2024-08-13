@@ -175,32 +175,87 @@
         SELECT t2.*
         FROM
         (
-            SELECT * FROM
-            (
-                SELECT
-                    t1.*,
-                    IF (
-                    FIND_IN_SET( ${parentIdColumnName}, @pids ) > 0,
-                    @pids := CONCAT( @pids, ',', ${idColumnName} ), '0' ) AS ischild
-                FROM
-                (
-                    SELECT * FROM ${tableName} AS t
-                    <where>
-                        <if test="logicDeleteSql != null and logicDeleteSql != ''">
-                            ${logicDeleteSql}
-                        </if>
-                    </where>
-                    ORDER BY t.${idColumnName} ASC
-                ) t1,
-                ( SELECT @pids := #{id} ) t2
-            ) t3
-            WHERE
-                ischild != '0'
-                <if test="returnIdRecord">
-                    OR ${idColumnName} = #{id}
-                </if>
+        SELECT * FROM
+        (
+        SELECT
+        t1.*,
+        IF (
+        FIND_IN_SET( ${parentIdColumnName}, @pids ) > 0,
+        @pids := CONCAT( @pids, ',', ${idColumnName} ), '0' ) AS ischild
+        FROM
+        (
+        SELECT * FROM ${tableName} AS t
+        <where>
+            <if test="logicDeleteSql != null and logicDeleteSql != ''">
+                ${logicDeleteSql}
+            </if>
+        </where>
+        ORDER BY t.${idColumnName} ASC
+        ) t1,
+        ( SELECT @pids := #{id} ) t2
+        ) t3
+        WHERE
+        ischild != '0'
+        <if test="returnIdRecord">
+            OR ${idColumnName} = #{id}
+        </if>
         ) t1
         LEFT JOIN ${tableName} t2 ON t1.${idColumnName} = t2.${idColumnName}
+    </select>
+
+    <select id="findAllSubRecords" resultType="java.util.Map" databaseId="dm">
+
+        WITH SubRecords(
+        <foreach item="columnName" collection="columnNameList" separator=",">
+            ${columnName}
+        </foreach>
+        ,Level
+        ) AS ( SELECT
+        <foreach item="columnName" collection="columnNameList" separator=",">
+            ${columnName}
+        </foreach>
+        ,1 AS Level
+        FROM ${tableName}
+        WHERE
+        ${parentIdColumnName} = #{id}
+        <if test="logicDeleteSql != null and logicDeleteSql != ''">
+            AND ${logicDeleteSql}
+        </if>
+        UNION ALL
+        SELECT
+        <foreach item="columnName" collection="columnNameList" separator=",">
+            t.${columnName}
+        </foreach>
+        ,sr.Level + 1
+        FROM ${tableName} t
+        INNER JOIN SubRecords sr
+        ON t.${parentIdColumnName} = sr.${idColumnName}
+        <where>
+        <if test="logicDeleteSql != null and logicDeleteSql != ''">
+            AND t.${logicDeleteSql}
+        </if>
+        </where>
+        )
+        SELECT *
+        FROM ( SELECT *,
+        CASE WHEN ${idColumnName} = #{id} THEN 0 ELSE Level END AS SortLevel
+        FROM SubRecords
+        UNION ALL
+        SELECT
+        <foreach item="columnName" collection="columnNameList" separator=",">
+            ${columnName}
+        </foreach>
+        ,0 AS Level,
+        0 AS SortLevel
+        FROM uom_org
+        WHERE ${idColumnName} = #{id}
+        <if test="logicDeleteSql != null and logicDeleteSql != ''">
+            AND ${logicDeleteSql}
+        </if>
+        AND ${parentIdColumnName} != #{id} ) AS CombinedResults
+        ORDER BY SortLevel,
+        id ASC
+
     </select>
 
 </mapper>
