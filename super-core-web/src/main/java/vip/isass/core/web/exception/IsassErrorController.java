@@ -184,6 +184,7 @@ import vip.isass.core.exception.IStatusMapping;
 import vip.isass.core.exception.UnifiedException;
 import vip.isass.core.exception.code.IStatusMessage;
 import vip.isass.core.exception.code.StatusMessageEnum;
+import vip.isass.core.login.LoginUserUtil;
 import vip.isass.core.web.Resp;
 import vip.isass.core.web.security.authentication.jwt.JwtConst;
 
@@ -244,7 +245,8 @@ public class IsassErrorController implements ErrorController {
                 continue;
             }
             if (statusCode == StatusMessageEnum.ACCESS_DENIED_403
-                    && StrUtil.isNotBlank(request.getHeader(JwtConst.HEADER_NAME))) {
+                    && StrUtil.isNotBlank(request.getHeader(JwtConst.HEADER_NAME))
+                    && LoginUserUtil.getLoginUser() == null) {
                 return new Resp<>()
                         .setSuccess(false)
                         .setStatus(StatusMessageEnum.JWT_TOKEN_ERROR.getStatus())
