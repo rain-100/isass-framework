@@ -255,6 +255,16 @@ public class LocalSessionService implements ISessionService {
         return unmodifiableSessionMap.values();
     }
 
+    @Override
+    public SessionInfoCollection getSessionInfoCollection() {
+        return SessionInfoCollection.builder()
+                .sessionIds(sessionMap.keySet())
+                .userAndSessionMap(userAndSessionMap)
+                .aliasAndSessionMap(aliasAndSessionMap)
+                .sessionAndTagMap(sessionAndTagMap)
+                .build();
+    }
+
     // endregion
 
     // region user

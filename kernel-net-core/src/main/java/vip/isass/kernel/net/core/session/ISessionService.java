@@ -243,6 +243,13 @@ public interface ISessionService {
      */
     Collection<Session<?>> findAllSessions();
 
+    /**
+     * 获取 session 所有信息，用于调试
+     *
+     * @return 会话信息集合
+     */
+    SessionInfoCollection getSessionInfoCollection();
+
     // endregion
 
     // region user id
