@@ -199,6 +199,7 @@ import vip.isass.kernel.net.core.server.allocator.INodeAllocatorService;
 import vip.isass.kernel.net.core.session.ISessionService;
 import vip.isass.kernel.net.core.session.Session;
 import vip.isass.kernel.net.core.session.SessionBindingInfoChangeReq;
+import vip.isass.kernel.net.core.session.SessionInfoCollection;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Resource;
@@ -206,6 +207,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
@@ -229,6 +231,9 @@ public class SessionServiceClientProxy implements ISessionService {
     };
 
     private static final TypeReference<Resp<Map<String, Boolean>>> MAP_STRING_BOOLEAN_RESP_TYPE_REF = new TypeReference<Resp<Map<String, Boolean>>>() {
+    };
+
+    private static final TypeReference<Resp<SessionInfoCollection>> SESSION_INFO_COLLECTION_RESP_TYPE_REF = new TypeReference<Resp<SessionInfoCollection>>() {
     };
 
     static {
@@ -310,6 +315,15 @@ public class SessionServiceClientProxy implements ISessionService {
     @Override
     public Collection<Session<?>> findAllSessions() {
         throw new UnsupportedOperationException("net proxy client cannot get session");
+    }
+
+    @Override
+    public SessionInfoCollection getSessionInfoCollection() {
+        return fetchGetFromAllNode(
+                StrUtil.format("/sessionInfoCollection"),
+                null,
+                Objects::nonNull,
+                SESSION_INFO_COLLECTION_RESP_TYPE_REF);
     }
 
     @Override

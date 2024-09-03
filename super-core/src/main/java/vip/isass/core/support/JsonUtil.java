@@ -189,6 +189,8 @@ import com.fasterxml.jackson.databind.ser.std.StdDelegatingSerializer;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import vip.isass.core.entity.Json;
+import vip.isass.core.map.MultiKeyMultiValueBiMap;
+import vip.isass.core.map.MultiValueBiMap;
 import vip.isass.core.support.json.DefaultJson;
 import vip.isass.core.support.json.LocalDateTimeToLongConvert;
 import vip.isass.core.support.json.LocalDateToLongConvert;
@@ -200,6 +202,8 @@ import vip.isass.core.support.json.StringToLocalDateTimeConvert;
 import vip.isass.core.support.json.StringToLocalTimeConvert;
 import vip.isass.core.support.json.serializer.DoubleSerializer;
 import vip.isass.core.support.json.serializer.FloatSerializer;
+import vip.isass.core.support.json.serializer.MultiKeyMultiValueBiMapSerializer;
+import vip.isass.core.support.json.serializer.MultiValueBiMapSerializer;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -235,7 +239,11 @@ public class JsonUtil {
             .addSerializer(Double.class, new DoubleSerializer())
             .addSerializer(double.class, new DoubleSerializer())
             .addSerializer(Float.class, new FloatSerializer())
-            .addSerializer(float.class, new FloatSerializer());
+            .addSerializer(float.class, new FloatSerializer())
+
+            // 多值map
+            .addSerializer(MultiValueBiMap.class, new MultiValueBiMapSerializer())
+            .addSerializer(MultiKeyMultiValueBiMap.class, new MultiKeyMultiValueBiMapSerializer());
 
     public static final ObjectMapper DEFAULT_INSTANCE = new ObjectMapper()
             // 当实体类中不含有 json 字符串的某些字段时，不抛出异常

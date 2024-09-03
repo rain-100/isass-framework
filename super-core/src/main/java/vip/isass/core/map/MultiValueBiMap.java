@@ -357,4 +357,8 @@ public class MultiValueBiMap<K, V> implements Multimap<K, V> {
         return multiValueMap.asMap();
     }
 
+    @Override
+    public String toString() {
+        return multiValueMap.toString();
+    }
 }
