@@ -175,6 +175,9 @@ import lombok.extern.slf4j.Slf4j;
 import vip.isass.core.support.SystemClock;
 import vip.isass.kernel.net.core.session.ClientSession;
 
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+
 /**
  * socketIo 客户端会话
  *
@@ -211,12 +214,24 @@ public class SocketIoSession implements ClientSession<SocketIoServer> {
 
     @Override
     public String getRemoteIp() {
-        return socketIoClient.getRemoteAddress().toString();
+        SocketAddress remoteAddress = socketIoClient.getRemoteAddress();
+        if (remoteAddress instanceof InetSocketAddress) {
+            return ((InetSocketAddress) remoteAddress)
+                    .getAddress()
+                    .getHostAddress();
+        }
+        return remoteAddress.toString();
     }
 
     @Override
     public String getRemotePort() {
-        return socketIoClient.getRemoteAddress().toString();
+        SocketAddress remoteAddress = socketIoClient.getRemoteAddress();
+        if (remoteAddress instanceof InetSocketAddress) {
+            return ((InetSocketAddress) remoteAddress)
+                    .getPort() + "";
+
+        }
+        return remoteAddress.toString();
     }
 
     @Override
@@ -237,6 +252,11 @@ public class SocketIoSession implements ClientSession<SocketIoServer> {
 
     public SocketIOClient getSocketIoClient() {
         return socketIoClient;
+    }
+
+    @Override
+    public String toString() {
+        return print();
     }
 
 }

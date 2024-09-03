@@ -175,10 +175,10 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.DefaultChannelPromise;
 import io.netty.util.concurrent.GenericFutureListener;
 import lombok.extern.slf4j.Slf4j;
+import vip.isass.core.support.SystemClock;
+import vip.isass.kernel.net.core.session.ClientSession;
 import vip.isass.kernel.net.netty.packet.TcpPacket;
 import vip.isass.kernel.net.netty.tcp.TcpServer;
-import vip.isass.kernel.net.core.session.ClientSession;
-import vip.isass.core.support.SystemClock;
 
 /**
  * tcp 客户端会话
@@ -246,9 +246,9 @@ public class TcpClientSession implements ClientSession<TcpServer> {
     @Override
     public void sendMessage(String cmd, Object payload) {
         sendMessage(TcpPacket.builder()
-            .cmd(cmd)
-            .payload(payload)
-            .build());
+                .cmd(cmd)
+                .payload(payload)
+                .build());
     }
 
     public void sendMessage(TcpPacket packet) {
@@ -257,15 +257,15 @@ public class TcpClientSession implements ClientSession<TcpServer> {
             return;
         }
         channel.writeAndFlush(
-            packet,
-            new DefaultChannelPromise(channel, channel.eventLoop())
-                .addListener((GenericFutureListener<ChannelFuture>) future -> {
-                    if (future.isSuccess()) {
-                        log.debug("发送给客户端[{}]成功,cmd[{}]：{}", this.getRemoteIp(), packet.getCmd(), packet.getPayload().toString());
-                    } else {
-                        log.error("发送给客户端[{}]失败。", this.getRemoteIp(), future.cause());
-                    }
-                })
+                packet,
+                new DefaultChannelPromise(channel, channel.eventLoop())
+                        .addListener((GenericFutureListener<ChannelFuture>) future -> {
+                            if (future.isSuccess()) {
+                                log.debug("发送给客户端[{}]成功,cmd[{}]：{}", this.getRemoteIp(), packet.getCmd(), packet.getPayload().toString());
+                            } else {
+                                log.error("发送给客户端[{}]失败。", this.getRemoteIp(), future.cause());
+                            }
+                        })
         );
     }
 
@@ -275,10 +275,7 @@ public class TcpClientSession implements ClientSession<TcpServer> {
 
     @Override
     public String toString() {
-        return "TcpSession{" +
-            "channel=" + channel +
-            ", createTime=" + createTime +
-            '}';
+        return print();
     }
 
 }

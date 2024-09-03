@@ -187,7 +187,7 @@ import java.util.Collection;
 @AllArgsConstructor
 public class SessionInfoCollection {
 
-    private Collection<String> sessionIds;
+    private Collection<Session<?>> sessions;
 
     private MultiValueBiMap<String, String> userAndSessionMap;
 

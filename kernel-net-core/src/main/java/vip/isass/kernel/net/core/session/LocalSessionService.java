@@ -258,7 +258,7 @@ public class LocalSessionService implements ISessionService {
     @Override
     public SessionInfoCollection getSessionInfoCollection() {
         return SessionInfoCollection.builder()
-                .sessionIds(sessionMap.keySet())
+                .sessions(sessionMap.values())
                 .userAndSessionMap(userAndSessionMap)
                 .aliasAndSessionMap(aliasAndSessionMap)
                 .sessionAndTagMap(sessionAndTagMap)

@@ -263,10 +263,6 @@ public class WebsocketClientSession implements ClientSession<WebsocketServer> {
 
     @Override
     public String toString() {
-        return "WebsocketClientSession{" +
-                "channel=" + channel +
-                ", createTime=" + createTime +
-                '}';
+        return print();
     }
-
 }
