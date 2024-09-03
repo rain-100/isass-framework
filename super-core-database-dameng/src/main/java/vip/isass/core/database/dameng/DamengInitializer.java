@@ -224,4 +224,14 @@ public class DamengInitializer implements DatabaseInitializer {
         return jdbcUrl;
     }
 
+    @Override
+    public String checkSchemaExistSql(String schemaName) {
+        return null;
+    }
+
+    @Override
+    public String createSchemaSql(String schemaName) {
+        return null;
+    }
+
 }

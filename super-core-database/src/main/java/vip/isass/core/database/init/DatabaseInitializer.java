@@ -170,6 +170,13 @@
 package vip.isass.core.database.init;
 
 import cn.hutool.core.util.StrUtil;
+import lombok.SneakyThrows;
+
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * 数据库初始化器
@@ -224,8 +231,8 @@ public interface DatabaseInitializer {
 
         int questionMarkIndex = jdbcUrl.indexOf("?", slashIndex);
         String databaseName = questionMarkIndex == -1
-            ? jdbcUrl.substring(slashIndex)
-            : jdbcUrl.substring(slashIndex, questionMarkIndex);
+                ? jdbcUrl.substring(slashIndex)
+                : jdbcUrl.substring(slashIndex, questionMarkIndex);
 
         if (StrUtil.isBlank(databaseName)) {
             throw new IllegalArgumentException("can not parse database name from jdbcUrl:" + jdbcUrl);
@@ -251,5 +258,79 @@ public interface DatabaseInitializer {
     default String removeDatabaseName(String jdbcUrl, String databaseName) {
         return jdbcUrl.replace("/" + databaseName, "");
     }
+
+    /**
+     * 创建数据的sql
+     *
+     * @param schemaName 数据库名
+     * @return 查询SchemaSql
+     */
+    String checkSchemaExistSql(String schemaName);
+
+    /**
+     * 创建数据的sql
+     *
+     * @param schemaName 数据库名
+     * @return 创建SchemaSql
+     */
+    String createSchemaSql(String schemaName);
+
+    /**
+     * 根据 jdbcUrl 解析出schemaName
+     * 示例: jdbc:postgresql://172.25.23.66:54321/test?currentSchema=auth&stringtype=unspecified
+     * 示例: jdbc:postgresql://172.25.23.66:54321/test?searchpath=auth&stringtype=unspecified
+     * 从提取到 auth 作为数据库名
+     *
+     * @param jdbcUrl jdbcUrl
+     * @return 数据库名
+     */
+    @SneakyThrows
+    default String parseSchemaName(String jdbcUrl) {
+        int index = jdbcUrl.indexOf("://");
+        if (index == -1) {
+            throw new IllegalArgumentException("can not parse database name from jdbcUrl:" + jdbcUrl);
+        }
+
+        int slashIndex = jdbcUrl.indexOf("/", index + 3);
+        slashIndex++;
+        if (slashIndex == 0 || slashIndex == jdbcUrl.length()) {
+            throw new IllegalArgumentException("can not parse database name from jdbcUrl:" + jdbcUrl);
+        }
+        if (!jdbcUrl.contains("currentSchema") && !jdbcUrl.contains("searchpath")) {
+
+            return null;
+        }
+
+        // 分割 URL 为基本部分和查询字符串
+        String[] parts = jdbcUrl.split("\\?", 2);
+        if (parts.length < 2) {
+            return null;
+        }
+
+        String queryString = parts[1];
+
+        // 解析查询字符串为参数映射
+        Map<String, String> queryParams = parseQueryString(queryString);
+
+        // 查找 currentSchema 或 searchpath 参数
+
+
+        return queryParams.getOrDefault("currentSchema", queryParams.get("searchpath"));
+    }
+
+
+    default Map<String, String> parseQueryString(String queryString) throws UnsupportedEncodingException {
+        Map<String, String> params = new HashMap<>();
+        String[] pairs = queryString.split("&");
+        for (String pair : pairs) {
+            String[] keyValue = pair.split("=", 2);
+            if (keyValue.length == 2) {
+                String value = URLDecoder.decode(keyValue[1], StandardCharsets.UTF_8.toString());
+                params.put(keyValue[0], value);
+            }
+        }
+        return params;
+    }
+
 
 }
