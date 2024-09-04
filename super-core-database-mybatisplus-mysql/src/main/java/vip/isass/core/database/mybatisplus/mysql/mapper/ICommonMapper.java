@@ -184,8 +184,6 @@ public interface ICommonMapper {
                                                 Serializable id,
                                                 boolean returnIdRecord,
                                                 String logicDeleteSql,
-                                                List<String> columnNameList
-                                                );
-
+                                                List<String> columnNameList);
 
 }

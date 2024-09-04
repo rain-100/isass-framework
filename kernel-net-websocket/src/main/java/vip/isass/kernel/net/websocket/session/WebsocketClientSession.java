@@ -179,6 +179,9 @@ import vip.isass.kernel.net.core.session.ClientSession;
 import vip.isass.kernel.net.websocket.packet.WebsocketPacket;
 import vip.isass.kernel.net.websocket.websocket.WebsocketServer;
 
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+
 /**
  * tcp 客户端会话
  *
@@ -221,12 +224,24 @@ public class WebsocketClientSession implements ClientSession<WebsocketServer> {
 
     @Override
     public String getRemoteIp() {
-        return channel.remoteAddress().toString();
+        SocketAddress remoteAddress = channel.remoteAddress();
+        if (remoteAddress instanceof InetSocketAddress) {
+            return ((InetSocketAddress) remoteAddress)
+                    .getAddress()
+                    .getHostAddress();
+        }
+        return remoteAddress.toString();
     }
 
     @Override
     public String getRemotePort() {
-        return null;
+        SocketAddress remoteAddress = channel.remoteAddress();
+        if (remoteAddress instanceof InetSocketAddress) {
+            return ((InetSocketAddress) remoteAddress)
+                    .getPort() + "";
+
+        }
+        return remoteAddress.toString();
     }
 
     @Override

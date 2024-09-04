@@ -170,7 +170,6 @@
 package vip.isass.core.database.mybatisplus.mysql.repository;
 
 import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.bean.copier.CopyOptions;
 import cn.hutool.core.lang.Assert;
 import com.baomidou.mybatisplus.core.metadata.TableFieldInfo;
 import com.baomidou.mybatisplus.core.metadata.TableInfo;
@@ -231,8 +230,9 @@ public class ICommonRepositoryImpl implements ICommonRepository {
                         logicDeleteSql,
                         columnNameList
                 );
-        //        return list.stream().map(l -> Convert.convert(entityClass, l)).collect(Collectors.toList());
-        return list.stream().map(l -> BeanUtil.toBean(l, entityClass, new CopyOptions().setIgnoreCase(true))).collect(Collectors.toList());
+        return list.stream()
+                .map(l -> BeanUtil.toBeanIgnoreCase(l, entityClass, true))
+                .collect(Collectors.toList());
     }
 
 }

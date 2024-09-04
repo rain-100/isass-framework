@@ -245,8 +245,8 @@ public interface Session<svr extends Server> {
     @JsonValue
     @JsonRawValue
     default String print() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("{\"sessionId\":\"")
+        return new StringBuilder()
+                .append("{\"sessionId\":\"")
                 .append(getSessionId())
                 .append("\",\"remoteIp\":\"")
                 .append(getRemoteIp())
@@ -256,8 +256,8 @@ public interface Session<svr extends Server> {
                 .append(getCreateTime())
                 .append("\",\"type\":\"")
                 .append(this.getClass().getSimpleName())
-                .append("\"}");
-        return sb.toString();
+                .append("\"}")
+                .toString();
     }
 
 }
