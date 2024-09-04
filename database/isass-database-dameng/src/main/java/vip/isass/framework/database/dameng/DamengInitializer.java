@@ -199,8 +199,8 @@ public class DamengInitializer implements DatabaseInitializer {
         int schemaValueIndex = schemaKeyIndex + 7;
         int ampIndex = jdbcUrl.indexOf("&", schemaValueIndex);
         String databaseName = ampIndex == -1
-            ? jdbcUrl.substring(schemaValueIndex)
-            : jdbcUrl.substring(schemaValueIndex, ampIndex);
+                ? jdbcUrl.substring(schemaValueIndex)
+                : jdbcUrl.substring(schemaValueIndex, ampIndex);
 
         Assert.notBlank(databaseName, "can not parse database name because not found property 'schema=' from jdbcUrl: {}", jdbcUrl);
         return databaseName;
@@ -221,6 +221,16 @@ public class DamengInitializer implements DatabaseInitializer {
         jdbcUrl = DatabaseInitializer.super.removeDatabaseName(jdbcUrl, databaseName);
         jdbcUrl = jdbcUrl.replace("schema=" + databaseName, "");
         return jdbcUrl;
+    }
+
+    @Override
+    public String checkSchemaExistSql(String schemaName) {
+        return null;
+    }
+
+    @Override
+    public String createSchemaSql(String schemaName) {
+        return null;
     }
 
 }

@@ -197,7 +197,16 @@ public class MysqlInitializer implements DatabaseInitializer {
     @Override
     public String createDatabaseSql(String databaseName) {
         return StrUtil.format(
-            "create database if not exists `{}` DEFAULT CHARSET utf8mb4 COLLATE utf8mb4_general_ci", databaseName);
+                "create database if not exists `{}` DEFAULT CHARSET utf8mb4 COLLATE utf8mb4_general_ci", databaseName);
     }
 
+    @Override
+    public String checkSchemaExistSql(String schemaName) {
+        return null;
+    }
+
+    @Override
+    public String createSchemaSql(String schemaName) {
+        return null;
+    }
 }
