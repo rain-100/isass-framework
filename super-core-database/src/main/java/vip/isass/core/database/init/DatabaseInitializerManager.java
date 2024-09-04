@@ -177,6 +177,7 @@ import cn.hutool.db.StatementUtil;
 import cn.hutool.db.ds.simple.SimpleDataSource;
 import cn.hutool.db.handler.NumberHandler;
 import cn.hutool.db.sql.SqlExecutor;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -200,8 +201,16 @@ public class DatabaseInitializerManager implements ApplicationContextInitializer
 
     /**
      * 主数据源数据库名
+     * -- GETTER --
+     *  获取主数据源数据库名
+     *
+     * @return 主数据源数据库名
+
      */
+    @Getter
     private static String masterDatasourceDatabaseName = "";
+    @Getter
+    private static String masterDatasourceSchemaName = "";
 
     @Override
     public void initialize(ConfigurableApplicationContext applicationContext) {
@@ -210,18 +219,18 @@ public class DatabaseInitializerManager implements ApplicationContextInitializer
         }
 
         String autoCreate = applicationContext.getEnvironment().getProperty(
-            "spring.datasource.autoCreate");
+                "spring.datasource.autoCreate");
         if ("false".equalsIgnoreCase(autoCreate)) {
             RUN = true;
             return;
         }
 
         String jdbcUrl = applicationContext.getEnvironment().getProperty(
-            "spring.datasource.dynamic.datasource.master.url");
+                "spring.datasource.dynamic.datasource.master.url");
         String username = applicationContext.getEnvironment().getProperty(
-            "spring.datasource.dynamic.datasource.master.username");
+                "spring.datasource.dynamic.datasource.master.username");
         String password = applicationContext.getEnvironment().getProperty(
-            "spring.datasource.dynamic.datasource.master.password");
+                "spring.datasource.dynamic.datasource.master.password");
 
         if (StrUtil.hasBlank(jdbcUrl, username, password)) {
             return;
@@ -259,7 +268,9 @@ public class DatabaseInitializerManager implements ApplicationContextInitializer
         log.info("found master datasource jdbcUrl: {}", jdbcUrl);
 
         masterDatasourceDatabaseName = databaseInitializer.parseDatabaseName(jdbcUrl);
+        masterDatasourceSchemaName = databaseInitializer.parseSchemaName(jdbcUrl);
         log.info("database name: {}", masterDatasourceDatabaseName);
+        log.info("schema name: {}", masterDatasourceSchemaName);
         jdbcUrl = databaseInitializer.removeDatabaseName(jdbcUrl, masterDatasourceDatabaseName);
         log.info("remove database name jdbcUrl: {}", jdbcUrl);
         String checkDatabaseNameExistSql = databaseInitializer.checkDatabaseNameExistSql(masterDatasourceDatabaseName);
@@ -289,15 +300,42 @@ public class DatabaseInitializerManager implements ApplicationContextInitializer
         } finally {
             db.closeConnection(conn);
         }
-    }
 
-    /**
-     * 获取主数据源数据库名
-     *
-     * @return 主数据源数据库名
-     */
-    public static String getMasterDatasourceDatabaseName() {
-        return masterDatasourceDatabaseName;
+        // 初始化 schema
+        if(masterDatasourceSchemaName == null){
+            log.info("jdbcUrl:{} does not contain currentSchema or searchpath, use default schemaName", jdbcUrl);
+            return;
+        }
+        // todo: 此处替换默认数据库-后续需要优化
+        jdbcUrl = jdbcUrl.replace("/" + masterDatasourceDatabaseName, "");
+        String checkSchemaExistSql = databaseInitializer.checkSchemaExistSql(masterDatasourceDatabaseName);
+        String createSchemaSql = databaseInitializer.createSchemaSql(masterDatasourceDatabaseName);
+        ds = new SimpleDataSource(jdbcUrl + masterDatasourceDatabaseName, username, password);
+        db = DbUtil.use(ds);
+        conn = null;
+
+        try {
+            conn = ds.getConnection();
+            boolean databaseExist = false;
+            if (checkSchemaExistSql != null) {
+                log.info("running check schema exist sql: {}", checkSchemaExistSql);
+                Number query = SqlExecutor.query(conn, checkSchemaExistSql, new NumberHandler(), Collections.emptyMap());
+                int databaseCount = query.intValue();
+                databaseExist = databaseCount > 0;
+            }
+
+            if (!databaseExist) {
+                log.info("running create schema sql: {}", createSchemaSql);
+                PreparedStatement preparedStatement = StatementUtil.prepareStatement(conn, createSchemaSql);
+                SqlExecutor.execute(preparedStatement);
+            }
+        } catch (Exception e) {
+            log.error("schema init fail :{}", e.getMessage(), e);
+        } finally {
+            db.closeConnection(conn);
+        }
+
+
     }
 
 }

@@ -167,7 +167,7 @@
  *
  */
 
-package vip.isass.core.database.mysql;
+package vip.isass.core.database.postgresql;
 
 import cn.hutool.core.util.StrUtil;
 import vip.isass.core.database.init.DatabaseInitializer;
@@ -177,38 +177,42 @@ import vip.isass.core.database.init.DatabaseInitializer;
  *
  * @author rain
  */
-public class MysqlInitializer implements DatabaseInitializer {
+public class PostgresSqlInitializer implements DatabaseInitializer {
 
     @Override
     public String database() {
-        return "mysql";
+        return "postgresql";
     }
 
     @Override
     public boolean match(String jdbcUrl) {
-        return jdbcUrl.contains(":mysql:");
+        return jdbcUrl.contains(":postgresql:");
     }
 
     @Override
     public String checkDatabaseNameExistSql(String databaseName) {
         // SELECT count(*) FROM information_schema.SCHEMATA where SCHEMA_NAME ='{}'
-        return null;
+        return StrUtil.format("SELECT COUNT(*) FROM SYS_DATABASE WHERE DATNAME= '{}'", databaseName);
     }
 
     @Override
     public String createDatabaseSql(String databaseName) {
         return StrUtil.format(
-            "create database if not exists `{}` DEFAULT CHARSET utf8mb4 COLLATE utf8mb4_general_ci", databaseName);
+                "CREATE DATABASE  {} ", databaseName);
     }
 
     @Override
     public String checkSchemaExistSql(String schemaName) {
-        return null;
+        return StrUtil.format("SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME='{}'", schemaName);
     }
 
     @Override
     public String createSchemaSql(String schemaName) {
-        return null;
+        return StrUtil.format("CREATE SCHEMA {}", schemaName);
     }
 
+    @Override
+    public String removeDatabaseName(String jdbcUrl, String databaseName) {
+        return DatabaseInitializer.super.removeDatabaseName(jdbcUrl, databaseName)+"/kingbase";
+    }
 }
