@@ -179,6 +179,9 @@ import vip.isass.framework.net.core.session.ClientSession;
 import vip.isass.framework.net.netty.packet.TcpPacket;
 import vip.isass.framework.net.netty.tcp.TcpServer;
 
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+
 /**
  * tcp 客户端会话
  *
@@ -221,12 +224,24 @@ public class TcpClientSession implements ClientSession<TcpServer> {
 
     @Override
     public String getRemoteIp() {
-        return channel.remoteAddress().toString();
+        SocketAddress remoteAddress = channel.remoteAddress();
+        if (remoteAddress instanceof InetSocketAddress) {
+            return ((InetSocketAddress) remoteAddress)
+                    .getAddress()
+                    .getHostAddress();
+        }
+        return remoteAddress.toString();
     }
 
     @Override
     public String getRemotePort() {
-        return null;
+        SocketAddress remoteAddress = channel.remoteAddress();
+        if (remoteAddress instanceof InetSocketAddress) {
+            return ((InetSocketAddress) remoteAddress)
+                    .getPort() + "";
+
+        }
+        return remoteAddress.toString();
     }
 
     @Override
@@ -274,10 +289,7 @@ public class TcpClientSession implements ClientSession<TcpServer> {
 
     @Override
     public String toString() {
-        return "TcpSession{" +
-                "channel=" + channel +
-                ", createTime=" + createTime +
-                '}';
+        return print();
     }
 
 }

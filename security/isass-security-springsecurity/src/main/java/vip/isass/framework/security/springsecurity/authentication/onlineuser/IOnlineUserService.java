@@ -164,56 +164,21 @@
  * apply, that proxy's public statement of acceptance of any version is
  * permanent authorization for you to choose that version for the
  * Library.
- *
  */
 
-package vip.isass.framework.security.core.authentication.login;
+package vip.isass.framework.security.springsecurity.authentication.onlineuser;
+
+import vip.isass.framework.security.core.authentication.login.LoginUser;
+
+import java.util.List;
 
 /**
- * @author Rain
+ * 用户在线管理服务
  */
-public interface LoginUser {
+public interface IOnlineUserService {
 
-    /**
-     * 该用户在哪个租户的应用上登陆
-     *
-     * @return 租户 id
-     */
-    Long getTenantId();
+    void offline(LoginUser loginUser);
 
-    Long getAppId();
+    List<LoginUser> getOnlineUsers(Long tenantId, String userId);
 
-    /**
-     * @return auth_user 的用户id
-     */
-    String getUserId();
-
-    /**
-     * @return 用户 id, 包括微服务 msToken
-     */
-    String getAllUserId();
-
-    String getTokenFrom();
-
-    /**
-     * 用户昵称
-     *
-     * @return nick name
-     */
-    String getNickName();
-
-    /**
-     * token 过期时间
-     */
-    Long getExpireAt();
-
-    /**
-     * 终端运行时
-     */
-    TerminalType getTerminalType();
-
-    /**
-     * 登录日志id
-     */
-    Long getLoginLogId();
 }

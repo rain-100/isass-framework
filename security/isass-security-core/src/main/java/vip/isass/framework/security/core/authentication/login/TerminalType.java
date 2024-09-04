@@ -164,56 +164,52 @@
  * apply, that proxy's public statement of acceptance of any version is
  * permanent authorization for you to choose that version for the
  * Library.
- *
  */
 
 package vip.isass.framework.security.core.authentication.login;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.experimental.SuperBuilder;
+
 /**
- * @author Rain
+ * 终端运行时参数
  */
-public interface LoginUser {
+@Getter
+@Setter
+@ToString
+@SuperBuilder
+@NoArgsConstructor
+@AllArgsConstructor
+public class TerminalType {
 
     /**
-     * 该用户在哪个租户的应用上登陆
-     *
-     * @return 租户 id
+     * 设备类型
      */
-    Long getTenantId();
-
-    Long getAppId();
+    private String deviceType;
 
     /**
-     * @return auth_user 的用户id
+     * 操作系统
      */
-    String getUserId();
+    private String os;
 
     /**
-     * @return 用户 id, 包括微服务 msToken
+     * 设备品牌
      */
-    String getAllUserId();
-
-    String getTokenFrom();
+    private String brand;
 
     /**
-     * 用户昵称
-     *
-     * @return nick name
+     * 浏览器类型
+     * 如果是混合架构开发，则应视为 app，不用填写浏览器类型
      */
-    String getNickName();
+    private String browserType;
 
     /**
-     * token 过期时间
+     * 网络类型
      */
-    Long getExpireAt();
+    private String netType;
 
-    /**
-     * 终端运行时
-     */
-    TerminalType getTerminalType();
-
-    /**
-     * 登录日志id
-     */
-    Long getLoginLogId();
 }

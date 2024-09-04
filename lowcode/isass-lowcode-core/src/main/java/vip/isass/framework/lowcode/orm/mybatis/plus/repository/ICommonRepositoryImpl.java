@@ -168,8 +168,9 @@
 
 package vip.isass.framework.lowcode.orm.mybatis.plus.repository;
 
-import cn.hutool.core.convert.Convert;
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.lang.Assert;
+import com.baomidou.mybatisplus.core.metadata.TableFieldInfo;
 import com.baomidou.mybatisplus.core.metadata.TableInfo;
 import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
 import jakarta.annotation.Resource;
@@ -199,6 +200,8 @@ public class ICommonRepositoryImpl implements ICommonRepository {
         TableInfo tableInfo = TableInfoHelper.getTableInfo(edbClass);
         String logicDeleteSql = tableInfo.getLogicDeleteSql(false, true);
         Assert.notNull(tableInfo, "解析不到[{}]的tableInfo", entityClass.getName());
+        List<String> columnNameList = tableInfo.getFieldList().stream().map(TableFieldInfo::getColumn).collect(Collectors.toList());
+        columnNameList.add(tableInfo.getKeyColumn());
         List<Map<String, Object>> list = iCommonMapper
                 .findAllSubRecords(
                         tableInfo.getTableName(),
@@ -206,8 +209,12 @@ public class ICommonRepositoryImpl implements ICommonRepository {
                         parentIdColumnName,
                         id,
                         returnIdRecord,
-                        logicDeleteSql);
-        return list.stream().map(l -> Convert.convert(entityClass, l)).collect(Collectors.toList());
+                        logicDeleteSql,
+                        columnNameList
+                );
+        return list.stream()
+                .map(l -> BeanUtil.toBeanIgnoreCase(l, entityClass, true))
+                .collect(Collectors.toList());
     }
 
 }

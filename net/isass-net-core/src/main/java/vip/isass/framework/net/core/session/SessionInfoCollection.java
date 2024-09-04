@@ -166,77 +166,33 @@
  * Library.
  */
 
-package vip.isass.framework.net.proxy.service.controller;
+package vip.isass.framework.net.core.session;
 
-import cn.hutool.core.collection.CollUtil;
-import jakarta.annotation.Resource;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.connection.stream.RecordId;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-import vip.isass.framework.common.service.Resp;
-import vip.isass.framework.net.core.message.Message;
-import vip.isass.framework.net.core.session.ISessionService;
-import vip.isass.framework.net.proxy.service.service.GatewayToRedisMessageService;
-import vip.isass.framework.net.proxy.service.service.RemoveC2SMessageService;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.experimental.SuperBuilder;
+import vip.isass.framework.common.util.map.MultiKeyMultiValueBiMap;
+import vip.isass.framework.common.util.map.MultiValueBiMap;
 
-/**
- * @author rain
- */
-@Slf4j
-@RestController
-@RequestMapping("/${spring.application.name}/sender")
-public class SocketioSenderController {
+import java.util.Collection;
 
-    @Resource
-    private ISessionService sessionService;
+@Getter
+@Setter
+@ToString
+@SuperBuilder
+@NoArgsConstructor
+@AllArgsConstructor
+public class SessionInfoCollection {
 
-    @Resource
-    private GatewayToRedisMessageService gatewayToRedisMessageService;
+    private Collection<Session<?>> sessions;
 
-    @Resource
-    private RemoveC2SMessageService removeC2SMessageService;
+    private MultiValueBiMap<String, String> userAndSessionMap;
 
-    /**
-     * 发送消息给客户端
-     *
-     * @param message 待发送的消息
-     */
-    @PostMapping("/send")
-    public void sendMessage(@RequestBody Message message) {
-        sessionService.sendMessage(message);
-    }
+    private MultiValueBiMap<String, String> aliasAndSessionMap;
 
-    /**
-     * 发送消息到redis(调试专用)
-     *
-     * @param cmd 命令
-     * @return redis stream 记录id
-     */
-    @GetMapping("/pushToRedis")
-    public Resp<RecordId> pushToRedis(@RequestParam("cmd") String cmd) {
-        RecordId push = gatewayToRedisMessageService.push(
-                Message.builder()
-                        .cmd(cmd)
-                        .payload(23)
-                        .tags(CollUtil.newArrayList("ios"))
-                        .build());
-        return Resp.bizSuccess(push);
-    }
-
-    /**
-     * 删除 redis 旧的 c2s 消息
-     *
-     * @return 操作结果
-     */
-    @GetMapping("/removeEarlyMessageService")
-    public Resp<?> removeEarlyMessage() {
-        removeC2SMessageService.process();
-        return Resp.bizSuccess();
-    }
+    private MultiKeyMultiValueBiMap<String, String> sessionAndTagMap;
 
 }

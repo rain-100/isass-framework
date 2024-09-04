@@ -168,7 +168,8 @@
 
 package vip.isass.framework.net.core.session;
 
-
+import com.fasterxml.jackson.annotation.JsonRawValue;
+import com.fasterxml.jackson.annotation.JsonValue;
 import vip.isass.framework.net.core.server.Server;
 
 import java.lang.reflect.ParameterizedType;
@@ -238,6 +239,24 @@ public interface Session<svr extends Server> {
         Type genericInterface = this.getClass().getGenericInterfaces()[0];
         Type actualTypeArgument = ((ParameterizedType) genericInterface).getActualTypeArguments()[0];
         return ((Class<svr>) actualTypeArgument);
+    }
+
+    @JsonValue
+    @JsonRawValue
+    default String print() {
+        return new StringBuilder()
+                .append("{\"sessionId\":\"")
+                .append(getSessionId())
+                .append("\",\"remoteIp\":\"")
+                .append(getRemoteIp())
+                .append("\",\"remotePort\":\"")
+                .append(getRemotePort())
+                .append("\",\"createTime\":\"")
+                .append(getCreateTime())
+                .append("\",\"type\":\"")
+                .append(this.getClass().getSimpleName())
+                .append("\"}")
+                .toString();
     }
 
 }

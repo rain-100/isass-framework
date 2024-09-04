@@ -164,56 +164,40 @@
  * apply, that proxy's public statement of acceptance of any version is
  * permanent authorization for you to choose that version for the
  * Library.
- *
  */
 
-package vip.isass.framework.security.core.authentication.login;
+package vip.isass.framework.security.springsecurity.authentication.multilogin;
 
-/**
- * @author Rain
- */
-public interface LoginUser {
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.experimental.SuperBuilder;
 
-    /**
-     * 该用户在哪个租户的应用上登陆
-     *
-     * @return 租户 id
-     */
-    Long getTenantId();
+import java.util.Objects;
+import java.util.Set;
 
-    Long getAppId();
+@Getter
+@Setter
+@ToString
+@SuperBuilder
+@NoArgsConstructor
+@AllArgsConstructor
+public class TerminalGroup {
 
-    /**
-     * @return auth_user 的用户id
-     */
-    String getUserId();
+    private Set<PriorityTerminal> terminals;
 
-    /**
-     * @return 用户 id, 包括微服务 msToken
-     */
-    String getAllUserId();
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        TerminalGroup that = (TerminalGroup) o;
+        return Objects.equals(terminals, that.terminals);
+    }
 
-    String getTokenFrom();
-
-    /**
-     * 用户昵称
-     *
-     * @return nick name
-     */
-    String getNickName();
-
-    /**
-     * token 过期时间
-     */
-    Long getExpireAt();
-
-    /**
-     * 终端运行时
-     */
-    TerminalType getTerminalType();
-
-    /**
-     * 登录日志id
-     */
-    Long getLoginLogId();
+    @Override
+    public int hashCode() {
+        return Objects.hash(terminals);
+    }
 }

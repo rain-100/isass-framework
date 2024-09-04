@@ -236,7 +236,7 @@ public interface NetRedisKey {
      * redis message key (channel)
      * 服务端推送消息给客户端时，使用 redis 的 pubsub 功能中转消息
      */
-    String REDIS_S2C_PUBSUB_KEY = "kernel:net:transfer:message:s2c";
+    String REDIS_PUBSUB_KEY = "kernel:net:transfer:message:s2c";
 
     /**
      * 客户端发送消息给服务端推，使用 redis 的 stream 功能中转消息

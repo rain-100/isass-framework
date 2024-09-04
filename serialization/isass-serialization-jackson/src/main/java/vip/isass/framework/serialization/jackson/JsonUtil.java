@@ -164,10 +164,13 @@
  * apply, that proxy's public statement of acceptance of any version is
  * permanent authorization for you to choose that version for the
  * Library.
+ *
  */
 
 package vip.isass.framework.serialization.jackson;
 
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.lang.Assert;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
@@ -179,31 +182,29 @@ import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.deser.std.StdDelegatingDeserializer;
-import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.ser.std.NumberSerializer;
 import com.fasterxml.jackson.databind.ser.std.StdDelegatingSerializer;
 import lombok.Getter;
 import lombok.SneakyThrows;
-import vip.isass.framework.serialization.jackson.converter.stdconverter.LocalDateTimeToLongConverter;
-import vip.isass.framework.serialization.jackson.converter.stdconverter.LocalDateToLongConverter;
-import vip.isass.framework.serialization.jackson.converter.stdconverter.LocalTimeToLongConverter;
-import vip.isass.framework.serialization.jackson.converter.stdconverter.LongToLocalDateTimeConverter;
-import vip.isass.framework.serialization.jackson.converter.stdconverter.StringToLocalDateConverter;
-import vip.isass.framework.serialization.jackson.converter.stdconverter.StringToLocalDateTimeConverter;
-import vip.isass.framework.serialization.jackson.converter.stdconverter.StringToLocalTimeConverter;
-import vip.isass.framework.serialization.jackson.serializer.DoubleSerializer;
-import vip.isass.framework.serialization.jackson.serializer.FloatSerializer;
+import vip.isass.framework.common.util.map.MultiKeyMultiValueBiMap;
+import vip.isass.framework.common.util.map.MultiValueBiMap;
+import vip.isass.framework.serialization.jackson.serializer.MultiKeyMultiValueBiMapSerializer;
+import vip.isass.framework.serialization.jackson.serializer.MultiValueBiMapSerializer;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.Supplier;
 
 /**
  * @author Rain
@@ -212,22 +213,27 @@ public class JsonUtil {
 
     @SuppressWarnings("unchecked")
     public static SimpleModule simpleModule = new SimpleModule()
-            .addSerializer(LocalDateTime.class, new StdDelegatingSerializer(new LocalDateTimeToLongConverter()))
-            .addDeserializer(LocalDateTime.class, new StdDelegatingDeserializer<>(new LongToLocalDateTimeConverter()))
-            .addDeserializer(LocalDateTime.class, new StdDelegatingDeserializer<>(new StringToLocalDateTimeConverter()))
-            .addSerializer(LocalDate.class, new StdDelegatingSerializer(new LocalDateToLongConverter()))
+            .addSerializer(LocalDateTime.class, new StdDelegatingSerializer(new LocalDateTimeToLongConvert()))
+            .addDeserializer(LocalDateTime.class, new StdDelegatingDeserializer<>(new LongToLocalDateTimeConvert()))
+            .addDeserializer(LocalDateTime.class, new StdDelegatingDeserializer<>(new StringToLocalDateTimeConvert()))
+            .addSerializer(LocalDate.class, new StdDelegatingSerializer(new LocalDateToLongConvert()))
             //        .addDeserializer(LocalDate.class, new StdDelegatingDeserializer<>(new LongToLocalDateConvert()))
-            .addDeserializer(LocalDate.class, new StdDelegatingDeserializer<>(new StringToLocalDateConverter()))
-            .addSerializer(LocalTime.class, new StdDelegatingSerializer(new LocalTimeToLongConverter()))
+            .addDeserializer(LocalDate.class, new StdDelegatingDeserializer<>(new StringToLocalDateConvert()))
+            .addSerializer(LocalTime.class, new StdDelegatingSerializer(new LocalTimeToLongConvert()))
             //        .addDeserializer(LocalTime.class, new StdDelegatingDeserializer<>(new LongToLocalTimeConvert()))
-            .addDeserializer(LocalTime.class, new StdDelegatingDeserializer<>(new StringToLocalTimeConverter()))
+            .addDeserializer(LocalTime.class, new StdDelegatingDeserializer<>(new StringToLocalTimeConvert()))
+            .addDeserializer(Json.class, new StdDelegatingDeserializer<>(new ObjectToJsonConvert()))
             .addSerializer(BigDecimal.class, (JsonSerializer<BigDecimal>) NumberSerializer.bigDecimalAsStringSerializer())
-            .addSerializer(Double.class, new DoubleSerializer())
-            .addSerializer(double.class, new DoubleSerializer())
-            .addSerializer(Float.class, new FloatSerializer())
-            .addSerializer(float.class, new FloatSerializer());
+            // .addSerializer(Double.class, new DoubleSerializer())
+            // .addSerializer(double.class, new DoubleSerializer())
+            // .addSerializer(Float.class, new FloatSerializer())
+            // .addSerializer(float.class, new FloatSerializer())
 
-    public static final ObjectMapper DEFAULT_INSTANCE = JsonMapper.builder()
+            // 多值map
+            .addSerializer(MultiValueBiMap.class, new MultiValueBiMapSerializer())
+            .addSerializer(MultiKeyMultiValueBiMap.class, new MultiKeyMultiValueBiMapSerializer());
+
+    public static final ObjectMapper DEFAULT_INSTANCE = new ObjectMapper()
             // 当实体类中不含有 json 字符串的某些字段时，不抛出异常
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
 
@@ -251,7 +257,7 @@ public class JsonUtil {
 
             // 忽略 transient 关键字的变量
             .configure(MapperFeature.PROPAGATE_TRANSIENT_MARKER, true)
-            .build()
+
             .registerModule(simpleModule);
 
     public static final ObjectMapper NOT_NULL_INSTANCE = DEFAULT_INSTANCE.copy()
@@ -261,33 +267,50 @@ public class JsonUtil {
 
     @SuppressWarnings("unchecked")
     public static <T> List<T> convertArrayNodeToSimpleObjectList(JsonNode jsonNode, Class<T> clazz) {
+        return convertArrayNodeToSimpleObjectCollection(jsonNode, List.class, clazz);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> Set<T> convertArrayNodeToSimpleObjectSet(JsonNode jsonNode, Class<T> clazz) {
+        return convertArrayNodeToSimpleObjectCollection(jsonNode, Set.class, clazz);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <C extends Collection<T>, T> C convertArrayNodeToSimpleObjectCollection(JsonNode jsonNode, Class<C> collType, Class<T> clazz) {
+        C coll;
+        if (Set.class.isAssignableFrom(collType)) {
+            coll = (C) new HashSet<>();
+        } else if (List.class.isAssignableFrom(collType)) {
+            coll = (C) new ArrayList<>();
+        } else {
+            throw new UnsupportedOperationException("未支持的集合类型：" + collType);
+        }
         if (jsonNode == null || !jsonNode.isArray()) {
-            return Collections.emptyList();
+            return coll;
         }
 
-        List<T> list = new ArrayList<>(jsonNode.size());
         Iterator<JsonNode> elements = jsonNode.elements();
         while (elements.hasNext()) {
             JsonNode next = elements.next();
             if (clazz == String.class) {
-                list.add((T) next.asText());
+                coll.add((T) next.asText());
             } else if (clazz == Integer.class) {
-                list.add((T) Integer.valueOf(next.asInt()));
+                coll.add((T) Integer.valueOf(next.asInt()));
             } else if (clazz == Long.class) {
-                list.add((T) Long.valueOf(next.asLong()));
+                coll.add((T) Long.valueOf(next.asLong()));
             } else if (clazz == Byte.class) {
-                list.add((T) Boolean.valueOf(next.asBoolean()));
+                coll.add((T) Boolean.valueOf(next.asBoolean()));
             } else if (clazz == BigDecimal.class) {
-                list.add((T) new BigDecimal(next.asText()));
+                coll.add((T) new BigDecimal(next.asText()));
             } else if (clazz == Float.class) {
-                list.add((T) Float.valueOf(next.floatValue()));
+                coll.add((T) Float.valueOf(next.floatValue()));
             } else if (clazz == Double.class) {
-                list.add((T) Double.valueOf(next.asDouble()));
+                coll.add((T) Double.valueOf(next.asDouble()));
             } else {
-                throw new UnsupportedOperationException("不支持的类型转换：" + clazz.getName());
+                coll.add((T) DEFAULT_INSTANCE.convertValue(next, clazz));
             }
         }
-        return list;
+        return coll;
     }
 
     @SneakyThrows
@@ -305,6 +328,11 @@ public class JsonUtil {
     @SneakyThrows
     public static <T> T convertValue(Object fromValue, Class<T> clazz) {
         return DEFAULT_INSTANCE.convertValue(fromValue, clazz);
+    }
+
+    @SneakyThrows
+    public static <T> T convertValue(Object fromValue, TypeReference<T> typeReference) {
+        return DEFAULT_INSTANCE.convertValue(fromValue, typeReference);
     }
 
     @SneakyThrows
@@ -333,10 +361,41 @@ public class JsonUtil {
         return NOT_NULL_INSTANCE.writeValueAsString(object);
     }
 
+    public static <T> Set<T> arrayNodeToSet(JsonNode jsonNode, Class<T> itemType) {
+        if (jsonNode == null) {
+            return null;
+        }
+        Assert.isTrue(jsonNode.isArray(), "jsonNode must be ArrayNode");
+        ArrayNode arrayNode = (ArrayNode) jsonNode;
+        Set<T> set = new HashSet<>();
+        for (JsonNode next : arrayNode) {
+            set.add((T) convertValue(next, itemType));
+        }
+        return set;
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> ArrayNode distinctMerge(Supplier<JsonNode> sourceJsonNodeGetter, Collection<T> tobeMergeItems) {
+        if (CollUtil.isEmpty(tobeMergeItems)) {
+            return sourceJsonNodeGetter.get() == null ? null : (ArrayNode) sourceJsonNodeGetter.get();
+        }
+
+        JsonNode jsonNode = sourceJsonNodeGetter.get();
+        Set<T> itemSet = jsonNode == null
+                ? new HashSet<>()
+                : JsonUtil.arrayNodeToSet(jsonNode, (Class<T>) tobeMergeItems.iterator().next().getClass());
+
+        itemSet.addAll(tobeMergeItems);
+        return JsonUtil.convertValue(itemSet, ArrayNode.class);
+    }
+
     @Getter
     public enum TypeReferences {
 
         STRING_LIST(new TypeReference<List<String>>() {
+        }),
+
+        STRING_SET(new TypeReference<Set<String>>() {
         }),
 
         MAP(new TypeReference<Map<String, Object>>() {
@@ -355,3 +414,4 @@ public class JsonUtil {
     }
 
 }
+

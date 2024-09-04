@@ -164,6 +164,7 @@
  * apply, that proxy's public statement of acceptance of any version is
  * permanent authorization for you to choose that version for the
  * Library.
+ *
  */
 
 package vip.isass.framework.security.springsecurity.authentication.ms;
@@ -211,8 +212,6 @@ public class MsAuthenticationFilter extends AbstractAuthenticationFilter {
             DefaultLoginUser defaultLoginUser = new DefaultLoginUser()
                     .setUserId(authResult.getAppName())
                     .setNickName(authResult.getAppName())
-                    .setLoginFrom(authResult.getAppName())
-                    .setVersion(1)
                     .setTokenFrom(MsAuthenticationToken.class.getSimpleName());
 
             saveAuthentication(defaultLoginUser, authResult.getAuthorities());

@@ -174,7 +174,6 @@ import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.fasterxml.jackson.core.type.TypeReference;
-import jakarta.annotation.Nonnull;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.Call;
@@ -184,10 +183,9 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.http.MediaType;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import vip.isass.framework.common.service.Resp;
 import vip.isass.framework.net.core.NetRedisKey;
@@ -198,14 +196,16 @@ import vip.isass.framework.net.core.server.allocator.INodeAllocatorService;
 import vip.isass.framework.net.core.session.ISessionService;
 import vip.isass.framework.net.core.session.Session;
 import vip.isass.framework.net.core.session.SessionBindingInfoChangeReq;
+import vip.isass.framework.net.core.session.SessionInfoCollection;
 import vip.isass.framework.rpc.okhttp.OkHttpUtil;
 import vip.isass.framework.serialization.jackson.JsonUtil;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
@@ -231,6 +231,9 @@ public class SessionServiceClientProxy implements ISessionService {
     private static final TypeReference<Resp<Map<String, Boolean>>> MAP_STRING_BOOLEAN_RESP_TYPE_REF = new TypeReference<Resp<Map<String, Boolean>>>() {
     };
 
+    private static final TypeReference<Resp<SessionInfoCollection>> SESSION_INFO_COLLECTION_RESP_TYPE_REF = new TypeReference<Resp<SessionInfoCollection>>() {
+    };
+
     static {
         Dispatcher dispatcher = new Dispatcher();
         dispatcher.setMaxRequests(100);
@@ -241,6 +244,9 @@ public class SessionServiceClientProxy implements ISessionService {
                 .build();
     }
 
+    @Value("${kernel.net.defaultProtocol:}")
+    private String defaultProtocol;
+
     private NetProtocol defaultNetProtocol;
 
     @Resource
@@ -248,9 +254,14 @@ public class SessionServiceClientProxy implements ISessionService {
 
     private Map<NetProtocol, INodeAllocatorService> nodeAllocatorServiceMap;
 
-    @Autowired
-    private void setNodeAllocatorServiceMap(@Value("${kernel.net.defaultProtocol:}") String defaultProtocol,
-                                            List<INodeAllocatorService> nodeAllocatorServices) {
+    @Scheduled(fixedDelay = 10 * 1000)
+    private void reloadNodeAllocatorService() {
+        Collection<INodeAllocatorService> nodeAllocatorServices = SpringContextUtil.getBeans(INodeAllocatorService.class);
+        if (CollUtil.isEmpty(nodeAllocatorServices)) {
+            this.nodeAllocatorServiceMap = Collections.emptyMap();
+            return;
+        }
+
         this.nodeAllocatorServiceMap = nodeAllocatorServices.stream()
                 .collect(Collectors.toMap(INodeAllocatorService::getNetProtocol, Function.identity()));
 
@@ -302,6 +313,15 @@ public class SessionServiceClientProxy implements ISessionService {
     @Override
     public Collection<Session<?>> findAllSessions() {
         throw new UnsupportedOperationException("net proxy client cannot get session");
+    }
+
+    @Override
+    public SessionInfoCollection getSessionInfoCollection() {
+        return fetchGetFromAllNode(
+                StrUtil.format("/sessionInfoCollection"),
+                null,
+                Objects::nonNull,
+                SESSION_INFO_COLLECTION_RESP_TYPE_REF);
     }
 
     @Override
@@ -517,7 +537,7 @@ public class SessionServiceClientProxy implements ISessionService {
     @Override
     public void broadcastMessage(String cmd, Object payload) {
         redisTemplate.convertAndSend(
-                NetRedisKey.REDIS_S2C_PUBSUB_KEY,
+                NetRedisKey.REDIS_PUBSUB_KEY,
                 Message.builder()
                         .cmd(cmd)
                         .payload(payload)
@@ -527,7 +547,7 @@ public class SessionServiceClientProxy implements ISessionService {
     @Override
     public void sendMessageByUserId(String cmd, Object payload, String userId) {
         redisTemplate.convertAndSend(
-                NetRedisKey.REDIS_S2C_PUBSUB_KEY,
+                NetRedisKey.REDIS_PUBSUB_KEY,
                 Message.builder()
                         .cmd(cmd)
                         .payload(payload)
@@ -538,7 +558,7 @@ public class SessionServiceClientProxy implements ISessionService {
     @Override
     public void sendMessageByUserIds(String cmd, Object payload, Collection<String> userIds) {
         redisTemplate.convertAndSend(
-                NetRedisKey.REDIS_S2C_PUBSUB_KEY,
+                NetRedisKey.REDIS_PUBSUB_KEY,
                 Message.builder()
                         .cmd(cmd)
                         .payload(payload)
@@ -549,7 +569,7 @@ public class SessionServiceClientProxy implements ISessionService {
     @Override
     public void sendMessageToLoginUsers(String cmd, Object payload) {
         redisTemplate.convertAndSend(
-                NetRedisKey.REDIS_S2C_PUBSUB_KEY,
+                NetRedisKey.REDIS_PUBSUB_KEY,
                 Message.builder()
                         .cmd(cmd)
                         .payload(payload)
@@ -560,7 +580,7 @@ public class SessionServiceClientProxy implements ISessionService {
     @Override
     public void sendMessageByAlias(String cmd, Object payload, String alias) {
         redisTemplate.convertAndSend(
-                NetRedisKey.REDIS_S2C_PUBSUB_KEY,
+                NetRedisKey.REDIS_PUBSUB_KEY,
                 Message.builder()
                         .cmd(cmd)
                         .payload(payload)
@@ -571,7 +591,7 @@ public class SessionServiceClientProxy implements ISessionService {
     @Override
     public void sendMessageByAlias(String cmd, Object payload, Collection<String> aliases) {
         redisTemplate.convertAndSend(
-                NetRedisKey.REDIS_S2C_PUBSUB_KEY,
+                NetRedisKey.REDIS_PUBSUB_KEY,
                 Message.builder()
                         .cmd(cmd)
                         .payload(payload)
@@ -582,7 +602,7 @@ public class SessionServiceClientProxy implements ISessionService {
     @Override
     public void sendMessageByTag(String cmd, Object payload, String tag) {
         redisTemplate.convertAndSend(
-                NetRedisKey.REDIS_S2C_PUBSUB_KEY,
+                NetRedisKey.REDIS_PUBSUB_KEY,
                 Message.builder()
                         .cmd(cmd)
                         .payload(payload)
@@ -593,7 +613,7 @@ public class SessionServiceClientProxy implements ISessionService {
     @Override
     public void sendMessageByTags(String cmd, Object payload, Collection<String> tags) {
         redisTemplate.convertAndSend(
-                NetRedisKey.REDIS_S2C_PUBSUB_KEY,
+                NetRedisKey.REDIS_PUBSUB_KEY,
                 Message.builder()
                         .cmd(cmd)
                         .payload(payload)
@@ -604,7 +624,7 @@ public class SessionServiceClientProxy implements ISessionService {
     @Override
     public void sendMessageByAnyTags(String cmd, Object payload, Collection<String> tags) {
         redisTemplate.convertAndSend(
-                NetRedisKey.REDIS_S2C_PUBSUB_KEY,
+                NetRedisKey.REDIS_PUBSUB_KEY,
                 Message.builder()
                         .cmd(cmd)
                         .payload(payload)
@@ -614,13 +634,13 @@ public class SessionServiceClientProxy implements ISessionService {
 
     @Override
     public void sendMessage(Message message) {
-        redisTemplate.convertAndSend(NetRedisKey.REDIS_S2C_PUBSUB_KEY, message);
+        redisTemplate.convertAndSend(NetRedisKey.REDIS_PUBSUB_KEY, message);
     }
 
     @Override
     public void sendMessages(Collection<Message> messages) {
         for (Message message : messages) {
-            redisTemplate.convertAndSend(NetRedisKey.REDIS_S2C_PUBSUB_KEY, message);
+            redisTemplate.convertAndSend(NetRedisKey.REDIS_PUBSUB_KEY, message);
         }
     }
 
@@ -719,7 +739,7 @@ public class SessionServiceClientProxy implements ISessionService {
         Collection<NetServerInfo> serverInfos = nodeAllocatorService.getAll();
         Assert.notEmpty(serverInfos, "未发现[{}]网关，根据会话id获取用户id失败", defaultNetProtocol);
         final okhttp3.RequestBody requestBody = okhttp3.RequestBody.create(
-                okhttp3.MediaType.get(MediaType.APPLICATION_JSON_VALUE),
+                okhttp3.MediaType.get("application/json"),
                 JsonUtil.writeValue(req));
         CompletableFuture<Void>[] futures = (CompletableFuture<Void>[]) new CompletableFuture<?>[serverInfos.size()];
         int idx = 0;

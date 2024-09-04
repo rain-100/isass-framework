@@ -164,56 +164,73 @@
  * apply, that proxy's public statement of acceptance of any version is
  * permanent authorization for you to choose that version for the
  * Library.
- *
  */
 
-package vip.isass.framework.security.core.authentication.login;
+package vip.isass.framework.net.proxy.service.controller;
+
+import cn.hutool.core.collection.CollUtil;
+import jakarta.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.connection.stream.RecordId;
+import vip.isass.framework.common.service.Resp;
+import vip.isass.framework.net.core.message.Message;
+import vip.isass.framework.net.core.session.ISessionService;
+import vip.isass.framework.net.proxy.service.service.GatewayToRedisMessageService;
+import vip.isass.framework.net.proxy.service.service.RemoveC2SMessageService;
 
 /**
- * @author Rain
+ * @author rain
  */
-public interface LoginUser {
+@Slf4j
+@RestController
+@RequestMapping("/${spring.application.name}/sender")
+public class NetMessageSenderController {
+
+    @Resource
+    private ISessionService sessionService;
+
+    @Resource
+    private GatewayToRedisMessageService gatewayToRedisMessageService;
+
+    @Resource
+    private RemoveC2SMessageService removeC2SMessageService;
 
     /**
-     * 该用户在哪个租户的应用上登陆
+     * 发送消息给客户端
      *
-     * @return 租户 id
+     * @param message 待发送的消息
      */
-    Long getTenantId();
-
-    Long getAppId();
+    @PostMapping("/send")
+    public void sendMessage(@RequestBody Message message) {
+        sessionService.sendMessage(message);
+    }
 
     /**
-     * @return auth_user 的用户id
-     */
-    String getUserId();
-
-    /**
-     * @return 用户 id, 包括微服务 msToken
-     */
-    String getAllUserId();
-
-    String getTokenFrom();
-
-    /**
-     * 用户昵称
+     * 发送消息到redis(调试专用)
      *
-     * @return nick name
+     * @param cmd 命令
+     * @return redis stream 记录id
      */
-    String getNickName();
+    @GetMapping("/pushToRedis")
+    public Resp<RecordId> pushToRedis(@RequestParam("cmd") String cmd) {
+        RecordId push = gatewayToRedisMessageService.push(
+                Message.builder()
+                        .cmd(cmd)
+                        .payload(23)
+                        .tags(CollUtil.newArrayList("ios"))
+                        .build());
+        return Resp.bizSuccess(push);
+    }
 
     /**
-     * token 过期时间
+     * 删除 redis 旧的 c2s 消息
+     *
+     * @return 操作结果
      */
-    Long getExpireAt();
+    @GetMapping("/removeEarlyMessageService")
+    public Resp<?> removeEarlyMessage() {
+        removeC2SMessageService.process();
+        return Resp.bizSuccess();
+    }
 
-    /**
-     * 终端运行时
-     */
-    TerminalType getTerminalType();
-
-    /**
-     * 登录日志id
-     */
-    Long getLoginLogId();
 }

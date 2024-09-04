@@ -164,216 +164,38 @@
  * apply, that proxy's public statement of acceptance of any version is
  * permanent authorization for you to choose that version for the
  * Library.
+ *
  */
 
-package vip.isass.framework.net.proxy.service.controller;
+package vip.isass.framework.security.core.exception;
 
-import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.lang.Assert;
-import cn.hutool.core.util.StrUtil;
-import jakarta.annotation.Resource;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-import vip.isass.framework.common.service.Resp;
-import vip.isass.framework.net.core.message.Message;
-import vip.isass.framework.net.core.session.ISessionService;
-import vip.isass.framework.net.core.session.SessionBindingInfoChangeReq;
-
-import java.util.Collection;
-import java.util.Map;
+import lombok.Getter;
+import vip.isass.framework.common.exception.code.IStatusMessage;
+import vip.isass.framework.security.core.ProjectInfo;
 
 /**
- * @author rain
+ * @author Rain
  */
-@Slf4j
-@RestController
-@RequestMapping("/${spring.application.name}/session")
-public class SocketioSessionController {
+@Getter
+public enum SecurityCoreStatusEnum implements IStatusMessage {
+    // UN_LOGIN(16, "未登录系统"),
 
-    @Resource
-    private ISessionService sessionService;
+    FORCE_OFFLINE(ProjectInfo.STATUS_CODE_PREFIX + 1001, "已在其他设备登陆"),
+    FORBID_ONLINE_TERMINAL(ProjectInfo.STATUS_CODE_PREFIX + 1002, "终端已被禁用"),
+    NOT_IN_ALLOW_TERMINAL_LIST(ProjectInfo.STATUS_CODE_PREFIX + 1003, "不在允许上线终端列表中"),
+    TOKEN_INVALID(ProjectInfo.STATUS_CODE_PREFIX + 1004, "token 无效"),
+    OTHER_TERMINAL_ALREADY_LOGIN(ProjectInfo.STATUS_CODE_PREFIX + 1005, "登录失败，已在其他设备登陆"),
+    APP_FORBID_ONLINE(ProjectInfo.STATUS_CODE_PREFIX + 1006, "应用已被禁用"),
+    MAX_ONLINE_LIMIT(ProjectInfo.STATUS_CODE_PREFIX + 1007, "登录失败，已达到允许登录上限"),
+    ;
 
-    /**
-     * 发送消息给客户端
-     *
-     * @param message 消息
-     * @return 操作结果
-     */
-    @PostMapping("/send")
-    public Resp<?> sendMessage(@RequestBody Message message) {
-        sessionService.sendMessage(message);
-        return Resp.bizSuccess();
+    private final Integer status;
+
+    private final String msg;
+
+    SecurityCoreStatusEnum(Integer status, String msg) {
+        this.status = status;
+        this.msg = msg;
     }
 
-    /**
-     * 批量发送消息给客户端
-     *
-     * @param messages 消息列表
-     * @return 操作结果
-     */
-    @PostMapping("/send/batch")
-    public Resp<?> sendMessages(@RequestBody Collection<Message> messages) {
-        sessionService.sendMessages(messages);
-        return Resp.bizSuccess();
-    }
-
-    /**
-     * 保存会话绑定信息
-     *
-     * @param req 会话绑定信息请求实体
-     * @return 操作结果
-     */
-    @PostMapping("/info")
-    public Resp<?> saveSessionInfo(@RequestBody SessionBindingInfoChangeReq req) {
-        if (StrUtil.isNotBlank(req.getSessionId())) {
-            if (StrUtil.isNotBlank(req.getResetUserId())) {
-                sessionService.setUserId(req.getSessionId(), req.getResetUserId());
-            } else if (Boolean.TRUE.equals(req.getRemoveUserId())) {
-                sessionService.removeUserId(req.getSessionId());
-            }
-
-            if (StrUtil.isNotBlank(req.getAlias())) {
-                sessionService.setAlias(req.getSessionId(), req.getAlias());
-            } else if (Boolean.TRUE.equals(req.getRemoveAlias())) {
-                sessionService.removeAlias(req.getSessionId());
-            }
-
-            if (CollUtil.isNotEmpty(req.getTags())) {
-                sessionService.setTags(req.getSessionId(), req.getTags());
-            } else if (Boolean.TRUE.equals(req.getRemoveAllTags())) {
-                sessionService.removeTags(req.getSessionId());
-            } else {
-                if (CollUtil.isNotEmpty(req.getAddTags())) {
-                    sessionService.addTags(req.getSessionId(), req.getAddTags());
-                }
-                if (CollUtil.isNotEmpty(req.getRemoveTags())) {
-                    sessionService.removeTags(req.getSessionId(), req.getRemoveTags());
-                }
-            }
-            return Resp.bizSuccess();
-        }
-
-        Assert.notBlank(req.getUserId(), "sessionId, userId必填其一");
-        if (CollUtil.isNotEmpty(req.getTags())) {
-            sessionService.setTagsByUserId(req.getUserId(), req.getTags());
-        } else {
-            if (CollUtil.isNotEmpty(req.getAddTags())) {
-                sessionService.addTagsByUserId(req.getUserId(), req.getAddTags());
-            }
-            if (CollUtil.isNotEmpty(req.getRemoveTags())) {
-                sessionService.removeTagsByUserId(req.getUserId(), req.getRemoveTags());
-            }
-
-        }
-        return Resp.bizSuccess();
-    }
-
-    // region user id
-
-    /**
-     * 获取用户 id
-     *
-     * @param sessionId 会话 id
-     * @return 用户 id
-     */
-    @GetMapping("/{sessionId}/userId")
-    public Resp<String> getUserId(@PathVariable("sessionId") String sessionId) {
-        return Resp.bizSuccess(sessionService.getUserId(sessionId));
-    }
-
-    /**
-     * 批量判断用户是否在线
-     *
-     * @param userIds 用户 id 集合
-     * @return 用户在线状态表
-     */
-    @PostMapping("/user/isOnline")
-    public Resp<Map<String, Boolean>> isOnline(@RequestBody Collection<String> userIds) {
-        return Resp.bizSuccess(sessionService.isOnline(userIds));
-    }
-
-    // endregion
-
-    // region alias
-
-    /**
-     * 获取别名
-     *
-     * @param sessionId 会话 id
-     * @return 别名
-     */
-    @GetMapping("/{sessionId}/alias")
-    public Resp<String> getAlias(@PathVariable("sessionId") String sessionId) {
-        return Resp.bizSuccess(sessionService.getAlias(sessionId));
-    }
-
-    // endregion
-
-    // region tag
-
-    /**
-     * 获取标签
-     *
-     * @param sessionId 会话 id
-     * @return 标签列表
-     */
-    @GetMapping("/{sessionId}/tags")
-    public Resp<Collection<String>> getTags(@PathVariable("sessionId") String sessionId) {
-        return Resp.bizSuccess(sessionService.findTags(sessionId));
-    }
-
-    /**
-     * 根据用户获取标签
-     *
-     * @param userId 用户 id
-     * @return 标签列表
-     */
-    @GetMapping("/tags/{userId}")
-    public Resp<Collection<String>> getTagsByUserId(@PathVariable("userId") String userId) {
-        return Resp.bizSuccess(sessionService.findTagsByUserId(userId));
-    }
-
-    /**
-     * 根据标签查找会话
-     *
-     * @param tags 标签集合
-     * @return 符合条件的会话集合
-     */
-    @GetMapping("/any")
-    public Resp<Collection<String>> findSessionsByAnyMatchTags(@RequestParam("tags") Collection<String> tags) {
-        return Resp.bizSuccess(sessionService.findSessionsByAnyMatchTags(tags));
-    }
-
-    /**
-     * 判断会话是否拥有任意给定的标签
-     *
-     * @param sessionId 会话 id
-     * @param tags      给定的标签
-     * @return 是否拥有标签
-     */
-    @GetMapping("/{sessionId}/containAnyTag")
-    public Resp<Boolean> containAnyTag(@PathVariable("sessionId") String sessionId, @RequestParam("tags") Collection<String> tags) {
-        return Resp.bizSuccess(sessionService.containAnyTag(sessionId, tags));
-    }
-
-    /**
-     * 判断会话是否拥有所有给定的标签
-     *
-     * @param sessionId 会话 id
-     * @param tags      给定的标签
-     * @return 是否拥有标签
-     */
-    @GetMapping("/{sessionId}/containTags")
-    public Resp<Boolean> containAllTags(@PathVariable("sessionId") String sessionId, @RequestParam("tags") Collection<String> tags) {
-        return Resp.bizSuccess(sessionService.containAllTags(sessionId, tags));
-    }
-
-    // endregion
 }
-

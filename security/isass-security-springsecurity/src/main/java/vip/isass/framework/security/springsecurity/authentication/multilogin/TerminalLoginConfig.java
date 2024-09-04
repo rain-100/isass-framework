@@ -167,53 +167,60 @@
  *
  */
 
-package vip.isass.framework.security.core.authentication.login;
+package vip.isass.framework.security.springsecurity.authentication.multilogin;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.experimental.SuperBuilder;
+
+import java.util.Set;
 
 /**
- * @author Rain
+ * <p>
+ * 多端登陆配置
+ * </p>
+ *
+ * @author isass
  */
-public interface LoginUser {
+@Getter
+@Setter
+@ToString
+@SuperBuilder
+@NoArgsConstructor
+@AllArgsConstructor
+public class TerminalLoginConfig {
 
     /**
-     * 该用户在哪个租户的应用上登陆
-     *
-     * @return 租户 id
+     * 主键
      */
-    Long getTenantId();
-
-    Long getAppId();
+    private Long id;
 
     /**
-     * @return auth_user 的用户id
+     * 策略名称
      */
-    String getUserId();
+    private String name;
 
     /**
-     * @return 用户 id, 包括微服务 msToken
+     * 在线上限数[超过上限则不能登录。最大127]
      */
-    String getAllUserId();
-
-    String getTokenFrom();
+    private Integer onlineLimit;
 
     /**
-     * 用户昵称
-     *
-     * @return nick name
+     * 互斥终端[列表中只能同时有一种端在线]
      */
-    String getNickName();
+    private Set<TerminalGroup> mutexTerminals;
 
     /**
-     * token 过期时间
+     * 同端多登[同种终端同时在线上限]
      */
-    Long getExpireAt();
+    private Set<SameTerminalProperty> sameTerminals;
 
     /**
-     * 终端运行时
+     * 租户ID
      */
-    TerminalType getTerminalType();
+    private Long tenantId;
 
-    /**
-     * 登录日志id
-     */
-    Long getLoginLogId();
 }

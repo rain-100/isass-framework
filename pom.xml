@@ -259,15 +259,28 @@
         </developer>
     </developers>
 
+    <!--<distributionManagement>-->
+    <!--    <repository>-->
+    <!--        <id>ossrh</id>-->
+    <!--        <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>-->
+    <!--    </repository>-->
+
+    <!--    <snapshotRepository>-->
+    <!--        <id>ossrh</id>-->
+    <!--        <url>https://oss.sonatype.org/content/repositories/snapshots</url>-->
+    <!--    </snapshotRepository>-->
+    <!--</distributionManagement>-->
     <distributionManagement>
         <repository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+            <id>${distribution.releases.id}</id>
+            <name>${distribution.releases.name}</name>
+            <url>${distribution.releases.url}</url>
         </repository>
 
         <snapshotRepository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+            <id>${distribution.snapshot.id}</id>
+            <name>${distribution.snapshot.name}</name>
+            <url>${distribution.snapshot.url}</url>
         </snapshotRepository>
     </distributionManagement>
 </project>

@@ -169,11 +169,14 @@
 package vip.isass.framework.net.core.handler;
 
 import jakarta.annotation.Resource;
+import vip.isass.framework.common.service.Resp;
 import vip.isass.framework.net.core.message.Message;
 import vip.isass.framework.net.core.message.MessageCmd;
 import vip.isass.framework.net.core.session.ISessionService;
 import vip.isass.framework.security.core.authentication.jwt.JwtInfo;
 import vip.isass.framework.security.core.authentication.jwt.JwtUtil;
+
+import java.util.Collections;
 
 /**
  * 登录事件处理器
@@ -197,7 +200,11 @@ public class OnLoginEventHandler implements OnMessageEventHandler<String> {
     public Object onMessage(Message message, String token) {
         JwtInfo jwtInfo = JwtUtil.parse(token, secret);
         sessionService.setUserId(message.getSenderSessionId(), jwtInfo.getUid());
-        return jwtInfo;
+        Long appId = jwtInfo.getAid();
+        if (appId != null) {
+            sessionService.setTags(message.getSenderSessionId(), Collections.singleton("appId:" + appId.toString()));
+        }
+        return Resp.bizSuccess(jwtInfo);
     }
 
 }

@@ -181,7 +181,7 @@ import vip.isass.framework.net.core.session.ISessionService;
 /**
  * 服务端推送消息给客户端时，使用 redis 的 pubsub 功能中转消息
  * redis subscriber
- * 监听的 key 为 {@link NetRedisKey#REDIS_S2C_PUBSUB_KEY}
+ * 监听的 key 为 {@link NetRedisKey#REDIS_PUBSUB_KEY}
  *
  * @author rain
  */
@@ -200,7 +200,7 @@ public class S2CMessageRedisSubscriber implements IRedisSubscriber<vip.isass.fra
 
     @Override
     public Topic topic() {
-        return new ChannelTopic(NetRedisKey.REDIS_S2C_PUBSUB_KEY);
+        return new ChannelTopic(NetRedisKey.REDIS_PUBSUB_KEY);
     }
 
 }

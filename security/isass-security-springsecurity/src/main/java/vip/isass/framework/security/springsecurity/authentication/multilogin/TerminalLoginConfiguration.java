@@ -164,56 +164,113 @@
  * apply, that proxy's public statement of acceptance of any version is
  * permanent authorization for you to choose that version for the
  * Library.
- *
  */
 
-package vip.isass.framework.security.core.authentication.login;
+package vip.isass.framework.security.springsecurity.authentication.multilogin;
+
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.SmartLifecycle;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
+ * 多端登陆配置
+ *
  * @author Rain
  */
-public interface LoginUser {
+@Slf4j
+@Component
+public class TerminalLoginConfiguration implements SmartLifecycle {
+
+    private static boolean IS_RUNNING = false;
+
+    @Autowired(required = false)
+    private TerminalLoginConfigLoader terminalLoginConfigLoader;
 
     /**
-     * 该用户在哪个租户的应用上登陆
+     * 多端登陆策略缓存
+     * <br>
+     * key: appId
+     */
+    private Map<String, Set<TerminalLoginConfig>> appIdIdAndTerminalLoginConfigs = Collections.emptyMap();
+
+    /**
+     * 获取多端登陆策略，匹配优先级：appGroupId、tenantId、全局
      *
-     * @return 租户 id
+     * @param appId 应用 id
+     * @return 登录策略
      */
-    Long getTenantId();
+    public Collection<TerminalLoginConfig> getTerminalLoginConfig(Long appId) {
+        return appId == null
+                ? null
+                : appIdIdAndTerminalLoginConfigs.get(appId.toString());
+    }
 
-    Long getAppId();
+    private void init() {
+        if (terminalLoginConfigLoader == null) {
+            return;
+        }
+
+        Map<String, Set<TerminalLoginConfig>> appIdAndConfigMap = new HashMap<>();
+        terminalLoginConfigLoader.load()
+                .forEach(c -> {
+                    Set<TerminalGroup> mutexTerminals = c.getMutexTerminals();
+                    if (mutexTerminals != null) {
+                        for (TerminalGroup terminalGroup : mutexTerminals) {
+                            for (PriorityTerminal terminal : terminalGroup.getTerminals()) {
+                                appIdAndConfigMap
+                                        .computeIfAbsent(terminal.getAppId().toString(), k -> new HashSet<>())
+                                        .add(c);
+                            }
+                        }
+                    }
+
+                    Set<SameTerminalProperty> sameTerminals = c.getSameTerminals();
+                    if (sameTerminals != null) {
+                        for (SameTerminalProperty property : sameTerminals) {
+                            appIdAndConfigMap
+                                    .computeIfAbsent(property.getAppId().toString(), k -> new HashSet<>())
+                                    .add(c);
+                        }
+                    }
+                });
+        appIdIdAndTerminalLoginConfigs = appIdAndConfigMap;
+    }
 
     /**
-     * @return auth_user 的用户id
+     * 每2分钟向刷新一次
      */
-    String getUserId();
+    @Scheduled(initialDelay = 2 * 60 * 1000, fixedDelay = 2 * 60 * 1000)
+    public void reload() {
+        init();
+    }
 
-    /**
-     * @return 用户 id, 包括微服务 msToken
-     */
-    String getAllUserId();
+    @Override
+    public void start() {
+        IS_RUNNING = true;
+        if (terminalLoginConfigLoader == null) {
+            log.info("当前服务未添加多端登录配置加载器");
+            appIdIdAndTerminalLoginConfigs = Collections.emptyMap();
+            return;
+        }
+        init();
+    }
 
-    String getTokenFrom();
+    @Override
+    public void stop() {
+        IS_RUNNING = false;
+    }
 
-    /**
-     * 用户昵称
-     *
-     * @return nick name
-     */
-    String getNickName();
-
-    /**
-     * token 过期时间
-     */
-    Long getExpireAt();
-
-    /**
-     * 终端运行时
-     */
-    TerminalType getTerminalType();
-
-    /**
-     * 登录日志id
-     */
-    Long getLoginLogId();
+    @Override
+    public boolean isRunning() {
+        return IS_RUNNING;
+    }
 }

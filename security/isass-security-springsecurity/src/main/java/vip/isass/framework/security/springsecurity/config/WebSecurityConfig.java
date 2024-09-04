@@ -164,6 +164,7 @@
  * apply, that proxy's public statement of acceptance of any version is
  * permanent authorization for you to choose that version for the
  * Library.
+ *
  */
 
 package vip.isass.framework.security.springsecurity.config;
@@ -171,7 +172,6 @@ package vip.isass.framework.security.springsecurity.config;
 import jakarta.annotation.Resource;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
 import org.springframework.context.annotation.Configuration;
@@ -179,17 +179,14 @@ import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
-import vip.isass.framework.security.core.authentication.jwt.IJwtService;
 import vip.isass.framework.security.core.authorization.permiturl.UrlAccessSecurityStrategy;
 import vip.isass.framework.security.springsecurity.authentication.jwt.JwtAuthenticationFilter;
 import vip.isass.framework.security.springsecurity.authentication.ms.MsAuthenticationFilter;
-import vip.isass.framework.security.springsecurity.authentication.multiterminal.MultiTerminalLoginConfiguration;
+import vip.isass.framework.security.springsecurity.authentication.multilogin.ShouldOfflineChecker;
 import vip.isass.framework.security.springsecurity.authorization.processor.AffirmativeBasedPostProcessor;
 import vip.isass.framework.security.springsecurity.authorization.processor.FilterSecurityInterceptorSourcePostProcessor;
 import vip.isass.framework.security.springsecurity.metadata.SecurityMetadataSourceProviderManager;
@@ -221,13 +218,13 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     private SecurityMetadataSourceProviderManager securityMetadataSourceProviderManager;
 
     @Resource
-    private PermitUrlConfiguration permitUrlConfiguration;
-
-    @Autowired(required = false)
-    private IJwtService jwtService;
+    private UriPrefixProvider uriPrefixProvider;
 
     @Resource
-    private MultiTerminalLoginConfiguration multiTerminalLoginConfiguration;
+    private PermitUrlConfiguration permitUrlConfiguration;
+
+    @Resource
+    private ShouldOfflineChecker shouldOfflineChecker;
 
     @Getter
     @Value("${security.urlAccessSecurityStrategy:NONE}")
@@ -253,6 +250,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 new FilterSecurityInterceptorSourcePostProcessor(
                         requestMappingHandlerMapping,
                         securityMetadataSourceProviderManager,
+                        uriPrefixProvider,
                         permitUrls);
 
         AffirmativeBasedPostProcessor affirmativeBasedPostProcessor = new AffirmativeBasedPostProcessor();
@@ -283,7 +281,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
 
                 // jwt 校验过滤器
-                .addFilter(new JwtAuthenticationFilter(authenticationManager(), jwtService, multiTerminalLoginConfiguration))
+                .addFilter(new JwtAuthenticationFilter(authenticationManager(), shouldOfflineChecker))
 
                 // 微服务之间调用权限校验过滤器
                 .addFilter(new MsAuthenticationFilter(authenticationManager()))

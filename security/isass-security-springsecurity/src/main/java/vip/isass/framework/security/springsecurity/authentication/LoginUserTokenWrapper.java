@@ -164,6 +164,7 @@
  * apply, that proxy's public statement of acceptance of any version is
  * permanent authorization for you to choose that version for the
  * Library.
+ *
  */
 
 package vip.isass.framework.security.springsecurity.authentication;
@@ -172,8 +173,9 @@ import cn.hutool.core.collection.CollUtil;
 import lombok.Getter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
-import vip.isass.framework.security.springsecurity.authentication.jwt.JwtAuthenticationToken;
 import vip.isass.framework.security.core.authentication.login.LoginUser;
+import vip.isass.framework.security.core.authentication.login.TerminalType;
+import vip.isass.framework.security.springsecurity.authentication.jwt.JwtAuthenticationToken;
 
 import java.util.Collection;
 import java.util.List;
@@ -236,10 +238,31 @@ public class LoginUserTokenWrapper extends AbstractAuthenticationToken implement
     }
 
     @Override
+    public Long getTenantId() {
+        return loginUsers == null ? null : loginUsers.stream()
+                .filter(l -> JwtAuthenticationToken.class.getSimpleName().equals(l.getTokenFrom()))
+                .map(LoginUser::getTenantId)
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
+    }
+
+    @Override
+    public Long getAppId() {
+        return loginUsers == null ? null : loginUsers.stream()
+                .filter(l -> JwtAuthenticationToken.class.getSimpleName().equals(l.getTokenFrom()))
+                .map(LoginUser::getAppId)
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
+    }
+
+    @Override
     public String getUserId() {
         return loginUsers == null ? null : loginUsers.stream()
                 .filter(l -> JwtAuthenticationToken.class.getSimpleName().equals(l.getTokenFrom()))
                 .map(LoginUser::getUserId)
+                .filter(Objects::nonNull)
                 .findFirst()
                 .orElse(null);
     }
@@ -254,6 +277,7 @@ public class LoginUserTokenWrapper extends AbstractAuthenticationToken implement
         return loginUsers == null ? null : loginUsers.stream()
                 .filter(l -> JwtAuthenticationToken.class.getSimpleName().equals(l.getTokenFrom()))
                 .map(LoginUser::getNickName)
+                .filter(Objects::nonNull)
                 .findFirst()
                 .orElse(null);
     }
@@ -267,15 +291,34 @@ public class LoginUserTokenWrapper extends AbstractAuthenticationToken implement
         return loginUsers == null ? null : loginUsers.stream().map(LoginUser::getNickName).collect(Collectors.joining(","));
     }
 
-
     @Override
-    public String getLoginFrom() {
-        return loginUsers == null ? null : loginUsers.stream().map(LoginUser::getLoginFrom).collect(Collectors.joining(","));
+    public Long getExpireAt() {
+        return loginUsers == null ? null : loginUsers.stream()
+                .filter(l -> JwtAuthenticationToken.class.getSimpleName().equals(l.getTokenFrom()))
+                .map(LoginUser::getExpireAt)
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
     }
 
     @Override
-    public Integer getVersion() {
-        return loginUsers == null ? null : loginUsers.stream().map(LoginUser::getVersion).filter(Objects::nonNull).findFirst().orElse(null);
+    public Long getLoginLogId() {
+        return loginUsers == null ? null : loginUsers.stream()
+                .filter(l -> JwtAuthenticationToken.class.getSimpleName().equals(l.getTokenFrom()))
+                .map(LoginUser::getLoginLogId)
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
+    }
+
+    @Override
+    public TerminalType getTerminalType() {
+        return loginUsers == null ? null : loginUsers.stream()
+                .filter(l -> JwtAuthenticationToken.class.getSimpleName().equals(l.getTokenFrom()))
+                .map(LoginUser::getTerminalType)
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
     }
 
     @Override
@@ -285,8 +328,8 @@ public class LoginUserTokenWrapper extends AbstractAuthenticationToken implement
                 .append(getAllUserId()).append('\"')
                 .append(",\"nickName\":\"")
                 .append(getAllNickName()).append('\"')
-                .append(",\"loginFrom\":\"")
-                .append(getLoginFrom()).append('\"')
+                .append(",\"terminalType\":\"")
+                .append(getTerminalType()).append('\"')
                 .append('}')
                 .toString();
     }

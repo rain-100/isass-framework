@@ -202,4 +202,58 @@
         LEFT JOIN ${tableName} t2 ON t1.${idColumnName} = t2.${idColumnName}
     </select>
 
+    <select id="findAllSubRecords" resultType="java.util.Map" databaseId="dm">
+        WITH SubRecords(
+            <foreach item="columnName" collection="columnNameList" separator=",">
+                ${columnName}
+            </foreach>,
+            Level
+        ) AS (
+            SELECT
+                <foreach item="columnName" collection="columnNameList" separator=",">
+                    ${columnName}
+                </foreach>,
+                1 AS Level
+            FROM ${tableName}
+            WHERE
+                ${parentIdColumnName} = #{id}
+                <if test="logicDeleteSql != null and logicDeleteSql != ''">
+                    AND ${logicDeleteSql}
+                </if>
+            UNION ALL
+            SELECT
+                <foreach item="columnName" collection="columnNameList" separator=",">
+                    t.${columnName}
+                </foreach>,
+                sr.Level + 1
+            FROM ${tableName} t
+            INNER JOIN SubRecords sr ON t.${parentIdColumnName} = sr.${idColumnName}
+            <where>
+                <if test="logicDeleteSql != null and logicDeleteSql != ''">
+                    AND t.${logicDeleteSql}
+                </if>
+            </where>
+        )
+        SELECT *
+        FROM (
+            SELECT *,
+                CASE WHEN ${idColumnName} = #{id} THEN 0 ELSE Level END AS SortLevel
+            FROM SubRecords
+            UNION ALL
+            SELECT
+                <foreach item="columnName" collection="columnNameList" separator=",">
+                    ${columnName}
+                </foreach>,
+                0 AS Level,
+                0 AS SortLevel
+            FROM ${tableName}
+            WHERE
+                ${idColumnName} = #{id}
+                AND ${parentIdColumnName} != #{id}
+                <if test="logicDeleteSql != null and logicDeleteSql != ''">
+                    AND ${logicDeleteSql}
+                </if>
+        ) AS CombinedResults
+        ORDER BY SortLevel, id ASC
+    </select>
 </mapper>

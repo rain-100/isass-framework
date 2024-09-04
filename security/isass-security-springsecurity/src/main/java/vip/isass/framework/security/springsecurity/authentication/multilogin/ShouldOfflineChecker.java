@@ -166,76 +166,25 @@
  * Library.
  */
 
-package vip.isass.framework.security.springsecurity.authentication.multiterminal;
+package vip.isass.framework.security.springsecurity.authentication.multilogin;
 
-import cn.hutool.core.util.ObjectUtil;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.SmartLifecycle;
-import org.springframework.context.annotation.Configuration;
-import vip.isass.framework.security.core.authentication.multiterminal.MultiTerminalLoginProperties;
-import vip.isass.framework.security.core.authentication.multiterminal.MultiTerminalLoginPropertiesLoader;
-
-import java.util.List;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import vip.isass.framework.security.core.authentication.login.LoginUser;
 
 /**
- * 终端配置
- *
- * @author Rain
+ * 是否需要下线检查器
+ * 检查请求的 token 是否需要被下线
  */
-@Configuration
-public class MultiTerminalLoginConfiguration implements SmartLifecycle {
+@Slf4j
+@Service
+public class ShouldOfflineChecker {
 
-    @Autowired(required = false)
-    private MultiTerminalLoginPropertiesLoader multiTerminalLoginPropertiesLoader;
-
-    private MultiTerminalLoginProperties multiTerminalLoginProperties;
-
-    public boolean isDirectOnlineTerminal(String terminal) {
-        return this.multiTerminalLoginProperties.getDirectOnlineTerminals().contains(terminal.toLowerCase());
-    }
-
-    public boolean canSameTerminalsOnlineAtSameTime(String terminal) {
-        return this.multiTerminalLoginProperties.getSameTerminalsOnlineAtSameTimeTerminals().contains(terminal.toLowerCase());
-    }
-
-    public boolean isMutexTerminal(String terminal) {
-        return this.multiTerminalLoginProperties.getMutexTerminals().contains(terminal.toLowerCase());
-    }
-
-    public boolean isEnableAllTerminalSameTimeOnline() {
-        return this.multiTerminalLoginProperties.getEnableAllTerminalSameTimeOnline();
-    }
-
-    public Boolean isEnableForceOfflineIfTerminalNotConfigured() {
-        return this.multiTerminalLoginProperties.getEnableForceOfflineIfTerminalNotConfigured();
-    }
-
-    public List<String> getMutexTerminals() {
-        return this.multiTerminalLoginProperties.getMutexTerminals();
-    }
-
-    public void init() {
-        if (multiTerminalLoginPropertiesLoader == null) {
-            multiTerminalLoginProperties = new MultiTerminalLoginProperties();
-        } else {
-            multiTerminalLoginProperties = ObjectUtil.defaultIfNull(
-                    multiTerminalLoginPropertiesLoader.load(),
-                    new MultiTerminalLoginProperties());
-        }
-    }
-
-    @Override
-    public void start() {
-        init();
-    }
-
-    @Override
-    public void stop() {
+    /**
+     * 检查 token 是否需要被下线
+     */
+    public void checkShouldOffline(LoginUser loginUser) {
 
     }
 
-    @Override
-    public boolean isRunning() {
-        return multiTerminalLoginProperties != null;
-    }
 }

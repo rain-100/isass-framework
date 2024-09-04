@@ -164,56 +164,222 @@
  * apply, that proxy's public statement of acceptance of any version is
  * permanent authorization for you to choose that version for the
  * Library.
- *
  */
 
-package vip.isass.framework.security.core.authentication.login;
+package vip.isass.framework.net.proxy.service.controller;
+
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.lang.Assert;
+import cn.hutool.core.util.StrUtil;
+import jakarta.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
+import vip.isass.framework.common.service.Resp;
+import vip.isass.framework.net.core.message.Message;
+import vip.isass.framework.net.core.session.ISessionService;
+import vip.isass.framework.net.core.session.SessionBindingInfoChangeReq;
+import vip.isass.framework.net.core.session.SessionInfoCollection;
+
+import java.util.Collection;
+import java.util.Map;
 
 /**
- * @author Rain
+ * @author rain
  */
-public interface LoginUser {
+@Slf4j
+@Api(tags = "网络会话服务")
+@RestController
+@RequestMapping("/${spring.application.name}/session")
+public class NetSessionController {
+
+    @Resource
+    private ISessionService sessionService;
 
     /**
-     * 该用户在哪个租户的应用上登陆
+     * 发送消息给客户端
      *
-     * @return 租户 id
+     * @param message 消息
+     * @return 操作结果
      */
-    Long getTenantId();
-
-    Long getAppId();
+    @PostMapping("/send")
+    public Resp<?> sendMessage(@RequestBody Message message) {
+        sessionService.sendMessage(message);
+        return Resp.bizSuccess();
+    }
 
     /**
-     * @return auth_user 的用户id
-     */
-    String getUserId();
-
-    /**
-     * @return 用户 id, 包括微服务 msToken
-     */
-    String getAllUserId();
-
-    String getTokenFrom();
-
-    /**
-     * 用户昵称
+     * 批量发送消息给客户端
      *
-     * @return nick name
+     * @param messages 消息列表
+     * @return 操作结果
      */
-    String getNickName();
+    @PostMapping("/send/batch")
+    public Resp<?> sendMessages(@RequestBody Collection<Message> messages) {
+        sessionService.sendMessages(messages);
+        return Resp.bizSuccess();
+    }
 
     /**
-     * token 过期时间
+     * 保存会话绑定信息
+     *
+     * @param req 会话绑定信息请求实体
+     * @return 操作结果
      */
-    Long getExpireAt();
+    @PostMapping("/info")
+    public Resp<?> saveSessionInfo(@RequestBody SessionBindingInfoChangeReq req) {
+        if (StrUtil.isNotBlank(req.getSessionId())) {
+            if (StrUtil.isNotBlank(req.getResetUserId())) {
+                sessionService.setUserId(req.getSessionId(), req.getResetUserId());
+            } else if (Boolean.TRUE.equals(req.getRemoveUserId())) {
+                sessionService.removeUserId(req.getSessionId());
+            }
+
+            if (StrUtil.isNotBlank(req.getAlias())) {
+                sessionService.setAlias(req.getSessionId(), req.getAlias());
+            } else if (Boolean.TRUE.equals(req.getRemoveAlias())) {
+                sessionService.removeAlias(req.getSessionId());
+            }
+
+            if (CollUtil.isNotEmpty(req.getTags())) {
+                sessionService.setTags(req.getSessionId(), req.getTags());
+            } else if (Boolean.TRUE.equals(req.getRemoveAllTags())) {
+                sessionService.removeTags(req.getSessionId());
+            } else {
+                if (CollUtil.isNotEmpty(req.getAddTags())) {
+                    sessionService.addTags(req.getSessionId(), req.getAddTags());
+                }
+                if (CollUtil.isNotEmpty(req.getRemoveTags())) {
+                    sessionService.removeTags(req.getSessionId(), req.getRemoveTags());
+                }
+            }
+            return Resp.bizSuccess();
+        }
+
+        Assert.notBlank(req.getUserId(), "sessionId, userId必填其一");
+        if (CollUtil.isNotEmpty(req.getTags())) {
+            sessionService.setTagsByUserId(req.getUserId(), req.getTags());
+        } else {
+            if (CollUtil.isNotEmpty(req.getAddTags())) {
+                sessionService.addTagsByUserId(req.getUserId(), req.getAddTags());
+            }
+            if (CollUtil.isNotEmpty(req.getRemoveTags())) {
+                sessionService.removeTagsByUserId(req.getUserId(), req.getRemoveTags());
+            }
+
+        }
+        return Resp.bizSuccess();
+    }
+
+    // region user id
 
     /**
-     * 终端运行时
+     * 获取用户 id
+     *
+     * @param sessionId 会话 id
+     * @return 用户 id
      */
-    TerminalType getTerminalType();
+    @GetMapping("/{sessionId}/userId")
+    public Resp<String> getUserId(@PathVariable("sessionId") String sessionId) {
+        return Resp.bizSuccess(sessionService.getUserId(sessionId));
+    }
 
     /**
-     * 登录日志id
+     * 批量判断用户是否在线
+     *
+     * @param userIds 用户 id 集合
+     * @return 用户在线状态表
      */
-    Long getLoginLogId();
+    @PostMapping("/user/isOnline")
+    public Resp<Map<String, Boolean>> isOnline(@RequestBody Collection<String> userIds) {
+        return Resp.bizSuccess(sessionService.isOnline(userIds));
+    }
+
+    // endregion
+
+    // region alias
+
+    /**
+     * 获取别名
+     *
+     * @param sessionId 会话 id
+     * @return 别名
+     */
+    @GetMapping("/{sessionId}/alias")
+    public Resp<String> getAlias(@PathVariable("sessionId") String sessionId) {
+        return Resp.bizSuccess(sessionService.getAlias(sessionId));
+    }
+
+    // endregion
+
+    // region tag
+
+    /**
+     * 获取标签
+     *
+     * @param sessionId 会话 id
+     * @return 标签列表
+     */
+    @GetMapping("/{sessionId}/tags")
+    public Resp<Collection<String>> getTags(@PathVariable("sessionId") String sessionId) {
+        return Resp.bizSuccess(sessionService.findTags(sessionId));
+    }
+
+    /**
+     * 根据用户获取标签
+     *
+     * @param userId 用户 id
+     * @return 标签列表
+     */
+    @GetMapping("/tags/{userId}")
+    public Resp<Collection<String>> getTagsByUserId(@PathVariable("userId") String userId) {
+        return Resp.bizSuccess(sessionService.findTagsByUserId(userId));
+    }
+
+    /**
+     * 根据标签查找会话
+     *
+     * @param tags 标签集合
+     * @return 符合条件的会话集合
+     */
+    @GetMapping("/any")
+    public Resp<Collection<String>> findSessionsByAnyMatchTags(@RequestParam("tags") Collection<String> tags) {
+        return Resp.bizSuccess(sessionService.findSessionsByAnyMatchTags(tags));
+    }
+
+    /**
+     * 判断会话是否拥有任意给定的标签
+     *
+     * @param sessionId 会话 id
+     * @param tags      给定的标签
+     * @return 是否拥有标签
+     */
+    @GetMapping("/{sessionId}/containAnyTag")
+    public Resp<Boolean> containAnyTag(@PathVariable("sessionId") String sessionId, @RequestParam("tags") Collection<String> tags) {
+        return Resp.bizSuccess(sessionService.containAnyTag(sessionId, tags));
+    }
+
+    /**
+     * 判断会话是否拥有所有给定的标签
+     *
+     * @param sessionId 会话 id
+     * @param tags      给定的标签
+     * @return 是否拥有标签
+     */
+    @GetMapping("/{sessionId}/containTags")
+    public Resp<Boolean> containAllTags(@PathVariable("sessionId") String sessionId, @RequestParam("tags") Collection<String> tags) {
+        return Resp.bizSuccess(sessionService.containAllTags(sessionId, tags));
+    }
+
+    // endregion
+
+    /**
+     * 获取所有会话信息(用于调试)
+     *
+     * @return 会话信息集合
+     */
+    @GetMapping("/sessionInfoCollection")
+    @ApiOperation(value = "获取所有会话信息(用于调试)")
+    public Resp<SessionInfoCollection> getSessionInfoCollection() {
+        return Resp.bizSuccess(sessionService.getSessionInfoCollection());
+    }
 }
+

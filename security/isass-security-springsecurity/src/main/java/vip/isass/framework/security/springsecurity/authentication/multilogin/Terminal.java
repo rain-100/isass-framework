@@ -164,56 +164,50 @@
  * apply, that proxy's public statement of acceptance of any version is
  * permanent authorization for you to choose that version for the
  * Library.
- *
  */
 
-package vip.isass.framework.security.core.authentication.login;
+package vip.isass.framework.security.springsecurity.authentication.multilogin;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.experimental.SuperBuilder;
+
+import java.util.Objects;
 
 /**
- * @author Rain
+ * 终端运行时参数
  */
-public interface LoginUser {
+@Getter
+@Setter
+@ToString
+@SuperBuilder
+@NoArgsConstructor
+@AllArgsConstructor
+public class Terminal {
 
     /**
-     * 该用户在哪个租户的应用上登陆
-     *
-     * @return 租户 id
+     * 设备类型
      */
-    Long getTenantId();
-
-    Long getAppId();
+    private String deviceType;
 
     /**
-     * @return auth_user 的用户id
+     * 操作系统
      */
-    String getUserId();
+    private String os;
 
-    /**
-     * @return 用户 id, 包括微服务 msToken
-     */
-    String getAllUserId();
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Terminal terminal = (Terminal) o;
+        return Objects.equals(deviceType, terminal.deviceType) && Objects.equals(os, terminal.os);
+    }
 
-    String getTokenFrom();
-
-    /**
-     * 用户昵称
-     *
-     * @return nick name
-     */
-    String getNickName();
-
-    /**
-     * token 过期时间
-     */
-    Long getExpireAt();
-
-    /**
-     * 终端运行时
-     */
-    TerminalType getTerminalType();
-
-    /**
-     * 登录日志id
-     */
-    Long getLoginLogId();
+    @Override
+    public int hashCode() {
+        return Objects.hash(deviceType, os);
+    }
 }

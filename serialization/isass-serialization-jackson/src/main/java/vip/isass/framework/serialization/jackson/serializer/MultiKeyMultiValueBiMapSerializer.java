@@ -164,56 +164,35 @@
  * apply, that proxy's public statement of acceptance of any version is
  * permanent authorization for you to choose that version for the
  * Library.
- *
  */
 
-package vip.isass.framework.security.core.authentication.login;
+package vip.isass.framework.serialization.jackson.serializer;
+
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import vip.isass.framework.common.util.map.MultiKeyMultiValueBiMap;
+
+import java.io.IOException;
+import java.util.Collection;
+import java.util.Set;
 
 /**
- * @author Rain
+ * 多键多值的集合序列化器
  */
-public interface LoginUser {
+public class MultiKeyMultiValueBiMapSerializer extends JsonSerializer<MultiKeyMultiValueBiMap> {
 
-    /**
-     * 该用户在哪个租户的应用上登陆
-     *
-     * @return 租户 id
-     */
-    Long getTenantId();
+    @Override
+    @SuppressWarnings("unchecked")
+    public void serialize(MultiKeyMultiValueBiMap value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+        Set<?> keySet = value.keySet();
+        gen.writeStartObject();
+        for (Object key : keySet) {
+            Collection<?> collection = value.get(key);
+            gen.writeFieldName(key.toString());
+            gen.writeObject(collection);
+        }
+        gen.writeEndObject();
+    }
 
-    Long getAppId();
-
-    /**
-     * @return auth_user 的用户id
-     */
-    String getUserId();
-
-    /**
-     * @return 用户 id, 包括微服务 msToken
-     */
-    String getAllUserId();
-
-    String getTokenFrom();
-
-    /**
-     * 用户昵称
-     *
-     * @return nick name
-     */
-    String getNickName();
-
-    /**
-     * token 过期时间
-     */
-    Long getExpireAt();
-
-    /**
-     * 终端运行时
-     */
-    TerminalType getTerminalType();
-
-    /**
-     * 登录日志id
-     */
-    Long getLoginLogId();
 }

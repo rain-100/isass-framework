@@ -164,56 +164,53 @@
  * apply, that proxy's public statement of acceptance of any version is
  * permanent authorization for you to choose that version for the
  * Library.
- *
  */
 
-package vip.isass.framework.security.core.authentication.login;
+package vip.isass.framework.security.springsecurity.authentication.multilogin;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.experimental.SuperBuilder;
+
+import java.util.Objects;
 
 /**
- * @author Rain
+ * 终端运行时参数
  */
-public interface LoginUser {
+@Getter
+@Setter
+@ToString
+@SuperBuilder
+@NoArgsConstructor
+@AllArgsConstructor
+public class PriorityTerminal {
 
     /**
-     * 该用户在哪个租户的应用上登陆
-     *
-     * @return 租户 id
+     * 应用 id
      */
-    Long getTenantId();
-
-    Long getAppId();
+    private Long appId;
 
     /**
-     * @return auth_user 的用户id
+     * 优先终端
+     * 如果匹配到互斥终端，则根据此配置判断新端不能登录或旧端需要下线
+     * <br>
+     * 同一互斥组只只能有一个是优先终端。如果都是 false，则互踢
      */
-    String getUserId();
+    private Boolean prefer;
 
-    /**
-     * @return 用户 id, 包括微服务 msToken
-     */
-    String getAllUserId();
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof PriorityTerminal)) return false;
+        PriorityTerminal that = (PriorityTerminal) o;
+        return Objects.equals(appId, that.appId);
+    }
 
-    String getTokenFrom();
-
-    /**
-     * 用户昵称
-     *
-     * @return nick name
-     */
-    String getNickName();
-
-    /**
-     * token 过期时间
-     */
-    Long getExpireAt();
-
-    /**
-     * 终端运行时
-     */
-    TerminalType getTerminalType();
-
-    /**
-     * 登录日志id
-     */
-    Long getLoginLogId();
+    @Override
+    public int hashCode() {
+        return Objects.hash(appId);
+    }
 }
