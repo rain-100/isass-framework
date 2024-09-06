@@ -171,7 +171,7 @@ package vip.isass.framework.security.core.exception;
 
 import lombok.Getter;
 import vip.isass.framework.common.exception.code.IStatusMessage;
-import vip.isass.framework.security.core.ProjectInfo;
+import vip.isass.framework.security.core.ModuleInfo;
 
 /**
  * @author Rain
@@ -180,13 +180,13 @@ import vip.isass.framework.security.core.ProjectInfo;
 public enum SecurityCoreStatusEnum implements IStatusMessage {
     // UN_LOGIN(16, "未登录系统"),
 
-    FORCE_OFFLINE(ProjectInfo.STATUS_CODE_PREFIX + 1001, "已在其他设备登陆"),
-    FORBID_ONLINE_TERMINAL(ProjectInfo.STATUS_CODE_PREFIX + 1002, "终端已被禁用"),
-    NOT_IN_ALLOW_TERMINAL_LIST(ProjectInfo.STATUS_CODE_PREFIX + 1003, "不在允许上线终端列表中"),
-    TOKEN_INVALID(ProjectInfo.STATUS_CODE_PREFIX + 1004, "token 无效"),
-    OTHER_TERMINAL_ALREADY_LOGIN(ProjectInfo.STATUS_CODE_PREFIX + 1005, "登录失败，已在其他设备登陆"),
-    APP_FORBID_ONLINE(ProjectInfo.STATUS_CODE_PREFIX + 1006, "应用已被禁用"),
-    MAX_ONLINE_LIMIT(ProjectInfo.STATUS_CODE_PREFIX + 1007, "登录失败，已达到允许登录上限"),
+    FORCE_OFFLINE(ModuleInfo.STATUS_CODE_PREFIX + 1001, "已在其他设备登陆"),
+    FORBID_ONLINE_TERMINAL(ModuleInfo.STATUS_CODE_PREFIX + 1002, "终端已被禁用"),
+    NOT_IN_ALLOW_TERMINAL_LIST(ModuleInfo.STATUS_CODE_PREFIX + 1003, "不在允许上线终端列表中"),
+    TOKEN_INVALID(ModuleInfo.STATUS_CODE_PREFIX + 1004, "token 无效"),
+    OTHER_TERMINAL_ALREADY_LOGIN(ModuleInfo.STATUS_CODE_PREFIX + 1005, "登录失败，已在其他设备登陆"),
+    APP_FORBID_ONLINE(ModuleInfo.STATUS_CODE_PREFIX + 1006, "应用已被禁用"),
+    MAX_ONLINE_LIMIT(ModuleInfo.STATUS_CODE_PREFIX + 1007, "登录失败，已达到允许登录上限"),
     ;
 
     private final Integer status;

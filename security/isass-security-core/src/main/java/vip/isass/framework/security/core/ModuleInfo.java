@@ -168,10 +168,10 @@
 
 package vip.isass.framework.security.core;
 
-public interface ProjectInfo {
+public interface ModuleInfo {
 
     Integer CODE = 10025;
 
-    Integer STATUS_CODE_PREFIX = ProjectInfo.CODE * 10000;
+    Integer STATUS_CODE_PREFIX = ModuleInfo.CODE * 10000;
 
 }
