@@ -174,26 +174,21 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.dynamic.datasource.DynamicRoutingDataSource;
 import com.baomidou.mybatisplus.core.conditions.AbstractWrapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.zaxxer.hikari.HikariDataSource;
 import lombok.SneakyThrows;
+import org.apache.ibatis.mapping.DatabaseIdProvider;
 import vip.isass.core.structure.criteria.V2WhereCondition;
 import vip.isass.core.support.JsonUtil;
 import vip.isass.core.support.SpringContextUtil;
 
-import javax.sql.DataSource;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author Rain
  */
 public class V2MybatisPlusWhereCondition {
-
-    private static final Map<DataSource, String> DB_TYPE_MAPPING = new ConcurrentHashMap<>();
 
     @SuppressWarnings("unchecked")
     public static void apply(V2WhereCondition whereCondition, AbstractWrapper wrapper) {
@@ -261,17 +256,35 @@ public class V2MybatisPlusWhereCondition {
                 break;
             case CONTAINS_ALL:
                 wrapper.apply(
-                    whereCondition.getValue() != null,
-                    StrUtil.format("{} @> '{{}}'",
-                        whereCondition.getColumnName(),
-                        CollUtil.join((Collection) whereCondition.getValue(), ",")));
+                        whereCondition.getValue() != null,
+                        StrUtil.format("{} @> '{{}}'",
+                                whereCondition.getColumnName(),
+                                CollUtil.join((Collection) whereCondition.getValue(), ",")));
                 break;
             case CONTAINS_ANY:
                 wrapper.apply(
-                    whereCondition.getValue() != null,
-                    StrUtil.format("{} && '{{}}'",
-                        whereCondition.getColumnName(),
-                        CollUtil.join((Collection) whereCondition.getValue(), ",")));
+                        whereCondition.getValue() != null,
+                        StrUtil.format("{} && '{{}}'",
+                                whereCondition.getColumnName(),
+                                CollUtil.join((Collection) whereCondition.getValue(), ",")));
+                break;
+            case JSON_OBJECT_PATH_EQUAL:
+                if (whereCondition.getValue() == null) {
+                    return;
+                }
+                String[] path = whereCondition.getColumnName().split("\\.", 2);
+                switch (getDbType()) {
+                    case "":
+                    case "mysql":
+                        wrapper.apply(
+                                StrUtil.format("{}->'$.{}' = {0}", path[0], path[1]),
+                                whereCondition.getValue()
+                        );
+                        break;
+                    case "dm":
+                        wrapper.like(whereCondition.getValue() != null, path[0], whereCondition.getValue());
+                        break;
+                }
                 break;
             case JSON_ARRAY_CONTAINS:
                 if (whereCondition.getValue() == null) {
@@ -282,8 +295,8 @@ public class V2MybatisPlusWhereCondition {
                     case "mysql":
                         try {
                             wrapper.apply(
-                                StrUtil.format("JSON_CONTAINS({},{0})", whereCondition.getColumnName()),
-                                JsonUtil.DEFAULT_INSTANCE.writeValueAsString(Collections.singletonList(whereCondition.getValue()))
+                                    StrUtil.format("JSON_CONTAINS({},{0})", whereCondition.getColumnName()),
+                                    JsonUtil.DEFAULT_INSTANCE.writeValueAsString(Collections.singletonList(whereCondition.getValue()))
                             );
                         } catch (JsonProcessingException e) {
                             throw new RuntimeException(e);
@@ -291,8 +304,8 @@ public class V2MybatisPlusWhereCondition {
                         break;
                     case "dm":
                         wrapper.apply(
-                            StrUtil.format("{} like concat('%',{0},'%')", whereCondition.getColumnName()),
-                            whereCondition.getValue()
+                                StrUtil.format("{} like concat('%',{0},'%')", whereCondition.getColumnName()),
+                                whereCondition.getValue()
                         );
                         break;
                 }
@@ -317,8 +330,8 @@ public class V2MybatisPlusWhereCondition {
                             }
                             String whereSql = CollUtil.join(sqlFragments, " OR ");
                             wrapper.apply(
-                                whereSql,
-                                valueArr
+                                    whereSql,
+                                    valueArr
                             );
                         } catch (JsonProcessingException e) {
                             throw new RuntimeException(e);
@@ -335,8 +348,8 @@ public class V2MybatisPlusWhereCondition {
                         }
                         String whereSql = CollUtil.join(sqlFragments, " OR ");
                         wrapper.apply(
-                            whereSql,
-                            valueArr
+                                whereSql,
+                                valueArr
                         );
                         break;
                 }
@@ -362,8 +375,8 @@ public class V2MybatisPlusWhereCondition {
                             }
                             String whereSql = CollUtil.join(sqlFragments, " AND ");
                             wrapper.apply(
-                                whereSql,
-                                valueArr
+                                    whereSql,
+                                    valueArr
                             );
                         } catch (JsonProcessingException e) {
                             throw new RuntimeException(e);
@@ -380,8 +393,8 @@ public class V2MybatisPlusWhereCondition {
                         }
                         String whereSql = CollUtil.join(sqlFragments, " AND ");
                         wrapper.apply(
-                            whereSql,
-                            valueArr
+                                whereSql,
+                                valueArr
                         );
                         break;
                 }
@@ -395,22 +408,7 @@ public class V2MybatisPlusWhereCondition {
     @SneakyThrows
     private static String getDbType() {
         DynamicRoutingDataSource ds = SpringContextUtil.getBean(DynamicRoutingDataSource.class);
-        DataSource datasource = ds.determineDataSource();
-        String dbType = DB_TYPE_MAPPING.get(datasource);
-        if (dbType != null) {
-            return dbType;
-        }
-
-        dbType = "";
-        if (datasource.isWrapperFor(HikariDataSource.class)) {
-            String jdbcUrl = datasource.unwrap(HikariDataSource.class).getJdbcUrl();
-            if (jdbcUrl.contains(":dm:")) {
-                dbType = "dm";
-            } else if (jdbcUrl.contains("mysql:")) {
-                dbType = "mysql";
-            }
-        }
-        DB_TYPE_MAPPING.put(datasource, dbType);
-        return dbType;
+        return SpringContextUtil.getBean(DatabaseIdProvider.class)
+                .getDatabaseId(ds);
     }
 }

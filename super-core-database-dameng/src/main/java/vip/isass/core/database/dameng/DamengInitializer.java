@@ -234,4 +234,8 @@ public class DamengInitializer implements DatabaseInitializer {
         return null;
     }
 
+    @Override
+    public String parseSchemaName(String jdbcUrl) {
+        return null;
+    }
 }

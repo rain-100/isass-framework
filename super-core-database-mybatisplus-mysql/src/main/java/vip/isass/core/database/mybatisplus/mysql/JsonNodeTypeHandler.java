@@ -169,6 +169,7 @@
 
 package vip.isass.core.database.mybatisplus.mysql;
 
+import cn.hutool.core.util.StrUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.SneakyThrows;
@@ -225,6 +226,8 @@ public class JsonNodeTypeHandler extends BaseTypeHandler<JsonNode> {
         if (value == null) {
             return null;
         }
+        value = StrUtil.removePrefix(value, "\"");
+        value = StrUtil.removeSuffix(value, "\"");
         return JsonUtil.DEFAULT_INSTANCE.readTree(value);
     }
 
