@@ -275,7 +275,7 @@
 
         <guava.version>26.0-jre</guava.version>
 
-        <knife4j.version>2.0.5</knife4j.version>
+        <knife4j.version>2.0.9</knife4j.version>
 
         <jjwt.version>0.9.1</jjwt.version>
         <activiti.version>6.0.0</activiti.version>

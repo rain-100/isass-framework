@@ -197,12 +197,12 @@ public class IsassEnumPropertyPlugin implements ModelPropertyBuilderPlugin {
             Optional<ApiModelProperty> annotation = Optional.absent();
 
             if (context.getAnnotatedElement().isPresent()) {
-                annotation = annotation.or(ApiModelProperties.findApiModePropertyAnnotation(context.getAnnotatedElement().get()));
+                annotation = annotation.or(Optional.fromJavaUtil(ApiModelProperties.findApiModePropertyAnnotation(context.getAnnotatedElement().get())));
             }
             if (context.getBeanPropertyDefinition().isPresent()) {
-                annotation = annotation.or(Annotations.findPropertyAnnotation(
-                    context.getBeanPropertyDefinition().get(),
-                    ApiModelProperty.class));
+                annotation = annotation.or(Optional.fromJavaUtil(Annotations.findPropertyAnnotation(
+                        context.getBeanPropertyDefinition().get(),
+                        ApiModelProperty.class)));
             }
             final Class<?> rawPrimaryType = context.getBeanPropertyDefinition().get().getRawPrimaryType();
 
@@ -215,16 +215,16 @@ public class IsassEnumPropertyPlugin implements ModelPropertyBuilderPlugin {
 
                 Enum<?>[] values = (Enum<?>[]) rawPrimaryType.getEnumConstants();
                 final List<String> displayValues = Arrays
-                    .stream(values)
-                    .map(e -> {
-                        try {
-                            return Convert.convert(codeFieldReturnType, getCodeMethod.invoke(e)).toString();
-                        } catch (Exception e1) {
-                            log.error(e1.getMessage(), e1);
-                        }
-                        return "";
-                    })
-                    .collect(Collectors.toList());
+                        .stream(values)
+                        .map(e -> {
+                            try {
+                                return Convert.convert(codeFieldReturnType, getCodeMethod.invoke(e)).toString();
+                            } catch (Exception e1) {
+                                log.error(e1.getMessage(), e1);
+                            }
+                            return "";
+                        })
+                        .collect(Collectors.toList());
                 final AllowableListValues allowableListValues = new AllowableListValues(displayValues, rawPrimaryType.getTypeName());
                 //固定设置为int类型
                 final ResolvedType resolvedType = context.getResolver().resolve(codeFieldReturnType);
@@ -232,18 +232,18 @@ public class IsassEnumPropertyPlugin implements ModelPropertyBuilderPlugin {
                 String desc = annotation.isPresent() ? annotation.get().value() : "";
                 if (!desc.contains("[枚举--")) {
                     desc = desc
-                        + "["
-                        + Arrays.stream(values)
-                        .map(e -> {
-                            try {
-                                return getCodeMethod.invoke(e) + "（" + e.name() + ", " + getDescMethod.invoke(e)+")";
-                            } catch (Exception e1) {
-                                log.error(e1.getMessage(), e1);
-                            }
-                            return "";
-                        })
-                        .collect(Collectors.joining(";"))
-                        + "]";
+                            + "["
+                            + Arrays.stream(values)
+                            .map(e -> {
+                                try {
+                                    return getCodeMethod.invoke(e) + "（" + e.name() + ", " + getDescMethod.invoke(e) + ")";
+                                } catch (Exception e1) {
+                                    log.error(e1.getMessage(), e1);
+                                }
+                                return "";
+                            })
+                            .collect(Collectors.joining(";"))
+                            + "]";
                 }
 
                 context.getBuilder().description(desc).allowableValues(allowableListValues).type(resolvedType);

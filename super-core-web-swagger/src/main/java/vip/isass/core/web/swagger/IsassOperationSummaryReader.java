@@ -171,7 +171,6 @@ package vip.isass.core.web.swagger;
 
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.StrUtil;
-import com.google.common.base.Optional;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -183,6 +182,8 @@ import springfox.documentation.spi.service.OperationBuilderPlugin;
 import springfox.documentation.spi.service.contexts.OperationContext;
 import springfox.documentation.spring.web.DescriptionResolver;
 import springfox.documentation.swagger.common.SwaggerPluginSupport;
+
+import java.util.Optional;
 
 @Component
 @Order(SwaggerPluginSupport.SWAGGER_PLUGIN_ORDER + 1)
@@ -204,15 +205,15 @@ public class IsassOperationSummaryReader implements OperationBuilderPlugin {
         String[] tags = api.tags();
 
         if (ArrayUtil.isEmpty(tags)
-            || StrUtil.isBlank(tags[0])
-            || !(tags[0].startsWith("v1") || tags[0].startsWith("v2"))) {
+                || StrUtil.isBlank(tags[0])
+                || !(tags[0].startsWith("v1") || tags[0].startsWith("v2"))) {
             return;
         }
 
         String version = StrUtil.subWithLength(tags[0], 0, 2);
 
         String summary = "";
-        Optional<ApiOperation> apiOperationAnnotation = context.findAnnotation(ApiOperation.class);
+        java.util.Optional<ApiOperation> apiOperationAnnotation = context.findAnnotation(ApiOperation.class);
         if (apiOperationAnnotation.isPresent() && StringUtils.hasText(apiOperationAnnotation.get().value())) {
             summary = descriptions.resolve(apiOperationAnnotation.get().value());
         }
@@ -221,8 +222,8 @@ public class IsassOperationSummaryReader implements OperationBuilderPlugin {
         }
 
         summary = new StringBuilder(summary)
-            .insert(summary.indexOf("-"), "-" + StrUtil.removePrefix(tags[0], version))
-            .toString();
+                .insert(summary.indexOf("-"), "-" + StrUtil.removePrefix(tags[0], version))
+                .toString();
         context.operationBuilder().summary(descriptions.resolve(summary));
     }
 

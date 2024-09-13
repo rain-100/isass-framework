@@ -174,7 +174,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.xiaoymin.knife4j.spring.annotations.EnableKnife4j;
-import com.google.common.base.Predicates;
+import com.github.xiaoymin.knife4j.spring.extension.OpenApiExtensionResolver;
 import com.google.common.collect.Lists;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.feature.FeatureCollection;
@@ -197,7 +197,7 @@ import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spi.service.contexts.SecurityContext;
 import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.spring.web.readers.operation.CachingOperationNameGenerator;
-import springfox.documentation.swagger2.annotations.EnableSwagger2;
+import springfox.documentation.swagger2.annotations.EnableSwagger2WebMvc;
 import vip.isass.core.entity.Json;
 import vip.isass.core.support.ExceptionCatcher;
 import vip.isass.core.web.security.authentication.jwt.JwtConst;
@@ -214,7 +214,7 @@ import java.util.Map;
  */
 @ComponentScan
 @EnableKnife4j
-@EnableSwagger2
+@EnableSwagger2WebMvc
 public class WebSwaggerAutoConfiguration {
 
     @Resource
@@ -230,7 +230,7 @@ public class WebSwaggerAutoConfiguration {
     private String version;
 
     @Bean
-    public Docket swaggerApi() {
+    public Docket swaggerApi(OpenApiExtensionResolver openApiExtensionResolver) {
         loggingSystem.setLogLevel(CachingOperationNameGenerator.class.getName(), LogLevel.WARN);
         Docket docket = new Docket(DocumentationType.SWAGGER_2)
                 .apiInfo(apiInfo())
@@ -244,11 +244,10 @@ public class WebSwaggerAutoConfiguration {
                 .directModelSubstitute(org.springframework.core.io.Resource.class, Void.class)
                 .select()
                 // .apis(RequestHandlerSelectors.any())
-                .apis(Predicates.or(
-                        RequestHandlerSelectors.withClassAnnotation(RestController.class),
-                        RequestHandlerSelectors.withClassAnnotation(Controller.class)))
-                .apis(Predicates.not(RequestHandlerSelectors.basePackage("vip.isass.core.web.exception")))
-                .apis(Predicates.not(RequestHandlerSelectors.basePackage("vip.isass.core.web.swagger")))
+                .apis(RequestHandlerSelectors.withClassAnnotation(RestController.class)
+                        .or(RequestHandlerSelectors.withClassAnnotation(Controller.class)))
+                .apis(RequestHandlerSelectors.basePackage("vip.isass.core.web.exception").negate())
+                .apis(RequestHandlerSelectors.basePackage("vip.isass.core.web.swagger").negate())
                 .paths(PathSelectors.any())
                 .build()
                 .securityContexts(CollUtil.newArrayList(
@@ -258,7 +257,8 @@ public class WebSwaggerAutoConfiguration {
                 ))
                 .securitySchemes(CollUtil.newArrayList(
                         apiKey()
-                ));
+                ))
+                .extensions(openApiExtensionResolver.buildExtensions(serviceName));
         ExceptionCatcher.consume(
                 docket,
                 d -> {
