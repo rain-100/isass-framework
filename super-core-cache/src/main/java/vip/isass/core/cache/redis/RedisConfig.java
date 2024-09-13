@@ -171,7 +171,7 @@ package vip.isass.core.cache.redis;
 
 import cn.hutool.core.util.ReflectUtil;
 import lombok.SneakyThrows;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CachingConfigurerSupport;
 import org.springframework.cache.annotation.EnableCaching;
@@ -239,7 +239,7 @@ public class RedisConfig extends CachingConfigurerSupport {
         template.setDefaultSerializer(RedisSerializer.string());
 
         Jackson2JsonRedisSerializer<Object> jackson2JsonRedisSerializer =
-            new Jackson2JsonRedisSerializer<>(Object.class);
+                new Jackson2JsonRedisSerializer<>(Object.class);
         jackson2JsonRedisSerializer.setObjectMapper(JsonUtil.NOT_NULL_INSTANCE);
 
         template.setValueSerializer(jackson2JsonRedisSerializer);
@@ -253,13 +253,16 @@ public class RedisConfig extends CachingConfigurerSupport {
     }
 
     @Bean
-    @ConditionalOnBean(IRedisSubscriber.class)
     public RedisMessageListenerContainer listenerContainer(RedisConnectionFactory connectionFactory,
-                                                           List<IRedisSubscriber<?>> redisSubscribers) {
+                                                           @Autowired(required = false) List<IRedisSubscriber<?>> redisSubscribers) {
         initExecutor();
         RedisMessageListenerContainer listenerContainer = new RedisMessageListenerContainer();
         listenerContainer.setTaskExecutor(this.executor);
         listenerContainer.setConnectionFactory(connectionFactory);
+        if (redisSubscribers == null) {
+            return listenerContainer;
+        }
+
         for (IRedisSubscriber<?> redisSubscriber : redisSubscribers) {
             MessageListenerAdapter messageListenerAdapter = new MessageListenerAdapter(redisSubscriber);
             messageListenerAdapter.afterPropertiesSet();
