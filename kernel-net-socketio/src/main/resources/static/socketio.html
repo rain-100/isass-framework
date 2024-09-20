@@ -175,7 +175,7 @@
             isConnected = true;
             console.log("连接成功");
             serverOutput('<span class="connect-msg"><span style="color: blue; ">' + getNowTime() + '&nbsp;</span>连接成功</span>');
-            $("#status").text("已连接");
+            $("#status").text("已连接 " + socket.id);
             errorCount = 0;
         });
         socket.on('reconnect_attempt', function () {
@@ -283,6 +283,7 @@
 
         let time = getNowTime();
         $("#statusFilterEvents").text("Success:" + time);
+        $.tip
         parseFilterEvents(filterEventsStr);
     })
 
