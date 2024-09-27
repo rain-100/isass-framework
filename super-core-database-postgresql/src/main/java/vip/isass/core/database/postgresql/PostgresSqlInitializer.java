@@ -191,8 +191,7 @@ public class PostgresSqlInitializer implements DatabaseInitializer {
 
     @Override
     public String checkDatabaseNameExistSql(String databaseName) {
-        // SELECT count(*) FROM information_schema.SCHEMATA where SCHEMA_NAME ='{}'
-        return StrUtil.format("SELECT COUNT(*) FROM SYS_DATABASE WHERE DATNAME= '{}'", databaseName);
+        return StrUtil.format("SELECT count(*) FROM pg_database where datname ='{}'", databaseName);
     }
 
     @Override
@@ -213,6 +212,7 @@ public class PostgresSqlInitializer implements DatabaseInitializer {
 
     @Override
     public String removeDatabaseName(String jdbcUrl, String databaseName) {
-        return DatabaseInitializer.super.removeDatabaseName(jdbcUrl, databaseName)+"/kingbase";
+        // todo 理论上这里要处理，如果人大金仓的连接方式也用pg 的话，需要修改默认连接的数据库/模式
+        return DatabaseInitializer.super.removeDatabaseName(jdbcUrl, databaseName).replace("?","/postgres?");
     }
 }
