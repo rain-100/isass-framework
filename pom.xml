@@ -196,7 +196,9 @@
         <module>super-core-database-mysql</module>
         <module>super-core-database-postgresql</module>
         <module>super-core-database-dameng</module>
+        <module>super-core-database-kingbase</module>
         <module>super-core-database-mybatisplus-postgresql</module>
+        <module>super-core-database-mybatisplus-kingbase</module>
         <module>super-core-database-mybatisplus-mysql</module>
         <module>super-core-database-sharding-jdbc</module>
         <module>super-core-mq</module>
@@ -257,6 +259,7 @@
         <p6spy.version>3.9.0</p6spy.version>
         <dynamic-datasource.version>3.2.1</dynamic-datasource.version>
         <dameng.version>8.1.3.140</dameng.version>
+        <kingbase8.version>8.6.20</kingbase8.version>
         <postgresql.version>42.4.3</postgresql.version>
         <mysql.version>8.0.33</mysql.version>
 
@@ -453,6 +456,12 @@
 
             <dependency>
                 <groupId>vip.isass</groupId>
+                <artifactId>super-core-database-kingbase</artifactId>
+                <version>${super-core.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>vip.isass</groupId>
                 <artifactId>super-core-database-mybatisplus</artifactId>
                 <version>${super-core.version}</version>
             </dependency>
@@ -466,6 +475,12 @@
             <dependency>
                 <groupId>vip.isass</groupId>
                 <artifactId>super-core-database-mybatisplus-postgresql</artifactId>
+                <version>${super-core.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>vip.isass</groupId>
+                <artifactId>super-core-database-mybatisplus-kingbase</artifactId>
                 <version>${super-core.version}</version>
             </dependency>
 
@@ -595,6 +610,11 @@
                 <groupId>com.dameng</groupId>
                 <artifactId>DmJdbcDriver18</artifactId>
                 <version>${dameng.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.kingbase8</groupId>
+                <artifactId>kingbase8</artifactId>
+                <version>${kingbase8.version}</version>
             </dependency>
 
             <dependency>

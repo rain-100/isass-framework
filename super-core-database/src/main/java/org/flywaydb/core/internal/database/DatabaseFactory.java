@@ -217,12 +217,7 @@ import org.flywaydb.core.internal.parser.Parser;
 import org.flywaydb.core.internal.parser.ParsingContext;
 import org.flywaydb.core.internal.resource.LoadableResource;
 import org.flywaydb.core.internal.resource.ResourceProvider;
-import org.flywaydb.core.internal.sqlscript.DefaultSqlScriptExecutor;
-import org.flywaydb.core.internal.sqlscript.ParserSqlScript;
-import org.flywaydb.core.internal.sqlscript.SqlScript;
-import org.flywaydb.core.internal.sqlscript.SqlScriptExecutor;
-import org.flywaydb.core.internal.sqlscript.SqlScriptExecutorFactory;
-import org.flywaydb.core.internal.sqlscript.SqlScriptFactory;
+import org.flywaydb.core.internal.sqlscript.*;
 
 import java.sql.Connection;
 
@@ -271,7 +266,7 @@ public class DatabaseFactory {
         String intendedCurrentSchema = configuration.getDefaultSchema();
         if (!database.supportsChangingCurrentSchema() && intendedCurrentSchema != null) {
             LOG.warn(databaseProductName + " does not support setting the schema for the current session. " +
-                "Default schema will NOT be changed to " + intendedCurrentSchema + " !");
+                    "Default schema will NOT be changed to " + intendedCurrentSchema + " !");
         }
 
         return database;
@@ -333,6 +328,10 @@ public class DatabaseFactory {
 
 
                 );
+            case KINGBASE:
+                return new PostgreSQLDatabase(configuration, jdbcConnectionFactory
+
+                );
             case POSTGRESQL:
                 return new PostgreSQLDatabase(configuration, jdbcConnectionFactory
 
@@ -386,7 +385,7 @@ public class DatabaseFactory {
                 return new ParserSqlScript(createParser(jdbcConnectionFactory, configuration
 
 
-                    , parsingContext
+                        , parsingContext
                 ), resource, getMetadataResource(resourceProvider, resource), mixed);
             }
         };
@@ -397,7 +396,7 @@ public class DatabaseFactory {
     private static Parser createParser(JdbcConnectionFactory jdbcConnectionFactory, Configuration configuration
 
 
-        , ParsingContext parsingContext
+            , ParsingContext parsingContext
     ) {
         final DatabaseType databaseType = jdbcConnectionFactory.getDatabaseType();
 
@@ -425,9 +424,10 @@ public class DatabaseFactory {
                 return new OracleParser(configuration
 
 
-                    , parsingContext
+                        , parsingContext
                 );
             case POSTGRESQL:
+            case KINGBASE:
                 return new PostgreSQLParser(configuration, parsingContext);
             case REDSHIFT:
                 return new RedshiftParser(configuration, parsingContext);
@@ -450,7 +450,7 @@ public class DatabaseFactory {
     }
 
     public static SqlScriptExecutorFactory createSqlScriptExecutorFactory(
-        final JdbcConnectionFactory jdbcConnectionFactory
+            final JdbcConnectionFactory jdbcConnectionFactory
 
 
     ) {
