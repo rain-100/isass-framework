@@ -273,6 +273,7 @@ public class SqlSessionConfig implements TransactionManagementConfigurer {
         properties.put("Oracle", "oracle");
         properties.put("MySQL", "mysql");
         properties.put("DM DBMS", "dm");
+        properties.put("KingbaseES", "kingBase");
         databaseIdProvider.setProperties(properties);
         return databaseIdProvider;
     }
