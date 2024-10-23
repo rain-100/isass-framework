@@ -195,6 +195,11 @@
         </dependency>
 
         <dependency>
+            <groupId>vip.isass</groupId>
+            <artifactId>kernel-net-admin</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>com.corundumstudio.socketio</groupId>
             <artifactId>netty-socketio</artifactId>
         </dependency>
