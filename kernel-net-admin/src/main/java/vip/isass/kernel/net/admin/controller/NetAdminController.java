@@ -166,202 +166,41 @@
  * Library.
  */
 
-package vip.isass.kernel.net.proxy.service.controller;
+package vip.isass.kernel.net.admin.controller;
 
-import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.lang.Assert;
-import cn.hutool.core.util.StrUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import vip.isass.core.web.Resp;
-import vip.isass.kernel.net.core.message.Message;
 import vip.isass.kernel.net.core.session.ISessionService;
-import vip.isass.kernel.net.core.session.SessionBindingInfoChangeReq;
+import vip.isass.kernel.net.core.session.SessionInfoCollection;
 
 import javax.annotation.Resource;
-import java.util.Collection;
-import java.util.Map;
 
 /**
  * @author rain
  */
 @Slf4j
-@Api(tags = "网络会话服务")
+@Api(tags = "网络管理服务")
 @RestController
-@RequestMapping("/${spring.application.name}/session")
-public class NetSessionController {
+@RequestMapping("/${spring.application.name}/net/admin/session")
+public class NetAdminController {
 
     @Resource
     private ISessionService sessionService;
 
-    @PostMapping("/send")
-    @ApiOperation(value = "发送消息给客户端")
-    public Resp<?> sendMessage(@RequestBody Message message) {
-        sessionService.sendMessage(message);
-        return Resp.bizSuccess();
-    }
-
-    @PostMapping("/send/batch")
-    @ApiOperation(value = "批量发送消息给客户端")
-    public Resp<?> sendMessages(@RequestBody Collection<Message> messages) {
-        sessionService.sendMessages(messages);
-        return Resp.bizSuccess();
-    }
-
-    @PostMapping("/info")
-    @ApiOperation(value = "保存会话绑定信息")
-    public Resp<?> saveSessionInfo(@RequestBody SessionBindingInfoChangeReq req) {
-        if (StrUtil.isNotBlank(req.getSessionId())) {
-            if (StrUtil.isNotBlank(req.getResetUserId())) {
-                sessionService.setUserId(req.getSessionId(), req.getResetUserId());
-            } else if (Boolean.TRUE.equals(req.getRemoveUserId())) {
-                sessionService.removeUserId(req.getSessionId());
-            }
-
-            if (StrUtil.isNotBlank(req.getAlias())) {
-                sessionService.setAlias(req.getSessionId(), req.getAlias());
-            } else if (Boolean.TRUE.equals(req.getRemoveAlias())) {
-                sessionService.removeAlias(req.getSessionId());
-            }
-
-            if (CollUtil.isNotEmpty(req.getTags())) {
-                sessionService.setTags(req.getSessionId(), req.getTags());
-            } else if (Boolean.TRUE.equals(req.getRemoveAllTags())) {
-                sessionService.removeTags(req.getSessionId());
-            } else {
-                if (CollUtil.isNotEmpty(req.getAddTags())) {
-                    sessionService.addTags(req.getSessionId(), req.getAddTags());
-                }
-                if (CollUtil.isNotEmpty(req.getRemoveTags())) {
-                    sessionService.removeTags(req.getSessionId(), req.getRemoveTags());
-                }
-            }
-            return Resp.bizSuccess();
-        }
-
-        Assert.notBlank(req.getUserId(), "sessionId, userId必填其一");
-        if (CollUtil.isNotEmpty(req.getTags())) {
-            sessionService.setTagsByUserId(req.getUserId(), req.getTags());
-        } else {
-            if (CollUtil.isNotEmpty(req.getAddTags())) {
-                sessionService.addTagsByUserId(req.getUserId(), req.getAddTags());
-            }
-            if (CollUtil.isNotEmpty(req.getRemoveTags())) {
-                sessionService.removeTagsByUserId(req.getUserId(), req.getRemoveTags());
-            }
-
-        }
-        return Resp.bizSuccess();
-    }
-
-    // region user id
-
     /**
-     * 获取用户 id
+     * 获取所有会话信息(用于调试)
      *
-     * @return 用户 id
+     * @return 会话信息集合
      */
-    @GetMapping("/{sessionId}/userId")
-    @ApiOperation(value = "获取用户id")
-    public Resp<String> getUserId(@PathVariable("sessionId") String sessionId) {
-        return Resp.bizSuccess(sessionService.getUserId(sessionId));
+    @GetMapping("/sessionInfoCollection")
+    @ApiOperation(value = "获取所有会话信息(用于调试)")
+    public Resp<SessionInfoCollection> getSessionInfoCollection() {
+        return Resp.bizSuccess(sessionService.getSessionInfoCollection());
     }
-
-    @PostMapping("/user/isOnline")
-    @ApiOperation(value = "批量判断用户是否在线")
-    public Resp<Map<String, Boolean>> isOnline(@RequestBody Collection<String> userIds) {
-        return Resp.bizSuccess(sessionService.isOnline(userIds));
-    }
-
-    // endregion
-
-
-    // region alias
-
-    /**
-     * 获取别名
-     *
-     * @return 别名
-     */
-    @GetMapping("/{sessionId}/alias")
-    @ApiOperation(value = "获取别名")
-    public Resp<String> getAlias(@PathVariable("sessionId") String sessionId) {
-        return Resp.bizSuccess(sessionService.getAlias(sessionId));
-    }
-
-    // endregion
-
-    // region tag
-
-    /**
-     * 获取标签
-     *
-     * @return 标签列表
-     */
-    @GetMapping("/{sessionId}/tags")
-    @ApiOperation(value = "获取标签")
-    public Resp<Collection<String>> getTags(@PathVariable("sessionId") String sessionId) {
-        return Resp.bizSuccess(sessionService.findTags(sessionId));
-    }
-
-    /**
-     * 根据用户获取标签
-     *
-     * @return 标签列表
-     */
-    @GetMapping("/tags/{userId}")
-    @ApiOperation(value = "根据用户获取标签")
-    public Resp<Collection<String>> getTagsByUserId(@PathVariable("userId") String userId) {
-        return Resp.bizSuccess(sessionService.findTagsByUserId(userId));
-    }
-
-    /**
-     * 根据标签查找会话
-     *
-     * @param tags 标签集合
-     * @return 符合条件的会话集合
-     */
-    @GetMapping("/any")
-    @ApiOperation(value = "根据任意标签获取会话id")
-    public Resp<Collection<String>> findSessionsByAnyMatchTags(@RequestParam("tags") Collection<String> tags) {
-        return Resp.bizSuccess(sessionService.findSessionsByAnyMatchTags(tags));
-    }
-
-    /**
-     * 判断会话是否拥有任意给定的标签
-     *
-     * @param sessionId 会话 id
-     * @param tags      给定的标签
-     * @return 是否拥有标签
-     */
-    @GetMapping("/{sessionId}/containAnyTag")
-    @ApiOperation(value = "批量发送消息给客户端")
-    public Resp<Boolean> containAnyTag(@PathVariable("sessionId") String sessionId, @RequestParam("tags") Collection<String> tags) {
-        return Resp.bizSuccess(sessionService.containAnyTag(sessionId, tags));
-    }
-
-    /**
-     * 判断会话是否拥有所有给定的标签
-     *
-     * @param sessionId 会话 id
-     * @param tags      给定的标签
-     * @return 是否拥有标签
-     */
-    @GetMapping("/{sessionId}/containTags")
-    @ApiOperation(value = "批量发送消息给客户端")
-    public Resp<Boolean> containAllTags(@PathVariable("sessionId") String sessionId, @RequestParam("tags") Collection<String> tags) {
-        return Resp.bizSuccess(sessionService.containAllTags(sessionId, tags));
-    }
-
-    // endregion
-
 }
 

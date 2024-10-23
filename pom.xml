@@ -210,6 +210,7 @@
         <module>super-core-web-security</module>
         <module>super-core-web-swagger</module>
         <module>super-core-web-rpc-feign</module>
+        <module>kernel-net-admin</module>
         <module>kernel-net-core</module>
         <module>kernel-net-netty</module>
         <module>kernel-net-proxy-core</module>
@@ -517,6 +518,12 @@
             <dependency>
                 <groupId>vip.isass</groupId>
                 <artifactId>super-core-mq-kafka011</artifactId>
+                <version>${super-core.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>vip.isass</groupId>
+                <artifactId>kernel-net-admin</artifactId>
                 <version>${super-core.version}</version>
             </dependency>
 
@@ -1042,7 +1049,7 @@
                     <allowTimestampedSnapshots>true</allowTimestampedSnapshots>
                     <pushChanges>false</pushChanges>
                     <preparationGoals>clean validate</preparationGoals>
-                    <scmCommentPrefix>chore: </scmCommentPrefix>
+                    <scmCommentPrefix>chore:</scmCommentPrefix>
                 </configuration>
             </plugin>
         </plugins>
