@@ -166,108 +166,36 @@
  * Library.
  */
 
-package vip.isass.framework.database.redis;
+package vip.isass.framework.net.admin.controller;
 
-import cn.hutool.core.util.ReflectUtil;
-import lombok.SneakyThrows;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.CacheManager;
-import org.springframework.cache.annotation.CachingConfigurerSupport;
-import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.cache.RedisCacheConfiguration;
-import org.springframework.data.redis.cache.RedisCacheManager;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.hash.HashMapper;
-import org.springframework.data.redis.hash.Jackson2HashMapper;
-import org.springframework.data.redis.listener.RedisMessageListenerContainer;
-import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
-import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
-import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
-import org.springframework.data.redis.serializer.RedisSerializationContext;
-import org.springframework.data.redis.serializer.RedisSerializer;
-import org.springframework.data.redis.serializer.StringRedisSerializer;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-import vip.isass.framework.serialization.jackson.JsonUtil;
+import lombok.extern.slf4j.Slf4j;
+import vip.isass.framework.common.service.Resp;
+import vip.isass.framework.net.core.session.ISessionService;
+import vip.isass.framework.net.core.session.SessionInfoCollection;
 
-import java.util.List;
-import java.util.concurrent.ThreadPoolExecutor;
+import javax.annotation.Resource;
 
 /**
  * @author rain
  */
-@Configuration
-@EnableCaching
-@ComponentScan
-public class RedisConfig extends CachingConfigurerSupport {
+@Slf4j
+@Api(tags = "网络管理服务")
+@RestController
+@RequestMapping("/${spring.application.name}/net/admin/session")
+public class NetAdminController {
 
-    public static final HashMapper HASH_MAPPER = new Jackson2HashMapper(false);
+    @Resource
+    private ISessionService sessionService;
 
-    private ThreadPoolTaskExecutor executor;
-
-    private void initExecutor() {
-        this.executor = new ThreadPoolTaskExecutor();
-        this.executor.setCorePoolSize(10);
-        this.executor.setMaxPoolSize(20);
-        this.executor.setQueueCapacity(10000);
-        this.executor.setKeepAliveSeconds(60);
-        this.executor.setThreadNamePrefix("redis-subscriber-");
-        this.executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
-        this.executor.initialize();
+    /**
+     * 获取所有会话信息(用于调试)
+     *
+     * @return 会话信息集合
+     */
+    @GetMapping("/sessionInfoCollection")
+    @ApiOperation(value = "获取所有会话信息(用于调试)")
+    public Resp<SessionInfoCollection> getSessionInfoCollection() {
+        return Resp.bizSuccess(sessionService.getSessionInfoCollection());
     }
-
-    @Bean
-    public CacheManager cacheManager(RedisConnectionFactory redisConnectionFactory) {
-        RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig();
-
-        // 配置序列化
-        config.serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()));
-        config.serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer()));
-
-        return RedisCacheManager.builder(redisConnectionFactory).cacheDefaults(config).build();
-    }
-
-    @Bean
-    @SneakyThrows
-    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory factory) {
-        RedisTemplate<String, Object> template = new RedisTemplate<>();
-        template.setConnectionFactory(factory);
-        template.setDefaultSerializer(RedisSerializer.string());
-
-        Jackson2JsonRedisSerializer<Object> jackson2JsonRedisSerializer =
-                new Jackson2JsonRedisSerializer<>(Object.class);
-        jackson2JsonRedisSerializer.setObjectMapper(JsonUtil.NOT_NULL_INSTANCE);
-
-        template.setValueSerializer(jackson2JsonRedisSerializer);
-        template.setHashValueSerializer(jackson2JsonRedisSerializer);
-        template.afterPropertiesSet();
-
-        // 修改 stream 类型的 hashMapper
-        Object o = ReflectUtil.newInstance(Class.forName("org.springframework.data.redis.core.DefaultStreamOperations"), template, HASH_MAPPER);
-        ReflectUtil.setFieldValue(template, "streamOps", o);
-        return template;
-    }
-
-    @Bean
-    public RedisMessageListenerContainer listenerContainer(RedisConnectionFactory connectionFactory,
-                                                           @Autowired(required = false) List<IRedisSubscriber<?>> redisSubscribers) {
-        initExecutor();
-        RedisMessageListenerContainer listenerContainer = new RedisMessageListenerContainer();
-        listenerContainer.setTaskExecutor(this.executor);
-        listenerContainer.setConnectionFactory(connectionFactory);
-        if (redisSubscribers == null) {
-            return listenerContainer;
-        }
-
-        for (IRedisSubscriber<?> redisSubscriber : redisSubscribers) {
-            MessageListenerAdapter messageListenerAdapter = new MessageListenerAdapter(redisSubscriber);
-            messageListenerAdapter.afterPropertiesSet();
-            listenerContainer.addMessageListener(messageListenerAdapter, redisSubscriber.topic());
-        }
-        return listenerContainer;
-    }
-
 }
+

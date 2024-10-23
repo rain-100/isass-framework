@@ -200,6 +200,7 @@
         <module>mq/isass-mq-kafka011</module>
         <module>mq/isass-mq-ons</module>
         <module>mq/isass-mq-spring-event</module>
+        <module>net/isass-net-admin</module>
         <module>net/isass-net-core</module>
         <module>net/isass-net-netty</module>
         <module>net/isass-net-proxy-core</module>

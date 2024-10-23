@@ -177,7 +177,6 @@ import vip.isass.framework.common.service.Resp;
 import vip.isass.framework.net.core.message.Message;
 import vip.isass.framework.net.core.session.ISessionService;
 import vip.isass.framework.net.core.session.SessionBindingInfoChangeReq;
-import vip.isass.framework.net.core.session.SessionInfoCollection;
 
 import java.util.Collection;
 import java.util.Map;
@@ -371,15 +370,5 @@ public class NetSessionController {
 
     // endregion
 
-    /**
-     * 获取所有会话信息(用于调试)
-     *
-     * @return 会话信息集合
-     */
-    @GetMapping("/sessionInfoCollection")
-    @ApiOperation(value = "获取所有会话信息(用于调试)")
-    public Resp<SessionInfoCollection> getSessionInfoCollection() {
-        return Resp.bizSuccess(sessionService.getSessionInfoCollection());
-    }
 }
 

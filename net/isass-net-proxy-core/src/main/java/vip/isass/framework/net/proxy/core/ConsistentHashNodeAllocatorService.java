@@ -171,6 +171,7 @@ package vip.isass.framework.net.proxy.core;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.lang.ConsistentHash;
 import cn.hutool.core.map.MapUtil;
+import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import jakarta.annotation.Resource;
@@ -190,6 +191,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * 一致性 hash 算法的实例存储，在使用网关代理时，需要用到此算法分配网关节点给客户端连接
@@ -289,7 +291,20 @@ public abstract class ConsistentHashNodeAllocatorService implements INodeAllocat
             return true;
         }
         for (Map.Entry<String, NetServerInfo> entry : latestNodeMap.entrySet()) {
-            if (!serviceInstanceMap.containsKey(entry.getKey())) {
+            NetServerInfo netServerInfo = serviceInstanceMap.get(entry.getKey());
+            if (netServerInfo == null) {
+                return true;
+            }
+            // 全部相等，才没有变更
+            boolean isAllEquals = BooleanUtil.and(
+                    Objects.equals(netServerInfo.getNetProtocol(), entry.getValue().getNetProtocol()),
+                    Objects.equals(netServerInfo.getExternalIp(), entry.getValue().getExternalIp()),
+                    Objects.equals(netServerInfo.getInternalIp(), entry.getValue().getInternalIp()),
+                    Objects.equals(netServerInfo.getHttpPort(), entry.getValue().getHttpPort()),
+                    Objects.equals(netServerInfo.getHttpSecure(), entry.getValue().getHttpSecure()),
+                    Objects.equals(netServerInfo.getNetExternalPort(), entry.getValue().getNetExternalPort()),
+                    Objects.equals(netServerInfo.getNetExternalUrl(), entry.getValue().getNetExternalUrl()));
+            if (!isAllEquals) {
                 return true;
             }
         }
