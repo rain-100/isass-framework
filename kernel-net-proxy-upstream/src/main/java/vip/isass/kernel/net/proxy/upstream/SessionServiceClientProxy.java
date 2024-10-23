@@ -666,16 +666,18 @@ public class SessionServiceClientProxy implements ISessionService {
         Assert.notEmpty(serverInfos, "未发现[{}]网关，根据会话id获取用户id失败", defaultNetProtocol);
         Object[] returnArr = new Object[1];
         CompletableFuture<T>[] futures = (CompletableFuture<T>[]) new CompletableFuture<?>[serverInfos.size()];
+        String[] urls = new String[serverInfos.size()];
         int idx = 0;
         for (NetServerInfo serverInfo : serverInfos) {
+            urls[idx] = StrUtil.format(
+                    "http{}://{}:{}/{}" + urlSuffix,
+                    serverInfo.getHttpSecure() ? "s" : "",
+                    serverInfo.getInternalIp(),
+                    serverInfo.getHttpPort(),
+                    serverInfo.getNetProtocol().getServiceName()
+            );
+            String url = urls[idx];
             futures[idx] = CompletableFuture.supplyAsync(() -> {
-                        String url = StrUtil.format(
-                                "http{}://{}:{}/{}" + urlSuffix,
-                                serverInfo.getHttpSecure() ? "s" : "",
-                                serverInfo.getInternalIp(),
-                                serverInfo.getHttpPort(),
-                                serverInfo.getNetProtocol().getServiceName()
-                        );
                         return OkHttpUtil.get(url, null, requestParam, typeReference)
                                 .dataIfSuccessOrException();
                     })
@@ -691,7 +693,7 @@ public class SessionServiceClientProxy implements ISessionService {
         try {
             voidCompletableFuture.get(10, TimeUnit.SECONDS);
         } catch (Exception e) {
-            log.error("请求网关[{}]获取信息超时", defaultNetProtocol);
+            log.error("{}：请求网关[{}]获取信息超时", e.getMessage(), defaultNetProtocol);
         }
         return (T) returnArr[0];
     }
