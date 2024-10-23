@@ -318,7 +318,7 @@ public class SessionServiceClientProxy implements ISessionService {
     @Override
     public SessionInfoCollection getSessionInfoCollection() {
         return fetchGetFromAllNode(
-                StrUtil.format("/sessionInfoCollection"),
+                StrUtil.format("/net/admin/session/sessionInfoCollection"),
                 null,
                 Objects::nonNull,
                 SESSION_INFO_COLLECTION_RESP_TYPE_REF);
