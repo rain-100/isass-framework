@@ -204,6 +204,7 @@ import vip.isass.kernel.net.core.session.SessionInfoCollection;
 import javax.annotation.Nonnull;
 import javax.annotation.Resource;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
@@ -694,6 +695,7 @@ public class SessionServiceClientProxy implements ISessionService {
             voidCompletableFuture.get(10, TimeUnit.SECONDS);
         } catch (Exception e) {
             log.error("{}：请求网关[{}]获取信息超时", e.getMessage(), defaultNetProtocol);
+            log.error("获取到的网关url：[{}]", CollUtil.join(Arrays.asList(urls), ","));
         }
         return (T) returnArr[0];
     }
