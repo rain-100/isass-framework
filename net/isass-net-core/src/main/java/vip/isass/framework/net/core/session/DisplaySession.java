@@ -174,10 +174,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
-import vip.isass.framework.common.util.map.MultiKeyMultiValueBiMap;
-import vip.isass.framework.common.util.map.MultiValueBiMap;
-
-import java.util.Collection;
 
 @Getter
 @Setter
@@ -185,14 +181,16 @@ import java.util.Collection;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class SessionInfoCollection {
+public class DisplaySession {
 
-    private Collection<DisplaySession> sessions;
+    private String sessionId;
 
-    private MultiValueBiMap<String, String> userAndSessionMap;
+    private String remoteIp;
 
-    private MultiValueBiMap<String, String> aliasAndSessionMap;
+    private String remotePort;
 
-    private MultiKeyMultiValueBiMap<String, String> sessionAndTagMap;
+    private Long createTime;
+
+    private String type;
 
 }

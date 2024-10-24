@@ -202,6 +202,7 @@ import vip.isass.framework.serialization.jackson.JsonUtil;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
@@ -664,16 +665,18 @@ public class SessionServiceClientProxy implements ISessionService {
         Assert.notEmpty(serverInfos, "未发现[{}]网关，根据会话id获取用户id失败", defaultNetProtocol);
         Object[] returnArr = new Object[1];
         CompletableFuture<T>[] futures = (CompletableFuture<T>[]) new CompletableFuture<?>[serverInfos.size()];
+        String[] urls = new String[serverInfos.size()];
         int idx = 0;
         for (NetServerInfo serverInfo : serverInfos) {
             futures[idx] = CompletableFuture.supplyAsync(() -> {
-                        String url = StrUtil.format(
+                        urls[idx] = StrUtil.format(
                                 "http{}://{}:{}/{}" + urlSuffix,
                                 serverInfo.getHttpSecure() ? "s" : "",
                                 serverInfo.getInternalIp(),
                                 serverInfo.getHttpPort(),
                                 serverInfo.getNetProtocol().getServiceName()
                         );
+                        String url = urls[idx];
                         return OkHttpUtil.get(url, null, requestParam, typeReference)
                                 .dataIfSuccessOrException();
                     })
@@ -689,7 +692,8 @@ public class SessionServiceClientProxy implements ISessionService {
         try {
             voidCompletableFuture.get(10, TimeUnit.SECONDS);
         } catch (Exception e) {
-            log.error("请求网关[{}]获取信息超时", defaultNetProtocol);
+            log.error("请求网关[{}]获取信息错误", defaultNetProtocol, e);
+            log.error("获取到的网关url：[{}]", CollUtil.join(Arrays.asList(urls), ","));
         }
         return (T) returnArr[0];
     }

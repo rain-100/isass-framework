@@ -172,6 +172,7 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.extra.cglib.CglibUtil;
 import lombok.extern.slf4j.Slf4j;
 import vip.isass.framework.common.util.map.MultiKeyMultiValueBiMap;
 import vip.isass.framework.common.util.map.MultiValueBiMap;
@@ -255,7 +256,10 @@ public class LocalSessionService implements ISessionService {
     @Override
     public SessionInfoCollection getSessionInfoCollection() {
         return SessionInfoCollection.builder()
-                .sessions(sessionMap.values())
+                .sessions(sessionMap.values()
+                        .parallelStream()
+                        .map(s -> CglibUtil.copy(s, DisplaySession.class))
+                        .collect(Collectors.toList()))
                 .userAndSessionMap(userAndSessionMap)
                 .aliasAndSessionMap(aliasAndSessionMap)
                 .sessionAndTagMap(sessionAndTagMap)
