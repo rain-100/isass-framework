@@ -694,7 +694,7 @@ public class SessionServiceClientProxy implements ISessionService {
         try {
             voidCompletableFuture.get(10, TimeUnit.SECONDS);
         } catch (Exception e) {
-            log.error("{}：请求网关[{}]获取信息超时", e.getMessage(), defaultNetProtocol);
+            log.error("请求网关[{}]获取信息错误", defaultNetProtocol, e);
             log.error("获取到的网关url：[{}]", CollUtil.join(Arrays.asList(urls), ","));
         }
         return (T) returnArr[0];
@@ -734,7 +734,7 @@ public class SessionServiceClientProxy implements ISessionService {
         try {
             voidCompletableFuture.get(10, TimeUnit.SECONDS);
         } catch (Exception e) {
-            log.error("请求网关[{}]获取信息错误: {}", defaultNetProtocol, e.getMessage());
+            log.error("请求网关[{}]获取信息错误", defaultNetProtocol, e);
         }
         return (T) returnArr[0];
     }
@@ -788,7 +788,7 @@ public class SessionServiceClientProxy implements ISessionService {
         try {
             voidCompletableFuture.get(10, TimeUnit.SECONDS);
         } catch (Exception e) {
-            log.error("请求网关[{}]报错会话信息超时", defaultNetProtocol);
+            log.error("请求网关[{}]报错", defaultNetProtocol, e);
         }
     }
 

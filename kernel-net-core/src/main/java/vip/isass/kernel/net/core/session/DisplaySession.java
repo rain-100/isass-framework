@@ -174,25 +174,27 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
-import vip.isass.core.map.MultiKeyMultiValueBiMap;
-import vip.isass.core.map.MultiValueBiMap;
 
-import java.util.Collection;
-
+/**
+ * 会话实体
+ * 只是用于 json 可以正常反序列化，展示信息
+ */
 @Getter
 @Setter
 @ToString
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class SessionInfoCollection {
+public class DisplaySession {
 
-    private Collection<DisplaySession> sessions;
+    private String sessionId;
 
-    private MultiValueBiMap<String, String> userAndSessionMap;
+    private String remoteIp;
 
-    private MultiValueBiMap<String, String> aliasAndSessionMap;
+    private String remotePort;
 
-    private MultiKeyMultiValueBiMap<String, String> sessionAndTagMap;
+    private Long createTime;
+
+    private String type;
 
 }
