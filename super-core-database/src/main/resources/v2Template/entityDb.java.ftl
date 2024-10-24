@@ -65,20 +65,20 @@ public class V2${entity}Db extends V2${entity} implements IV2DbEntity<V2${entity
 <#if field.keyFlag><#assign isOrmProperty = true>
     @TableId(type = IdType.ASSIGN_ID)
 </#if>
-<#if versionFieldName == field.name><#assign isOrmProperty = true>
+<#if versionFieldName == field.propertyName><#assign isOrmProperty = true>
     @Version
 </#if>
 <#if logicDeleteFieldName == field.propertyName><#assign isOrmProperty = true>
     @TableLogic
 </#if>
-<#if field.name == cfg.traceEntity.CREATE_USER_ID_COLUMN_NAME
-    || field.name == cfg.traceEntity.CREATE_USER_NAME_COLUMN_NAME
-    || field.name == cfg.traceEntity.CREATED_TIME_COLUMN_NAME><#assign isOrmProperty = true>
+<#if field.propertyName == cfg.traceEntity.CREATE_USER_ID_PROPERTY_NAME
+    || field.propertyName == cfg.traceEntity.CREATE_USER_NAME_PROPERTY_NAME
+    || field.propertyName == cfg.traceEntity.CREATED_TIME_PROPERTY_NAME><#assign isOrmProperty = true>
     @TableField(fill = FieldFill.INSERT)
 </#if>
-<#if field.name == cfg.traceEntity.MODIFY_USER_ID_COLUMN_NAME
-    || field.name == cfg.traceEntity.MODIFY_USER_NAME_COLUMN_NAME
-    || field.name == cfg.traceEntity.MODIFY_TIME_COLUMN_NAME><#assign isOrmProperty = true>
+<#if field.propertyName == cfg.traceEntity.MODIFY_USER_ID_PROPERTY_NAME
+    || field.propertyName == cfg.traceEntity.MODIFY_USER_NAME_PROPERTY_NAME
+    || field.propertyName == cfg.traceEntity.MODIFY_TIME_PROPERTY_NAME><#assign isOrmProperty = true>
     @TableField(fill = FieldFill.INSERT_UPDATE)
 </#if>
 <#if isOrmProperty>
