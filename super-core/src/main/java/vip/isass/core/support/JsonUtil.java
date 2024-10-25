@@ -196,6 +196,8 @@ import vip.isass.core.support.json.LocalDateTimeToLongConvert;
 import vip.isass.core.support.json.LocalDateToLongConvert;
 import vip.isass.core.support.json.LocalTimeToLongConvert;
 import vip.isass.core.support.json.LongToLocalDateTimeConvert;
+import vip.isass.core.support.json.MapToMultiKeyMultiValueBiMapConvert;
+import vip.isass.core.support.json.MapToMultiValueBiMapConvert;
 import vip.isass.core.support.json.ObjectToJsonConvert;
 import vip.isass.core.support.json.StringToLocalDateConvert;
 import vip.isass.core.support.json.StringToLocalDateTimeConvert;
@@ -243,7 +245,9 @@ public class JsonUtil {
 
             // 多值map
             .addSerializer(MultiValueBiMap.class, new MultiValueBiMapSerializer())
-            .addSerializer(MultiKeyMultiValueBiMap.class, new MultiKeyMultiValueBiMapSerializer());
+            .addSerializer(MultiKeyMultiValueBiMap.class, new MultiKeyMultiValueBiMapSerializer())
+            .addDeserializer(MultiValueBiMap.class, new StdDelegatingDeserializer<>(new MapToMultiValueBiMapConvert()))
+            .addDeserializer(MultiKeyMultiValueBiMap.class, new StdDelegatingDeserializer<>(new MapToMultiKeyMultiValueBiMapConvert()));
 
     public static final ObjectMapper DEFAULT_INSTANCE = new ObjectMapper()
             // 当实体类中不含有 json 字符串的某些字段时，不抛出异常
