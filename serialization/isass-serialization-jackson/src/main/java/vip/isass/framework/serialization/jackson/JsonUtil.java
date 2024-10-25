@@ -190,6 +190,15 @@ import lombok.Getter;
 import lombok.SneakyThrows;
 import vip.isass.framework.common.util.map.MultiKeyMultiValueBiMap;
 import vip.isass.framework.common.util.map.MultiValueBiMap;
+import vip.isass.framework.serialization.jackson.converter.stdconverter.LocalDateTimeToLongConverter;
+import vip.isass.framework.serialization.jackson.converter.stdconverter.LocalDateToLongConverter;
+import vip.isass.framework.serialization.jackson.converter.stdconverter.LocalTimeToLongConverter;
+import vip.isass.framework.serialization.jackson.converter.stdconverter.LongToLocalDateTimeConverter;
+import vip.isass.framework.serialization.jackson.converter.stdconverter.MapToMultiKeyMultiValueBiMapConvert;
+import vip.isass.framework.serialization.jackson.converter.stdconverter.MapToMultiValueBiMapConvert;
+import vip.isass.framework.serialization.jackson.converter.stdconverter.StringToLocalDateConverter;
+import vip.isass.framework.serialization.jackson.converter.stdconverter.StringToLocalDateTimeConverter;
+import vip.isass.framework.serialization.jackson.converter.stdconverter.StringToLocalTimeConverter;
 import vip.isass.framework.serialization.jackson.serializer.MultiKeyMultiValueBiMapSerializer;
 import vip.isass.framework.serialization.jackson.serializer.MultiValueBiMapSerializer;
 
@@ -213,16 +222,15 @@ public class JsonUtil {
 
     @SuppressWarnings("unchecked")
     public static SimpleModule simpleModule = new SimpleModule()
-            .addSerializer(LocalDateTime.class, new StdDelegatingSerializer(new LocalDateTimeToLongConvert()))
-            .addDeserializer(LocalDateTime.class, new StdDelegatingDeserializer<>(new LongToLocalDateTimeConvert()))
-            .addDeserializer(LocalDateTime.class, new StdDelegatingDeserializer<>(new StringToLocalDateTimeConvert()))
-            .addSerializer(LocalDate.class, new StdDelegatingSerializer(new LocalDateToLongConvert()))
-            //        .addDeserializer(LocalDate.class, new StdDelegatingDeserializer<>(new LongToLocalDateConvert()))
-            .addDeserializer(LocalDate.class, new StdDelegatingDeserializer<>(new StringToLocalDateConvert()))
-            .addSerializer(LocalTime.class, new StdDelegatingSerializer(new LocalTimeToLongConvert()))
-            //        .addDeserializer(LocalTime.class, new StdDelegatingDeserializer<>(new LongToLocalTimeConvert()))
-            .addDeserializer(LocalTime.class, new StdDelegatingDeserializer<>(new StringToLocalTimeConvert()))
-            .addDeserializer(Json.class, new StdDelegatingDeserializer<>(new ObjectToJsonConvert()))
+            .addSerializer(LocalDateTime.class, new StdDelegatingSerializer(new LocalDateTimeToLongConverter()))
+            .addDeserializer(LocalDateTime.class, new StdDelegatingDeserializer<>(new LongToLocalDateTimeConverter()))
+            .addDeserializer(LocalDateTime.class, new StdDelegatingDeserializer<>(new StringToLocalDateTimeConverter()))
+            .addSerializer(LocalDate.class, new StdDelegatingSerializer(new LocalDateToLongConverter()))
+            //        .addDeserializer(LocalDate.class, new StdDelegatingDeserializer<>(new LongToLocalDateConverter()))
+            .addDeserializer(LocalDate.class, new StdDelegatingDeserializer<>(new StringToLocalDateConverter()))
+            .addSerializer(LocalTime.class, new StdDelegatingSerializer(new LocalTimeToLongConverter()))
+            //        .addDeserializer(LocalTime.class, new StdDelegatingDeserializer<>(new LongToLocalTimeConverter()))
+            .addDeserializer(LocalTime.class, new StdDelegatingDeserializer<>(new StringToLocalTimeConverter()))
             .addSerializer(BigDecimal.class, (JsonSerializer<BigDecimal>) NumberSerializer.bigDecimalAsStringSerializer())
             // .addSerializer(Double.class, new DoubleSerializer())
             // .addSerializer(double.class, new DoubleSerializer())
@@ -231,7 +239,9 @@ public class JsonUtil {
 
             // 多值map
             .addSerializer(MultiValueBiMap.class, new MultiValueBiMapSerializer())
-            .addSerializer(MultiKeyMultiValueBiMap.class, new MultiKeyMultiValueBiMapSerializer());
+            .addSerializer(MultiKeyMultiValueBiMap.class, new MultiKeyMultiValueBiMapSerializer())
+            .addDeserializer(MultiValueBiMap.class, new StdDelegatingDeserializer<>(new MapToMultiValueBiMapConvert()))
+            .addDeserializer(MultiKeyMultiValueBiMap.class, new StdDelegatingDeserializer<>(new MapToMultiKeyMultiValueBiMapConvert()));
 
     public static final ObjectMapper DEFAULT_INSTANCE = new ObjectMapper()
             // 当实体类中不含有 json 字符串的某些字段时，不抛出异常
