@@ -186,7 +186,7 @@ public class MapToMultiValueBiMapConvert extends StdConverter<Map<Object, Object
 
         MultiValueBiMap<Object, Object> multiValueBiMap = new MultiValueBiMap<>();
         for (Map.Entry<Object, Object> entry : value.entrySet()) {
-            multiValueBiMap.put(entry.getKey(), entry.getValue());
+            multiValueBiMap.putAll(entry.getKey(), (Iterable<?>) entry.getValue());
         }
         return multiValueBiMap;
     }
