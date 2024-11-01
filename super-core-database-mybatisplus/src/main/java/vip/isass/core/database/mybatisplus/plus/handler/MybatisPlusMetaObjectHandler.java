@@ -195,35 +195,45 @@ public class MybatisPlusMetaObjectHandler implements MetaObjectHandler {
 
         LoginUser loginUser = LoginUserUtil.getLoginUser();
 
+        // tenantId
+        if (loginUser != null) {
+            setFieldValByName("tenantId", loginUser.getTenantId(), metaObject);
+        }
+
+        // appId
+        if (loginUser != null) {
+            setFieldValByName("appId", loginUser.getAppId(), metaObject);
+        }
+
         // createUserId
         setFieldValByName(
-            UserTracedEntity.CREATE_USER_ID_PROPERTY,
-            loginUser == null
-                ? ""
-                : StrUtil.nullToEmpty(loginUser.getUserId()),
-            metaObject);
+                UserTracedEntity.CREATE_USER_ID_PROPERTY,
+                loginUser == null
+                        ? ""
+                        : StrUtil.nullToEmpty(loginUser.getUserId()),
+                metaObject);
 
         // createUserName
         setFieldValByName(
-            UserTracedEntity.CREATE_USER_NAME_PROPERTY,
-            loginUser == null
-                ? StrUtil.subPre(Thread.currentThread().getName(), 32)
-                : StrUtil.nullToEmpty(StrUtil.subPre(loginUser.getNickName(), 32)),
-            metaObject);
+                UserTracedEntity.CREATE_USER_NAME_PROPERTY,
+                loginUser == null
+                        ? StrUtil.subPre(Thread.currentThread().getName(), 32)
+                        : StrUtil.nullToEmpty(StrUtil.subPre(loginUser.getNickName(), 32)),
+                metaObject);
 
         // modifyUserId
         setFieldValByName(UserTracedEntity.MODIFY_USER_ID_PROPERTY,
-            loginUser == null
-                ? ""
-                : StrUtil.nullToEmpty(loginUser.getUserId()),
-            metaObject);
+                loginUser == null
+                        ? ""
+                        : StrUtil.nullToEmpty(loginUser.getUserId()),
+                metaObject);
 
         // modifyUserName
         setFieldValByName(UserTracedEntity.MODIFY_USER_NAME_PROPERTY,
-            loginUser == null
-                ? StrUtil.subPre(Thread.currentThread().getName(), 32)
-                : StrUtil.nullToEmpty(StrUtil.subPre(loginUser.getNickName(), 32)),
-            metaObject);
+                loginUser == null
+                        ? StrUtil.subPre(Thread.currentThread().getName(), 32)
+                        : StrUtil.nullToEmpty(StrUtil.subPre(loginUser.getNickName(), 32)),
+                metaObject);
 
         // createTime
         Object createTime = getFieldValByName(TimeTracedEntity.MODIFY_TIME_PROPERTY, metaObject);
@@ -236,6 +246,7 @@ public class MybatisPlusMetaObjectHandler implements MetaObjectHandler {
 
         // delete_flag
         setFieldValByName(LogicDeleteEntity.DELETE_FLAG_PROPERTY, LogicDeleteEntity.DEFAULT_DELETE_FLAG, metaObject);
+
     }
 
     @Override
@@ -244,17 +255,17 @@ public class MybatisPlusMetaObjectHandler implements MetaObjectHandler {
 
         // modifyUserId
         setFieldValByName(UserTracedEntity.MODIFY_USER_ID_PROPERTY,
-            loginUser == null
-                ? ""
-                : StrUtil.nullToEmpty(loginUser.getUserId()),
-            metaObject);
+                loginUser == null
+                        ? ""
+                        : StrUtil.nullToEmpty(loginUser.getUserId()),
+                metaObject);
 
         // modifyUserName
         setFieldValByName(UserTracedEntity.MODIFY_USER_NAME_PROPERTY,
-            loginUser == null
-                ? StrUtil.subPre(Thread.currentThread().getName(), 32)
-                : StrUtil.nullToEmpty(loginUser.getNickName()),
-            metaObject);
+                loginUser == null
+                        ? StrUtil.subPre(Thread.currentThread().getName(), 32)
+                        : StrUtil.nullToEmpty(loginUser.getNickName()),
+                metaObject);
 
         // modifyTime
         setFieldValByName(TimeTracedEntity.MODIFY_TIME_PROPERTY, LocalDateTimeUtil.now(), metaObject);
