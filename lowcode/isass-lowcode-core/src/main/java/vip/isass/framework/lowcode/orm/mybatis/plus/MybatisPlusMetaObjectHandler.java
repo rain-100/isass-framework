@@ -194,6 +194,16 @@ public class MybatisPlusMetaObjectHandler implements MetaObjectHandler {
 
         LoginUser loginUser = LoginUserUtil.getLoginUser();
 
+        // tenantId
+        if (loginUser != null) {
+            setFieldValByName("tenantId", loginUser.getTenantId(), metaObject);
+        }
+
+        // appId
+        if (loginUser != null) {
+            setFieldValByName("appId", loginUser.getAppId(), metaObject);
+        }
+
         // createUserId
         setFieldValByName(
                 UserTracedEntity.CREATE_USER_ID_PROPERTY,
