@@ -167,53 +167,43 @@
  *
  */
 
-package vip.isass.kernel.net.core.message;
+package vip.isass.kernel.net.core.handler;
+
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
+import vip.isass.kernel.net.core.message.Message;
+import vip.isass.kernel.net.core.message.MessageCmd;
+import vip.isass.kernel.net.core.server.Server;
+import vip.isass.kernel.net.core.session.ISessionService;
+
+import javax.annotation.Resource;
 
 /**
- * 内置消息路由
+ * 客户端发起p2p消息
  *
- * @author Rain
+ * @author rain
  */
-public interface MessageCmd {
+@Order(-1)
+@Configuration
+@ConditionalOnBean(Server.class)
+public class OnClientP2pEventHandler implements OnMessageEventHandler<P2pMessage> {
 
-    /**
-     * core 的 cmd 前置
-     */
-    String CORE_PREFIX = "/core/";
+    @Resource
+    private ISessionService sessionService;
 
-    /**
-     * PING
-     */
-    String PING = "/core/ping";
+    @Override
+    public String getCmd() {
+        return MessageCmd.CLIENT_P2P;
+    }
 
-    /**
-     * PONG
-     */
-    String PONG = "/core/pong";
-
-    /**
-     * 登录请求
-     */
-    String LOGIN = "/core/login";
-
-    /**
-     * 登出请求
-     */
-    String LOGOUT = "/core/logout";
-
-    /**
-     * 异常报错
-     */
-    String ERROR = "/core/exception";
-
-    /**
-     * 客户端发起广播消息
-     */
-    String CLIENT_SEND_BROADCAST = "/core/clientSendBroadcast";
-
-    /**
-     * 客户端发起p2p消息
-     */
-    String CLIENT_P2P = "/core/client/p2p";
+    @Override
+    public Object onMessage(Message message, P2pMessage payload) {
+        sessionService.sendMessageByUserId(
+                MessageCmd.CLIENT_P2P,
+                payload,
+                payload.getTargetUserId());
+        return null;
+    }
 
 }
