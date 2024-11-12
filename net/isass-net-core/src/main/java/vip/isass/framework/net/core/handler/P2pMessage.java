@@ -166,53 +166,29 @@
  * Library.
  */
 
-package vip.isass.framework.net.core.message;
+package vip.isass.framework.net.core.handler;
 
-/**
- * 内置消息路由
- *
- * @author Rain
- */
-public interface MessageCmd {
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.experimental.SuperBuilder;
 
-    /**
-     * core 的 cmd 前置
-     */
-    String CORE_PREFIX = "/core/";
+@Getter
+@Setter
+@ToString
+@SuperBuilder
+@NoArgsConstructor
+@AllArgsConstructor
+public class P2pMessage {
 
-    /**
-     * PING
-     */
-    String PING = "/core/ping";
+    private String fromUserId;
 
-    /**
-     * PONG
-     */
-    String PONG = "/core/pong";
+    private String targetUserId;
 
-    /**
-     * 登录请求
-     */
-    String LOGIN = "/core/login";
+    private String bizType;
 
-    /**
-     * 登出请求
-     */
-    String LOGOUT = "/core/logout";
-
-    /**
-     * 异常报错
-     */
-    String ERROR = "/core/exception";
-
-    /**
-     * 客户端发起广播消息
-     */
-    String CLIENT_SEND_BROADCAST = "/core/clientSendBroadcast";
-
-    /**
-     * 客户端发起p2p消息
-     */
-    String CLIENT_P2P = "/core/client/p2p";
+    private Object message;
 
 }
