@@ -164,71 +164,27 @@
  * apply, that proxy's public statement of acceptance of any version is
  * permanent authorization for you to choose that version for the
  * Library.
- *
  */
 
-package vip.isass.core.database.mybatisplus.kingbase;
+package vip.isass.core.database.typehandler;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.ibatis.type.BaseTypeHandler;
-import org.apache.ibatis.type.JdbcType;
-import org.apache.ibatis.type.MappedJdbcTypes;
-import org.apache.ibatis.type.MappedTypes;
-import org.postgresql.util.PGobject;
-import org.springframework.stereotype.Component;
-import vip.isass.core.support.JsonUtil;
 
-import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 
-/**
- * 处理字段类型为 Jsonb 的数据库映射关系
- *
- * @author Rain
- */
-@Slf4j
-@Component
-@MappedJdbcTypes(JdbcType.JAVA_OBJECT)
-@MappedTypes({JsonNode.class})
-public class JsonbToJsonNodeTypeHandler extends BaseTypeHandler<JsonNode> {
+public interface IJsonNodeTypeHandler {
 
-    @Override
-    public void setNonNullParameter(PreparedStatement ps, int i, JsonNode parameter, JdbcType jdbcType) throws SQLException {
-        try {
-            PGobject pGobject = new PGobject();
-            pGobject.setValue(JsonUtil.DEFAULT_INSTANCE.writeValueAsString(parameter));
-            ps.setObject(i, pGobject);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
+    String getSupportDatabaseProductName();
+
+    /**
+     * 支持的数据库名称
+     */
+    default boolean support(String databaseProductName) {
+        return getSupportDatabaseProductName().equalsIgnoreCase(databaseProductName);
     }
 
-    @Override
-    public JsonNode getNullableResult(ResultSet rs, String columnName) throws SQLException {
-        return getJson(rs.getString(columnName));
-    }
+    void setNonNullParameter(PreparedStatement ps, int i, JsonNode parameter);
 
-    @Override
-    public JsonNode getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
-        return getJson(rs.getString(columnIndex));
-    }
-
-    @Override
-    public JsonNode getNullableResult(CallableStatement cs, int columnIndex) throws SQLException {
-        return getJson(cs.getString(columnIndex));
-    }
-
-    @SneakyThrows
-    private JsonNode getJson(String value) {
-        if (value == null) {
-            return null;
-        }
-        return JsonUtil.DEFAULT_INSTANCE.readTree(value);
-    }
+    JsonNode getJson(String value);
 
 }

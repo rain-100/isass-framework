@@ -164,201 +164,49 @@
  * apply, that proxy's public statement of acceptance of any version is
  * permanent authorization for you to choose that version for the
  * Library.
- *
  */
 
-package vip.isass.core.database.mybatisplus.config;
+package vip.isass.core.database.mybatisplus.mysql;
 
-import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.StrUtil;
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.core.MybatisConfiguration;
-import com.baomidou.mybatisplus.core.config.GlobalConfig;
-import com.baomidou.mybatisplus.core.injector.ISqlInjector;
-import com.baomidou.mybatisplus.extension.plugins.OptimisticLockerInterceptor;
-import com.baomidou.mybatisplus.extension.plugins.PaginationInterceptor;
-import com.baomidou.mybatisplus.extension.spring.MybatisSqlSessionFactoryBean;
-import org.apache.ibatis.logging.nologging.NoLoggingImpl;
-import org.apache.ibatis.mapping.DatabaseIdProvider;
-import org.apache.ibatis.mapping.VendorDatabaseIdProvider;
-import org.apache.ibatis.session.AutoMappingUnknownColumnBehavior;
-import org.apache.ibatis.session.SqlSessionFactory;
-import org.apache.ibatis.type.BaseTypeHandler;
-import org.apache.ibatis.type.JdbcType;
-import org.apache.ibatis.type.TypeHandlerRegistry;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
-import org.springframework.core.io.support.ResourcePatternResolver;
-import org.springframework.jdbc.datasource.DataSourceTransactionManager;
-import org.springframework.lang.NonNull;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
-import org.springframework.transaction.annotation.TransactionManagementConfigurer;
-import vip.isass.core.database.mybatisplus.driver.MybatisXmlLanguageDriver;
-import vip.isass.core.database.mybatisplus.plus.handler.MybatisPlusMetaObjectHandler;
-import vip.isass.core.database.mybatisplus.typehandler.DefaultEnumTypeHandler;
-import vip.isass.core.page.PageConst;
+import com.fasterxml.jackson.databind.JsonNode;
+import lombok.SneakyThrows;
+import vip.isass.core.database.typehandler.IJsonNodeTypeHandler;
+import vip.isass.core.support.JsonUtil;
 
-import javax.annotation.Resource;
-import javax.sql.DataSource;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
+import java.sql.PreparedStatement;
 
-/**
- * @author rain
- */
-@Configuration
-@EnableTransactionManagement
-public class SqlSessionConfig implements TransactionManagementConfigurer {
+public class MysqlJsonNodeTypeHandler implements IJsonNodeTypeHandler {
 
-    @Resource
-    private DataSource dataSource;
-
-    @Value("${spring.profiles:default}")
-    private String profiles;
-
-    @Value("${mybatis-plus.mapper-locations:}")
-    private List<String> mapperLocations;
-
-    @Autowired(required = false)
-    private List<IMapperLocationProvider> mapperLocationProviders;
-
-    @Value("${mybatis-plus.global-config.db-config.capital-mode:false}")
-    private boolean capitalMode;
-
-    @Value("${mybatisPlus.globalConfig.dbConfig.columnFormat:}")
-    private String columnFormat;
-
-    @Autowired(required = false)
-    private List<BaseTypeHandler<?>> baseTypeHandlers;
-
-    @Autowired(required = false)
-    private ISqlInjector sqlInjector;
-
-    @Bean
-    public GlobalConfig globalConfig() {
-        GlobalConfig.DbConfig dbConfig = new GlobalConfig.DbConfig();
-        dbConfig.setLogicDeleteValue(Boolean.TRUE.toString());
-        dbConfig.setLogicNotDeleteValue(Boolean.FALSE.toString());
-        dbConfig.setIdType(IdType.ASSIGN_ID);
-        dbConfig.setCapitalMode(capitalMode);
-        if (StrUtil.isNotBlank(columnFormat)) {
-            dbConfig.setColumnFormat(columnFormat);
-        }
-
-        GlobalConfig conf = new GlobalConfig();
-        conf.setBanner(false);
-        conf.setDbConfig(dbConfig);
-
-        if (sqlInjector != null) {
-            conf.setSqlInjector(sqlInjector);
-        }
-
-        // 自定义填充策略接口实现
-        conf.setMetaObjectHandler(new MybatisPlusMetaObjectHandler());
-
-        return conf;
-    }
-
-    @Bean
-    public DatabaseIdProvider databaseIdProvider() {
-        VendorDatabaseIdProvider databaseIdProvider = new VendorDatabaseIdProvider();
-        Properties properties = new Properties();
-        properties.put("Oracle", "oracle");
-        properties.put("MySQL", "mysql");
-        properties.put("DM DBMS", "dm");
-        properties.put("KingbaseES", "kingBase");
-        properties.put("PostgreSQL", "postgresql");
-        databaseIdProvider.setProperties(properties);
-        return databaseIdProvider;
-    }
-
-    private org.springframework.core.io.Resource[] getMapperLocationsResources() throws Exception {
-        ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
-        List<org.springframework.core.io.Resource> mapperResources = new ArrayList<>();
-
-        parseMapperLocations(resolver, mapperResources, mapperLocations);
-
-        if (mapperLocationProviders != null) {
-            for (IMapperLocationProvider mapperLocationProvider : mapperLocationProviders) {
-                parseMapperLocations(resolver, mapperResources, mapperLocationProvider.getMapperLocations());
-            }
-        }
-
-        return mapperResources.isEmpty()
-            ? null
-            : ArrayUtil.toArray(mapperResources, org.springframework.core.io.Resource.class);
-    }
-
-    private void parseMapperLocations(ResourcePatternResolver resolver,
-                                      List<org.springframework.core.io.Resource> mapperResources,
-                                      List<String> mapperLocations) throws IOException {
-        if (CollUtil.isEmpty(mapperLocations)) {
-            return;
-        }
-
-        for (String mapperLocation : mapperLocations) {
-            if (StrUtil.isBlank(mapperLocation)) {
-                continue;
-            }
-
-            org.springframework.core.io.Resource[] resources = resolver.getResources(mapperLocation);
-            mapperResources.addAll(CollUtil.toList(resources));
-        }
-    }
-
-    @Bean
-    public SqlSessionFactory sqlSessionFactory(GlobalConfig globalConfig, DatabaseIdProvider databaseIdProvider) throws Exception {
-        MybatisSqlSessionFactoryBean sqlSessionFactory = new MybatisSqlSessionFactoryBean();
-        sqlSessionFactory.setDataSource(dataSource);
-        sqlSessionFactory.setMapperLocations(getMapperLocationsResources());
-        sqlSessionFactory.setTypeEnumsPackage("vip.isass.**");
-
-        MybatisConfiguration configuration = new MybatisConfiguration();
-        configuration.setMapUnderscoreToCamelCase(true);
-        configuration.setCacheEnabled(false);
-        configuration.setDefaultScriptingLanguage(MybatisXmlLanguageDriver.class);
-        configuration.setJdbcTypeForNull(JdbcType.NULL);
-        configuration.setDefaultEnumTypeHandler(DefaultEnumTypeHandler.class);
-        configuration.setDatabaseId(databaseIdProvider.getDatabaseId(dataSource));
-
-        // 关闭 mybatis 日志。由 p6spy 实现日志打印
-        configuration.setLogImpl(NoLoggingImpl.class);
-
-        if (CollUtil.isNotEmpty(baseTypeHandlers)) {
-            TypeHandlerRegistry typeHandlerRegistry = configuration.getTypeHandlerRegistry();
-            baseTypeHandlers.forEach(typeHandlerRegistry::register);
-        }
-
-        /*
-         * MyBatis 自动映射时未知列或未知属性处理策略
-         * 通过该配置可指定 MyBatis 在自动映射过程中遇到未知列或者未知属性时如何处理，总共有 3 种可选值：
-         * AutoMappingUnknownColumnBehavior.NONE：不做任何处理 (默认值)
-         * AutoMappingUnknownColumnBehavior.WARNING：以日志的形式打印相关警告信息
-         * AutoMappingUnknownColumnBehavior.FAILING：当作映射失败处理，并抛出异常和详细信息
-         */
-        configuration.setAutoMappingUnknownColumnBehavior(AutoMappingUnknownColumnBehavior.WARNING);
-
-        sqlSessionFactory.setConfiguration(configuration);
-
-        // 配置插件
-        sqlSessionFactory.setPlugins(
-            new PaginationInterceptor().setLimit(PageConst.MAX_PAGE_SIZE),
-            new OptimisticLockerInterceptor());
-        sqlSessionFactory.setGlobalConfig(globalConfig);
-        return sqlSessionFactory.getObject();
-    }
-
-    @NonNull
     @Override
-    public PlatformTransactionManager annotationDrivenTransactionManager() {
-        return new DataSourceTransactionManager(dataSource);
+    public String getSupportDatabaseProductName() {
+        return "MySQL";
+    }
+
+    @Override
+    public void setNonNullParameter(PreparedStatement ps, int i, JsonNode parameter) {
+        doSetNonNullParameter(ps, i, parameter);
+    }
+
+
+    @SneakyThrows
+    public static void doSetNonNullParameter(PreparedStatement ps, int i, JsonNode parameter) {
+        ps.setString(i, JsonUtil.DEFAULT_INSTANCE.writeValueAsString(parameter));
+    }
+
+    @Override
+    public JsonNode getJson(String value) {
+        return doGetJson(value);
+    }
+
+    @SneakyThrows
+    public static JsonNode doGetJson(String value) {
+        if (value == null) {
+            return null;
+        }
+        value = StrUtil.removePrefix(value, "\"");
+        value = StrUtil.removeSuffix(value, "\"");
+        return JsonUtil.DEFAULT_INSTANCE.readTree(value);
     }
 
 }

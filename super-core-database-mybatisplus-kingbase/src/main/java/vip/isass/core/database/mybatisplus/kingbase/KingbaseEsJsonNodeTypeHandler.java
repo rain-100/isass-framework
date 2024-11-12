@@ -167,67 +167,43 @@
  *
  */
 
-package vip.isass.core.database.mybatisplus.mysql;
+package vip.isass.core.database.mybatisplus.kingbase;
 
-import cn.hutool.core.util.StrUtil;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.ibatis.type.BaseTypeHandler;
-import org.apache.ibatis.type.JdbcType;
-import org.apache.ibatis.type.MappedJdbcTypes;
-import org.apache.ibatis.type.MappedTypes;
-import org.springframework.stereotype.Component;
+import org.postgresql.util.PGobject;
+import vip.isass.core.database.typehandler.IJsonNodeTypeHandler;
 import vip.isass.core.support.JsonUtil;
 
-import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 
 /**
- * 处理字段类型为 Json 的数据库映射关系
+ * 处理字段类型为 Jsonb 的数据库映射关系
  *
  * @author Rain
  */
-@Slf4j
-@Component
-@MappedJdbcTypes(JdbcType.JAVA_OBJECT)
-@MappedTypes({JsonNode.class})
-public class JsonNodeTypeHandler extends BaseTypeHandler<JsonNode> {
+public class KingbaseEsJsonNodeTypeHandler implements IJsonNodeTypeHandler {
+
 
     @Override
-    public void setNonNullParameter(PreparedStatement ps, int i, JsonNode parameter, JdbcType jdbcType) throws SQLException {
-        try {
-            ps.setString(i, JsonUtil.DEFAULT_INSTANCE.writeValueAsString(parameter));
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
+    public String getSupportDatabaseProductName() {
+        return "KingbaseES";
     }
 
     @Override
-    public JsonNode getNullableResult(ResultSet rs, String columnName) throws SQLException {
-        return getJson(rs.getString(columnName));
-    }
-
-    @Override
-    public JsonNode getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
-        return getJson(rs.getString(columnIndex));
-    }
-
-    @Override
-    public JsonNode getNullableResult(CallableStatement cs, int columnIndex) throws SQLException {
-        return getJson(cs.getString(columnIndex));
-    }
-
     @SneakyThrows
-    private JsonNode getJson(String value) {
+    public void setNonNullParameter(PreparedStatement ps, int i, JsonNode parameter) {
+        PGobject pGobject = new PGobject();
+        pGobject.setValue(JsonUtil.DEFAULT_INSTANCE.writeValueAsString(parameter));
+        ps.setObject(i, pGobject);
+    }
+
+    @Override
+    @SneakyThrows
+    public JsonNode getJson(String value) {
         if (value == null) {
             return null;
         }
-        value = StrUtil.removePrefix(value, "\"");
-        value = StrUtil.removeSuffix(value, "\"");
         return JsonUtil.DEFAULT_INSTANCE.readTree(value);
     }
 
