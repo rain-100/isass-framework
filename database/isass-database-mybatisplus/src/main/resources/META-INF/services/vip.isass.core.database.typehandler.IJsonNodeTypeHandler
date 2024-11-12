@@ -1,0 +1,2 @@
+vip.isass.framework.database.orm.mybatisplus.typehandler.MysqlJsonNodeTypeHandler
+vip.isass.framework.database.orm.mybatisplus.typehandler.PostgresqlJsonNodeTypeHandler

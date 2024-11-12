@@ -168,7 +168,7 @@
 
 package vip.isass.framework.database.orm.mybatisplus.typehandler;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import cn.hutool.core.util.StrUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -177,15 +177,17 @@ import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.MappedJdbcTypes;
 import org.apache.ibatis.type.MappedTypes;
 import org.springframework.stereotype.Component;
+import vip.isass.framework.database.core.typehandler.IJsonNodeTypeHandler;
 import vip.isass.framework.serialization.jackson.JsonUtil;
 
 import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ServiceLoader;
 
 /**
- * java 是 JsonNode，数据库是 String 的映射关系处理器
+ * 处理字段类型为 JsonNode 的数据库映射关系
  *
  * @author Rain
  */
@@ -193,15 +195,23 @@ import java.sql.SQLException;
 @Component
 @MappedJdbcTypes(JdbcType.JAVA_OBJECT)
 @MappedTypes({JsonNode.class})
-public class JsonNodeAndStringTypeHandler extends BaseTypeHandler<JsonNode> {
+public class JsonNodeTypeHandler extends BaseTypeHandler<JsonNode> {
 
     @Override
+    @SneakyThrows
     public void setNonNullParameter(PreparedStatement ps, int i, JsonNode parameter, JdbcType jdbcType) throws SQLException {
-        try {
-            ps.setString(i, JsonUtil.DEFAULT_INSTANCE.writeValueAsString(parameter));
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+        String databaseProductName = ps.getConnection().getMetaData().getDatabaseProductName();
+
+        ServiceLoader<IJsonNodeTypeHandler> loader = ServiceLoader.load(IJsonNodeTypeHandler.class);
+        for (IJsonNodeTypeHandler typeHandler : loader) {
+            if (typeHandler.support(databaseProductName)) {
+                typeHandler.setNonNullParameter(ps, i, parameter);
+                return;
+            }
         }
+
+        // 如果没有处理器，则兜底使用字符串处理
+        ps.setString(i, JsonUtil.DEFAULT_INSTANCE.writeValueAsString(parameter));
     }
 
     @Override
@@ -224,6 +234,8 @@ public class JsonNodeAndStringTypeHandler extends BaseTypeHandler<JsonNode> {
         if (value == null) {
             return null;
         }
+        value = StrUtil.removePrefix(value, "\"");
+        value = StrUtil.removeSuffix(value, "\"");
         return JsonUtil.DEFAULT_INSTANCE.readTree(value);
     }
 

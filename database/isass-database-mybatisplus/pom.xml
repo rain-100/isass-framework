@@ -192,6 +192,11 @@
 
         <dependency>
             <groupId>vip.isass</groupId>
+            <artifactId>isass-database-core</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>vip.isass</groupId>
             <artifactId>isass-serialization-jackson</artifactId>
         </dependency>
 
