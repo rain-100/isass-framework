@@ -194,39 +194,30 @@ import java.sql.SQLException;
 @Slf4j
 @Component
 @MappedJdbcTypes(JdbcType.JAVA_OBJECT)
-@MappedTypes({Json.class, JsonNode.class})
-public class JsonbTypeHandler extends BaseTypeHandler<Object> implements IJsonTypeHandler<Object> {
+@MappedTypes({Json.class})
+public class KingbaseJsonTypeHandler extends BaseTypeHandler<Json> implements IJsonTypeHandler<Json> {
     
     @Override
-    public void setNonNullParameter(PreparedStatement ps, int i, Object parameter, JdbcType jdbcType) throws SQLException {
-        Connection conn = ps.getConnection();
-        if (parameter instanceof JsonKingBase) {
-            ps.setObject(i, parameter);
-        } else if (parameter instanceof Json) {
-            ps.setObject(i, new JsonKingBase().fromJson((Json) parameter));
-        } else if (parameter instanceof JsonNode) {
-            ps.setObject(i, new JsonKingBase().fromJsonNode((JsonNode) parameter));
-        } else {
-            ps.setObject(i, new JsonKingBase().fromObject(parameter));
-        }
+    public void setNonNullParameter(PreparedStatement ps, int i, Json parameter, JdbcType jdbcType) throws SQLException {
+        ps.setObject(i, new JsonKingBase().fromJson(parameter));
     }
     
     @Override
-    public Object getNullableResult(ResultSet rs, String columnName) throws SQLException {
+    public Json getNullableResult(ResultSet rs, String columnName) throws SQLException {
         return getJson(rs.getString(columnName));
     }
     
     @Override
-    public Object getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
+    public Json getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
         return getJson(rs.getString(columnIndex));
     }
     
     @Override
-    public Object getNullableResult(CallableStatement cs, int columnIndex) throws SQLException {
+    public Json getNullableResult(CallableStatement cs, int columnIndex) throws SQLException {
         return getJson(cs.getString(columnIndex));
     }
     
-    private Object getJson(String value) {
+    private Json getJson(String value) {
         if (value == null) {
             return null;
         }
