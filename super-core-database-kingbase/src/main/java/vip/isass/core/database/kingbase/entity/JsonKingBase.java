@@ -172,6 +172,7 @@ package vip.isass.core.database.kingbase.entity;
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.kingbase8.util.KBobject;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.postgresql.util.PGobject;
@@ -189,7 +190,7 @@ import java.io.IOException;
 @Accessors(chain = true)
 @Component
 @Scope("prototype")
-public class JsonKingBase extends PGobject implements Json {
+public class JsonKingBase extends KBobject implements Json {
 
     public JsonKingBase() {
         this.type = "jsonb";
@@ -206,44 +207,44 @@ public class JsonKingBase extends PGobject implements Json {
     public JsonKingBase fromObject(Object obj) {
         if (obj == null) {
             this.jsonNode = null;
-            this.value = null;
+            this._value = null;
             return this;
         }
 
         try {
-            this.value = JsonUtil.NOT_NULL_INSTANCE.writeValueAsString(obj);
-            this.jsonNode = JsonUtil.DEFAULT_INSTANCE.readValue(this.value, JsonNode.class);
+            this._value = JsonUtil.NOT_NULL_INSTANCE.writeValueAsString(obj);
+            this.jsonNode = JsonUtil.DEFAULT_INSTANCE.readValue(this._value, JsonNode.class);
         } catch (IOException e) {
             log.error(e.getMessage(), e);
             this.jsonNode = null;
-            this.value = null;
+            this._value = null;
         }
         return this;
     }
 
     @Override
-    public Json fromJsonNode(JsonNode jsonNode) {
+    public JsonKingBase fromJsonNode(JsonNode jsonNode) {
         if (jsonNode == null) {
             this.jsonNode = null;
-            this.value = null;
+            this._value = null;
             return this;
         }
         this.jsonNode = jsonNode;
         try {
-            this.value = JsonUtil.NOT_NULL_INSTANCE.writeValueAsString(jsonNode);
+            this._value = JsonUtil.NOT_NULL_INSTANCE.writeValueAsString(jsonNode);
         } catch (JsonProcessingException e) {
             log.error(e.getMessage(), e);
             this.jsonNode = null;
-            this.value = null;
+            this._value = null;
         }
         return this;
     }
 
     @Override
-    public Json fromJson(Json json) {
+    public JsonKingBase fromJson(Json json) {
         if (json == null) {
             this.jsonNode = null;
-            this.value = null;
+            this._value = null;
             return this;
         }
 
@@ -254,16 +255,16 @@ public class JsonKingBase extends PGobject implements Json {
     public JsonKingBase fromString(String str) {
         if (str == null) {
             this.jsonNode = null;
-            this.value = null;
+            this._value = null;
             return this;
         }
         try {
             this.jsonNode = JsonUtil.DEFAULT_INSTANCE.readValue(str, JsonNode.class);
-            this.value = str;
+            this._value = str;
         } catch (IOException e) {
             log.error(e.getMessage(), e);
             this.jsonNode = null;
-            this.value = null;
+            this._value = null;
         }
         return this;
     }

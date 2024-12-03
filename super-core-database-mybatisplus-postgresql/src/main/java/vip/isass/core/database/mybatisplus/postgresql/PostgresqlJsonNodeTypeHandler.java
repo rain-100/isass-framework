@@ -187,7 +187,7 @@ public class PostgresqlJsonNodeTypeHandler implements IJsonNodeTypeHandler {
 
     @Override
     public String getSupportDatabaseProductName() {
-        return "KingbaseES";
+        return "PostgreSQL";
     }
 
     @Override

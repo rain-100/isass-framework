@@ -169,18 +169,19 @@
 
 package vip.isass.core.database.mybatisplus.kingbase;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.MappedJdbcTypes;
 import org.apache.ibatis.type.MappedTypes;
 import org.springframework.stereotype.Component;
-import vip.isass.core.database.mybatisplus.typehandler.IJsonTypeHandler;
 import vip.isass.core.database.kingbase.entity.JsonKingBase;
+import vip.isass.core.database.mybatisplus.typehandler.IJsonTypeHandler;
 import vip.isass.core.entity.Json;
-import vip.isass.core.support.json.DefaultJson;
 
 import java.sql.CallableStatement;
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -193,38 +194,43 @@ import java.sql.SQLException;
 @Slf4j
 @Component
 @MappedJdbcTypes(JdbcType.JAVA_OBJECT)
-@MappedTypes({Json.class, JsonKingBase.class, DefaultJson.class})
-public class JsonbTypeHandler extends BaseTypeHandler<Json> implements IJsonTypeHandler<Json> {
-
+@MappedTypes({Json.class, JsonNode.class})
+public class JsonbTypeHandler extends BaseTypeHandler<Object> implements IJsonTypeHandler<Object> {
+    
     @Override
-    public void setNonNullParameter(PreparedStatement ps, int i, Json parameter, JdbcType jdbcType) throws SQLException {
+    public void setNonNullParameter(PreparedStatement ps, int i, Object parameter, JdbcType jdbcType) throws SQLException {
+        Connection conn = ps.getConnection();
         if (parameter instanceof JsonKingBase) {
             ps.setObject(i, parameter);
+        } else if (parameter instanceof Json) {
+            ps.setObject(i, new JsonKingBase().fromJson((Json) parameter));
+        } else if (parameter instanceof JsonNode) {
+            ps.setObject(i, new JsonKingBase().fromJsonNode((JsonNode) parameter));
         } else {
-            ps.setObject(i, new JsonKingBase().fromJson(parameter));
+            ps.setObject(i, new JsonKingBase().fromObject(parameter));
         }
     }
-
+    
     @Override
-    public Json getNullableResult(ResultSet rs, String columnName) throws SQLException {
+    public Object getNullableResult(ResultSet rs, String columnName) throws SQLException {
         return getJson(rs.getString(columnName));
     }
-
+    
     @Override
-    public Json getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
+    public Object getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
         return getJson(rs.getString(columnIndex));
     }
-
+    
     @Override
-    public Json getNullableResult(CallableStatement cs, int columnIndex) throws SQLException {
+    public Object getNullableResult(CallableStatement cs, int columnIndex) throws SQLException {
         return getJson(cs.getString(columnIndex));
     }
-
-    private Json getJson(String value) {
+    
+    private Object getJson(String value) {
         if (value == null) {
             return null;
         }
         return new JsonKingBase().fromString(value);
     }
-
+    
 }

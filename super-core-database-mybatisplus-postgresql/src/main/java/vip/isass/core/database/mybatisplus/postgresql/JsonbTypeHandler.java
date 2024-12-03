@@ -193,7 +193,7 @@ import java.sql.SQLException;
 @Slf4j
 @Component
 @MappedJdbcTypes(JdbcType.JAVA_OBJECT)
-@MappedTypes({Json.class, JsonPg.class, DefaultJson.class})
+@MappedTypes({Json.class})
 public class JsonbTypeHandler extends BaseTypeHandler<Json> implements IJsonTypeHandler<Json> {
 
     @Override
