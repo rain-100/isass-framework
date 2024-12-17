@@ -169,9 +169,11 @@
 
 package vip.isass.core.database.mybatisplus.kingbase;
 
+import cn.hutool.core.util.StrUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.SneakyThrows;
 import org.postgresql.util.PGobject;
+import vip.isass.core.database.kingbase.entity.JsonKingBase;
 import vip.isass.core.database.typehandler.IJsonNodeTypeHandler;
 import vip.isass.core.support.JsonUtil;
 
@@ -193,9 +195,10 @@ public class KingbaseEsJsonNodeTypeHandler implements IJsonNodeTypeHandler {
     @Override
     @SneakyThrows
     public void setNonNullParameter(PreparedStatement ps, int i, JsonNode parameter) {
-        PGobject pGobject = new PGobject();
-        pGobject.setValue(JsonUtil.DEFAULT_INSTANCE.writeValueAsString(parameter));
-        ps.setObject(i, pGobject);
+//        PGobject pGobject = new PGobject();
+//        pGobject.setValue(JsonUtil.DEFAULT_INSTANCE.writeValueAsString(parameter));
+//        ps.setObject(i, pGobject);
+        ps.setObject(i, new JsonKingBase().fromJsonNode(parameter));
     }
 
     @Override
@@ -204,6 +207,8 @@ public class KingbaseEsJsonNodeTypeHandler implements IJsonNodeTypeHandler {
         if (value == null) {
             return null;
         }
+        value = StrUtil.removePrefix(value, "\"");
+        value = StrUtil.removeSuffix(value, "\"");
         return JsonUtil.DEFAULT_INSTANCE.readTree(value);
     }
 
