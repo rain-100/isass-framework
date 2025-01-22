@@ -166,29 +166,33 @@
  * Library.
  */
 
-package vip.isass.framework.common.sequence.impl;
+package vip.isass.framework.common.id.impl;
 
-import vip.isass.framework.common.sequence.Sequence;
+import vip.isass.framework.common.id.IdGenerator;
+
+import java.util.UUID;
 
 /**
  * @author rain
  */
-public class NoneSequence implements Sequence<Void> {
-
-    public static final NoneSequence instance = new NoneSequence();
+public class UuidGenerator implements IdGenerator<String> {
 
     @Override
-    public Void next() {
-        throw new UnsupportedOperationException("NoneSequence can not be call next()");
+    public String next() {
+        return get();
+    }
+
+    public static String get() {
+        return UUID.randomUUID().toString();
     }
 
     @Override
     public boolean support(Class<?> clazz) {
-        return false;
+        return clazz == String.class;
     }
 
     @Override
     public int getOrder() {
-        return Integer.MAX_VALUE;
+        return 1000;
     }
 }

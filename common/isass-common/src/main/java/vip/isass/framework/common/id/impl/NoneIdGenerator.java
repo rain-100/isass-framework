@@ -166,31 +166,29 @@
  * Library.
  */
 
-package vip.isass.framework.common.converter.clazz;
+package vip.isass.framework.common.id.impl;
 
-import cn.hutool.core.util.StrUtil;
-import vip.isass.framework.common.converter.Converter;
+import vip.isass.framework.common.id.IdGenerator;
 
 /**
- * 把全限定类名字符串转换成 class 对象
- *
- * @author Rain
+ * @author rain
  */
-@SuppressWarnings({"rawtypes"})
-public class StringToClassConverter implements Converter<String, Class> {
+public class NoneIdGenerator implements IdGenerator<Void> {
 
-    private static final String PREFIX = "class ";
+    public static final NoneIdGenerator instance = new NoneIdGenerator();
 
     @Override
-    public Class convert(String source) {
-        if (StrUtil.isBlank(source)) {
-            return null;
-        }
-        try {
-            return Class.forName(StrUtil.removePrefix(source, PREFIX));
-        } catch (ClassNotFoundException e) {
-            throw new IllegalArgumentException(e);
-        }
+    public Void next() {
+        throw new UnsupportedOperationException("NoneSequence can not be call next()");
     }
 
+    @Override
+    public boolean support(Class<?> clazz) {
+        return false;
+    }
+
+    @Override
+    public int getOrder() {
+        return Integer.MAX_VALUE;
+    }
 }

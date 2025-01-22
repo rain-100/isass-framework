@@ -166,35 +166,30 @@
  * Library.
  */
 
-package vip.isass.framework.common.sequence.impl;
+package vip.isass.framework.common.id.impl;
 
-import vip.isass.framework.common.sequence.Sequence;
-
-import java.util.UUID;
+import cn.hutool.core.util.RandomUtil;
+import lombok.extern.slf4j.Slf4j;
+import vip.isass.framework.common.id.IdGenerator;
 
 /**
  * @author rain
  */
-public class UuidSequence implements Sequence<String> {
+@Slf4j
+public class RandomLongIdGenerator implements IdGenerator<Long> {
 
     @Override
-    public String next() {
+    public Long next() {
         return get();
     }
 
-    public static String get() {
-        return UUID.randomUUID().toString();
-    }
-
-    public static void main(String[] args) {
-        for (int i = 0; i < 100; i++) {
-            System.out.println(UuidSequence.get());
-        }
+    public static Long get() {
+        return RandomUtil.randomLong(Integer.MAX_VALUE, Long.MAX_VALUE);
     }
 
     @Override
     public boolean support(Class<?> clazz) {
-        return clazz == String.class;
+        return clazz == Long.class;
     }
 
     @Override

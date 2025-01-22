@@ -211,7 +211,7 @@ public interface Converter<S, T> {
             T convert = convert(source);
             return convert == null ? defaultValue : convert;
         } catch (Exception e) {
-            log.trace("convert exception: {}", e.getMessage(), e);
+            log.trace("convert fail, will using default value. exception: {}", e.getMessage(), e);
             return defaultValue;
         }
 

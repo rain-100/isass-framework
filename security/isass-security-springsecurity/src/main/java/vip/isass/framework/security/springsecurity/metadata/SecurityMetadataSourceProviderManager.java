@@ -170,13 +170,13 @@ package vip.isass.framework.security.springsecurity.metadata;
 
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
-import vip.isass.framework.common.util.function.FunctionUtil;
 import vip.isass.framework.security.core.authorization.permiturl.UrlAccessSecurityStrategy;
 import vip.isass.framework.security.springsecurity.config.WebSecurityConfig;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class SecurityMetadataSourceProviderManager {
@@ -189,13 +189,21 @@ public class SecurityMetadataSourceProviderManager {
 
     public Collection<String> findRoleCodesByUserId(String userId) {
         return webSecurityConfig.getUrlAccessSecurityStrategy() == UrlAccessSecurityStrategy.ROLE
-                ? FunctionUtil.getFirstNotNullValueFromCollection(providers, service -> service.findRoleCodesByUserId(userId))
+                ? providers.stream()
+                .map(service -> service.findRoleCodesByUserId(userId))
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(Collections.emptyList())
                 : Collections.emptyList();
     }
 
     public Collection<String> findRoleCodesByUri(String uri) {
         return webSecurityConfig.getUrlAccessSecurityStrategy() == UrlAccessSecurityStrategy.ROLE
-                ? FunctionUtil.getFirstNotNullValueFromCollection(providers, service -> service.findRoleCodesByUri(uri))
+                ? providers.stream()
+                .map(service -> service.findRoleCodesByUri(uri))
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(Collections.emptyList())
                 : Collections.emptyList();
     }
 

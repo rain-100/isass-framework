@@ -1,4 +1,3 @@
-vip.isass.framework.common.converter.clazz.StringToClassConverter
 vip.isass.framework.common.converter.datatime.DateToTimestampStringConverter
 vip.isass.framework.common.converter.datatime.LocalDateTimeToDataTimeStringConverter
 vip.isass.framework.common.converter.datatime.LocalDateTimeToDateStringConverter
@@ -9,4 +8,5 @@ vip.isass.framework.common.converter.datatime.StringToLocalDateConverter
 vip.isass.framework.common.converter.datatime.StringToLocalDateTimeConverter
 vip.isass.framework.common.converter.datatime.StringToLocalTimeConverter
 vip.isass.framework.common.converter.datatime.StringToTimestampConverter
-vip.isass.framework.common.converter.Iterator.CollectionToQueryStringConverter
+vip.isass.framework.common.converter.string.CollectionToQueryStringConverter
+vip.isass.framework.common.converter.string.StringToClassConverter

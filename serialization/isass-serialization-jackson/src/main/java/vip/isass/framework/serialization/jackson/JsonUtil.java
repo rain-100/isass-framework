@@ -182,6 +182,7 @@ import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.deser.std.StdDelegatingDeserializer;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.ser.std.NumberSerializer;
@@ -243,7 +244,7 @@ public class JsonUtil {
             .addDeserializer(MultiValueBiMap.class, new StdDelegatingDeserializer<>(new MapToMultiValueBiMapConvert()))
             .addDeserializer(MultiKeyMultiValueBiMap.class, new StdDelegatingDeserializer<>(new MapToMultiKeyMultiValueBiMapConvert()));
 
-    public static final ObjectMapper DEFAULT_INSTANCE = new ObjectMapper()
+    public static final ObjectMapper DEFAULT_INSTANCE = JsonMapper.builder()
             // 当实体类中不含有 json 字符串的某些字段时，不抛出异常
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
 
@@ -267,6 +268,8 @@ public class JsonUtil {
 
             // 忽略 transient 关键字的变量
             .configure(MapperFeature.PROPAGATE_TRANSIENT_MARKER, true)
+
+            .build()
 
             .registerModule(simpleModule);
 

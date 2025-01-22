@@ -166,10 +166,10 @@
  * Library.
  */
 
-package vip.isass.framework.common.sequence;
+package vip.isass.framework.common.id;
 
 import cn.hutool.core.util.TypeUtil;
-import vip.isass.framework.common.sequence.impl.NoneSequence;
+import vip.isass.framework.common.id.impl.NoneIdGenerator;
 
 import java.lang.reflect.Type;
 import java.util.HashMap;
@@ -177,68 +177,72 @@ import java.util.Map;
 import java.util.ServiceLoader;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
-public class SequenceSupport {
+public class IdGeneratorSupport {
 
-    private static final Map<Class, Sequence> SEQUENCE_CACHE = new HashMap<>();
+    private static final Map<Class, IdGenerator> ID_GENERATOR_CACHE = new HashMap<>();
 
     static {
         init();
     }
 
+    public static <T> T next(Class<T> clazz) {
+        return getInstance(clazz).next();
+    }
+
     private static void init() {
-        ServiceLoader<Sequence> loader = ServiceLoader.load(Sequence.class);
-        for (Sequence next : loader) {
+        ServiceLoader<IdGenerator> loader = ServiceLoader.load(IdGenerator.class);
+        for (IdGenerator next : loader) {
             Type typeArgument = TypeUtil.getTypeArgument(next.getClass(), 0);
             Class<?> clazz = TypeUtil.getClass(typeArgument);
 
-            Sequence cachedSequence = SEQUENCE_CACHE.get(clazz);
-            if (cachedSequence == null) {
-                SEQUENCE_CACHE.put(clazz, next);
+            IdGenerator cachedIdGenerator = ID_GENERATOR_CACHE.get(clazz);
+            if (cachedIdGenerator == null) {
+                ID_GENERATOR_CACHE.put(clazz, next);
                 continue;
             }
 
-            if (cachedSequence.getOrder() > next.getOrder()) {
-                SEQUENCE_CACHE.put(clazz, next);
+            if (cachedIdGenerator.getOrder() > next.getOrder()) {
+                ID_GENERATOR_CACHE.put(clazz, next);
             }
         }
     }
 
-    public static <T> Sequence<T> getInstance(Class<T> clazz) {
-        Sequence sequence = computeIfAbsent(clazz);
-        if (sequence == NoneSequence.instance) {
-            throw new RuntimeException("can not found Sequence");
+    public static <T> IdGenerator<T> getInstance(Class<T> clazz) {
+        IdGenerator idGenerator = computeIfAbsent(clazz);
+        if (idGenerator == NoneIdGenerator.instance) {
+            throw new UnsupportedOperationException("can not found id generator of type :" + clazz.getName());
         }
-        return sequence;
+        return idGenerator;
     }
 
-    public static Sequence<Long> Long() {
+    public static IdGenerator<Long> Long() {
         return getInstance(Long.class);
     }
 
-    public static Sequence<String> String() {
+    public static IdGenerator<String> String() {
         return getInstance(String.class);
     }
 
-    private static Sequence computeIfAbsent(Class clazz) {
-        Sequence sequence = SEQUENCE_CACHE.get(clazz);
-        if (sequence != null) {
-            return sequence;
+    private static IdGenerator computeIfAbsent(Class clazz) {
+        IdGenerator idGenerator = ID_GENERATOR_CACHE.get(clazz);
+        if (idGenerator != null) {
+            return idGenerator;
         }
-        synchronized (SequenceSupport.class) {
-            sequence = SEQUENCE_CACHE.get(clazz);
-            if (sequence != null) {
-                return sequence;
+        synchronized (IdGeneratorSupport.class) {
+            idGenerator = ID_GENERATOR_CACHE.get(clazz);
+            if (idGenerator != null) {
+                return idGenerator;
             }
 
-            for (Map.Entry<Class, Sequence> entry : SEQUENCE_CACHE.entrySet()) {
+            for (Map.Entry<Class, IdGenerator> entry : ID_GENERATOR_CACHE.entrySet()) {
                 Class chchedClass = entry.getKey();
                 if (chchedClass.isAssignableFrom(clazz)) {
-                    SEQUENCE_CACHE.put(clazz, entry.getValue());
+                    ID_GENERATOR_CACHE.put(clazz, entry.getValue());
                     return entry.getValue();
                 }
             }
-            SEQUENCE_CACHE.put(clazz, NoneSequence.instance);
-            return NoneSequence.instance;
+            ID_GENERATOR_CACHE.put(clazz, NoneIdGenerator.instance);
+            return NoneIdGenerator.instance;
         }
     }
 }

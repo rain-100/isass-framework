@@ -21,7 +21,7 @@ import lombok.Setter;
 import lombok.SneakyThrows;
 import lombok.experimental.Accessors;
 import vip.isass.core.entity.*;
-import impl.vip.isass.framework.common.sequence.LongSequence;
+import impl.vip.isass.framework.common.id.LongSequence;
 import jackson.vip.isass.framework.common.serialization.JsonUtil;
 <#list table.fields as field>
 <#if (field.propertyType == "LocalDate"

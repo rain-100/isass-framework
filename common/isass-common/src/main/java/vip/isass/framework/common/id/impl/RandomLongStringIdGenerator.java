@@ -166,41 +166,29 @@
  * Library.
  */
 
-package vip.isass.framework.common.util.function;
+package vip.isass.framework.common.id.impl;
 
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.function.Function;
-import java.util.function.Supplier;
+import vip.isass.framework.common.id.IdGenerator;
 
 /**
- * @author Rain
+ * @author rain
  */
 @Slf4j
-public class NullableUtil {
+public class RandomLongStringIdGenerator implements IdGenerator<String> {
 
-    public static <T, R> R supplier(T t, Supplier<R> supplier) {
-        if (t == null) {
-            return null;
-        }
-        return supplier.get();
+    @Override
+    public String next() {
+        return RandomLongIdGenerator.get().toString();
     }
 
-    public static <T, R> R supplierOrDefault(T t, Supplier<R> supplier, R defaultValue) {
-        R r = supplier(t, supplier);
-        return r == null ? defaultValue : r;
+    @Override
+    public boolean support(Class<?> clazz) {
+        return clazz == String.class;
     }
 
-    public static <T, R> R functionOrDefault(T t, Function<T, R> function, R defaultValue) {
-        R r = function(t, function);
-        return r == null ? defaultValue : r;
+    @Override
+    public int getOrder() {
+        return 500;
     }
-
-    public static <T, R> R function(T t, Function<T, R> function) {
-        if (t == null) {
-            return null;
-        }
-        return function.apply(t);
-    }
-
 }

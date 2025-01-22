@@ -170,13 +170,13 @@ package vip.isass.framework.database.orm.mybatisplus.util;
 
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import org.springframework.stereotype.Component;
-import vip.isass.framework.common.sequence.Sequence;
+import vip.isass.framework.common.id.IdGenerator;
 
 /**
  * @author Rain
  */
 @Component
-public class MybatisPlulsLongSequence implements Sequence<Long> {
+public class MybatisPlulsLongIdGenerator implements IdGenerator<Long> {
 
     @Override
     public Long next() {

@@ -1,0 +1,4 @@
+vip.isass.framework.common.id.impl.RandomLongIdGenerator
+vip.isass.framework.common.id.impl.RandomLongStringIdGenerator
+vip.isass.framework.common.id.impl.UuidGenerator
+vip.isass.framework.common.id.impl.NoneIdGenerator

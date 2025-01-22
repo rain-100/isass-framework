@@ -249,7 +249,7 @@
         <tag>master</tag>
         <url>https://gitee.com/isass/super</url>
         <connection>scm:git:git@gitee.com:isass/super.git</connection>
-        <developerConnection>scm:git:git@gitee.com:isass/super.git</developerConnection>
+        <developerConnection>scm:git:git@gitee.com:isass/isass-framework.git</developerConnection>
     </scm>
 
     <developers>
