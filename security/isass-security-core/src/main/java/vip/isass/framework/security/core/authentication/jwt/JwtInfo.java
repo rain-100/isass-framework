@@ -175,7 +175,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import vip.isass.framework.security.core.authentication.login.TerminalType;
+import vip.isass.framework.common.security.authentication.login.TerminalType;
 
 /**
  * @author Rain

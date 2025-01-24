@@ -166,78 +166,39 @@
  * Library.
  */
 
-package vip.isass.framework.net.socketio.handler;
+package vip.isass.framework.net.core.admin;
 
-import cn.hutool.core.exceptions.ExceptionUtil;
-import com.corundumstudio.socketio.SocketIOClient;
-import com.corundumstudio.socketio.listener.ExceptionListener;
-import io.netty.channel.ChannelHandlerContext;
-import jakarta.annotation.Resource;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import vip.isass.framework.net.core.handler.manager.EventManager;
-import vip.isass.framework.net.core.message.MessageCmd;
+import cn.hutool.core.collection.CollUtil;
+import vip.isass.framework.common.api.Api;
+import vip.isass.framework.common.api.ApiGroup;
+import vip.isass.framework.common.service.Resp;
 import vip.isass.framework.net.core.session.ISessionService;
-import vip.isass.framework.net.core.session.Session;
+import vip.isass.framework.net.core.session.SessionInfoCollection;
 
 import java.util.List;
+import java.util.function.Function;
 
-/**
- * socketIo 异常事件监听器
- *
- * @author rain
- */
-@Slf4j
-@Component
-public class OnSocketIoErrorListener implements ExceptionListener {
+public class NetAdminApiProvider {
 
-    @Autowired
-    private EventManager eventManager;
-
-    @Resource
     private ISessionService sessionService;
 
-    @Override
-    public void onEventException(Exception e, List<Object> args, SocketIOClient client) {
-        log.error(e.getMessage(), e);
-        Throwable unwrap = ExceptionUtil.unwrap(e);
-        log.warn("socketio event exception: {}", unwrap.getMessage());
-        client.sendEvent(MessageCmd.ERROR, "发生异常：" + unwrap.getMessage());
+    public NetAdminApiProvider(ISessionService sessionService) {
+        this.sessionService = sessionService;
     }
 
-    @Override
-    public void onDisconnectException(Exception e, SocketIOClient client) {
-        Session<?> session = sessionService.getSessionById(client.getSessionId().toString());
-        eventManager.onError(session, e);
+    public List<ApiGroup> getApiGroups() {
+        return CollUtil.newArrayList(
+                ApiGroup.builder()
+                        .name("网络管理服务")
+                        .routePrefix("/${spring.application.name}/net/admin")
+                        .apis(CollUtil.newArrayList(
+                                        Api.builder()
+                                                .route("/session")
+                                                .function((Function<Object, Resp<SessionInfoCollection>>) o -> Resp.bizSuccess(sessionService.getSessionInfoCollection()))
+                                                .build()
+                                )
+                        )
+                        .build());
     }
 
-    @Override
-    public void onConnectException(Exception e, SocketIOClient client) {
-        Session<?> session = sessionService.getSessionById(client.getSessionId().toString());
-        eventManager.onError(session, e);
-    }
-
-    @Override
-    @SuppressWarnings("deprecation")
-    public void onPingException(Exception e, SocketIOClient client) {
-        Session<?> session = sessionService.getSessionById(client.getSessionId().toString());
-        eventManager.onError(session, e);
-    }
-
-    @Override
-    public void onPongException(Exception e, SocketIOClient client) {
-        Session<?> session = sessionService.getSessionById(client.getSessionId().toString());
-        eventManager.onError(session, e);
-    }
-
-    @Override
-    public boolean exceptionCaught(ChannelHandlerContext ctx, Throwable e) {
-        return true;
-    }
-
-    @Override
-    public void onAuthException(Throwable throwable, SocketIOClient socketIOClient) {
-
-    }
 }

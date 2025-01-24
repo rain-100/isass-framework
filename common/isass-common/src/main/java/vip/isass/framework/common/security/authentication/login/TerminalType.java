@@ -166,78 +166,50 @@
  * Library.
  */
 
-package vip.isass.framework.net.socketio.handler;
+package vip.isass.framework.common.security.authentication.login;
 
-import cn.hutool.core.exceptions.ExceptionUtil;
-import com.corundumstudio.socketio.SocketIOClient;
-import com.corundumstudio.socketio.listener.ExceptionListener;
-import io.netty.channel.ChannelHandlerContext;
-import jakarta.annotation.Resource;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import vip.isass.framework.net.core.handler.manager.EventManager;
-import vip.isass.framework.net.core.message.MessageCmd;
-import vip.isass.framework.net.core.session.ISessionService;
-import vip.isass.framework.net.core.session.Session;
-
-import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.experimental.SuperBuilder;
 
 /**
- * socketIo 异常事件监听器
- *
- * @author rain
+ * 终端运行时参数
  */
-@Slf4j
-@Component
-public class OnSocketIoErrorListener implements ExceptionListener {
+@Getter
+@Setter
+@ToString
+@SuperBuilder
+@NoArgsConstructor
+@AllArgsConstructor
+public class TerminalType {
 
-    @Autowired
-    private EventManager eventManager;
+    /**
+     * 设备类型
+     */
+    private String deviceType;
 
-    @Resource
-    private ISessionService sessionService;
+    /**
+     * 操作系统
+     */
+    private String os;
 
-    @Override
-    public void onEventException(Exception e, List<Object> args, SocketIOClient client) {
-        log.error(e.getMessage(), e);
-        Throwable unwrap = ExceptionUtil.unwrap(e);
-        log.warn("socketio event exception: {}", unwrap.getMessage());
-        client.sendEvent(MessageCmd.ERROR, "发生异常：" + unwrap.getMessage());
-    }
+    /**
+     * 设备品牌
+     */
+    private String brand;
 
-    @Override
-    public void onDisconnectException(Exception e, SocketIOClient client) {
-        Session<?> session = sessionService.getSessionById(client.getSessionId().toString());
-        eventManager.onError(session, e);
-    }
+    /**
+     * 浏览器类型
+     * 如果是混合架构开发，则应视为 app，不用填写浏览器类型
+     */
+    private String browserType;
 
-    @Override
-    public void onConnectException(Exception e, SocketIOClient client) {
-        Session<?> session = sessionService.getSessionById(client.getSessionId().toString());
-        eventManager.onError(session, e);
-    }
+    /**
+     * 网络类型
+     */
+    private String netType;
 
-    @Override
-    @SuppressWarnings("deprecation")
-    public void onPingException(Exception e, SocketIOClient client) {
-        Session<?> session = sessionService.getSessionById(client.getSessionId().toString());
-        eventManager.onError(session, e);
-    }
-
-    @Override
-    public void onPongException(Exception e, SocketIOClient client) {
-        Session<?> session = sessionService.getSessionById(client.getSessionId().toString());
-        eventManager.onError(session, e);
-    }
-
-    @Override
-    public boolean exceptionCaught(ChannelHandlerContext ctx, Throwable e) {
-        return true;
-    }
-
-    @Override
-    public void onAuthException(Throwable throwable, SocketIOClient socketIOClient) {
-
-    }
 }

@@ -171,6 +171,8 @@ package vip.isass.framework.security.core.authentication.login;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import vip.isass.framework.common.security.authentication.login.LoginUser;
+import vip.isass.framework.common.security.authentication.login.TerminalType;
 
 /**
  * @author Rain

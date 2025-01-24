@@ -168,7 +168,7 @@
 
 package vip.isass.framework.security.springsecurity.authentication.onlineuser;
 
-import vip.isass.framework.security.core.authentication.login.LoginUser;
+import vip.isass.framework.common.security.authentication.login.LoginUser;
 
 import java.util.List;
 

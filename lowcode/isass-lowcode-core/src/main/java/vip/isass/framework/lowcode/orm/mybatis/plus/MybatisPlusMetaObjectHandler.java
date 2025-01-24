@@ -176,8 +176,8 @@ import vip.isass.framework.lowcode.v1.entity.LogicDeleteEntity;
 import vip.isass.framework.lowcode.v1.entity.TimeTracedEntity;
 import vip.isass.framework.lowcode.v1.entity.UserTracedEntity;
 import vip.isass.framework.lowcode.v1.entity.VersionEntity;
-import vip.isass.framework.security.core.authentication.login.LoginUser;
-import vip.isass.framework.security.core.authentication.login.LoginUserUtil;
+import vip.isass.framework.common.security.authentication.login.LoginUser;
+import vip.isass.framework.common.security.authentication.login.LoginUserUtil;
 
 /**
  * @author Rain

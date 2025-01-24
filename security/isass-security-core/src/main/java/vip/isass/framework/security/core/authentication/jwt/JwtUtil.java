@@ -182,7 +182,7 @@ import io.jsonwebtoken.security.Keys;
 import vip.isass.framework.common.exception.UnifiedException;
 import vip.isass.framework.common.exception.code.StatusMessageEnum;
 import vip.isass.framework.common.util.LocalDateTimeUtil;
-import vip.isass.framework.security.core.authentication.login.LoginUser;
+import vip.isass.framework.common.security.authentication.login.LoginUser;
 
 import javax.crypto.SecretKey;
 import java.time.temporal.ChronoUnit;

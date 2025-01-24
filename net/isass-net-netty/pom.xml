@@ -192,11 +192,6 @@
 
         <dependency>
             <groupId>vip.isass</groupId>
-            <artifactId>isass-net-admin</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>vip.isass</groupId>
             <artifactId>isass-serialization-protobuf</artifactId>
         </dependency>
 

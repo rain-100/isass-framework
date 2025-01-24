@@ -187,6 +187,8 @@ import vip.isass.framework.common.exception.IStatusMapping;
 import vip.isass.framework.common.exception.UnifiedException;
 import vip.isass.framework.common.exception.code.IStatusMessage;
 import vip.isass.framework.common.exception.code.StatusMessageEnum;
+import vip.isass.framework.common.security.authentication.jwt.JwtConst;
+import vip.isass.framework.common.security.authentication.login.LoginUserUtil;
 import vip.isass.framework.common.service.Resp;
 
 import java.util.List;
@@ -239,15 +241,13 @@ public class IsassErrorController implements ErrorController {
             if (statusCode == StatusMessageEnum.ACCESS_DENIED_403
                     && StrUtil.isNotBlank(request.getHeader(JwtConst.HEADER_NAME))
                     && LoginUserUtil.getLoginUser() == null) {
-                return new Resp<>()
-                        .setSuccess(false)
-                        .setStatus(StatusMessageEnum.JWT_TOKEN_ERROR.getStatus())
-                        .setMessage(StatusMessageEnum.JWT_TOKEN_ERROR.getMsg());
+                return new Resp<>(Boolean.FALSE,
+                        StatusMessageEnum.JWT_TOKEN_ERROR.getStatus(),
+                        StatusMessageEnum.JWT_TOKEN_ERROR.getMsg());
             }
-            return new Resp<>()
-                    .setSuccess(false)
-                    .setStatus(statusCode.getStatus())
-                    .setMessage(statusCode.getMsg() + ": " + request.getMethod() + " "
+            new Resp<>(Boolean.FALSE,
+                    statusCode.getStatus(),
+                    statusCode.getMsg() + ": " + request.getMethod() + " "
                             + errorAttributes.get("path") + " "
                             + errorAttributes.get("error") + " "
                             + errorAttributes.get("exception") + " "

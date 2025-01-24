@@ -166,78 +166,49 @@
  * Library.
  */
 
-package vip.isass.framework.net.socketio.handler;
+package vip.isass.framework.common.api;
 
-import cn.hutool.core.exceptions.ExceptionUtil;
-import com.corundumstudio.socketio.SocketIOClient;
-import com.corundumstudio.socketio.listener.ExceptionListener;
-import io.netty.channel.ChannelHandlerContext;
-import jakarta.annotation.Resource;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import vip.isass.framework.net.core.handler.manager.EventManager;
-import vip.isass.framework.net.core.message.MessageCmd;
-import vip.isass.framework.net.core.session.ISessionService;
-import vip.isass.framework.net.core.session.Session;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.experimental.SuperBuilder;
 
-import java.util.List;
+import java.util.function.Function;
 
-/**
- * socketIo 异常事件监听器
- *
- * @author rain
- */
-@Slf4j
-@Component
-public class OnSocketIoErrorListener implements ExceptionListener {
+@Getter
+@Setter
+@ToString
+@SuperBuilder
+@NoArgsConstructor
+@AllArgsConstructor
+public class Api {
 
-    @Autowired
-    private EventManager eventManager;
+    /**
+     * 路由
+     */
+    private String route;
 
-    @Resource
-    private ISessionService sessionService;
+    /**
+     * 名称
+     */
+    private String name;
 
-    @Override
-    public void onEventException(Exception e, List<Object> args, SocketIOClient client) {
-        log.error(e.getMessage(), e);
-        Throwable unwrap = ExceptionUtil.unwrap(e);
-        log.warn("socketio event exception: {}", unwrap.getMessage());
-        client.sendEvent(MessageCmd.ERROR, "发生异常：" + unwrap.getMessage());
-    }
+    /**
+     * 描述
+     */
+    private String description;
 
-    @Override
-    public void onDisconnectException(Exception e, SocketIOClient client) {
-        Session<?> session = sessionService.getSessionById(client.getSessionId().toString());
-        eventManager.onError(session, e);
-    }
+    /**
+     * 请求方式
+     * 通常是 http 接口的请求方式
+     */
+    private String method;
 
-    @Override
-    public void onConnectException(Exception e, SocketIOClient client) {
-        Session<?> session = sessionService.getSessionById(client.getSessionId().toString());
-        eventManager.onError(session, e);
-    }
+    /**
+     * 接口逻辑
+     */
+    private Function function;
 
-    @Override
-    @SuppressWarnings("deprecation")
-    public void onPingException(Exception e, SocketIOClient client) {
-        Session<?> session = sessionService.getSessionById(client.getSessionId().toString());
-        eventManager.onError(session, e);
-    }
-
-    @Override
-    public void onPongException(Exception e, SocketIOClient client) {
-        Session<?> session = sessionService.getSessionById(client.getSessionId().toString());
-        eventManager.onError(session, e);
-    }
-
-    @Override
-    public boolean exceptionCaught(ChannelHandlerContext ctx, Throwable e) {
-        return true;
-    }
-
-    @Override
-    public void onAuthException(Throwable throwable, SocketIOClient socketIOClient) {
-
-    }
 }

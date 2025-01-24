@@ -166,78 +166,53 @@
  * Library.
  */
 
-package vip.isass.framework.net.socketio.handler;
-
-import cn.hutool.core.exceptions.ExceptionUtil;
-import com.corundumstudio.socketio.SocketIOClient;
-import com.corundumstudio.socketio.listener.ExceptionListener;
-import io.netty.channel.ChannelHandlerContext;
-import jakarta.annotation.Resource;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import vip.isass.framework.net.core.handler.manager.EventManager;
-import vip.isass.framework.net.core.message.MessageCmd;
-import vip.isass.framework.net.core.session.ISessionService;
-import vip.isass.framework.net.core.session.Session;
-
-import java.util.List;
+package vip.isass.framework.common.security.authentication.login;
 
 /**
- * socketIo 异常事件监听器
- *
- * @author rain
+ * @author Rain
  */
-@Slf4j
-@Component
-public class OnSocketIoErrorListener implements ExceptionListener {
+public interface LoginUser {
 
-    @Autowired
-    private EventManager eventManager;
+    /**
+     * 该用户在哪个租户的应用上登陆
+     *
+     * @return 租户 id
+     */
+    Long getTenantId();
 
-    @Resource
-    private ISessionService sessionService;
+    Long getAppId();
 
-    @Override
-    public void onEventException(Exception e, List<Object> args, SocketIOClient client) {
-        log.error(e.getMessage(), e);
-        Throwable unwrap = ExceptionUtil.unwrap(e);
-        log.warn("socketio event exception: {}", unwrap.getMessage());
-        client.sendEvent(MessageCmd.ERROR, "发生异常：" + unwrap.getMessage());
-    }
+    /**
+     * @return auth_user 的用户id
+     */
+    String getUserId();
 
-    @Override
-    public void onDisconnectException(Exception e, SocketIOClient client) {
-        Session<?> session = sessionService.getSessionById(client.getSessionId().toString());
-        eventManager.onError(session, e);
-    }
+    /**
+     * @return 用户 id, 包括微服务 msToken
+     */
+    String getAllUserId();
 
-    @Override
-    public void onConnectException(Exception e, SocketIOClient client) {
-        Session<?> session = sessionService.getSessionById(client.getSessionId().toString());
-        eventManager.onError(session, e);
-    }
+    String getTokenFrom();
 
-    @Override
-    @SuppressWarnings("deprecation")
-    public void onPingException(Exception e, SocketIOClient client) {
-        Session<?> session = sessionService.getSessionById(client.getSessionId().toString());
-        eventManager.onError(session, e);
-    }
+    /**
+     * 用户昵称
+     *
+     * @return nick name
+     */
+    String getNickName();
 
-    @Override
-    public void onPongException(Exception e, SocketIOClient client) {
-        Session<?> session = sessionService.getSessionById(client.getSessionId().toString());
-        eventManager.onError(session, e);
-    }
+    /**
+     * token 过期时间
+     */
+    Long getExpireAt();
 
-    @Override
-    public boolean exceptionCaught(ChannelHandlerContext ctx, Throwable e) {
-        return true;
-    }
+    /**
+     * 终端运行时
+     */
+    TerminalType getTerminalType();
 
-    @Override
-    public void onAuthException(Throwable throwable, SocketIOClient socketIOClient) {
-
-    }
+    /**
+     * 登录日志id
+     */
+    Long getLoginLogId();
 }

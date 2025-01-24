@@ -168,6 +168,7 @@
 
 package vip.isass.framework.common.id.impl;
 
+import com.google.auto.service.AutoService;
 import vip.isass.framework.common.id.IdGenerator;
 
 import java.util.UUID;
@@ -175,6 +176,8 @@ import java.util.UUID;
 /**
  * @author rain
  */
+@SuppressWarnings("rawtypes")
+@AutoService(IdGenerator.class)
 public class UuidGenerator implements IdGenerator<String> {
 
     @Override

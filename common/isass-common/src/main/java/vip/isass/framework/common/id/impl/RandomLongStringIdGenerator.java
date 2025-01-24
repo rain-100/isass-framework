@@ -168,6 +168,7 @@
 
 package vip.isass.framework.common.id.impl;
 
+import com.google.auto.service.AutoService;
 import lombok.extern.slf4j.Slf4j;
 import vip.isass.framework.common.id.IdGenerator;
 
@@ -175,6 +176,8 @@ import vip.isass.framework.common.id.IdGenerator;
  * @author rain
  */
 @Slf4j
+@SuppressWarnings("rawtypes")
+@AutoService(IdGenerator.class)
 public class RandomLongStringIdGenerator implements IdGenerator<String> {
 
     @Override
