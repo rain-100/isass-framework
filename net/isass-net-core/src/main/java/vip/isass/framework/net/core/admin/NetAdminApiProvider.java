@@ -169,8 +169,8 @@
 package vip.isass.framework.net.core.admin;
 
 import cn.hutool.core.collection.CollUtil;
-import vip.isass.framework.common.api.Api;
-import vip.isass.framework.common.api.ApiGroup;
+import vip.isass.framework.common.entrypoint.EntryPointEntity;
+import vip.isass.framework.common.entrypoint.ApiGroup;
 import vip.isass.framework.common.service.Resp;
 import vip.isass.framework.net.core.session.ISessionService;
 import vip.isass.framework.net.core.session.SessionInfoCollection;
@@ -191,8 +191,8 @@ public class NetAdminApiProvider {
                 ApiGroup.builder()
                         .name("网络管理服务")
                         .routePrefix("/${spring.application.name}/net/admin")
-                        .apis(CollUtil.newArrayList(
-                                        Api.builder()
+                        .entryPointEntities(CollUtil.newArrayList(
+                                        EntryPointEntity.builder()
                                                 .route("/session")
                                                 .function((Function<Object, Resp<SessionInfoCollection>>) o -> Resp.bizSuccess(sessionService.getSessionInfoCollection()))
                                                 .build()

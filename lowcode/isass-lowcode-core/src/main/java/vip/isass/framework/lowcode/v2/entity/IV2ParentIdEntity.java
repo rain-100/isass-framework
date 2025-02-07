@@ -169,8 +169,6 @@
 package vip.isass.framework.lowcode.v2.entity;
 
 import cn.hutool.core.util.StrUtil;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 
 import java.beans.Transient;
 import java.io.Serializable;
@@ -179,7 +177,7 @@ import java.io.Serializable;
  * @author Rain
  */
 public interface IV2ParentIdEntity<PK extends Serializable, E extends IV2ParentIdEntity<PK, E>>
-    extends IV2PkEntity<PK, E> {
+        extends IV2PkEntity<PK, E> {
 
     String PARENT_ID_PROPERTY_NAME = "parentId";
 
@@ -194,7 +192,6 @@ public interface IV2ParentIdEntity<PK extends Serializable, E extends IV2ParentI
     /**
      * @return 父 id
      */
-    @JsonSerialize(using = ToStringSerializer.class)
     PK getParentId();
 
     /**
@@ -225,7 +222,7 @@ public interface IV2ParentIdEntity<PK extends Serializable, E extends IV2ParentI
             setParentId((PK) TOP_ID_INTEGER_VALUE);
         } else {
             throw new UnsupportedOperationException(StrUtil.format(
-                "未支持自动生成类型为[{}]的 parent_id", pkClass
+                    "未支持自动生成类型为[{}]的 parent_id", pkClass
             ));
         }
         return (E) this;

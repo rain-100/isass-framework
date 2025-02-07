@@ -168,13 +168,13 @@
 
 package vip.isass.framework.lowcode;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.test.context.junit4.AbstractTransactionalJUnit4SpringContextTests;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.transaction.annotation.Transactional;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-public abstract class AbstractRollbackServiceTestClass extends AbstractTransactionalJUnit4SpringContextTests implements RepositoryTest {
+@Transactional
+@SpringBootTest
+public abstract class AbstractRollbackServiceTestClass implements RepositoryTest {
 
     @Test
     @Override

@@ -175,4 +175,6 @@ public interface PageConst {
 
     Long MAX_PAGE_SIZE = 10000L;
 
+    Long DEFAULT_PAGE_SIZE = 20L;
+
 }

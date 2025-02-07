@@ -166,238 +166,26 @@
  * Library.
  */
 
-package vip.isass.framework.lowcode.v2.service;
+package vip.isass.framework.net.socketio;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import vip.isass.framework.common.page.Page;
-import vip.isass.framework.common.service.Ordered;
-import vip.isass.framework.lowcode.v2.criteria.IV2Criteria;
-import vip.isass.framework.lowcode.v2.entity.IV2Entity;
+import vip.isass.framework.common.entrypoint.EntryPointAnno;
 
-import java.io.Serializable;
-import java.util.Collection;
-import java.util.List;
-import java.util.function.Consumer;
-import java.util.function.Function;
+@EntryPointAnno(name = "socketio调试", route = "/${spring.application.name}")
+public class SocketioEntryPoint {
 
-public interface IV2ServiceManager<
-        E extends IV2Entity<E>,
-        C extends IV2Criteria<E, C>,
-        S extends IV2Service<E, C>
-        > extends IV2Service<E, C> {
-
-    Logger LOGGER = LoggerFactory.getLogger(IV2ServiceManager.class);
-
-    @Override
-    default int getOrder() {
-        return Ordered.HIGHEST_PRECEDENCE;
+    @EntryPointAnno(name = "调试页面", route = "/socketio.html")
+    public String SocketIoHtml() {
+        return "forward:/socketio.html";
     }
 
-    List<S> getServices();
-
-    // region 增
-
-    @Override
-    default E add(E entity) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.add(entity));
+    @EntryPointAnno(name = "socketioJs", route = "/socket.io.js")
+    public String socketIoJs() {
+        return "forward:/socket.io.js";
     }
 
-    @Override
-    default Collection<E> addBatch(Collection<E> entities) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.addBatch(entities));
-    }
-
-    @Override
-    default Collection<E> addBatchByBatchSize(Collection<E> entities, int batchSize) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.addBatchByBatchSize(entities, batchSize));
-    }
-
-    @Override
-    default E addIfAbsentByCriteria(E entity, C criteria) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.addIfAbsentByCriteria(entity, criteria));
-    }
-
-    @Override
-    default E addIfAbsentByColumns(E entity, List<String> uniqueColumns) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.addIfAbsentByColumns(entity, uniqueColumns));
-    }
-
-    @Override
-    default Integer addBatchIfAbsentByCriteria(List<E> entities, C criteria) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.addBatchIfAbsentByCriteria(entities, criteria));
-    }
-
-    @Override
-    default Integer addBatchIfAbsentByColumns(List<E> entities, List<String> uniqueColumns) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.addBatchIfAbsentByColumns(entities, uniqueColumns));
-    }
-
-    @Override
-    default Boolean addOrUpdateByCriteria(E entity, C criteria) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.addOrUpdateByCriteria(entity, criteria));
-    }
-
-    @Override
-    default E addOrUpdateByColumns(E entity, List<String> uniqueColumns) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.addOrUpdateByColumns(entity, uniqueColumns));
-    }
-
-    @Override
-    default Integer addOrUpdateBatchByColumns(List<E> entities, List<String> uniqueColumns) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.addOrUpdateBatchByColumns(entities, uniqueColumns));
-    }
-
-    // endregion
-
-    //  region 删
-
-    @Override
-    default Boolean deleteById(Serializable id) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.deleteById(id));
-    }
-
-    @Override
-    default Boolean deleteByIds(Collection<Serializable> ids) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.deleteByIds(ids));
-    }
-
-    @Override
-    default Boolean deleteByCriteria(C criteria) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.deleteByCriteria(criteria));
-    }
-
-    // endregion
-
-    // region 改
-
-    @Override
-    default Boolean updateById(E entity) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.updateById(entity));
-    }
-
-    @Override
-    default Boolean updateAllColumnsById(E entity) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.updateAllColumnsById(entity));
-    }
-
-    @Override
-    default void updateByIdOrException(E entity) {
-        V2ServiceManagerUtil.consume(getServices(), s -> s.updateByIdOrException(entity));
-    }
-
-    @Override
-    default Boolean updateByCriteria(E entity, C criteria) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.updateByCriteria(entity, criteria));
-    }
-
-    @Override
-    default void updateByCriteriaOrException(E entity, C criteria) {
-        V2ServiceManagerUtil.consume(getServices(), s -> s.updateByCriteriaOrException(entity, criteria));
-    }
-
-    // endregion
-
-    //  region 查
-
-    @Override
-    default E getById(Serializable id) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.getById(id));
-    }
-
-    @Override
-    default E getByIdOrException(Serializable id) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.getByIdOrException(id));
-    }
-
-    @Override
-    default E getByCriteria(C criteria) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.getByCriteria(criteria));
-    }
-
-    @Override
-    default E getByCriteriaOrWarn(C criteria) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.getByCriteriaOrWarn(criteria));
-    }
-
-    @Override
-    default E getByCriteriaOrException(C criteria) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.getByCriteriaOrException(criteria));
-    }
-
-    @Override
-    default List<E> findByCriteria(C criteria) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.findByCriteria(criteria));
-    }
-
-    @Override
-    default Page<E> findPageByCriteria(C criteria) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.findPageByCriteria(criteria));
-    }
-
-    @Override
-    default List<E> findAll() {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), IV2Service::findAll);
-    }
-
-    @Override
-    default Integer countByCriteria(C criteria) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.countByCriteria(criteria));
-    }
-
-    @Override
-    default Integer countAll() {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), IV2Service::countAll);
-    }
-
-    @Override
-    default Boolean isPresentById(Serializable id) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.isPresentById(id));
-    }
-
-    @Override
-    default Boolean isPresentByColumn(String columnName, Object value) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.isPresentByColumn(columnName, value));
-    }
-
-    @Override
-    default Boolean isPresentByCriteria(C criteria) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.isPresentByCriteria(criteria));
-    }
-
-    @Override
-    default Boolean isAbsentByColumn(String columnName, Object value) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.isAbsentByColumn(columnName, value));
-    }
-
-    @Override
-    default Boolean isAbsentByCriteria(C criteria) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.isAbsentByCriteria(criteria));
-    }
-
-    @Override
-    default void exceptionIfPresentByCriteria(C criteria) {
-        V2ServiceManagerUtil.consume(getServices(), s -> s.exceptionIfPresentByCriteria(criteria));
-    }
-
-    @Override
-    default void exceptionIfAbsentByCriteria(C criteria) {
-        V2ServiceManagerUtil.consume(getServices(), s -> s.exceptionIfAbsentByCriteria(criteria));
-    }
-
-    // endregion
-
-    default <V> V applyUntilNotNull(Function<S, V> function) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), function);
-    }
-
-    default void consume(Consumer<S> consumer) {
-        V2ServiceManagerUtil.consume(getServices(), consumer);
-    }
-
-
-    default void consumeWithoutException(Consumer<S> consumer) {
-        V2ServiceManagerUtil.consumeWithoutException(getServices(), consumer);
+    @EntryPointAnno(name = "jquery", route = "/jquery/3.3.1/jquery.min.js")
+    public String jquery() {
+        return "forward:/jquery/3.3.1/jquery.min.js";
     }
 
 }

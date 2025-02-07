@@ -166,238 +166,97 @@
  * Library.
  */
 
-package vip.isass.framework.lowcode.v2.service;
+package vip.isass.framework.common.entrypoint;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import vip.isass.framework.common.page.Page;
-import vip.isass.framework.common.service.Ordered;
-import vip.isass.framework.lowcode.v2.criteria.IV2Criteria;
-import vip.isass.framework.lowcode.v2.entity.IV2Entity;
+import cn.hutool.core.lang.Assert;
 
-import java.io.Serializable;
-import java.util.Collection;
-import java.util.List;
-import java.util.function.Consumer;
-import java.util.function.Function;
+public enum HttpMethod {
 
-public interface IV2ServiceManager<
-        E extends IV2Entity<E>,
-        C extends IV2Criteria<E, C>,
-        S extends IV2Service<E, C>
-        > extends IV2Service<E, C> {
+    /**
+     * 从指定的url上获取内容
+     */
+    GET(1),
 
-    Logger LOGGER = LoggerFactory.getLogger(IV2ServiceManager.class);
+    /**
+     * HEAD方法与GET方法的行为很类似，但服务器在响应中只返回首部。不会反回实体的主体部分。这就允许客户端在未获取实际资源的情况下，对资源的首部进行检查。
+     * 使用HEAD，可以：
+     * 在不获取资源的情况下，了解资源的情况
+     * 通过查看响应中的状态码，看看某个对象是否存在
+     * 通过查看首部，测试资源是否被修改
+     * 服务器开发者必须确保返回的首部与GET请求返回的首部完全相同
+     */
+    HEAD(2),
 
-    @Override
-    default int getOrder() {
-        return Ordered.HIGHEST_PRECEDENCE;
+    /**
+     * 与GET方法从服务器读取文档相反，PUT方法会向服务器写入文档。有些发布系统允许用户创建WEB页面，并用PUT直接将其安装到WEB服务器上。
+     */
+    PUT(3),
+
+    /**
+     * POST方法起初是用来向服务器写入数据的。实际上，通常会用它来支持HTML的表单。表单中填好的数据通常会被发送给服务器，然后服务器将其发送到他要去的地方。
+     */
+    POST(4),
+
+    /**
+     * TRACE方法允许客户端在最终将请求发送给服务器时，看看他变成了什么样子。
+     * TRACE请求最终会在目的服务器发起一个回环诊断，行程最后一站的服务器会弹回一条TRACE响应，并在响应主体中携带它收到的原始请求报文。这样客户端就可以查看在所有中间HTTP程序组成的请求响应链上，原始报文是否以及如何被毁坏或修改过。
+     * TRACE方法主要用于诊断
+     * 中间应用程序会自行决定对TRACE请求的处理方式
+     * TRACE请求不能带有实体的主体部分。TRACE响应的实体主体部分包含了响应服务器收到的请求的精确副本。
+     */
+    TRACE(5),
+
+    /**
+     * OPTIONS方法请求WEB服务器告知其支持的各种功能。可以询问服务器通常支持哪些方法，或者对某些特殊资源支持哪些方法。
+     */
+    OPTIONS(6),
+
+    /**
+     * DELETE方法所做的事情就是请服务器删除请求URL所指定的资源。
+     * 但是客户端应用程序无法保证删除操作一定会执行。因为HTTP规范允许服务器在不通知客户端的情况下撤销请求。
+     */
+    DELETE(7),
+
+    PATCH(8);
+
+    private final Integer code;
+
+    public static HttpMethod getMethod(String method) {
+        for (HttpMethod httpMethod : HttpMethod.values()) {
+            if (httpMethod.name().equalsIgnoreCase(method)) {
+                return httpMethod;
+            }
+        }
+        return null;
     }
 
-    List<S> getServices();
-
-    // region 增
-
-    @Override
-    default E add(E entity) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.add(entity));
+    public static HttpMethod getMethodOrException(String method) {
+        HttpMethod httpMethod = getMethod(method);
+        Assert.notNull(httpMethod, "不支持的 HttpMethod: " + method);
+        return httpMethod;
     }
 
-    @Override
-    default Collection<E> addBatch(Collection<E> entities) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.addBatch(entities));
+    public static HttpMethod parseFromCode(Integer code) {
+        for (HttpMethod httpMethod : HttpMethod.values()) {
+            if (httpMethod.code.equals(code)) {
+                return httpMethod;
+            }
+        }
+        return null;
     }
 
-    @Override
-    default Collection<E> addBatchByBatchSize(Collection<E> entities, int batchSize) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.addBatchByBatchSize(entities, batchSize));
+    public static HttpMethod parseFromCodeOrException(Integer code) {
+        HttpMethod httpMethod = parseFromCode(code);
+        Assert.notNull(httpMethod, "不支持的 HttpMethod code: " + code);
+        return httpMethod;
     }
 
-    @Override
-    default E addIfAbsentByCriteria(E entity, C criteria) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.addIfAbsentByCriteria(entity, criteria));
+    HttpMethod(Integer code) {
+        this.code = code;
     }
 
-    @Override
-    default E addIfAbsentByColumns(E entity, List<String> uniqueColumns) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.addIfAbsentByColumns(entity, uniqueColumns));
-    }
-
-    @Override
-    default Integer addBatchIfAbsentByCriteria(List<E> entities, C criteria) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.addBatchIfAbsentByCriteria(entities, criteria));
-    }
-
-    @Override
-    default Integer addBatchIfAbsentByColumns(List<E> entities, List<String> uniqueColumns) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.addBatchIfAbsentByColumns(entities, uniqueColumns));
-    }
-
-    @Override
-    default Boolean addOrUpdateByCriteria(E entity, C criteria) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.addOrUpdateByCriteria(entity, criteria));
-    }
-
-    @Override
-    default E addOrUpdateByColumns(E entity, List<String> uniqueColumns) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.addOrUpdateByColumns(entity, uniqueColumns));
-    }
-
-    @Override
-    default Integer addOrUpdateBatchByColumns(List<E> entities, List<String> uniqueColumns) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.addOrUpdateBatchByColumns(entities, uniqueColumns));
-    }
-
-    // endregion
-
-    //  region 删
-
-    @Override
-    default Boolean deleteById(Serializable id) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.deleteById(id));
-    }
-
-    @Override
-    default Boolean deleteByIds(Collection<Serializable> ids) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.deleteByIds(ids));
-    }
-
-    @Override
-    default Boolean deleteByCriteria(C criteria) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.deleteByCriteria(criteria));
-    }
-
-    // endregion
-
-    // region 改
-
-    @Override
-    default Boolean updateById(E entity) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.updateById(entity));
-    }
-
-    @Override
-    default Boolean updateAllColumnsById(E entity) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.updateAllColumnsById(entity));
-    }
-
-    @Override
-    default void updateByIdOrException(E entity) {
-        V2ServiceManagerUtil.consume(getServices(), s -> s.updateByIdOrException(entity));
-    }
-
-    @Override
-    default Boolean updateByCriteria(E entity, C criteria) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.updateByCriteria(entity, criteria));
-    }
-
-    @Override
-    default void updateByCriteriaOrException(E entity, C criteria) {
-        V2ServiceManagerUtil.consume(getServices(), s -> s.updateByCriteriaOrException(entity, criteria));
-    }
-
-    // endregion
-
-    //  region 查
-
-    @Override
-    default E getById(Serializable id) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.getById(id));
-    }
-
-    @Override
-    default E getByIdOrException(Serializable id) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.getByIdOrException(id));
-    }
-
-    @Override
-    default E getByCriteria(C criteria) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.getByCriteria(criteria));
-    }
-
-    @Override
-    default E getByCriteriaOrWarn(C criteria) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.getByCriteriaOrWarn(criteria));
-    }
-
-    @Override
-    default E getByCriteriaOrException(C criteria) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.getByCriteriaOrException(criteria));
-    }
-
-    @Override
-    default List<E> findByCriteria(C criteria) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.findByCriteria(criteria));
-    }
-
-    @Override
-    default Page<E> findPageByCriteria(C criteria) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.findPageByCriteria(criteria));
-    }
-
-    @Override
-    default List<E> findAll() {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), IV2Service::findAll);
-    }
-
-    @Override
-    default Integer countByCriteria(C criteria) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.countByCriteria(criteria));
-    }
-
-    @Override
-    default Integer countAll() {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), IV2Service::countAll);
-    }
-
-    @Override
-    default Boolean isPresentById(Serializable id) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.isPresentById(id));
-    }
-
-    @Override
-    default Boolean isPresentByColumn(String columnName, Object value) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.isPresentByColumn(columnName, value));
-    }
-
-    @Override
-    default Boolean isPresentByCriteria(C criteria) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.isPresentByCriteria(criteria));
-    }
-
-    @Override
-    default Boolean isAbsentByColumn(String columnName, Object value) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.isAbsentByColumn(columnName, value));
-    }
-
-    @Override
-    default Boolean isAbsentByCriteria(C criteria) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.isAbsentByCriteria(criteria));
-    }
-
-    @Override
-    default void exceptionIfPresentByCriteria(C criteria) {
-        V2ServiceManagerUtil.consume(getServices(), s -> s.exceptionIfPresentByCriteria(criteria));
-    }
-
-    @Override
-    default void exceptionIfAbsentByCriteria(C criteria) {
-        V2ServiceManagerUtil.consume(getServices(), s -> s.exceptionIfAbsentByCriteria(criteria));
-    }
-
-    // endregion
-
-    default <V> V applyUntilNotNull(Function<S, V> function) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), function);
-    }
-
-    default void consume(Consumer<S> consumer) {
-        V2ServiceManagerUtil.consume(getServices(), consumer);
-    }
-
-
-    default void consumeWithoutException(Consumer<S> consumer) {
-        V2ServiceManagerUtil.consumeWithoutException(getServices(), consumer);
+    public Integer getCode() {
+        return code;
     }
 
 }

@@ -169,9 +169,9 @@
 package vip.isass.framework.lowcode.v2.repository;
 
 import cn.hutool.core.util.StrUtil;
-import com.baomidou.mybatisplus.core.metadata.IPage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import vip.isass.framework.common.page.Page;
 import vip.isass.framework.lowcode.v2.criteria.IV2Criteria;
 import vip.isass.framework.lowcode.v2.entity.IV2Entity;
 import vip.isass.framework.lowcode.v2.entity.IV2IdEntity;
@@ -196,7 +196,7 @@ public interface IV2Repository<E extends IV2Entity<E>, C extends IV2Criteria<E, 
             if (IV2IdEntity.class.isAssignableFrom(c)) {
                 IV2IdEntity entity = null;
                 try {
-                    entity = (IV2IdEntity) c.newInstance();
+                    entity = (IV2IdEntity) c.getDeclaredConstructor().newInstance();
                 } catch (Exception e) {
                     LOGGER.error("{}", e.getMessage(), e);
                 }
@@ -278,7 +278,7 @@ public interface IV2Repository<E extends IV2Entity<E>, C extends IV2Criteria<E, 
         throw new UnsupportedOperationException();
     }
 
-    default IPage<E> findPageByCriteria(IV2Criteria<E, C> criteria) {
+    default Page<E> findPageByCriteria(IV2Criteria<E, C> criteria) {
         throw new UnsupportedOperationException();
     }
 

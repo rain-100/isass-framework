@@ -174,6 +174,8 @@ import org.springframework.data.redis.connection.stream.RecordId;
 import org.springframework.data.redis.connection.stream.StreamRecords;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import vip.isass.framework.common.entrypoint.EntryPointAnno;
+import vip.isass.framework.common.entrypoint.RequestBody;
 import vip.isass.framework.net.core.NetRedisKey;
 import vip.isass.framework.net.core.message.Message;
 
@@ -194,7 +196,8 @@ public class GatewayToRedisMessageService {
         return redisTemplate.opsForStream().createGroup(key, group);
     }
 
-    public RecordId push(Message message) {
+    @EntryPointAnno(name = "发送消息到redis", group = "网络会话管理器(调试专用)", route = "/${spring.application.name}/redis/push")
+    public RecordId push(@RequestBody Message message) {
         String streamKey = parseStreamKeyFromCmd(message.getCmd());
         ObjectRecord<String, Message> record = StreamRecords.newRecord()
                 .in(streamKey)

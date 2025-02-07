@@ -170,14 +170,16 @@ package vip.isass.framework.lowcode;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Assert;
-import vip.isass.framework.lowcode.v1.entity.IEntity;
-import vip.isass.framework.lowcode.v1.entity.IdEntity;
-import vip.isass.framework.lowcode.v1.entity.LogicDeleteEntity;
-import vip.isass.framework.lowcode.v1.entity.TimeTracedEntity;
-import vip.isass.framework.lowcode.v1.criteria.ICriteria;
-import vip.isass.framework.lowcode.v1.criteria.IdCriteria;
-import vip.isass.framework.lowcode.v1.criteria.TimeTracedCriteria;
-import vip.isass.framework.lowcode.v1.repository.IRepository;
+import vip.isass.framework.lowcode.v2.criteria.IV2Criteria;
+import vip.isass.framework.lowcode.v2.criteria.field.IV2IdCriteria;
+import vip.isass.framework.lowcode.v2.criteria.field.IV2PkCriteria;
+import vip.isass.framework.lowcode.v2.criteria.field.IV2TraceCriteria;
+import vip.isass.framework.lowcode.v2.criteria.type.IV2SelectColumnCriteria;
+import vip.isass.framework.lowcode.v2.entity.IV2Entity;
+import vip.isass.framework.lowcode.v2.entity.IV2IdEntity;
+import vip.isass.framework.lowcode.v2.entity.IV2LogicDeleteEntity;
+import vip.isass.framework.lowcode.v2.entity.IV2TraceEntity;
+import vip.isass.framework.lowcode.v2.repository.IV2Repository;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -185,7 +187,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public interface RepositoryTest<C extends ICriteria<E, C>, E extends IEntity<E>, R extends IRepository<E, C>> {
+@SuppressWarnings({"rawtypes", "unchecked"})
+public interface RepositoryTest<C extends IV2Criteria<E, C>, E extends IV2Entity<E>, R extends IV2Repository<E, C>> {
 
     C getCriteria();
 
@@ -213,7 +216,7 @@ public interface RepositoryTest<C extends ICriteria<E, C>, E extends IEntity<E>,
     default void testDeleteById() {
         E entity = genEntity();
         getRepository().add(entity);
-        Assert.isTrue(getRepository().deleteById(((IdEntity) entity).getId()));
+        Assert.isTrue(getRepository().deleteById(((IV2IdEntity) entity).getId()));
     }
 
     default void testDeleteByIds() {
@@ -225,50 +228,47 @@ public interface RepositoryTest<C extends ICriteria<E, C>, E extends IEntity<E>,
         Assert.isTrue(getRepository().addBatch(entitys));
 
         Set<Serializable> ids = entitys.stream()
-                .filter(e -> e instanceof IdEntity)
-                .map(e -> ((IdEntity) e).getId())
+                .filter(e -> e instanceof IV2Entity<?>)
+                .map(e -> ((IV2IdEntity) e).getId())
                 .collect(Collectors.toSet());
         Assert.isTrue(getRepository().deleteByIds(ids));
     }
 
     //****************************** 改 start ******************************
 
-    @SuppressWarnings("unchecked")
     default void testUpdateById() {
         E entity = genEntity();
-        if (entity instanceof LogicDeleteEntity) {
-            ((LogicDeleteEntity) entity).setDeleteFlag(Boolean.FALSE);
+        if (entity instanceof IV2LogicDeleteEntity) {
+            ((IV2LogicDeleteEntity) entity).setDeleteFlag(Boolean.FALSE);
         }
         getRepository().add(entity);
 
-        Serializable id = ((IdEntity) entity).getId();
+        Serializable id = ((IV2IdEntity) entity).getId();
         entity.randomEntity();
-        ((IdEntity) entity).setId(id);
-        getRepository().updateEntityById(entity);
+        ((IV2IdEntity) entity).setId(id);
+        getRepository().updateById(entity);
     }
 
-    @SuppressWarnings("unchecked")
     default void testUpdateByCriteria() {
         E entity = genEntity();
-        if (entity instanceof LogicDeleteEntity) {
-            ((LogicDeleteEntity) entity).setDeleteFlag(Boolean.FALSE);
+        if (entity instanceof IV2LogicDeleteEntity) {
+            ((IV2LogicDeleteEntity) entity).setDeleteFlag(Boolean.FALSE);
         }
         Assert.isTrue(getRepository().add(entity));
 
         E newEntity = genEntity();
-        if (newEntity instanceof TimeTracedEntity) {
-            TimeTracedEntity timeTracedEntity = (TimeTracedEntity) newEntity;
+        if (newEntity instanceof IV2TraceEntity timeTracedEntity) {
             timeTracedEntity.setCreateTime(null);
         }
 
-        ICriteria<E, C> criteria = getCriteria();
-        if (criteria instanceof IdCriteria) {
-            IdEntity idEntity = (IdEntity) entity;
-            ((IdCriteria) criteria).setId(idEntity.getId());
+        IV2Criteria<E, C> criteria = getCriteria();
+        if (criteria instanceof IV2PkCriteria<?, ?, ?>) {
+            IV2IdEntity idEntity = (IV2IdEntity) entity;
+            ((IV2IdCriteria) criteria).setId(idEntity.getId());
         }
-        if (entity instanceof TimeTracedEntity && criteria instanceof TimeTracedCriteria) {
-            TimeTracedEntity timeTracedEntity = (TimeTracedEntity) entity;
-            ((TimeTracedCriteria) criteria).setCreateTimeIn(timeTracedEntity.getCreateTime());
+        if (entity instanceof IV2TraceEntity<?, ?> && criteria instanceof IV2TraceCriteria<?, ?, ?>) {
+            IV2TraceEntity timeTracedEntity = (IV2TraceEntity) entity;
+            ((IV2TraceCriteria) criteria).setCreateTime(timeTracedEntity.getCreateTime());
         }
         Assert.isTrue(getRepository().updateByCriteria(entity, criteria));
 
@@ -276,51 +276,50 @@ public interface RepositoryTest<C extends ICriteria<E, C>, E extends IEntity<E>,
 
     // ****************************** 查 start ******************************
 
-    @SuppressWarnings("unchecked")
     default void testGetById() {
         E entity = genEntity();
-        if (!(entity instanceof IdEntity)) {
+        if (!(entity instanceof IV2Entity<?>)) {
             return;
         }
 
-        if (entity instanceof LogicDeleteEntity) {
-            ((LogicDeleteEntity) entity).setDeleteFlag(Boolean.FALSE);
+        if (entity instanceof IV2LogicDeleteEntity) {
+            ((IV2LogicDeleteEntity) entity).setDeleteFlag(Boolean.FALSE);
         }
         Assert.isTrue(getRepository().add(entity));
 
-        IdEntity idEntity = (IdEntity) entity;
-        IdEntity e = (IdEntity) getRepository().getEntityById(idEntity.getId());
+        IV2IdEntity idEntity = (IV2IdEntity) entity;
+        IV2IdEntity e = (IV2IdEntity) getRepository().getEntityById(idEntity.getId());
 
         Assert.notNull(getRepository().getEntityById(e.getId()));
     }
 
-    @SuppressWarnings("unchecked")
     default void testGetAnyOneByCriteria() {
         E entity = genEntity();
         Assert.isTrue(getRepository().add(entity));
 
         C criteria = getCriteria();
-        if (entity instanceof IdEntity && criteria instanceof IdCriteria) {
-            IdEntity idEntity = (IdEntity) entity;
-            IdCriteria idCriteria = (IdCriteria) criteria;
-            idCriteria.setId(idEntity.getId()).setSelectColumns(CollUtil.newArrayList(idEntity.getIdColumnName()));
+        if (entity instanceof IV2IdEntity idEntity && criteria instanceof IV2PkCriteria<?, ?, ?>) {
+            IV2IdCriteria idCriteria = (IV2IdCriteria) criteria;
+            idCriteria.setId(idEntity.getId());
+
+            ((IV2SelectColumnCriteria) idCriteria).setSelectColumns(CollUtil.newArrayList(idEntity.getIdColumnName()));
         }
         Assert.notNull(getRepository().getByCriteria(criteria));
     }
 
-    @SuppressWarnings("unchecked")
     default void testFindByCriteria() {
         E entity = genEntity();
-        if (entity instanceof LogicDeleteEntity) {
-            ((LogicDeleteEntity) entity).setDeleteFlag(Boolean.FALSE);
+        if (entity instanceof IV2LogicDeleteEntity) {
+            ((IV2LogicDeleteEntity) entity).setDeleteFlag(Boolean.FALSE);
         }
         Assert.isTrue(getRepository().add(entity));
 
         C criteria = getCriteria();
-        if (entity instanceof IdEntity && criteria instanceof IdCriteria) {
-            IdEntity idEntity = (IdEntity) entity;
-            IdCriteria idCriteria = (IdCriteria) criteria;
-            idCriteria.setId(idEntity.getId()).setSelectColumns(CollUtil.newArrayList(idEntity.getIdColumnName()));
+        if (entity instanceof IV2Entity<?> && criteria instanceof IV2PkCriteria<?, ?, ?>) {
+            IV2IdEntity idEntity = (IV2IdEntity) entity;
+            IV2IdCriteria idCriteria = (IV2IdCriteria) criteria;
+            idCriteria.setId(idEntity.getId());
+            ((IV2SelectColumnCriteria) idCriteria).setSelectColumns(CollUtil.newArrayList(idEntity.getIdColumnName()));
         }
         Assert.isTrue(getRepository().findByCriteria(criteria).size() == 1);
     }

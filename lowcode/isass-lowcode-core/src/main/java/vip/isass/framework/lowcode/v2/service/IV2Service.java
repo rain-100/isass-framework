@@ -168,7 +168,7 @@
 
 package vip.isass.framework.lowcode.v2.service;
 
-import com.baomidou.mybatisplus.core.metadata.IPage;
+import vip.isass.framework.common.page.Page;
 import vip.isass.framework.common.service.Ordered;
 import vip.isass.framework.lowcode.v2.criteria.IV2Criteria;
 import vip.isass.framework.lowcode.v2.entity.IV2Entity;
@@ -363,7 +363,7 @@ public interface IV2Service<E extends IV2Entity<E>, C extends IV2Criteria<E, C>>
 
     List<E> findByCriteria(C criteria);
 
-    IPage<E> findPageByCriteria(C criteria);
+    Page<E> findPageByCriteria(C criteria);
 
     List<E> findAll();
 

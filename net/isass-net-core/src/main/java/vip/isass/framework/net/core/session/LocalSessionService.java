@@ -174,6 +174,11 @@ import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.cglib.CglibUtil;
 import lombok.extern.slf4j.Slf4j;
+import vip.isass.framework.common.entrypoint.EntryPointAnno;
+import vip.isass.framework.common.entrypoint.HttpMethod;
+import vip.isass.framework.common.entrypoint.PathVariable;
+import vip.isass.framework.common.entrypoint.RequestBody;
+import vip.isass.framework.common.entrypoint.RequestParam;
 import vip.isass.framework.common.util.map.MultiKeyMultiValueBiMap;
 import vip.isass.framework.common.util.map.MultiValueBiMap;
 import vip.isass.framework.net.core.message.Message;
@@ -271,7 +276,8 @@ public class LocalSessionService implements ISessionService {
     // region user
 
     @Override
-    public String getUserId(String sessionId) {
+    @EntryPointAnno(name = "获取用户 id", group = "网络会话服务", route = "/${spring.application.name}/session/{sessionId}/userId")
+    public String getUserId(@PathVariable("sessionId") String sessionId) {
         return userAndSessionMap.getKey(sessionId);
     }
 
@@ -291,7 +297,8 @@ public class LocalSessionService implements ISessionService {
     }
 
     @Override
-    public Map<String, Boolean> isOnline(Collection<String> userIds) {
+    @EntryPointAnno(name = "批量判断用户是否在线", group = "网络会话服务", route = "/${spring.application.name}/session/user/isOnline", httpMethod = HttpMethod.POST)
+    public Map<String, Boolean> isOnline(@RequestBody Collection<String> userIds) {
         Map<String, Boolean> result = MapUtil.newHashMap(userIds.size());
         for (String userId : userIds) {
             result.put(userId, CollUtil.isNotEmpty(userAndSessionMap.get(userId)));
@@ -304,7 +311,8 @@ public class LocalSessionService implements ISessionService {
     // region alias
 
     @Override
-    public String getAlias(String sessionId) {
+    @EntryPointAnno(name = "获取会话别名", group = "网络会话服务", route = "/${spring.application.name}/session/{sessionId}/alias")
+    public String getAlias(@PathVariable("sessionId") String sessionId) {
         return aliasAndSessionMap.getKey(sessionId);
     }
 
@@ -328,12 +336,14 @@ public class LocalSessionService implements ISessionService {
     // region tag
 
     @Override
-    public Collection<String> findTags(String sessionId) {
+    @EntryPointAnno(name = "获取会话标签", group = "网络会话服务", route = "/${spring.application.name}/session/tags")
+    public Collection<String> findTags(@PathVariable("sessionId") String sessionId) {
         return sessionAndTagMap.get(sessionId);
     }
 
     @Override
-    public Collection<String> findTagsByUserId(String userId) {
+    @EntryPointAnno(name = "根据用户获取标签", group = "网络会话服务", route = "/${spring.application.name}/session/tags/{userId}")
+    public Collection<String> findTagsByUserId(@PathVariable("userId") String userId) {
         Collection<String> sessionIds = userAndSessionMap.get(userId);
         if (CollUtil.isEmpty(sessionIds)) {
             return Collections.emptySet();
@@ -367,7 +377,8 @@ public class LocalSessionService implements ISessionService {
     // }
 
     @Override
-    public Collection<String> findSessionsByAnyMatchTags(Collection<String> tags) {
+    @EntryPointAnno(name = "根据标签查找会话", group = "网络会话服务", route = "/${spring.application.name}/session/any")
+    public Collection<String> findSessionsByAnyMatchTags(@RequestParam("tags") Collection<String> tags) {
         return tags.stream()
                 .map(sessionAndTagMap::getKey)
                 .filter(CollUtil::isNotEmpty)
@@ -376,13 +387,15 @@ public class LocalSessionService implements ISessionService {
     }
 
     @Override
-    public boolean containAnyTag(@Nonnull String sessionId, @Nonnull Collection<String> tags) {
+    @EntryPointAnno(name = "判断会话是否拥有任意给定的标签", group = "网络会话服务", route = "/${spring.application.name}/session/{sessionId}/containAnyTag")
+    public boolean containAnyTag(@PathVariable("sessionId") @Nonnull String sessionId, @RequestParam("tags") @Nonnull Collection<String> tags) {
         Collection<String> existingTags = sessionAndTagMap.get(sessionId);
         return CollUtil.containsAny(existingTags, tags);
     }
 
     @Override
-    public boolean containAllTags(String sessionId, Collection<String> tags) {
+    @EntryPointAnno(name = "判断会话是否拥有所有给定的标签", group = "网络会话服务", route = "/${spring.application.name}/session/{sessionId}/containTags")
+    public boolean containAllTags(@PathVariable("sessionId") String sessionId, @RequestParam("tags") Collection<String> tags) {
         Collection<String> existingTags = sessionAndTagMap.get(sessionId);
         return CollUtil.containsAll(existingTags, tags);
     }
@@ -575,7 +588,8 @@ public class LocalSessionService implements ISessionService {
      * @param message 消息
      */
     @Override
-    public void sendMessage(Message message) {
+    @EntryPointAnno(name = "发送消息给客户端", group = "网络会话服务", route = "/${spring.application.name}/session/send", httpMethod = HttpMethod.POST)
+    public void sendMessage(@RequestBody Message message) {
         // 1：判断 receiverSession 和 receiverSessionId
         if (message.getReceiverSession() != null) {
             message.getReceiverSession().sendMessage(message.getCmd(), message.getPayload());
@@ -743,10 +757,54 @@ public class LocalSessionService implements ISessionService {
     }
 
     @Override
-    public void sendMessages(Collection<Message> messages) {
+    @EntryPointAnno(name = "批量发送消息给客户端", group = "网络会话服务", route = "/${spring.application.name}/session/send/batch", httpMethod = HttpMethod.POST)
+    public void sendMessages(@RequestBody Collection<Message> messages) {
         messages.parallelStream().forEach(this::sendMessage);
     }
 
     // endregion
 
+    @EntryPointAnno(name = "保存会话绑定信息", group = "网络会话服务", route = "/${spring.application.name}/session/info", httpMethod = HttpMethod.POST)
+    public void saveSessionInfo(@RequestBody SessionBindingInfoChangeReq req) {
+        if (StrUtil.isNotBlank(req.getSessionId())) {
+            if (StrUtil.isNotBlank(req.getResetUserId())) {
+                setUserId(req.getSessionId(), req.getResetUserId());
+            } else if (Boolean.TRUE.equals(req.getRemoveUserId())) {
+                removeUserId(req.getSessionId());
+            }
+
+            if (StrUtil.isNotBlank(req.getAlias())) {
+                setAlias(req.getSessionId(), req.getAlias());
+            } else if (Boolean.TRUE.equals(req.getRemoveAlias())) {
+                removeAlias(req.getSessionId());
+            }
+
+            if (CollUtil.isNotEmpty(req.getTags())) {
+                setTags(req.getSessionId(), req.getTags());
+            } else if (Boolean.TRUE.equals(req.getRemoveAllTags())) {
+                removeTags(req.getSessionId());
+            } else {
+                if (CollUtil.isNotEmpty(req.getAddTags())) {
+                    addTags(req.getSessionId(), req.getAddTags());
+                }
+                if (CollUtil.isNotEmpty(req.getRemoveTags())) {
+                    removeTags(req.getSessionId(), req.getRemoveTags());
+                }
+            }
+            return;
+        }
+
+        Assert.notBlank(req.getUserId(), "sessionId, userId必填其一");
+        if (CollUtil.isNotEmpty(req.getTags())) {
+            setTagsByUserId(req.getUserId(), req.getTags());
+        } else {
+            if (CollUtil.isNotEmpty(req.getAddTags())) {
+                addTagsByUserId(req.getUserId(), req.getAddTags());
+            }
+            if (CollUtil.isNotEmpty(req.getRemoveTags())) {
+                removeTagsByUserId(req.getUserId(), req.getRemoveTags());
+            }
+
+        }
+    }
 }

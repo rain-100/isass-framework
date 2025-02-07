@@ -169,17 +169,15 @@
 package vip.isass.framework.lowcode.v2;
 
 import lombok.SneakyThrows;
-import org.springframework.stereotype.Component;
+import vip.isass.framework.common.converter.Converter;
 import vip.isass.framework.lowcode.v2.criteria.V2WhereCondition;
 import vip.isass.framework.serialization.jackson.JsonUtil;
-import vip.isass.framework.common.converter.Converter;
 
 /**
  * 把 json 字符串类型的 v2查询条件，转换成 V2WhereCondition
  *
  * @author Rain
  */
-@Component
 public class StringToV2WhereConditionConverter implements Converter<String, V2WhereCondition> {
 
     @Override

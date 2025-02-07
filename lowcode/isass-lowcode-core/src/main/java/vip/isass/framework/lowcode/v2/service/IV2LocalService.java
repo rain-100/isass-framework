@@ -169,10 +169,15 @@
 package vip.isass.framework.lowcode.v2.service;
 
 import cn.hutool.core.lang.Assert;
-import com.baomidou.mybatisplus.core.metadata.IPage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import vip.isass.framework.common.entrypoint.EntryPointAnno;
+import vip.isass.framework.common.entrypoint.HttpMethod;
+import vip.isass.framework.common.entrypoint.ModelAttribute;
+import vip.isass.framework.common.entrypoint.PathVariable;
+import vip.isass.framework.common.entrypoint.RequestBody;
 import vip.isass.framework.common.exception.AbsentException;
+import vip.isass.framework.common.page.Page;
 import vip.isass.framework.common.service.Ordered;
 import vip.isass.framework.lowcode.v2.criteria.IV2Criteria;
 import vip.isass.framework.lowcode.v2.criteria.type.IV2WhereConditionCriteria;
@@ -205,40 +210,56 @@ public interface IV2LocalService<
 
     // region 增
 
-    default E add(E entity) {
+    @EntryPointAnno(name = "增-单实体", route = ADD_URI_SECOND_PART,
+            httpMethod = HttpMethod.POST, description = "id不需要赋值，会自动生成")
+    default E add(@RequestBody E entity) {
         getRepository().add(entity);
         return entity;
     }
 
-    default Collection<E> addBatch(Collection<E> entities) {
+    @EntryPointAnno(name = "增-批量实体", route = ADD_BATCH_URI_SECOND_PART,
+            httpMethod = HttpMethod.POST, description = "id不需要赋值，会自动生成")
+    default Collection<E> addBatch(@RequestBody Collection<E> entities) {
         getRepository().addBatch(entities);
         return entities;
     }
 
+    @EntryPointAnno(name = "增-批量实体-批量数量", route = ADD_BATCH_BY_BATCH_SIZE_URI_SECOND_PART,
+            httpMethod = HttpMethod.POST, description = "id不需要赋值，会自动生成", hidden = true)
     @Override
-    default Collection<E> addBatchByBatchSize(Collection<E> entities, int batchSize) {
+    default Collection<E> addBatchByBatchSize(@RequestBody Collection<E> entities,
+                                              @PathVariable("batchSize") int batchSize) {
         getRepository().addBatch(entities, batchSize);
         return entities;
     }
 
+    @EntryPointAnno(name = "增-单实体-根据条件-不存在时", route = ADD_IF_ABSENT_BY_CRITERIA_URI_SECOND_PART,
+            httpMethod = HttpMethod.POST, description = "id不需要赋值，会自动生成")
     @Override
-    default E addIfAbsentByCriteria(E entity, C criteria) {
+    default E addIfAbsentByCriteria(@RequestBody E entity,
+                                    @ModelAttribute C criteria) {
         if (this.isAbsentByCriteria(criteria)) {
             return this.add(entity);
         }
         return null;
     }
 
+    @EntryPointAnno(name = "增-单实体-根据字段-不存在时", route = ADD_IF_ABSENT_BY_COLUMNS_URI_SECOND_PART,
+            httpMethod = HttpMethod.POST, description = "id不需要赋值，会自动生成")
     @Override
-    default E addIfAbsentByColumns(E entity, List<String> uniqueColumns) {
+    default E addIfAbsentByColumns(@RequestBody E entity,
+                                   @PathVariable("uniqueColumns") List<String> uniqueColumns) {
         if (getRepository().addIfAbsentByColumns(entity, uniqueColumns)) {
             return entity;
         }
         return null;
     }
 
+    @EntryPointAnno(name = "增-批量实体-根据条件-不存在时", route = ADD_BATCH_IF_ABSENT_BY_CRITERIA_URI_SECOND_PART,
+            httpMethod = HttpMethod.POST, description = "id不需要赋值，会自动生成")
     @Override
-    default Integer addBatchIfAbsentByCriteria(List<E> entities, C criteria) {
+    default Integer addBatchIfAbsentByCriteria(@RequestBody List<E> entities,
+                                               @ModelAttribute C criteria) {
         int count = 0;
         if (!(criteria instanceof IV2WhereConditionCriteria)) {
             throw new UnsupportedOperationException("criteria不是WhereConditionCriteria，请检查代码");
@@ -257,8 +278,11 @@ public interface IV2LocalService<
         return count;
     }
 
+    @EntryPointAnno(name = "增-批量实体-根据字段-不存在时", route = ADD_BATCH_IF_ABSENT_BY_COLUMNS_URI_SECOND_PART,
+            httpMethod = HttpMethod.POST, description = "id不需要赋值，会自动生成")
     @Override
-    default Integer addBatchIfAbsentByColumns(List<E> entities, List<String> uniqueColumns) {
+    default Integer addBatchIfAbsentByColumns(@RequestBody List<E> entities,
+                                              @PathVariable("uniqueColumns") List<String> uniqueColumns) {
         int count = 0;
         for (E entity : entities) {
             if (getRepository().addIfAbsentByColumns(entity, uniqueColumns)) {
@@ -268,8 +292,11 @@ public interface IV2LocalService<
         return count;
     }
 
+    @EntryPointAnno(name = "增改-单实体-根据条件", route = ADD_OR_UPDATE_BY_CRITERIA_URI_SECOND_PART,
+            httpMethod = HttpMethod.POST)
     @Override
-    default Boolean addOrUpdateByCriteria(E entity, C criteria) {
+    default Boolean addOrUpdateByCriteria(@RequestBody E entity,
+                                          @ModelAttribute C criteria) {
         Boolean update = updateByCriteria(entity, criteria);
         if (!update) {
             add(entity);
@@ -277,13 +304,19 @@ public interface IV2LocalService<
         return true;
     }
 
+    @EntryPointAnno(name = "增改-单实体-根据字段", route = ADD_OR_UPDATE_BY_COLUMNS_URI_SECOND_PART,
+            httpMethod = HttpMethod.POST)
     @Override
-    default E addOrUpdateByColumns(E entity, List<String> uniqueColumns) {
+    default E addOrUpdateByColumns(@RequestBody E entity,
+                                   @PathVariable("uniqueColumns") List<String> uniqueColumns) {
         return getRepository().addOrUpdate(entity, uniqueColumns);
     }
 
+    @EntryPointAnno(name = "增改-批量实体-根据字段", route = ADD_OR_UPDATE_BATCH_BY_COLUMNS_URI_SECOND_PART,
+            httpMethod = HttpMethod.POST)
     @Override
-    default Integer addOrUpdateBatchByColumns(List<E> entities, List<String> uniqueColumns) {
+    default Integer addOrUpdateBatchByColumns(@RequestBody List<E> entities,
+                                              @PathVariable("uniqueColumns") List<String> uniqueColumns) {
         for (E entity : entities) {
             getRepository().addOrUpdate(entity, uniqueColumns);
         }
@@ -294,15 +327,18 @@ public interface IV2LocalService<
 
     //  region 删
 
-    default Boolean deleteById(Serializable id) {
+    @EntryPointAnno(name = "删-根据id", route = DELETE_BY_ID_URI_SECOND_PART, httpMethod = HttpMethod.DELETE)
+    default Boolean deleteById(@PathVariable("id") Serializable id) {
         return getRepository().deleteById(id);
     }
 
-    default Boolean deleteByIds(Collection<Serializable> ids) {
+    @EntryPointAnno(name = "删-根据批量id", route = DELETE_BY_IDS_URI_SECOND_PART, httpMethod = HttpMethod.DELETE)
+    default Boolean deleteByIds(@PathVariable("ids") Collection<Serializable> ids) {
         return getRepository().deleteByIds(ids);
     }
 
-    default Boolean deleteByCriteria(C criteria) {
+    @EntryPointAnno(name = "删-根据条件", route = DELETE_BY_CRITERIA_URI_SECOND_PART, httpMethod = HttpMethod.DELETE)
+    default Boolean deleteByCriteria(@ModelAttribute C criteria) {
         exceptionIfHaveNoCondition(criteria);
         return getRepository().deleteByCriteria(criteria);
     }
@@ -311,27 +347,36 @@ public interface IV2LocalService<
 
     // region 改
 
-    default Boolean updateById(E entity) {
+    @EntryPointAnno(name = "改-根据id-非空字段", route = UPDATE_BY_ID_URI_SECOND_PART, httpMethod = HttpMethod.PUT)
+    default Boolean updateById(@RequestBody E entity) {
         Assert.isTrue(entity instanceof IV2IdEntity, "不支持非id类型的对象执行'根据id更新'的操作");
         return getRepository().updateById(entity);
     }
 
-    default Boolean updateAllColumnsById(E entity) {
+    @EntryPointAnno(name = "改-根据id-全部字段", route = UPDATE_ALL_COLUMNS_BY_ID_URI_SECOND_PART, httpMethod = HttpMethod.PUT)
+    default Boolean updateAllColumnsById(@RequestBody E entity) {
         return getRepository().updateAllColumnsById(entity);
     }
 
-    default void updateByIdOrException(E entity) {
+    @EntryPointAnno(name = "改-根据id-异常", route = UPDATE_BY_ID_OR_EXCEPTION_URI_SECOND_PART,
+            httpMethod = HttpMethod.PUT, hidden = true)
+    default void updateByIdOrException(@RequestBody E entity) {
         if (!updateById(entity)) {
             throw new AbsentException("更新失败，记录不存在");
         }
     }
 
-    default Boolean updateByCriteria(E entity, C criteria) {
+    @EntryPointAnno(name = "改-根据条件", route = UPDATE_BY_CRITERIA_URI_SECOND_PART, httpMethod = HttpMethod.PUT)
+    default Boolean updateByCriteria(@RequestBody E entity,
+                                     @ModelAttribute C criteria) {
         exceptionIfHaveNoCondition(criteria);
         return getRepository().updateByCriteria(entity, criteria);
     }
 
-    default void updateByCriteriaOrException(E entity, C criteria) {
+    @EntryPointAnno(name = "改-根据条件-异常", route = UPDATE_BY_CRITERIA_OR_EXCEPTION_URI_SECOND_PART,
+            httpMethod = HttpMethod.PUT, hidden = true)
+    default void updateByCriteriaOrException(@RequestBody E entity,
+                                             @ModelAttribute C criteria) {
         if (!getRepository().updateByCriteria(entity, criteria)) {
             throw new AbsentException("更新失败，记录不存在");
         }
@@ -341,79 +386,98 @@ public interface IV2LocalService<
 
     //  region 查
 
-    default E getById(Serializable id) {
+    @EntryPointAnno(name = "查-单实体-根据id", route = GET_BY_ID_URI_SECOND_PART)
+    default E getById(@PathVariable("id") Serializable id) {
         Assert.notNull(id, "id");
         return getRepository().getEntityById(id);
     }
 
-    default E getByIdOrException(Serializable id) {
+    @EntryPointAnno(name = "查-单实体-根据id-异常", route = GET_BY_CRITERIA_URI_SECOND_PART)
+    default E getByIdOrException(@PathVariable("id") Serializable id) {
         Assert.notNull(id, "id");
         return getRepository().getByIdOrException(id);
     }
 
-    default E getByCriteria(C criteria) {
+    @EntryPointAnno(name = "查-单实体-根据条件", route = GET_BY_CRITERIA_OR_WARN_URI_SECOND_PART)
+    default E getByCriteria(@ModelAttribute C criteria) {
         return getRepository().getByCriteria(criteria);
     }
 
-    default E getByCriteriaOrWarn(C criteria) {
+    @EntryPointAnno(name = "查-单实体-根据条件-警告", route = GET_BY_CRITERIA_OR_EXCEPTION_URI_SECOND_PART)
+    default E getByCriteriaOrWarn(@ModelAttribute C criteria) {
         return getRepository().getByCriteriaOrWarn(criteria);
     }
 
-    default E getByCriteriaOrException(C criteria) {
+    @EntryPointAnno(name = "查-单实体-根据条件-异常", route = FIND_BY_CRITERIA_URI_SECOND_PART)
+    default E getByCriteriaOrException(@ModelAttribute C criteria) {
         return getRepository().getByCriteriaOrException(criteria);
     }
 
-    default List<E> findByCriteria(C criteria) {
+    @EntryPointAnno(name = "查-列表-根据条件", route = FIND_PAGE_BY_CRITERIA_URI_SECOND_PART)
+    default List<E> findByCriteria(@ModelAttribute C criteria) {
         return getRepository().findByCriteria(criteria);
     }
 
-    default IPage<E> findPageByCriteria(C criteria) {
+    @EntryPointAnno(name = "查-分页列表-根据条件", route = FIND_PAGE_BY_CRITERIA_URI_SECOND_PART)
+    default Page<E> findPageByCriteria(@ModelAttribute C criteria) {
         return getRepository().findPageByCriteria(criteria);
     }
 
+    @EntryPointAnno(name = "查-列表-全部", route = FIND_ALL_URI_SECOND_PART)
     default List<E> findAll() {
         return getRepository().findAll();
     }
 
-    default Integer countByCriteria(C criteria) {
+    @EntryPointAnno(name = "查-实体数量-根据条件", route = COUNT_BY_CRITERIA_URI_SECOND_PART)
+    default Integer countByCriteria(@ModelAttribute C criteria) {
         return getRepository().countByCriteria(criteria);
     }
 
+    @EntryPointAnno(name = "查-实体数量-全部", route = COUNT_ALL_URI_SECOND_PART)
     default Integer countAll() {
         return getRepository().countAll();
     }
 
-    default Boolean isPresentById(Serializable id) {
+    @EntryPointAnno(name = "查-是否存在-根据id", route = IS_PRESENT_BY_ID_URI_SECOND_PART)
+    default Boolean isPresentById(@PathVariable("id") Serializable id) {
         return getRepository().isPresentById(id);
     }
 
-    default Boolean isPresentByColumn(String columnName, Object value) {
+    @EntryPointAnno(name = "查-是否存在-根据字段", route = IS_PRESENT_BY_COLUMN_URI_SECOND_PART)
+    default Boolean isPresentByColumn(@PathVariable("columnName") String columnName,
+                                      @PathVariable("value") Object value) {
         return getRepository().isPresentByColumn(columnName, value);
     }
 
-    default Boolean isPresentByCriteria(C criteria) {
+    @EntryPointAnno(name = "查-是否存在-根据条件", route = IS_PRESENT_BY_CRITERIA_URI_SECOND_PART)
+    default Boolean isPresentByCriteria(@ModelAttribute C criteria) {
         return getRepository().isPresentByCriteria(criteria);
     }
 
-    default Boolean isAbsentByColumn(String columnName, Object value) {
+    @EntryPointAnno(name = "查-是否不存在-根据字段", route = IS_ABSENT_BY_COLUMN_URI_SECOND_PART)
+    default Boolean isAbsentByColumn(@PathVariable("columnName") String columnName,
+                                     @PathVariable("value") Object value) {
         return !isPresentByColumn(columnName, value);
     }
 
-    default Boolean isAbsentByCriteria(C criteria) {
+    @EntryPointAnno(name = "查-是否不存在-根据条件", route = IS_ABSENT_BY_CRITERIA_URI_SECOND_PART)
+    default Boolean isAbsentByCriteria(@ModelAttribute C criteria) {
         return !isPresentByCriteria(criteria);
     }
 
-    default void exceptionIfPresentByCriteria(C criteria) {
+    @EntryPointAnno(name = "查-存在时异常-根据条件", route = EXCEPTION_IF_PRESENT_BY_CRITERIA_URI_SECOND_PART, hidden = true)
+    default void exceptionIfPresentByCriteria(@ModelAttribute C criteria) {
         getRepository().exceptionIfPresentByCriteria(criteria);
     }
 
-    default void exceptionIfAbsentByCriteria(C criteria) {
+    @EntryPointAnno(name = "查-不存在时异常-根据条件", route = EXCEPTION_IF_ABSENT_BY_CRITERIA_URI_SECOND_PART, hidden = true)
+    default void exceptionIfAbsentByCriteria(@ModelAttribute C criteria) {
         getRepository().exceptionIfAbsentByCriteria(criteria);
     }
 
     // endregion
 
-    default void exceptionIfHaveNoCondition(C criteria) {
+    default void exceptionIfHaveNoCondition(@ModelAttribute C criteria) {
         if (!(criteria instanceof IV2WhereConditionCriteria)) {
             throw new UnsupportedOperationException("criteria不是WhereConditionCriteria，请检查代码");
         }

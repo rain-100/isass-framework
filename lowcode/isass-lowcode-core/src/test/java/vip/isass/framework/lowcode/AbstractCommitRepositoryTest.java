@@ -168,13 +168,11 @@
 
 package vip.isass.framework.lowcode;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-public abstract class AbstractCommitRepositoryTest extends AbstractJUnit4SpringContextTests implements RepositoryTest {
+@SpringBootTest
+public abstract class AbstractCommitRepositoryTest implements RepositoryTest {
 
     @Test
     @Override

@@ -168,13 +168,10 @@
 
 package vip.isass.framework.lowcode.orm.mybatis.plus.mapper;
 
-import org.apache.ibatis.annotations.Mapper;
-
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
-@Mapper
 public interface ICommonMapper {
 
     List<Map<String, Object>> findAllSubRecords(String tableName,

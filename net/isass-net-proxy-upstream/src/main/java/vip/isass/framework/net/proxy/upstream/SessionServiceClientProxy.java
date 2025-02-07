@@ -199,6 +199,7 @@ import vip.isass.framework.net.core.session.SessionBindingInfoChangeReq;
 import vip.isass.framework.net.core.session.SessionInfoCollection;
 import vip.isass.framework.rpc.okhttp.OkHttpUtil;
 import vip.isass.framework.serialization.jackson.JsonUtil;
+import vip.isass.framework.springboot.starter.SpringContextUtil;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -220,19 +221,19 @@ public class SessionServiceClientProxy implements ISessionService {
 
     public static final OkHttpClient CLIENT;
 
-    private static final TypeReference<Resp<String>> STRING_RESP_TYPE_REF = new TypeReference<Resp<String>>() {
+    private static final TypeReference<Resp<String>> STRING_RESP_TYPE_REF = new TypeReference<>() {
     };
 
-    private static final TypeReference<Resp<Collection<String>>> COLL_STRING_RESP_TYPE_REF = new TypeReference<Resp<Collection<String>>>() {
+    private static final TypeReference<Resp<Collection<String>>> COLL_STRING_RESP_TYPE_REF = new TypeReference<>() {
     };
 
-    private static final TypeReference<Resp<Boolean>> BOOLEAN_RESP_TYPE_REF = new TypeReference<Resp<Boolean>>() {
+    private static final TypeReference<Resp<Boolean>> BOOLEAN_RESP_TYPE_REF = new TypeReference<>() {
     };
 
-    private static final TypeReference<Resp<Map<String, Boolean>>> MAP_STRING_BOOLEAN_RESP_TYPE_REF = new TypeReference<Resp<Map<String, Boolean>>>() {
+    private static final TypeReference<Resp<Map<String, Boolean>>> MAP_STRING_BOOLEAN_RESP_TYPE_REF = new TypeReference<>() {
     };
 
-    private static final TypeReference<Resp<SessionInfoCollection>> SESSION_INFO_COLLECTION_RESP_TYPE_REF = new TypeReference<Resp<SessionInfoCollection>>() {
+    private static final TypeReference<Resp<SessionInfoCollection>> SESSION_INFO_COLLECTION_RESP_TYPE_REF = new TypeReference<>() {
     };
 
     static {
@@ -668,18 +669,19 @@ public class SessionServiceClientProxy implements ISessionService {
         String[] urls = new String[serverInfos.size()];
         int idx = 0;
         for (NetServerInfo serverInfo : serverInfos) {
-            futures[idx] = CompletableFuture.supplyAsync(() -> {
-                        urls[idx] = StrUtil.format(
-                                "http{}://{}:{}/{}" + urlSuffix,
-                                serverInfo.getHttpSecure() ? "s" : "",
-                                serverInfo.getInternalIp(),
-                                serverInfo.getHttpPort(),
-                                serverInfo.getNetProtocol().getServiceName()
-                        );
-                        String url = urls[idx];
-                        return OkHttpUtil.get(url, null, requestParam, typeReference)
-                                .dataIfSuccessOrException();
-                    })
+            urls[idx] = StrUtil.format(
+                    "http{}://{}:{}/{}" + urlSuffix,
+                    serverInfo.getHttpSecure() ? "s" : "",
+                    serverInfo.getInternalIp(),
+                    serverInfo.getHttpPort(),
+                    serverInfo.getNetProtocol().getServiceName()
+            );
+
+            String url = urls[idx];
+            futures[idx] = CompletableFuture.supplyAsync(() ->
+                            OkHttpUtil.get(url, null, requestParam, typeReference)
+                                    .dataIfSuccessOrException()
+                    )
                     .whenComplete((returnData, throwable) -> {
                         if (checkHttpResp.test(returnData)) {
                             returnArr[0] = returnData;

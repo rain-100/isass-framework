@@ -166,238 +166,112 @@
  * Library.
  */
 
-package vip.isass.framework.lowcode.v2.service;
+package vip.isass.framework.common.util.tree;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import vip.isass.framework.common.page.Page;
-import vip.isass.framework.common.service.Ordered;
-import vip.isass.framework.lowcode.v2.criteria.IV2Criteria;
-import vip.isass.framework.lowcode.v2.entity.IV2Entity;
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.lang.Assert;
+import cn.hutool.core.map.MapUtil;
+import cn.hutool.core.util.ArrayUtil;
+import cn.hutool.core.util.ReflectUtil;
+import cn.hutool.core.util.StrUtil;
 
-import java.io.Serializable;
-import java.util.Collection;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
-import java.util.function.Consumer;
-import java.util.function.Function;
+import java.util.Map;
+import java.util.Optional;
 
-public interface IV2ServiceManager<
-        E extends IV2Entity<E>,
-        C extends IV2Criteria<E, C>,
-        S extends IV2Service<E, C>
-        > extends IV2Service<E, C> {
+/**
+ * 列表转树结构工具
+ */
+public class TreeEntityUtil {
 
-    Logger LOGGER = LoggerFactory.getLogger(IV2ServiceManager.class);
+    /**
+     * 将 entityList 转为树形结构
+     *
+     * @param entityList         要转换的实体列表
+     * @param idFieldName        id字段名
+     * @param parentIdFieldName  parentId 字段名
+     * @param childrenFieldName  children 字段名
+     * @param topLevelIdValueArr 顶层实体的 id,当顶层实体的parentId不是 null 或空时，可以传此值指定顶级实体的 id，提高解析性能
+     * @param <T>                实体类型
+     * @return 树形结果
+     */
+    public static <T> List<T> convert(List<T> entityList,
+                                      String idFieldName,
+                                      String parentIdFieldName,
+                                      String childrenFieldName,
+                                      String... topLevelIdValueArr) {
+        if (CollUtil.isEmpty(entityList)) {
+            return Collections.emptyList();
+        }
 
-    @Override
-    default int getOrder() {
-        return Ordered.HIGHEST_PRECEDENCE;
+        Assert.notBlank(idFieldName, "idFileName 必填");
+        Assert.notBlank(parentIdFieldName, "parentIdFieldName 必填");
+        Assert.notBlank(childrenFieldName, "childrenFieldName 必填");
+        List<String> topLevelIdValues = ArrayUtil.isEmpty(topLevelIdValueArr)
+                ? Collections.emptyList()
+                : Arrays.asList(topLevelIdValueArr);
+
+        // 用于保存当前 id 索引的实体类
+        Map<String, T> entityMap = MapUtil.newHashMap(entityList.size());
+
+        // 暂存区, 用于保存没有找到父 id 的控件
+        List<T> tempList = new ArrayList<>();
+
+        List<T> result = new ArrayList<>();
+
+        for (T entity : entityList) {
+            String id = Optional.ofNullable(ReflectUtil.getFieldValue(entity, idFieldName)).map(Object::toString).orElse("");
+            Assert.notBlank(id, "存在主键为空的实体");
+            entityMap.put(id, entity);
+
+            String parentId = Optional.ofNullable(ReflectUtil.getFieldValue(entity, parentIdFieldName)).map(Object::toString).orElse("");
+            if (StrUtil.isBlank(parentId) || topLevelIdValues.contains(id)) {
+                // 如果父 id 为空, 或者 topLevelIdValues 包含 id， 则实体类为第一层
+                result.add(entity);
+            } else {
+                // 查找父类实体
+                T parentEntity = entityMap.get(parentId);
+                if (parentEntity == null) {
+                    // 没找到父类，先放入暂存区
+                    tempList.add(entity);
+                } else {
+                    // 把实体放到父类的 childrenList
+                    setChildrenValue(parentEntity, childrenFieldName, entity);
+                }
+            }
+        }
+
+        // 处理暂存区，找到其父类
+        for (T entity : tempList) {
+            // 获取 parentId
+            String parentId = Optional.ofNullable(ReflectUtil.getFieldValue(entity, parentIdFieldName)).map(Object::toString).orElse("");
+
+            // 根据父id获取实体类
+            T parentEntity = entityMap.get(parentId);
+            if (parentEntity == null) {
+                result.add(entity);
+            } else {
+                // 把实体放到父类的 childrenList
+                setChildrenValue(parentEntity, childrenFieldName, entity);
+            }
+        }
+        return result;
     }
 
-    List<S> getServices();
-
-    // region 增
-
-    @Override
-    default E add(E entity) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.add(entity));
-    }
-
-    @Override
-    default Collection<E> addBatch(Collection<E> entities) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.addBatch(entities));
-    }
-
-    @Override
-    default Collection<E> addBatchByBatchSize(Collection<E> entities, int batchSize) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.addBatchByBatchSize(entities, batchSize));
-    }
-
-    @Override
-    default E addIfAbsentByCriteria(E entity, C criteria) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.addIfAbsentByCriteria(entity, criteria));
-    }
-
-    @Override
-    default E addIfAbsentByColumns(E entity, List<String> uniqueColumns) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.addIfAbsentByColumns(entity, uniqueColumns));
-    }
-
-    @Override
-    default Integer addBatchIfAbsentByCriteria(List<E> entities, C criteria) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.addBatchIfAbsentByCriteria(entities, criteria));
-    }
-
-    @Override
-    default Integer addBatchIfAbsentByColumns(List<E> entities, List<String> uniqueColumns) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.addBatchIfAbsentByColumns(entities, uniqueColumns));
-    }
-
-    @Override
-    default Boolean addOrUpdateByCriteria(E entity, C criteria) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.addOrUpdateByCriteria(entity, criteria));
-    }
-
-    @Override
-    default E addOrUpdateByColumns(E entity, List<String> uniqueColumns) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.addOrUpdateByColumns(entity, uniqueColumns));
-    }
-
-    @Override
-    default Integer addOrUpdateBatchByColumns(List<E> entities, List<String> uniqueColumns) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.addOrUpdateBatchByColumns(entities, uniqueColumns));
-    }
-
-    // endregion
-
-    //  region 删
-
-    @Override
-    default Boolean deleteById(Serializable id) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.deleteById(id));
-    }
-
-    @Override
-    default Boolean deleteByIds(Collection<Serializable> ids) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.deleteByIds(ids));
-    }
-
-    @Override
-    default Boolean deleteByCriteria(C criteria) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.deleteByCriteria(criteria));
-    }
-
-    // endregion
-
-    // region 改
-
-    @Override
-    default Boolean updateById(E entity) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.updateById(entity));
-    }
-
-    @Override
-    default Boolean updateAllColumnsById(E entity) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.updateAllColumnsById(entity));
-    }
-
-    @Override
-    default void updateByIdOrException(E entity) {
-        V2ServiceManagerUtil.consume(getServices(), s -> s.updateByIdOrException(entity));
-    }
-
-    @Override
-    default Boolean updateByCriteria(E entity, C criteria) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.updateByCriteria(entity, criteria));
-    }
-
-    @Override
-    default void updateByCriteriaOrException(E entity, C criteria) {
-        V2ServiceManagerUtil.consume(getServices(), s -> s.updateByCriteriaOrException(entity, criteria));
-    }
-
-    // endregion
-
-    //  region 查
-
-    @Override
-    default E getById(Serializable id) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.getById(id));
-    }
-
-    @Override
-    default E getByIdOrException(Serializable id) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.getByIdOrException(id));
-    }
-
-    @Override
-    default E getByCriteria(C criteria) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.getByCriteria(criteria));
-    }
-
-    @Override
-    default E getByCriteriaOrWarn(C criteria) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.getByCriteriaOrWarn(criteria));
-    }
-
-    @Override
-    default E getByCriteriaOrException(C criteria) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.getByCriteriaOrException(criteria));
-    }
-
-    @Override
-    default List<E> findByCriteria(C criteria) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.findByCriteria(criteria));
-    }
-
-    @Override
-    default Page<E> findPageByCriteria(C criteria) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.findPageByCriteria(criteria));
-    }
-
-    @Override
-    default List<E> findAll() {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), IV2Service::findAll);
-    }
-
-    @Override
-    default Integer countByCriteria(C criteria) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.countByCriteria(criteria));
-    }
-
-    @Override
-    default Integer countAll() {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), IV2Service::countAll);
-    }
-
-    @Override
-    default Boolean isPresentById(Serializable id) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.isPresentById(id));
-    }
-
-    @Override
-    default Boolean isPresentByColumn(String columnName, Object value) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.isPresentByColumn(columnName, value));
-    }
-
-    @Override
-    default Boolean isPresentByCriteria(C criteria) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.isPresentByCriteria(criteria));
-    }
-
-    @Override
-    default Boolean isAbsentByColumn(String columnName, Object value) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.isAbsentByColumn(columnName, value));
-    }
-
-    @Override
-    default Boolean isAbsentByCriteria(C criteria) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), s -> s.isAbsentByCriteria(criteria));
-    }
-
-    @Override
-    default void exceptionIfPresentByCriteria(C criteria) {
-        V2ServiceManagerUtil.consume(getServices(), s -> s.exceptionIfPresentByCriteria(criteria));
-    }
-
-    @Override
-    default void exceptionIfAbsentByCriteria(C criteria) {
-        V2ServiceManagerUtil.consume(getServices(), s -> s.exceptionIfAbsentByCriteria(criteria));
-    }
-
-    // endregion
-
-    default <V> V applyUntilNotNull(Function<S, V> function) {
-        return V2ServiceManagerUtil.applyUntilNotNull(getServices(), function);
-    }
-
-    default void consume(Consumer<S> consumer) {
-        V2ServiceManagerUtil.consume(getServices(), consumer);
-    }
-
-
-    default void consumeWithoutException(Consumer<S> consumer) {
-        V2ServiceManagerUtil.consumeWithoutException(getServices(), consumer);
+    @SuppressWarnings("unchecked")
+    private static <T> void setChildrenValue(T parentEntity, String childrenFieldName, T entity) {
+        Object children = ReflectUtil.getFieldValue(parentEntity, childrenFieldName);
+        List<T> childrenList;
+        if (children == null) {
+            childrenList = new ArrayList<>();
+            ReflectUtil.setFieldValue(parentEntity, childrenFieldName, childrenList);
+        } else {
+            childrenList = (List<T>) children;
+        }
+        childrenList.add(entity);
     }
 
 }

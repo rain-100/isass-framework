@@ -177,6 +177,7 @@ import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.stereotype.Service;
+import vip.isass.framework.common.entrypoint.EntryPointAnno;
 import vip.isass.framework.common.util.LocalDateTimeUtil;
 import vip.isass.framework.net.core.NetRedisKey;
 import vip.isass.framework.net.core.message.Message;
@@ -201,6 +202,7 @@ public class RemoveC2SMessageService {
      */
     @SuppressWarnings("unchecked")
     @Lock4j(name = "removeEarlyMessage", acquireTimeout = 0, expire = 30_000)
+    @EntryPointAnno(name = "删除 redis 旧的 c2s 消息", group = "网络会话管理器(调试专用)", route = "/${spring.application.name}/redis/removeEarlyMessageService")
     public void process() {
         Set<String> keys = scanKeys();
         if (keys == null) {
@@ -227,8 +229,8 @@ public class RemoveC2SMessageService {
         RedisSerializer<?> keySerializer = redisTemplate.getKeySerializer();
         return redisTemplate.execute((RedisCallback<Set<String>>) connection -> {
             Set<String> keys = new HashSet<>();
-            try (Cursor<byte[]> cursor = connection.scan(
-                    new ScanOptions.ScanOptionsBuilder()
+            try (Cursor<byte[]> cursor = connection.keyCommands().scan(
+                    ScanOptions.scanOptions()
                             .match(NetRedisKey.REDIS_STREAM_PREFIX_KEY.concat("*"))
                             .count(1000)
                             .build())) {

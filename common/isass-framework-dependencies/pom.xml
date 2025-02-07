@@ -228,8 +228,8 @@
         <!-- region dependencies version -->
 
         <!-- spring -->
-        <spring-boot.version>3.3.0</spring-boot.version>
-        <spring.cloud.version>2023.0.2</spring.cloud.version>
+        <spring-boot.version>3.4.2</spring-boot.version>
+        <spring.cloud.version>2024.0.0</spring.cloud.version>
 
         <alibaba-nacos.version>2023.0.1.0</alibaba-nacos.version>
 
@@ -299,6 +299,7 @@
         <alipay.version>4.39.109.ALL</alipay.version>
 
         <!-- rpc -->
+        <okhttp.version>4.12.0</okhttp.version>
 
         <!-- 微信 -->
         <wxjava.version>4.6.2.B</wxjava.version>
@@ -863,6 +864,12 @@
                 <groupId>org.slf4j</groupId>
                 <artifactId>jul-to-slf4j</artifactId>
                 <version>${jul-to-slf4j.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.squareup.okhttp3</groupId>
+                <artifactId>okhttp</artifactId>
+                <version>${okhttp.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

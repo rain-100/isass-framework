@@ -166,107 +166,45 @@
 //  * Library.
 //  */
 //
-// package vip.isass.framework.lowcode.orm.mybatis.plus;
+// package vip.isass.framework.serialization.jackson.deserializer;
 //
-// import cn.hutool.core.util.StrUtil;
-// import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
-// import org.apache.ibatis.reflection.MetaObject;
-// import vip.isass.framework.common.util.LocalDateTimeUtil;
-// import vip.isass.framework.lowcode.v1.entity.LogicDeleteEntity;
-// import vip.isass.framework.lowcode.v1.entity.TimeTracedEntity;
-// import vip.isass.framework.lowcode.v1.entity.UserTracedEntity;
-// import vip.isass.framework.lowcode.v1.entity.VersionEntity;
-// import vip.isass.framework.common.security.authentication.login.LoginUser;
-// import vip.isass.framework.common.security.authentication.login.LoginUserUtil;
+// import com.baomidou.mybatisplus.core.metadata.IPage;
+// import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+// import com.fasterxml.jackson.core.JsonParser;
+// import com.fasterxml.jackson.databind.BeanProperty;
+// import com.fasterxml.jackson.databind.DeserializationContext;
+// import com.fasterxml.jackson.databind.JavaType;
+// import com.fasterxml.jackson.databind.JsonDeserializer;
+// import com.fasterxml.jackson.databind.deser.ContextualDeserializer;
+// import lombok.SneakyThrows;
+// import vip.isass.framework.serialization.jackson.JsonUtil;
 //
 // /**
-//  * @author Rain
+//  * 使用 JsonDeserializer + ContextualDeserializer 的方式解决 Ipage 泛型接口的反序列化问题
 //  */
-// public class MybatisPlusMetaObjectHandler implements MetaObjectHandler {
+// public class IPageDeserializer extends JsonDeserializer<IPage<?>> implements ContextualDeserializer {
+//
+//     private JavaType entityType;
 //
 //     @Override
-//     public void insertFill(MetaObject metaObject) {
-//         // version
-//         Object version = getFieldValByName(VersionEntity.VERSION, metaObject);
-//         if (version == null) {
-//             setFieldValByName(VersionEntity.VERSION, VersionEntity.DEFAULT_VERSION, metaObject);
-//         }
-//
-//         LoginUser loginUser = LoginUserUtil.getLoginUser();
-//
-//         // tenantId
-//         if (loginUser != null) {
-//             setFieldValByName("tenantId", loginUser.getTenantId(), metaObject);
-//         }
-//
-//         // appId
-//         if (loginUser != null) {
-//             setFieldValByName("appId", loginUser.getAppId(), metaObject);
-//         }
-//
-//         // createUserId
-//         setFieldValByName(
-//                 UserTracedEntity.CREATE_USER_ID_PROPERTY,
-//                 loginUser == null
-//                         ? ""
-//                         : StrUtil.nullToEmpty(loginUser.getUserId()),
-//                 metaObject);
-//
-//         // createUserName
-//         setFieldValByName(
-//                 UserTracedEntity.CREATE_USER_NAME_PROPERTY,
-//                 loginUser == null
-//                         ? StrUtil.subPre(Thread.currentThread().getName(), 32)
-//                         : StrUtil.nullToEmpty(StrUtil.subPre(loginUser.getNickName(), 32)),
-//                 metaObject);
-//
-//         // modifyUserId
-//         setFieldValByName(UserTracedEntity.MODIFY_USER_ID_PROPERTY,
-//                 loginUser == null
-//                         ? ""
-//                         : StrUtil.nullToEmpty(loginUser.getUserId()),
-//                 metaObject);
-//
-//         // modifyUserName
-//         setFieldValByName(UserTracedEntity.MODIFY_USER_NAME_PROPERTY,
-//                 loginUser == null
-//                         ? StrUtil.subPre(Thread.currentThread().getName(), 32)
-//                         : StrUtil.nullToEmpty(StrUtil.subPre(loginUser.getNickName(), 32)),
-//                 metaObject);
-//
-//         // createTime
-//         Object createTime = getFieldValByName(TimeTracedEntity.MODIFY_TIME_PROPERTY, metaObject);
-//         if (createTime == null) {
-//             setFieldValByName(TimeTracedEntity.CREATED_TIME_PROPERTY, LocalDateTimeUtil.now(), metaObject);
-//         }
-//
-//         // modifyTime
-//         setFieldValByName(TimeTracedEntity.MODIFY_TIME_PROPERTY, LocalDateTimeUtil.now(), metaObject);
-//
-//         // delete_flag
-//         setFieldValByName(LogicDeleteEntity.DELETE_FLAG_PROPERTY, LogicDeleteEntity.DEFAULT_DELETE_FLAG, metaObject);
+//     @SneakyThrows
+//     public IPage<?> deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) {
+//         JavaType pageType = JsonUtil.DEFAULT_INSTANCE.getTypeFactory().constructParametricType(Page.class, entityType);
+//         return deserializationContext.readValue(jsonParser, pageType);
 //     }
 //
 //     @Override
-//     public void updateFill(MetaObject metaObject) {
-//         LoginUser loginUser = LoginUserUtil.getLoginUser();
-//
-//         // modifyUserId
-//         setFieldValByName(UserTracedEntity.MODIFY_USER_ID_PROPERTY,
-//                 loginUser == null
-//                         ? ""
-//                         : StrUtil.nullToEmpty(loginUser.getUserId()),
-//                 metaObject);
-//
-//         // modifyUserName
-//         setFieldValByName(UserTracedEntity.MODIFY_USER_NAME_PROPERTY,
-//                 loginUser == null
-//                         ? StrUtil.subPre(Thread.currentThread().getName(), 32)
-//                         : StrUtil.nullToEmpty(loginUser.getNickName()),
-//                 metaObject);
-//
-//         // modifyTime
-//         setFieldValByName(TimeTracedEntity.MODIFY_TIME_PROPERTY, LocalDateTimeUtil.now(), metaObject);
-//
+//     public JsonDeserializer<?> createContextual(DeserializationContext ctxt, BeanProperty property) {
+//         if (property == null) {
+//             IPageDeserializer parser = new IPageDeserializer();
+//             parser.entityType = ctxt.getContextualType().containedType(0);
+//             return parser;
+//         } else {
+//             JavaType wrapperType = property.getType();
+//             JavaType valueType = wrapperType.containedType(0);
+//             IPageDeserializer parser = new IPageDeserializer();
+//             parser.entityType = valueType;
+//             return parser;
+//         }
 //     }
 // }

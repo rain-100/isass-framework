@@ -169,8 +169,6 @@
 package vip.isass.framework.lowcode.v2.entity;
 
 import cn.hutool.core.util.StrUtil;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 
 import java.beans.Transient;
 import java.io.Serializable;
@@ -179,7 +177,7 @@ import java.io.Serializable;
  * @author Rain
  */
 public interface IV2IdEntity<PK extends Serializable, E extends IV2IdEntity<PK, E>>
-    extends IV2PkEntity<PK, E> {
+        extends IV2PkEntity<PK, E> {
 
     //  默认的 id 成员变量名
     String ID_PROPERTY_NAME = "id";
@@ -195,7 +193,6 @@ public interface IV2IdEntity<PK extends Serializable, E extends IV2IdEntity<PK, 
     /**
      * @return id
      */
-    @JsonSerialize(using = ToStringSerializer.class)
     PK getId();
 
     /**

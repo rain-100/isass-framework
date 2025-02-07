@@ -169,9 +169,6 @@
 package vip.isass.framework.net.proxy.service.handler.net;
 
 import cn.hutool.core.lang.Assert;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
 import vip.isass.framework.net.core.handler.OnAnyMessageEventHandler;
 import vip.isass.framework.net.core.message.Message;
 import vip.isass.framework.net.core.message.MessageCmd;
@@ -182,24 +179,23 @@ import vip.isass.framework.net.proxy.service.service.GatewayToRedisMessageServic
  *
  * @author Administrator
  */
-@Service
 public class MessageDispatcherHandler implements OnAnyMessageEventHandler<Object> {
 
-    private String msPrefix;
+    private String serviceNameCmdPrefix;
 
-    @Resource
     private GatewayToRedisMessageService gatewayToRedisMessageService;
 
-    @Autowired
-    public void setApplicationName(@Value("${spring.application.name:}") String applicationName) {
-        Assert.notBlank(applicationName, "未配置spring.application.name，启动失败");
-        this.msPrefix = "/" + applicationName + "/";
+    public MessageDispatcherHandler(String serviceName,
+                                    GatewayToRedisMessageService gatewayToRedisMessageService) {
+        Assert.notBlank(serviceName, "serviceName 必填");
+        this.serviceNameCmdPrefix = "/" + serviceName + "/";
+        this.gatewayToRedisMessageService = gatewayToRedisMessageService;
     }
 
     @Override
     public Object onMessage(Message message, Object payload) {
         // 如果是本微服务或 core 的路由，已经由 eventManager 进行过处理
-        if (message.getCmd().startsWith(msPrefix) || message.getCmd().startsWith(MessageCmd.CORE_PREFIX)) {
+        if (message.getCmd().startsWith(serviceNameCmdPrefix) || message.getCmd().startsWith(MessageCmd.CORE_PREFIX)) {
             return null;
         }
 

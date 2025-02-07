@@ -169,8 +169,8 @@
 package vip.isass.framework.lowcode;
 
 import cn.hutool.core.collection.CollUtil;
-import vip.isass.framework.lowcode.v1.entity.LogicDeleteEntity;
-import vip.isass.framework.lowcode.v1.entity.UserTracedEntity;
+import vip.isass.framework.lowcode.v2.entity.IV2LogicDeleteEntity;
+import vip.isass.framework.lowcode.v2.entity.IV2TraceEntity;
 
 import java.util.HashSet;
 
@@ -183,13 +183,13 @@ import java.util.HashSet;
 public interface SensitiveDataProperty {
 
     HashSet<String> PROPERTIES = CollUtil.newHashSet(
-            LogicDeleteEntity.DELETE_FLAG_PROPERTY,
+            IV2LogicDeleteEntity.DELETE_FLAG_COLUMN_NAME,
             //        TimeTracedEntity.CREATED_TIME_PROPERTY,
             //        TimeTracedEntity.MODIFY_TIME_PROPERTY,
-            UserTracedEntity.CREATE_USER_ID_PROPERTY,
-            UserTracedEntity.CREATE_USER_NAME_PROPERTY,
-            UserTracedEntity.MODIFY_USER_ID_PROPERTY,
-            UserTracedEntity.MODIFY_USER_NAME_PROPERTY,
+            IV2TraceEntity.CREATE_USER_ID_COLUMN_NAME,
+            IV2TraceEntity.CREATE_USER_NAME_COLUMN_NAME,
+            IV2TraceEntity.MODIFY_USER_ID_COLUMN_NAME,
+            IV2TraceEntity.MODIFY_USER_NAME_COLUMN_NAME,
 
             "password");
 

@@ -173,7 +173,6 @@ import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import vip.isass.framework.common.util.LocalDateTimeUtil;
@@ -196,7 +195,7 @@ public interface IAnyJsonEntity {
 
     String FORMATED_VALUE_SUFFIX = "Text";
 
-    @JsonAnyGetter
+    // @JsonAnyGetter
     default Map<String, Object> anyJson() {
         AdvancedFeature advanceFeature = ADVANCED_FEATURE.get();
         if (advanceFeature == null) {

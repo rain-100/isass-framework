@@ -237,6 +237,7 @@ public class JsonUtil {
             // .addSerializer(double.class, new DoubleSerializer())
             // .addSerializer(Float.class, new FloatSerializer())
             // .addSerializer(float.class, new FloatSerializer())
+            // .addDeserializer(IPage.class, new IPageDeserializer())
 
             // 多值map
             .addSerializer(MultiValueBiMap.class, new MultiValueBiMapSerializer())
