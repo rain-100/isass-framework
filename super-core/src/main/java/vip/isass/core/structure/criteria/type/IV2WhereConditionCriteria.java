@@ -188,7 +188,7 @@ import java.util.List;
  * @author Rain
  */
 public interface IV2WhereConditionCriteria<E extends IV2Entity<E>, C extends IV2WhereConditionCriteria<E, C>>
-    extends IV2Criteria<E, C> {
+        extends IV2Criteria<E, C> {
 
     /**
      * whereConditions 相关方法
@@ -548,7 +548,7 @@ public interface IV2WhereConditionCriteria<E extends IV2Entity<E>, C extends IV2
 
     // endregion
 
-    // region json 类型字段拥有的条件
+    // region 数组 类型字段拥有的条件
 
     @SuppressWarnings("unchecked")
     default C collectionContainsAll(String propertyName, String columnName, Collection<String> value) {
@@ -577,6 +577,10 @@ public interface IV2WhereConditionCriteria<E extends IV2Entity<E>, C extends IV2
     default <T> T getCollectionContainsAny(String propertyName, Class<T> clazz) {
         return getValue(propertyName, V2Condition.CONTAINS_ANY, clazz);
     }
+
+    // endregion
+
+    // region jsonArray 类型字段拥有的条件
 
     @SuppressWarnings("unchecked")
     default C jsonArrayContains(String propertyName, String columnName, Object value) {
@@ -622,25 +626,37 @@ public interface IV2WhereConditionCriteria<E extends IV2Entity<E>, C extends IV2
 
     // endregion
 
+    // region jsonObject 类型字段拥有的条件
+    @SuppressWarnings("unchecked")
+    default C JsonObjectPathEqual(String propertyName, String columnName, Object value) {
+        Assert.notBlank(propertyName, "propertyName 不能为空");
+        Assert.notBlank(columnName, "columnName 不能为空");
+        Assert.notNull(value, "value不能为空");
+        getWhereConditions().add(new V2WhereCondition(propertyName, columnName, V2Condition.JSON_OBJECT_PATH_EQUAL, value));
+        return (C) this;
+    }
+
+    // endregion
+
     @SuppressWarnings("unchecked")
     default <T> T getValue(String propertyName, V2Condition condition) {
         return getWhereConditions().stream()
-            .filter(c -> condition == c.getCondition())
-            .filter(c -> propertyName.equalsIgnoreCase(c.getPropertyName()))
-            .map(c -> (T) c.getValue())
-            .findFirst()
-            .orElse(null);
+                .filter(c -> condition == c.getCondition())
+                .filter(c -> propertyName.equalsIgnoreCase(c.getPropertyName()))
+                .map(c -> (T) c.getValue())
+                .findFirst()
+                .orElse(null);
     }
 
     @Transient
     @SuppressWarnings("unchecked")
     default <T> T getValue(String propertyName, V2Condition condition, Class<T> clazz) {
         return getWhereConditions().stream()
-            .filter(c -> condition == c.getCondition())
-            .filter(c -> propertyName.equalsIgnoreCase(c.getPropertyName()))
-            .map(c -> (T) c.getValue())
-            .findFirst()
-            .orElse(null);
+                .filter(c -> condition == c.getCondition())
+                .filter(c -> propertyName.equalsIgnoreCase(c.getPropertyName()))
+                .map(c -> (T) c.getValue())
+                .findFirst()
+                .orElse(null);
     }
 
     @Transient
@@ -650,8 +666,8 @@ public interface IV2WhereConditionCriteria<E extends IV2Entity<E>, C extends IV2
             List<V2WhereCondition> whereConditions = getWhereConditions();
             V2WhereCondition whereCondition = whereConditions.get(i);
             if (i == 0
-                || !propertyName.equals(whereCondition.getPropertyName())
-                || whereCondition.getCondition() != condition) {
+                    || !propertyName.equals(whereCondition.getPropertyName())
+                    || whereCondition.getCondition() != condition) {
                 continue;
             }
             if (whereConditions.get(i - 1).getCondition() != V2Condition.OR) {
@@ -664,8 +680,8 @@ public interface IV2WhereConditionCriteria<E extends IV2Entity<E>, C extends IV2
 
     default boolean hasCondition(String propertyName, V2Condition condition) {
         return getWhereConditions().stream()
-            .filter(c -> condition == c.getCondition())
-            .anyMatch(c -> propertyName.equalsIgnoreCase(c.getColumnName()));
+                .filter(c -> condition == c.getCondition())
+                .anyMatch(c -> propertyName.equalsIgnoreCase(c.getColumnName()));
     }
 
     default boolean hasConditions() {

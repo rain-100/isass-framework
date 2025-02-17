@@ -2,7 +2,6 @@
 
 ## 微服务
 
-
 | 名称                         | 端口                        |
 |----------------------------|---------------------------|
 | isass-service-gateway      | http:20000                |
@@ -46,7 +45,6 @@
 
 ## 第三方服务
 
-
 | 名称              | 端口                                                        |
 |-----------------|-----------------------------------------------------------|
 | oap(skywalking) | 11800                                                     |
@@ -55,12 +53,14 @@
 | elasticsearch   | 30010                                                     |
 | elasticvue      | 30015                                                     |
 | redis           | 30020                                                     |
-| redis_exporter  | 30021                                                     |
+| redis_insight   | 30021                                                     |
+| redis_exporter  | 30022                                                     |
 | mysql           | 30030                                                     |
 | mysql_exporter  | 30031                                                     |
 | nacos           | 30040                                                     |
 | rancher         | http30050,https30051                                      |
 | postgresql      | 30060                                                     |
+| postgis         | 30065                                                     |
 | nps             | web:30070 bridge:30071 http_proxy:30072 https_proxy:30073 |
 | node_exporter   | 30080                                                     |
 | nexus3          | 30090                                                     |
