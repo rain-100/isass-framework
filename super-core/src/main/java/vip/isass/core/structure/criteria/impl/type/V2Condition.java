@@ -208,6 +208,7 @@ public enum V2Condition {
     // json 对象
 
     JSON_OBJECT_PATH_EQUAL("JsonObjectPathEqual"),
+    JSON_OBJECT_PATH_LIKE("JsonObjectPathLike"),
 
     // json 数组
     JSON_ARRAY_CONTAINS("JsonArrayContains"),

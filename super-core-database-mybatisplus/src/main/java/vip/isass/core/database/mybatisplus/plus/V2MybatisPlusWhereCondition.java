@@ -286,6 +286,24 @@ public class V2MybatisPlusWhereCondition {
                         break;
                 }
                 break;
+            case JSON_OBJECT_PATH_LIKE:
+                if (whereCondition.getValue() == null) {
+                    return;
+                }
+                String[] fieldPath = whereCondition.getColumnName().split("\\.", 2);
+                switch (getDbType()) {
+                    case "":
+                    case "mysql":
+                        wrapper.apply(
+                                StrUtil.format("{}->'$.{}' like concat('%',{0},'%')", fieldPath[0], fieldPath[1]),
+                                whereCondition.getValue()
+                        );
+                        break;
+                    case "dm":
+                        wrapper.like(whereCondition.getValue() != null, fieldPath[0], whereCondition.getValue());
+                        break;
+                }
+                break;
             case JSON_ARRAY_CONTAINS:
                 if (whereCondition.getValue() == null) {
                     return;

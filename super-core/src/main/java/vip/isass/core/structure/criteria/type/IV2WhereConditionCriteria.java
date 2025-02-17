@@ -171,6 +171,7 @@ package vip.isass.core.structure.criteria.type;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Assert;
+import cn.hutool.core.util.StrUtil;
 import vip.isass.core.structure.criteria.IV2Criteria;
 import vip.isass.core.structure.criteria.V2WhereCondition;
 import vip.isass.core.structure.criteria.impl.type.V2Condition;
@@ -179,6 +180,7 @@ import vip.isass.core.structure.entity.IV2Entity;
 import java.beans.Transient;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * sql 的 where 条件接口
@@ -627,12 +629,39 @@ public interface IV2WhereConditionCriteria<E extends IV2Entity<E>, C extends IV2
     // endregion
 
     // region jsonObject 类型字段拥有的条件
+
     @SuppressWarnings("unchecked")
     default C JsonObjectPathEqual(String propertyName, String columnName, Object value) {
         Assert.notBlank(propertyName, "propertyName 不能为空");
         Assert.notBlank(columnName, "columnName 不能为空");
         Assert.notNull(value, "value不能为空");
         getWhereConditions().add(new V2WhereCondition(propertyName, columnName, V2Condition.JSON_OBJECT_PATH_EQUAL, value));
+        return (C) this;
+    }
+
+    @SuppressWarnings("unchecked")
+    default C JsonObjectPathLike(String propertyName, String columnName, Object value) {
+        Assert.notBlank(propertyName, "propertyName 不能为空");
+        Assert.notBlank(columnName, "columnName 不能为空");
+        Assert.notNull(value, "value不能为空");
+        getWhereConditions().add(new V2WhereCondition(propertyName, columnName, V2Condition.JSON_OBJECT_PATH_LIKE, value));
+        return (C) this;
+    }
+
+    @SuppressWarnings("unchecked")
+    default C jsonObjectPath(String columnName, Map<String, Object> params) {
+        if (params.isEmpty()) {
+            return (C) this;
+        }
+        for (Map.Entry<String, Object> entry : params.entrySet()) {
+            String key = entry.getKey();
+            if (key.endsWith("Like")) {
+                key = StrUtil.removeSuffix(key, "Like");
+                JsonObjectPathLike(key, columnName + "." + key, entry.getValue());
+            } else {
+                JsonObjectPathEqual(key, columnName + "." + key, entry.getValue());
+            }
+        }
         return (C) this;
     }
 
