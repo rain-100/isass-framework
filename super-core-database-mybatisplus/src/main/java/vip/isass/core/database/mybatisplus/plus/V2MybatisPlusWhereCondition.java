@@ -277,7 +277,7 @@ public class V2MybatisPlusWhereCondition {
                     case "":
                     case "mysql":
                         wrapper.apply(
-                                StrUtil.format("{}->'$.{}' = {0}", path[0], path[1]),
+                                StrUtil.format("{}->'$.\"{}\"' = {0}", path[0], path[1]),
                                 whereCondition.getValue()
                         );
                         break;
@@ -295,7 +295,7 @@ public class V2MybatisPlusWhereCondition {
                     case "":
                     case "mysql":
                         wrapper.apply(
-                                StrUtil.format("{}->'$.{}' like concat('%',{0},'%')", fieldPath[0], fieldPath[1]),
+                                StrUtil.format("{}->'$.\"{}\"' like concat('%',{0},'%')", fieldPath[0], fieldPath[1]),
                                 whereCondition.getValue()
                         );
                         break;
