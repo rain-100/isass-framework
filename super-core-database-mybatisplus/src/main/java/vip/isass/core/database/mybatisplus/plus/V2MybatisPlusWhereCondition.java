@@ -181,9 +181,11 @@ import vip.isass.core.support.JsonUtil;
 import vip.isass.core.support.SpringContextUtil;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Rain
@@ -273,11 +275,12 @@ public class V2MybatisPlusWhereCondition {
                     return;
                 }
                 String[] path = whereCondition.getColumnName().split("\\.", 2);
+                path[1] = formatMysqlJsonPath(path[1]);
                 switch (getDbType()) {
                     case "":
                     case "mysql":
                         wrapper.apply(
-                                StrUtil.format("{}->'$.\"{}\"' = {0}", path[0], path[1]),
+                                StrUtil.format("{}->'$.{}' = {0}", path[0], path[1]),
                                 whereCondition.getValue()
                         );
                         break;
@@ -291,11 +294,12 @@ public class V2MybatisPlusWhereCondition {
                     return;
                 }
                 String[] fieldPath = whereCondition.getColumnName().split("\\.", 2);
+                fieldPath[1] = formatMysqlJsonPath(fieldPath[1]);
                 switch (getDbType()) {
                     case "":
                     case "mysql":
                         wrapper.apply(
-                                StrUtil.format("{}->'$.\"{}\"' like concat('%',{0},'%')", fieldPath[0], fieldPath[1]),
+                                StrUtil.format("{}->'$.{}' like concat('%',{0},'%')", fieldPath[0], fieldPath[1]),
                                 whereCondition.getValue()
                         );
                         break;
@@ -428,5 +432,18 @@ public class V2MybatisPlusWhereCondition {
         DynamicRoutingDataSource ds = SpringContextUtil.getBean(DynamicRoutingDataSource.class);
         return SpringContextUtil.getBean(DatabaseIdProvider.class)
                 .getDatabaseId(ds);
+    }
+
+    private static String formatMysqlJsonPath(String jsonPath) {
+        if (jsonPath.contains("-")) {
+            if (jsonPath.contains(".")) {
+                jsonPath = Arrays.stream(jsonPath.split("\\."))
+                        .map(p -> p.contains("-") ? StrUtil.format("\"{}\"", p) : p)
+                        .collect(Collectors.joining("."));
+            } else {
+                jsonPath = StrUtil.format("\"{}\"", jsonPath);
+            }
+        }
+        return jsonPath;
     }
 }

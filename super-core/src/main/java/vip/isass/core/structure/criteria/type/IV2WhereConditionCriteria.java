@@ -176,6 +176,7 @@ import vip.isass.core.structure.criteria.IV2Criteria;
 import vip.isass.core.structure.criteria.V2WhereCondition;
 import vip.isass.core.structure.criteria.impl.type.V2Condition;
 import vip.isass.core.structure.entity.IV2Entity;
+import vip.isass.core.support.MapFlattener;
 
 import java.beans.Transient;
 import java.util.Collection;
@@ -653,6 +654,7 @@ public interface IV2WhereConditionCriteria<E extends IV2Entity<E>, C extends IV2
         if (params.isEmpty()) {
             return (C) this;
         }
+        params = MapFlattener.flattenMapIfNecessary(params);
         for (Map.Entry<String, Object> entry : params.entrySet()) {
             String key = entry.getKey();
             if (key.endsWith("Like")) {
