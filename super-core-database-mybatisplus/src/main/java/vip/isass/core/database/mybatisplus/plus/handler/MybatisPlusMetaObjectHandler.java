@@ -236,7 +236,7 @@ public class MybatisPlusMetaObjectHandler implements MetaObjectHandler {
                 metaObject);
 
         // createTime
-        Object createTime = getFieldValByName(TimeTracedEntity.MODIFY_TIME_PROPERTY, metaObject);
+        Object createTime = getFieldValByName(TimeTracedEntity.CREATED_TIME_PROPERTY, metaObject);
         if (createTime == null) {
             setFieldValByName(TimeTracedEntity.CREATED_TIME_PROPERTY, LocalDateTimeUtil.now(), metaObject);
         }
