@@ -172,8 +172,15 @@ package vip.isass.core.web.structure;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import vip.isass.core.structure.criteria.IV2Criteria;
+import vip.isass.core.structure.entity.BatchSave;
 import vip.isass.core.structure.entity.IV2Entity;
 import vip.isass.core.structure.service.IV2LocalService;
 import vip.isass.core.structure.service.IV2Service;
@@ -184,9 +191,9 @@ import java.util.Collection;
 import java.util.List;
 
 public interface IV2Controller<
-    E extends IV2Entity<E>,
-    C extends IV2Criteria<E, C>
-    > extends IV2Service<E, C> {
+        E extends IV2Entity<E>,
+        C extends IV2Criteria<E, C>
+        > extends IV2Service<E, C> {
 
     @Override
     default int getOrder() {
@@ -258,7 +265,7 @@ public interface IV2Controller<
     @Override
     @PostMapping(ADD_OR_UPDATE_BY_COLUMNS_URI_SECOND_PART)
     @ApiOperation(value = "增改-单实体-根据字段",
-        notes = "根据 uniqueColumns 字段和 entity 对应的值作为查询条件，如果已存在数据，则更新数据，否则新增数据。")
+            notes = "根据 uniqueColumns 字段和 entity 对应的值作为查询条件，如果已存在数据，则更新数据，否则新增数据。")
     @ApiImplicitParam(name = "uniqueColumns", value = "唯一字段名列表，根据此字段判断需要新增或者修改", required = true)
     default E addOrUpdateByColumns(@RequestBody E entity, @PathVariable("uniqueColumns") List<String> uniqueColumns) {
         return getService().addOrUpdateByColumns(entity, uniqueColumns);
@@ -267,7 +274,7 @@ public interface IV2Controller<
     @Override
     @PostMapping(ADD_OR_UPDATE_BATCH_BY_COLUMNS_URI_SECOND_PART)
     @ApiOperation(value = "增改-批量实体-根据字段",
-        notes = "根据 uniqueColumns 字段和 每个 entity 对应的值作为查询条件，如果已存在数据，则更新数据，否则新增数据。")
+            notes = "根据 uniqueColumns 字段和 每个 entity 对应的值作为查询条件，如果已存在数据，则更新数据，否则新增数据。")
     @ApiImplicitParam(name = "uniqueColumns", value = "唯一字段名列表，根据此字段判断需要新增或者修改", required = true)
     default Integer addOrUpdateBatchByColumns(@RequestBody List<E> entities,
                                               @PathVariable("uniqueColumns") List<String> uniqueColumns) {
@@ -336,6 +343,13 @@ public interface IV2Controller<
     @ApiOperation(value = "改-根据条件-异常", hidden = true)
     default void updateByCriteriaOrException(@RequestBody E entity, @ModelAttribute C criteria) {
         getService().updateByCriteriaOrException(entity, criteria);
+    }
+
+    @Override
+    @PostMapping(BATCH_SAVE_URI_SECOND_PART)
+    @ApiOperation(value = "增删改-批量操作")
+    default void batchSave(@RequestBody BatchSave<E> batchSave) {
+        getService().batchSave(batchSave);
     }
 
     // endregion

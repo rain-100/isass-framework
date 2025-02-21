@@ -169,6 +169,7 @@
 
 package vip.isass.core.structure.service;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Assert;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import org.slf4j.Logger;
@@ -176,6 +177,7 @@ import org.slf4j.LoggerFactory;
 import vip.isass.core.exception.AbsentException;
 import vip.isass.core.structure.criteria.IV2Criteria;
 import vip.isass.core.structure.criteria.type.IV2WhereConditionCriteria;
+import vip.isass.core.structure.entity.BatchSave;
 import vip.isass.core.structure.entity.IV2Entity;
 import vip.isass.core.structure.entity.IV2IdEntity;
 import vip.isass.core.structure.repository.IV2Repository;
@@ -189,9 +191,9 @@ import java.util.List;
  * @author rain
  */
 public interface IV2LocalService<
-    E extends IV2Entity<E>,
-    C extends IV2Criteria<E, C>
-    > extends IV2Service<E, C> {
+        E extends IV2Entity<E>,
+        C extends IV2Criteria<E, C>
+        > extends IV2Service<E, C> {
 
     Logger LOGGER = LoggerFactory.getLogger(IV2LocalService.class);
 
@@ -336,6 +338,18 @@ public interface IV2LocalService<
         if (!getRepository().updateByCriteria(entity, criteria)) {
             throw new AbsentException("更新失败，记录不存在");
         }
+    }
+
+    @Override
+    default void batchSave(BatchSave<E> batchSave) {
+        if (batchSave == null) {
+            return;
+        }
+        addBatch(batchSave.getAddEntities());
+        if (CollUtil.isNotEmpty(batchSave.getUpdateEntities())) {
+            batchSave.getUpdateEntities().forEach(this::updateById);
+        }
+        deleteByIds(batchSave.getDeleteIds());
     }
 
     // endregion

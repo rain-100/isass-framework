@@ -171,8 +171,14 @@ package vip.isass.core.web.rpc.feign;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import org.springframework.cloud.openfeign.SpringQueryMap;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import vip.isass.core.structure.criteria.IV2Criteria;
+import vip.isass.core.structure.entity.BatchSave;
 import vip.isass.core.structure.entity.IV2Entity;
 import vip.isass.core.structure.service.IV2Service;
 import vip.isass.core.support.api.ApiOrder;
@@ -182,9 +188,9 @@ import java.util.Collection;
 import java.util.List;
 
 public interface IV2FeignService<
-    E extends IV2Entity<E>,
-    C extends IV2Criteria<E, C>
-    > extends IV2Service<E, C> {
+        E extends IV2Entity<E>,
+        C extends IV2Criteria<E, C>
+        > extends IV2Service<E, C> {
 
     @Override
     default int getOrder() {
@@ -258,6 +264,9 @@ public interface IV2FeignService<
 
     @PutMapping(UPDATE_BY_CRITERIA_OR_EXCEPTION_URI_SECOND_PART)
     void updateByCriteriaOrException(@RequestBody E entity, @SpringQueryMap C criteria);
+
+    @PostMapping(BATCH_SAVE_URI_SECOND_PART)
+    void batchSave(@RequestBody BatchSave<E> batchSave);
 
     // endregion
 

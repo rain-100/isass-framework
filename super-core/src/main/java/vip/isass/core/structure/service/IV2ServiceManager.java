@@ -174,6 +174,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Primary;
 import vip.isass.core.structure.criteria.IV2Criteria;
+import vip.isass.core.structure.entity.BatchSave;
 import vip.isass.core.structure.entity.IV2Entity;
 import vip.isass.core.support.api.ApiOrder;
 
@@ -185,10 +186,10 @@ import java.util.function.Function;
 
 @Primary
 public interface IV2ServiceManager<
-    E extends IV2Entity<E>,
-    C extends IV2Criteria<E, C>,
-    S extends IV2Service<E, C>
-    > extends IV2Service<E, C> {
+        E extends IV2Entity<E>,
+        C extends IV2Criteria<E, C>,
+        S extends IV2Service<E, C>
+        > extends IV2Service<E, C> {
 
     Logger LOGGER = LoggerFactory.getLogger(IV2ServiceManager.class);
 
@@ -297,6 +298,11 @@ public interface IV2ServiceManager<
     @Override
     default void updateByCriteriaOrException(E entity, C criteria) {
         V2ServiceManagerUtil.consume(getServices(), s -> s.updateByCriteriaOrException(entity, criteria));
+    }
+
+    @Override
+    default void batchSave(BatchSave<E> batchSave) {
+        V2ServiceManagerUtil.consume(getServices(), s -> s.batchSave(batchSave));
     }
 
     // endregion

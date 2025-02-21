@@ -172,6 +172,7 @@ package vip.isass.core.structure.service;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import org.springframework.core.Ordered;
 import vip.isass.core.structure.criteria.IV2Criteria;
+import vip.isass.core.structure.entity.BatchSave;
 import vip.isass.core.structure.entity.IV2Entity;
 
 import java.io.Serializable;
@@ -244,6 +245,8 @@ public interface IV2Service<E extends IV2Entity<E>, C extends IV2Criteria<E, C>>
 
     String UPDATE_BY_CRITERIA_OR_EXCEPTION_OPERATOR = "PUT";
     String UPDATE_BY_CRITERIA_OR_EXCEPTION_URI_SECOND_PART = "/v2/criteria/exception";
+
+    String BATCH_SAVE_URI_SECOND_PART = "/v2/batchSave";
 
     // endregion
 
@@ -347,6 +350,8 @@ public interface IV2Service<E extends IV2Entity<E>, C extends IV2Criteria<E, C>>
     Boolean updateByCriteria(E entity, C criteria);
 
     void updateByCriteriaOrException(E entity, C criteria);
+
+    void batchSave(BatchSave<E> batchSave);
 
     // endregion
 
