@@ -169,8 +169,15 @@
 
 package vip.isass.core.cache.redis;
 
+import cn.hutool.core.exceptions.ExceptionUtil;
 import cn.hutool.core.util.ReflectUtil;
 import lombok.SneakyThrows;
+import org.apache.commons.lang3.reflect.FieldUtils;
+import org.redisson.RedissonShutdownException;
+import org.redisson.client.protocol.RedisStrictCommand;
+import org.redisson.spring.data.connection.RedissonStreamCommands;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CachingConfigurerSupport;
@@ -181,6 +188,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.stream.Consumer;
+import org.springframework.data.redis.connection.stream.ObjectRecord;
+import org.springframework.data.redis.connection.stream.StreamOffset;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.hash.HashMapper;
 import org.springframework.data.redis.hash.Jackson2HashMapper;
@@ -191,9 +201,13 @@ import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.data.redis.stream.StreamMessageListenerContainer;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import vip.isass.core.support.JsonUtil;
 
+import javax.annotation.PreDestroy;
+import java.lang.reflect.Field;
+import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -205,9 +219,20 @@ import java.util.concurrent.ThreadPoolExecutor;
 @ComponentScan
 public class RedisConfig extends CachingConfigurerSupport {
 
+    Logger log = LoggerFactory.getLogger(RedisConfig.class);
+
     public static final HashMapper HASH_MAPPER = new Jackson2HashMapper(false);
 
     private ThreadPoolTaskExecutor executor;
+
+    static {
+        // 由于 redisson 的 bug,执行删除消费者时错误地用了"XADD"指令，
+        // 新版 redisson 已更正，但他用了更加新的 springboot 版本，与我们冲突，所以这里只能通过反射修改其指令。
+        RedisStrictCommand<Boolean> command = new RedisStrictCommand<>("XGROUP", obj -> ((Long) obj) > 0);
+        Field field = ReflectUtil.getField(RedissonStreamCommands.class, "XGROUP_BOOLEAN");
+        FieldUtils.removeFinalModifier(field);
+        ReflectUtil.setFieldValue(RedissonStreamCommands.class, field, command);
+    }
 
     private void initExecutor() {
         this.executor = new ThreadPoolTaskExecutor();
@@ -252,6 +277,9 @@ public class RedisConfig extends CachingConfigurerSupport {
         return template;
     }
 
+    /**
+     * 注册 redis pubsub 功能
+     */
     @Bean
     public RedisMessageListenerContainer listenerContainer(RedisConnectionFactory connectionFactory,
                                                            @Autowired(required = false) List<IRedisSubscriber<?>> redisSubscribers) {
@@ -269,6 +297,64 @@ public class RedisConfig extends CachingConfigurerSupport {
             listenerContainer.addMessageListener(messageListenerAdapter, redisSubscriber.topic());
         }
         return listenerContainer;
+    }
+
+    /**
+     * 注册 redis pubsub 功能
+     */
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    @Bean(initMethod = "start", destroyMethod = "stop")
+    public <T> StreamMessageListenerContainer streamMessageListenerContainer(RedisTemplate<String, ?> redisTemplate,
+                                                                             RedisConnectionFactory connectionFactory,
+                                                                             @Autowired(required = false) List<IRedisStreamListener<T>> listeners) {
+
+        StreamMessageListenerContainer.StreamMessageListenerContainerOptions<String, ObjectRecord<String, T>> options =
+                StreamMessageListenerContainer.StreamMessageListenerContainerOptions
+                        .builder()
+                        .objectMapper(RedisConfig.HASH_MAPPER)
+                        .serializer(redisTemplate.getDefaultSerializer())
+                        .hashKeySerializer(redisTemplate.getHashKeySerializer())
+                        .keySerializer(redisTemplate.getKeySerializer())
+                        .hashValueSerializer(redisTemplate.getHashValueSerializer())
+                        .pollTimeout(Duration.ofSeconds(5))
+                        .batchSize(10)
+                        .build();
+
+        StreamMessageListenerContainer<String, ObjectRecord<String, T>> streamMessageListenerContainer =
+                StreamMessageListenerContainer.create(connectionFactory, options);
+
+        if (listeners != null) {
+            for (IRedisStreamListener<T> listener : listeners) {
+                Consumer consumer = Consumer.from(listener.getConsumerGroup(), listener.getConsumerName());
+
+                try {
+                    redisTemplate.opsForStream().createGroup(listener.getKey(), listener.getConsumerGroup());
+                    log.info("redis stream[{}] consumer group[{}] created", listener.getKey(), listener.getConsumerGroup());
+                } catch (Exception e) {
+                    log.info("redis stream[{}] consumer group[{}] existing", listener.getKey(), listener.getConsumerGroup());
+                }
+
+                streamMessageListenerContainer.register(
+                        StreamMessageListenerContainer.StreamReadRequest
+                                .builder(StreamOffset.create(listener.getKey(), listener.getReadOffset()))
+                                .consumer(consumer)
+                                .autoAcknowledge(true)
+                                .cancelOnError(throwable -> false)
+                                .errorHandler(t -> {
+                                    //noinspection unchecked
+                                    if (ExceptionUtil.isCausedBy(t, RedissonShutdownException.class)) {
+                                        log.error(ExceptionUtil.unwrap(t).getMessage());
+                                        log.info("redis stream listener[{}|{}] is closed", listener.getKey(), consumer);
+                                    } else {
+                                        log.info("redis stream error[{}|{}] ", listener.getKey(), consumer, t);
+                                    }
+                                })
+                                .build(),
+                        listener::onMessage);
+            }
+        }
+
+        return streamMessageListenerContainer;
     }
 
 }

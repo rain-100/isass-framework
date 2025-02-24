@@ -181,7 +181,8 @@ import javax.annotation.Nonnull;
 import java.lang.reflect.Type;
 
 /**
- * redis 消息订阅者
+ * redis 消息订阅者。
+ * 使用 redis pubsub 机制
  *
  * @author rain
  */
