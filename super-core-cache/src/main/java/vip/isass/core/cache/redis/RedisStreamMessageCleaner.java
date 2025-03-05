@@ -171,6 +171,7 @@ package vip.isass.core.cache.redis;
 import com.baomidou.lock.annotation.Lock4j;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.data.redis.serializer.RedisSerializer;
@@ -214,12 +215,20 @@ public class RedisStreamMessageCleaner {
         String fiveMinuteAgo = LocalDateTimeUtil.localDateTimeToEpochMilli(LocalDateTimeUtil.now().minusMinutes(5)) + "";
         providers.forEach(p -> {
             log.debug("cleanup redis stream old message. keys: {}", p.getKeys());
-            redisTemplate.execute(
-                    REDIS_SCRIPT,
-                    RedisSerializer.string(),
-                    (RedisSerializer<Long>) redisTemplate.getValueSerializer(),
-                    p.getKeys() instanceof List ? (List<String>) p.getKeys() : new ArrayList<>(p.getKeys()),
-                    fiveMinuteAgo);
+            try {
+                redisTemplate.execute(
+                        REDIS_SCRIPT,
+                        RedisSerializer.string(),
+                        (RedisSerializer<Long>) redisTemplate.getValueSerializer(),
+                        p.getKeys() instanceof List ? (List<String>) p.getKeys() : new ArrayList<>(p.getKeys()),
+                        fiveMinuteAgo);
+            } catch (InvalidDataAccessApiUsageException e) {
+                if (e.getMessage().contains("ERR syntax error")) {
+                    log.warn("清理 redis stream message 错误！redis 版本需 >= 6.2.0");
+                } else {
+                    throw new RuntimeException(e);
+                }
+            }
         });
     }
 }
