@@ -169,6 +169,7 @@
 
 package vip.isass.kernel.net.socketio;
 
+import cn.hutool.core.util.StrUtil;
 import com.corundumstudio.socketio.SocketConfig;
 import com.corundumstudio.socketio.SocketIOServer;
 import com.corundumstudio.socketio.annotation.SpringAnnotationScanner;
@@ -178,6 +179,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.DefaultResourceLoader;
 import vip.isass.kernel.net.socketio.handler.OnSocketIoErrorListener;
 
 import javax.annotation.Resource;
@@ -206,6 +208,22 @@ public class SocketIoAutoConfiguration {
         config.setMaxFramePayloadLength(socketIoProperties.getMaxFramePayloadLength());
         config.setBossThreads(1);
         config.setExceptionListener(onErrorListener);
+
+        // ssl
+        if (StrUtil.isNotBlank(socketIoProperties.getKeyStorePath())) {
+            try {
+                DefaultResourceLoader defaultResourceLoader = new DefaultResourceLoader();
+                org.springframework.core.io.Resource resource = defaultResourceLoader.getResource(socketIoProperties.getKeyStorePath());
+                if (resource.exists()) {
+                    config.setKeyStore(resource.getInputStream());
+                    config.setKeyStoreFormat(socketIoProperties.getKeyStoreFormat());
+                    config.setKeyStorePassword(socketIoProperties.getKeyStorePassword());
+                }
+                config.setKeyStorePassword(socketIoProperties.getKeyStorePassword());
+            } catch (Exception e) {
+                log.error("socketio 加载证书失败", e);
+            }
+        }
 
         SocketConfig sockConfig = new SocketConfig();
         // 解决SOCKET服务端重启"Address already in use"异常

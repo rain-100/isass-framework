@@ -196,4 +196,9 @@ public class SocketIoProperties {
 
     private String netExternalUrl;
 
+    private String keyStorePath;
+
+    private String keyStoreFormat;
+
+    private String keyStorePassword;
 }
