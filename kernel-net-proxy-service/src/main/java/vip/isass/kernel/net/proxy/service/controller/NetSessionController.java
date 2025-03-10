@@ -304,7 +304,7 @@ public class NetSessionController {
      */
     @GetMapping("/alias")
     @ApiOperation(value = "查询已有别名")
-    public Resp<Collection<String>> findAliases(@RequestParam(name = "prefix") String prefix) {
+    public Resp<Collection<String>> findAliases(@RequestParam(name = "prefix", required = false) String prefix) {
         return Resp.bizSuccess(sessionService.findAliases(prefix));
     }
 
