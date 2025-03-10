@@ -295,6 +295,14 @@ public interface ISessionService {
     String getAlias(String sessionId);
 
     /**
+     * 查询已有别名
+     *
+     * @param prefix 前缀
+     * @return 符合条件的已有别名列表
+     */
+    Collection<String> findAliases(String prefix);
+
+    /**
      * 设置别名
      *
      * @param sessionId 会话

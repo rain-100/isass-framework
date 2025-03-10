@@ -312,6 +312,18 @@ public class LocalSessionService implements ISessionService {
     }
 
     @Override
+    public Collection<String> findAliases(String prefix) {
+        if (StrUtil.isBlank(prefix)) {
+            return aliasAndSessionMap.keys();
+        }
+
+        return aliasAndSessionMap.keys()
+                .stream()
+                .filter(k -> k.startsWith(prefix))
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public void setAlias(String sessionId, String alias) {
         Session<?> session = sessionMap.get(sessionId);
         if (session == null) {

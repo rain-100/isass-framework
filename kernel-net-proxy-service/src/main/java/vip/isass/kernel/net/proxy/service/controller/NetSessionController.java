@@ -297,6 +297,17 @@ public class NetSessionController {
         return Resp.bizSuccess(sessionService.getAlias(sessionId));
     }
 
+    /**
+     * 查询已有别名
+     *
+     * @return 查询已有别名
+     */
+    @GetMapping("/alias")
+    @ApiOperation(value = "查询已有别名")
+    public Resp<Collection<String>> findAliases(@RequestParam(name = "prefix") String prefix) {
+        return Resp.bizSuccess(sessionService.findAliases(prefix));
+    }
+
     // endregion
 
     // region tag

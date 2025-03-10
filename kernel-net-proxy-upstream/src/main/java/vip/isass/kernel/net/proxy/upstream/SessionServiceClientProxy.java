@@ -390,6 +390,15 @@ public class SessionServiceClientProxy implements ISessionService {
     }
 
     @Override
+    public Collection<String> findAliases(String prefix) {
+        return fetchGetFromAllNode(
+                "/session/alias",
+                MapUtil.<String, Object>builder().put("prefix", prefix).build(),
+                CollUtil::isNotEmpty,
+                COLL_STRING_RESP_TYPE_REF);
+    }
+
+    @Override
     public void setAlias(String sessionId, String alias) {
         saveSessionInfo(SessionBindingInfoChangeReq.builder()
                 .sessionId(sessionId)
@@ -664,7 +673,7 @@ public class SessionServiceClientProxy implements ISessionService {
                                       TypeReference<Resp<T>> typeReference) {
         INodeAllocatorService nodeAllocatorService = nodeAllocatorServiceMap.get(defaultNetProtocol);
         Collection<NetServerInfo> serverInfos = nodeAllocatorService.getAll();
-        Assert.notEmpty(serverInfos, "未发现[{}]网关，根据会话id获取用户id失败", defaultNetProtocol);
+        Assert.notEmpty(serverInfos, "未发现[{}]网关，执行Get[{}]失败", defaultNetProtocol, urlSuffix);
         Object[] returnArr = new Object[1];
         CompletableFuture<T>[] futures = (CompletableFuture<T>[]) new CompletableFuture<?>[serverInfos.size()];
         String[] urls = new String[serverInfos.size()];
@@ -678,10 +687,8 @@ public class SessionServiceClientProxy implements ISessionService {
                     serverInfo.getNetProtocol().getServiceName()
             );
             String url = urls[idx];
-            futures[idx] = CompletableFuture.supplyAsync(() -> {
-                        return OkHttpUtil.get(url, null, requestParam, typeReference)
-                                .dataIfSuccessOrException();
-                    })
+            futures[idx] = CompletableFuture.supplyAsync(() -> OkHttpUtil.get(url, null, requestParam, typeReference)
+                    .dataIfSuccessOrException())
                     .whenComplete((returnData, throwable) -> {
                         if (checkHttpResp.test(returnData)) {
                             returnArr[0] = returnData;
