@@ -173,7 +173,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
-import vip.isass.core.web.Resp;
 import vip.isass.kernel.net.core.message.Message;
 import vip.isass.kernel.net.core.message.MessageCmd;
 import vip.isass.kernel.net.core.server.Server;
@@ -200,7 +199,10 @@ public class OnAliasEventHandler implements OnMessageEventHandler<String> {
     @Override
     public Object onMessage(Message message, String alias) {
         sessionService.setAlias(message.getSenderSessionId(), alias);
-        return Resp.bizSuccess("set alias success");
+        sessionService.broadcastMessage(
+                MessageCmd.ALIAS,
+                alias);
+        return null;
     }
 
 }
