@@ -168,6 +168,7 @@
 
 package vip.isass.kernel.net.admin.controller;
 
+import cn.hutool.core.collection.CollUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -180,6 +181,8 @@ import vip.isass.kernel.net.core.session.SessionInfoCollection;
 
 import javax.annotation.Resource;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.stream.Collectors;
 
 /**
  * @author rain
@@ -212,7 +215,12 @@ public class NetAdminController {
     @GetMapping("/equipment/online")
     @ApiOperation(value = "获取所有在线设备")
     public Resp<Collection<String>> findOnlineEquipments() {
-        return Resp.bizSuccess(sessionService.findAliases("equipmentId:"));
+        Collection<String> aliases = sessionService.findAliases("equipmentId:");
+        return Resp.bizSuccess(CollUtil.isEmpty(aliases)
+                ? Collections.emptyList()
+                : aliases.stream()
+                .map(alias -> alias.replace("equipmentId:", ""))
+                .collect(Collectors.toList()));
     }
 }
 
