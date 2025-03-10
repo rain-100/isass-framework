@@ -179,6 +179,7 @@ import vip.isass.kernel.net.core.session.ISessionService;
 import vip.isass.kernel.net.core.session.SessionInfoCollection;
 
 import javax.annotation.Resource;
+import java.util.Collection;
 
 /**
  * @author rain
@@ -201,6 +202,17 @@ public class NetAdminController {
     @ApiOperation(value = "获取所有会话信息(用于调试)")
     public Resp<SessionInfoCollection> getSessionInfoCollection() {
         return Resp.bizSuccess(sessionService.getSessionInfoCollection());
+    }
+
+    /**
+     * 获取所有在线设备
+     *
+     * @return 在线设备 id 集合
+     */
+    @GetMapping("/equipment/online")
+    @ApiOperation(value = "获取所有在线设备")
+    public Resp<Collection<String>> findOnlineEquipments() {
+        return Resp.bizSuccess(sessionService.findAliases("equipmentId:"));
     }
 }
 
