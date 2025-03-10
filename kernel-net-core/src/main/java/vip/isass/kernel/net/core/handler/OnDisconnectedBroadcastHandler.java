@@ -169,15 +169,15 @@
 
 package vip.isass.kernel.net.core.handler;
 
-import cn.hutool.core.lang.Assert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
-import vip.isass.kernel.net.core.message.Message;
-import vip.isass.kernel.net.core.message.MessageCmd;
 import vip.isass.kernel.net.core.server.Server;
 import vip.isass.kernel.net.core.session.ISessionService;
+import vip.isass.kernel.net.core.session.Session;
+
+import java.util.Optional;
 
 /**
  * 登录事件处理器
@@ -187,24 +187,22 @@ import vip.isass.kernel.net.core.session.ISessionService;
 @Order(-1)
 @Configuration
 @ConditionalOnBean(Server.class)
-public class OnAliasEventHandler implements OnMessageEventHandler<String> {
+public class OnDisconnectedBroadcastHandler implements OnDisconnectEventHandler {
 
     @Autowired
     private ISessionService sessionService;
 
     @Override
-    public String getCmd() {
-        return MessageCmd.ALIAS;
+    public void onDisconnect(Session<?> session) {
+        Optional.ofNullable(sessionService.getUserId(session.getSessionId()))
+                .ifPresent(userId -> {
+                    sessionService.broadcastMessage("/core/user/offline", userId);
+                });
+        Optional.ofNullable(sessionService.getAlias(session.getSessionId()))
+                .ifPresent(alias -> {
+                    if (alias.startsWith("equipmentId:")) {
+                        sessionService.broadcastMessage("/core/equipment/offline", alias.replace("equipmentId:", ""));
+                    }
+                });
     }
-
-    @Override
-    public Object onMessage(Message message, String alias) {
-        Assert.notNull(alias, "alias can not be null");
-        sessionService.setAlias(message.getSenderSessionId(), alias);
-        if (alias.startsWith("equipmentId:")) {
-            sessionService.broadcastMessage("/core/equipment/online", alias.replace("equipmentId:", ""));
-        }
-        return null;
-    }
-
 }
