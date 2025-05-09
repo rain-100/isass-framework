@@ -170,6 +170,7 @@
 package vip.isass.core.log.requestlog;
 
 import cn.hutool.core.date.DateUtil;
+import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
 import lombok.Setter;
@@ -248,7 +249,7 @@ public class RequestLog {
      * 数据库字段类型: json
      */
     @ApiModelProperty("请求头")
-    private Json requestHeader;
+    private JsonNode requestHeader;
 
     /**
      * <p>
@@ -258,7 +259,7 @@ public class RequestLog {
      * 数据库字段类型: json
      */
     @ApiModelProperty("响应头")
-    private Json responseHeader;
+    private JsonNode responseHeader;
 
     /**
      * <p>
@@ -379,6 +380,36 @@ public class RequestLog {
      */
     @ApiModelProperty("微服务名")
     private String serviceName;
+    
+    /**
+     * <p>
+     * 国密-完整性校验字符
+     * </p>
+     * 数据库字段名: gm_hash_value
+     * 数据库字段类型: varchar(64)
+     */
+    @ApiModelProperty("国密-完整性校验字符")
+    private String gmHashValue;
+    
+    /**
+     * <p>
+     * 国密-初始化向量
+     * </p>
+     * 数据库字段名: iv
+     * 数据库字段类型: varchar(64)
+     */
+    @ApiModelProperty("国密-初始化向量")
+    private String iv;
+    
+    /**
+     * <p>
+     * 加密服务类型
+     * </p>
+     * 数据库字段名: encryption_server_type
+     * 数据库字段类型: int(11)
+     */
+    @ApiModelProperty("加密服务类型[枚举--0:UNENCRYPTED:未加密;1:LOCAL_ENCRYPTION:本地密码服务加密;2:REMOTE_ENCRYPTION:远程密码服务加密]")
+    private Integer encryptionServerType;
 
     @Override
     @SneakyThrows
