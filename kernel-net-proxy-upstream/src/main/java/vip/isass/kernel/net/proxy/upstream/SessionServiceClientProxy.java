@@ -392,7 +392,7 @@ public class SessionServiceClientProxy implements ISessionService {
     @Override
     public Collection<String> findSessionIdsByAlias(String alias) {
         return fetchGetFromAllNode(
-                "/sessionIds",
+                "/session/sessionIds",
                 MapUtil.<String, Object>builder().put("alias", alias).build(),
                 CollUtil::isNotEmpty,
                 COLL_STRING_RESP_TYPE_REF);
