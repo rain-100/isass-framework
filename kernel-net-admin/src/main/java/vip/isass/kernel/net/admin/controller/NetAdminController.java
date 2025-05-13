@@ -176,13 +176,15 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import vip.isass.core.web.Resp;
+import vip.isass.kernel.net.admin.model.vo.OnlineEquipmentVo;
 import vip.isass.kernel.net.core.session.ISessionService;
 import vip.isass.kernel.net.core.session.SessionInfoCollection;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.stream.Collectors;
+import java.util.List;
 
 /**
  * @author rain
@@ -214,13 +216,31 @@ public class NetAdminController {
      */
     @GetMapping("/equipment/online")
     @ApiOperation(value = "获取所有在线设备")
-    public Resp<Collection<String>> findOnlineEquipments() {
-        Collection<String> aliases = sessionService.findAliases("equipmentId:");
-        return Resp.bizSuccess(CollUtil.isEmpty(aliases)
-                ? Collections.emptyList()
-                : aliases.stream()
-                .map(alias -> alias.replace("equipmentId:", ""))
-                .collect(Collectors.toList()));
+    public Resp<Collection<OnlineEquipmentVo>> findOnlineEquipments() {
+        Collection<String> equipmentAliases = sessionService.findAliases("equipmentId:");
+        if (CollUtil.isEmpty(equipmentAliases)) {
+            return Resp.bizSuccess(Collections.emptyList());
+        }
+
+        List<OnlineEquipmentVo> onlineEquipments = new ArrayList<>();
+
+        // 根据 alias 获取 userId
+        for (String equipmentAlias : equipmentAliases) {
+            Collection<String> sessionIds = sessionService.findSessionIdsByAlias(equipmentAlias);
+
+            // 根据 sessionIds 获取每个 sessionId 对应的 userId
+            for (String sessionId : sessionIds) {
+                String userId = sessionService.getUserId(sessionId);
+                if (userId != null) {
+                    onlineEquipments.add(OnlineEquipmentVo.builder()
+                            .equipmentId(equipmentAlias.replace("equipmentId:", ""))
+                            .userId(userId)
+                            .build());
+                }
+            }
+        }
+
+        return Resp.bizSuccess(onlineEquipments);
     }
 }
 

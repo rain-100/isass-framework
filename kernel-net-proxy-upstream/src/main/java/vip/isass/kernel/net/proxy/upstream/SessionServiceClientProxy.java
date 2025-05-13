@@ -390,6 +390,15 @@ public class SessionServiceClientProxy implements ISessionService {
     }
 
     @Override
+    public Collection<String> findSessionIdsByAlias(String alias) {
+        return fetchGetFromAllNode(
+                "/sessionIds",
+                MapUtil.<String, Object>builder().put("alias", alias).build(),
+                CollUtil::isNotEmpty,
+                COLL_STRING_RESP_TYPE_REF);
+    }
+
+    @Override
     public Collection<String> findAliases(String prefix) {
         return fetchGetFromAllNode(
                 "/session/alias",
@@ -688,7 +697,7 @@ public class SessionServiceClientProxy implements ISessionService {
             );
             String url = urls[idx];
             futures[idx] = CompletableFuture.supplyAsync(() -> OkHttpUtil.get(url, null, requestParam, typeReference)
-                    .dataIfSuccessOrException())
+                            .dataIfSuccessOrException())
                     .whenComplete((returnData, throwable) -> {
                         if (checkHttpResp.test(returnData)) {
                             returnArr[0] = returnData;
