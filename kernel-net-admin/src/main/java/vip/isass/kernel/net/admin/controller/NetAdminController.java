@@ -228,6 +228,9 @@ public class NetAdminController {
         for (String equipmentAlias : equipmentAliases) {
             Collection<String> sessionIds = sessionService.findSessionIdsByAlias(equipmentAlias);
             if (CollUtil.isEmpty(sessionIds)) {
+                onlineEquipments.add(OnlineEquipmentVo.builder()
+                        .equipmentId(equipmentAlias.replace("equipmentId:", ""))
+                        .build());
                 continue;
             }
 
