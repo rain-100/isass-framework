@@ -237,12 +237,10 @@ public class NetAdminController {
             // 根据 sessionIds 获取每个 sessionId 对应的 userId
             for (String sessionId : sessionIds) {
                 String userId = sessionService.getUserId(sessionId);
-                if (userId != null) {
-                    onlineEquipments.add(OnlineEquipmentVo.builder()
-                            .equipmentId(equipmentAlias.replace("equipmentId:", ""))
-                            .userId(userId)
-                            .build());
-                }
+                onlineEquipments.add(OnlineEquipmentVo.builder()
+                        .equipmentId(equipmentAlias.replace("equipmentId:", ""))
+                        .userId(userId)
+                        .build());
             }
         }
 
