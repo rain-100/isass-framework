@@ -227,6 +227,9 @@ public class NetAdminController {
         // 根据 alias 获取 userId
         for (String equipmentAlias : equipmentAliases) {
             Collection<String> sessionIds = sessionService.findSessionIdsByAlias(equipmentAlias);
+            if (CollUtil.isEmpty(sessionIds)) {
+                continue;
+            }
 
             // 根据 sessionIds 获取每个 sessionId 对应的 userId
             for (String sessionId : sessionIds) {
