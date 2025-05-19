@@ -181,10 +181,10 @@ project_name="@project.artifactId@"
 project_jar="@project.artifactId@-exec.jar"
 
 # 主机环境下的JVM内存参数
-JVM_HOST_MEMORY_VARS="-Xms3G -Xmx6G -XX:MetaspaceSize=256M -XX:MaxMetaspaceSize=512M"}
+JVM_HOST_MEMORY_VARS="-Xms3G -Xmx6G -XX:MetaspaceSize=256M -XX:MaxMetaspaceSize=512M"
 
 # docker 环境下的JVM内存参数
-JVM_DOCKER_MEMORY_VARS="-XX:MetaspaceSize=256M -XX:MaxMetaspaceSize=512M -XX:MaxRAMPercentage=88.0"}
+JVM_DOCKER_MEMORY_VARS="-XX:MetaspaceSize=256M -XX:MaxMetaspaceSize=512M -XX:MaxRAMPercentage=88.0"
 
 # 默认JVM内存参数，如果设置了环境变量 JVM_MEMORY_VARS ，则会被环境变量覆盖
 ${JVM_MEMORY_VARS:=""}
