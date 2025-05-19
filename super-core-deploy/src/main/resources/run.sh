@@ -237,329 +237,331 @@ echo "LOG_PATH=$LOG_PATH"
 pid=''
 command=''
 CURRENT_SCRIPT_DIR=$(
-        cd "$(dirname "$0")"
-        pwd
+    cd "$(dirname "$0")"
+    pwd
 )
 
 print_usage() {
-        echo "usage:"
-        echo "  run.sh [command] [options]"
-        echo ""
-        echo "command:"
-        echo "  start                     [default command] start the server"
-        echo "  stop                      stop the server"
-        echo "  status                    status the server"
-        echo "  health                    health check"
-        echo "  log                       print log"
-        echo "  h, help                   print help information"
+    echo "usage:"
+    echo "  run.sh [command] [options]"
+    echo ""
+    echo "command:"
+    echo "  start                     [default command] start the server"
+    echo "  stop                      stop the server"
+    echo "  status                    status the server"
+    echo "  health                    health check"
+    echo "  log                       print log"
+    echo "  h, help                   print help information"
 
-        echo ""
-        echo "options:"
-        echo "  -h, --help                        print help information."
-        echo "  -l, --auto_tail_log true|false    whether to output logs in current process, default to true"
-        echo "  -n, --run_as_nohup true|false     running server using nohup, default to true"
-        echo "  -d, --debug_port [0-65535]        java remote debug listening port, must be port range[0-65535]"
-        echo "  -r, --rm_log                      remove all log files before startup"
-        echo "  --print_gc                        print gc info"
-        echo "  --jmx_hostname                    jmx hostname. Generally, set this parameter to the server IP address"
-        echo "  --jmx_port                        listening jmx port"
+    echo ""
+    echo "options:"
+    echo "  -h, --help                        print help information."
+    echo "  -l, --auto_tail_log true|false    whether to output logs in current process, default to true"
+    echo "  -n, --run_as_nohup true|false     running server using nohup, default to true"
+    echo "  -d, --debug_port [0-65535]        java remote debug listening port, must be port range[0-65535]"
+    echo "  -r, --rm_log                      remove all log files before startup"
+    echo "  --print_gc                        print gc info"
+    echo "  --jmx_hostname                    jmx hostname. Generally, set this parameter to the server IP address"
+    echo "  --jmx_port                        listening jmx port"
 }
 
 get_pid() {
-        if [ ! -f "application.pid" ]; then
-                pid=''
-        else
-                pid=$(head -n 1 application.pid)
-                pid="${pid}"
-        fi
+    if [ ! -f "application.pid" ]; then
+        pid=''
+    else
+        pid=$(head -n 1 application.pid)
+        pid="${pid}"
+    fi
 }
 
 start() {
-        check_jdk
+    check_jdk
 
-        get_pid
+    get_pid
 
-        if [ "$pid" != "" ]; then
-                if [ -d "/proc/${pid}" ]; then
-                        echo "found pid file './application.pid', ${project_name} is running, pid is ${pid}, can not start repeatedly!"
-                        exit 1
-                fi
+    if [ "$pid" != "" ]; then
+        if [ -d "/proc/${pid}" ]; then
+            echo "found pid file './application.pid', ${project_name} is running, pid is ${pid}, can not start repeatedly!"
+            exit 1
         fi
+    fi
 
-        echo "try to start ${project_name} ..."
-        echo ""
+    echo "try to start ${project_name} ..."
+    echo ""
 
-        # 判断 JVM_MEMORY_VARS 是否为空，为空内根据当前环境是否docker来使用JVM_DOCKER_MEMORY_VARS 或 JVM_HOST_MEMORY_VARS 来赋值给 JVM_MEMORY_VARS
-        if [ -z "$JVM_MEMORY_VARS" ]; then
-            if [ -f /.dockerenv ]; then
-                # "Running in Docker"
-                JVM_MEMORY_VARS="${JVM_DOCKER_MEMORY_VARS}"
-            else
-                # "Not running in Docker"
-                JVM_MEMORY_VARS="${JVM_HOST_MEMORY_VARS}"
-            fi
-        fi
-
-        jvm_params="${JVM_VARS} ${JVM_MEMORY_VARS}"
-        if [ $JVM_PRINT_GC = "true" ]; then
-                jvm_params="${jvm_params} -XX:+PrintGC -XX:+PrintGCDetails -XX:+PrintGCDateStamps -Xloggc:${LOG_PATH}/gc.log"
-        fi
-        if [ -n "$DEBUG_PORT" ]; then
-                jvm_params="${jvm_params} -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=$DEBUG_PORT"
-        fi
-        if [ -n "$JMX_PORT" ]; then
-                jvm_params="${jvm_params} -Djava.rmi.server.hostname=${JMX_HOSTNAME} -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=$JMX_PORT -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false"
-        fi
-
-        cmd="java ${jvm_params} -jar ${project_jar}"
-        if [ $RUN_AS_NOHUP = "true" ]; then
-                cmd="nohup $cmd 1>/dev/null 2>&1 &"
-        fi
-
-        if [ $RM_LOG = "true" ]; then
-                echo "deleting all log files..."
-                eval "rm -rf ${LOG_PATH}/*"
-        fi
-
-        echo "executing cmd:"
-        echo "$cmd"
-        echo ""
-        eval $cmd
-
-        if [[ $AUTO_TAIL_LOG = "true" ]] && [[ $RUN_AS_NOHUP = "true" ]]; then
-                echo 'log will printing after 5 second using command "tail -f -n 500" automatic.'
-                echo 'you can use "ctrl+c" to exit log printing, and will not close the application.'
-                echo ''
-
-                sleep 5
-                print_log
+    # 判断 JVM_MEMORY_VARS 是否为空，为空内根据当前环境是否docker来使用JVM_DOCKER_MEMORY_VARS 或 JVM_HOST_MEMORY_VARS 来赋值给 JVM_MEMORY_VARS
+    if [ -z "$JVM_MEMORY_VARS" ]; then
+        if [ -f /.dockerenv ]; then
+            # "Running in Docker"
+            JVM_MEMORY_VARS="${JVM_DOCKER_MEMORY_VARS}"
         else
-                if [ $RUN_AS_NOHUP != "true" ]; then
-                        echo "app started, use './run.sh status' to check status"
-                fi
+            # "Not running in Docker"
+            JVM_MEMORY_VARS="${JVM_HOST_MEMORY_VARS}"
         fi
+        echo "reset JVM_MEMORY_VARS=${JVM_MEMORY_VARS}"
+        echo ""
+    fi
 
-        if [ $KEEP_DOCKER_RUNNING = "true" ]; then
-                tail -f /dev/null
+    jvm_params="${JVM_VARS} ${JVM_MEMORY_VARS}"
+    if [ $JVM_PRINT_GC = "true" ]; then
+        jvm_params="${jvm_params} -XX:+PrintGC -XX:+PrintGCDetails -XX:+PrintGCDateStamps -Xloggc:${LOG_PATH}/gc.log"
+    fi
+    if [ -n "$DEBUG_PORT" ]; then
+        jvm_params="${jvm_params} -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=$DEBUG_PORT"
+    fi
+    if [ -n "$JMX_PORT" ]; then
+        jvm_params="${jvm_params} -Djava.rmi.server.hostname=${JMX_HOSTNAME} -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=$JMX_PORT -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false"
+    fi
+
+    cmd="java ${jvm_params} -jar ${project_jar}"
+    if [ $RUN_AS_NOHUP = "true" ]; then
+        cmd="nohup $cmd 1>/dev/null 2>&1 &"
+    fi
+
+    if [ $RM_LOG = "true" ]; then
+        echo "deleting all log files..."
+        eval "rm -rf ${LOG_PATH}/*"
+    fi
+
+    echo "executing cmd:"
+    echo "$cmd"
+    echo ""
+    eval $cmd
+
+    if [[ $AUTO_TAIL_LOG = "true" ]] && [[ $RUN_AS_NOHUP = "true" ]]; then
+        echo 'log will printing after 5 second using command "tail -f -n 500" automatic.'
+        echo 'you can use "ctrl+c" to exit log printing, and will not close the application.'
+        echo ''
+
+        sleep 5
+        print_log
+    else
+        if [ $RUN_AS_NOHUP != "true" ]; then
+            echo "app started, use './run.sh status' to check status"
         fi
+    fi
+
+    if [ $KEEP_DOCKER_RUNNING = "true" ]; then
+        tail -f /dev/null
+    fi
 }
 
 stop() {
-        echo "try to stop ${project_name} ..."
+    echo "try to stop ${project_name} ..."
 
-        get_pid
+    get_pid
 
-        if [ "$pid" = "" ]; then
-                echo "${project_name} is not running!"
-                return 0
-        fi
+    if [ "$pid" = "" ]; then
+        echo "${project_name} is not running!"
+        return 0
+    fi
 
-        if [ -d "/proc/${pid}" ]; then
-                echo "${project_name} is running, pid is ${pid}"
-                kill ${pid}
-                if [ $? -ne 0 ]; then
-                        echo "failed to stop ${project_name}!"
-                        return 1
-                else
-                        echo "${project_name} stopped."
-                        return 0
-                fi
+    if [ -d "/proc/${pid}" ]; then
+        echo "${project_name} is running, pid is ${pid}"
+        kill ${pid}
+        if [ $? -ne 0 ]; then
+            echo "failed to stop ${project_name}!"
+            return 1
         else
-                echo "${project_name} is not running!"
+            echo "${project_name} stopped."
+            return 0
         fi
+    else
+        echo "${project_name} is not running!"
+    fi
 }
 
 status() {
-        get_pid
-        if [ "$pid" = "" ]; then
-                echo "${project_name} is not running."
+    get_pid
+    if [ "$pid" = "" ]; then
+        echo "${project_name} is not running."
+    else
+        if [ -d "/proc/${pid}" ]; then
+            echo "${project_name} is running. pid ${pid}."
         else
-                if [ -d "/proc/${pid}" ]; then
-                        echo "${project_name} is running. pid ${pid}."
-                else
-                        echo "can not found running pid ${pid}, ${project_name} is not running!"
-                fi
+            echo "can not found running pid ${pid}, ${project_name} is not running!"
         fi
+    fi
 }
 
 print_log() {
-        if [ ! -d ${LOG_PATH} ]; then
-                echo "print log error, can not found log folder [${LOG_PATH}], please try print log later."
-        else
-                cd ${LOG_PATH}
-                filename=$(ls -t | grep ^log | head -n1 | awk '{print $0}')
-                tail -f -n 500 $filename
-        fi
+    if [ ! -d ${LOG_PATH} ]; then
+        echo "print log error, can not found log folder [${LOG_PATH}], please try print log later."
+    else
+        cd ${LOG_PATH}
+        filename=$(ls -t | grep ^log | head -n1 | awk '{print $0}')
+        tail -f -n 500 $filename
+    fi
 }
 
 check_jdk() {
-        if command -v java >/dev/null; then
-                java_version=$(java -version 2>&1 | sed '1!d' | sed -e 's/"//g' -e 's/version//')
-                echo "java_version: ${java_version}"
-        else
-                echo "jdk is not install, please install first!"
-                exit 1
-        fi
+    if command -v java >/dev/null; then
+        java_version=$(java -version 2>&1 | sed '1!d' | sed -e 's/"//g' -e 's/version//')
+        echo "java_version: ${java_version}"
+    else
+        echo "jdk is not install, please install first!"
+        exit 1
+    fi
 }
 
 health_check() {
-        get_pid
-        if [ "$pid" = "" ]; then
-                echo "${project_name} is not running."
-                echo "${project_name} unhealthy"
-                exit 1
+    get_pid
+    if [ "$pid" = "" ]; then
+        echo "${project_name} is not running."
+        echo "${project_name} unhealthy"
+        exit 1
+    else
+        if [ -d "/proc/${pid}" ]; then
+            ip_port=$(cat config/application.properties | grep server.port)
+            port=${ip_port##*=}
+
+            portLastLetter=${port:0-1}
+                case $portLastLetter in
+                [a-z]|[A-Z])
+                ;;
+                [0-9])
+                ;;
+                *)
+                    port=${port:0:-1}
+                ;;
+            esac
+
+            microService=${project_name##*-service-}
+            url="http://localhost:${port}/${microService}/actuator/health"
+
+            echo $url
+            # http_code=$(curl -I -m 5 -o /dev/null -s -w %{http_code} ${url})
+            resp=$(curl -s --connect-timeout 5 -m 5 $url)
+            echo $resp
+            if [[ "$resp" =~ '"UP"' ]]; then
+                echo "${project_name} health"
+                exit
+            fi
+            echo "${project_name} unhealthy"
+            exit 1
         else
-                if [ -d "/proc/${pid}" ]; then
-                        ip_port=$(cat config/application.properties | grep server.port)
-                        port=${ip_port##*=}
-
-                        portLastLetter=${port:0-1}
-                            case $portLastLetter in
-                            [a-z]|[A-Z])
-                            ;;
-                            [0-9])
-                            ;;
-                            *)
-                                port=${port:0:-1}
-                            ;;
-                        esac
-
-                        microService=${project_name##*-service-}
-                        url="http://localhost:${port}/${microService}/actuator/health"
-
-                        echo $url
-                        # http_code=$(curl -I -m 5 -o /dev/null -s -w %{http_code} ${url})
-                        resp=$(curl -s --connect-timeout 5 -m 5 $url)
-                        echo $resp
-                        if [[ "$resp" =~ '"UP"' ]]; then
-                                echo "${project_name} health"
-                                exit
-                        fi
-                        echo "${project_name} unhealthy"
-                        exit 1
-                else
-                        echo "can not found running pid ${pid}, ${project_name} is not running!"
-                        echo "${project_name} unhealthy"
-                        exit 1
-                fi
+            echo "can not found running pid ${pid}, ${project_name} is not running!"
+            echo "${project_name} unhealthy"
+            exit 1
         fi
+    fi
 }
 
 parse_options() {
-        TEMP=$(getopt -n "$0" -o hl:d:n:r -l help,auto_tail_log:,debug_port:,print_gc,run_as_nohup:,jmx_hostname:,jmx_port:,rm_log -- "$@")
-        if [ $? != 0 ]; then
-                echo "command parse error..." >&2
+    TEMP=$(getopt -n "$0" -o hl:d:n:r -l help,auto_tail_log:,debug_port:,print_gc,run_as_nohup:,jmx_hostname:,jmx_port:,rm_log -- "$@")
+    if [ $? != 0 ]; then
+        echo "command parse error..." >&2
+        exit 1
+    fi
+
+    eval set -- "$TEMP"
+    while true; do
+        case "$1" in
+        -h | --help)
+            print_usage
+            exit 0
+            ;;
+        --print_gc)
+            echo "$1"
+            JVM_PRINT_GC="true"
+            shift
+            ;;
+        -r | --rm_log)
+            echo "$1"
+            RM_LOG="true"
+            shift
+            ;;
+        -l | --auto_tail_log)
+            case "$2" in
+            true | false)
+                echo "$1=$2"
+                AUTO_TAIL_LOG=$2
+                shift 2
+                ;;
+            *)
+                echo "error value in option $1, must be true|false"
                 exit 1
-        fi
+                ;;
+            esac
+            ;;
+        -n | --run_as_nohup)
+            case "$2" in
+            true | false)
+                echo "$1=$2"
+                RUN_AS_NOHUP=$2
+                shift 2
+                ;;
+            *)
+                echo "error value in option $1, must be true|false"
+                exit 1
+                ;;
+            esac
+            ;;
+        -d | --debug_port)
+            if [[ $2 -ge 0 ]] && [[ $2 -le 65535 ]] 2>/dev/null; then
+                echo "$1=$2"
+                DEBUG_PORT=$2
+                shift 2
+            else
+                echo "$1=$2"
+                echo "error value in option $1, must be port range[0-65535]"
+                exit 1
+            fi
+            ;;
+        --jmx_hostname)
+            echo "$1=$2"
+            JMX_HOSTNAME=$2
+            shift 2
+            ;;
+        --jmx_port)
+            if [[ $2 -ge 0 ]] && [[ $2 -le 65535 ]] 2>/dev/null; then
+                echo "$1=$2"
+                JMX_PORT=$2
+                shift 2
+            else
+                echo "$1=$2"
+                echo "error value in option $1, must be port range[0-65535]"
+                exit 1
+            fi
+            ;;
+        --)
+            shift
+            break
+            ;;
+        *)
+            echo "Internal error!"
+            exit 1
+            ;;
+        esac
+    done
+    echo ""
 
-        eval set -- "$TEMP"
-        while true; do
-                case "$1" in
-                -h | --help)
-                        print_usage
-                        exit 0
-                        ;;
-                --print_gc)
-                        echo "$1"
-                        JVM_PRINT_GC="true"
-                        shift
-                        ;;
-                -r | --rm_log)
-                        echo "$1"
-                        RM_LOG="true"
-                        shift
-                        ;;
-                -l | --auto_tail_log)
-                        case "$2" in
-                        true | false)
-                                echo "$1=$2"
-                                AUTO_TAIL_LOG=$2
-                                shift 2
-                                ;;
-                        *)
-                                echo "error value in option $1, must be true|false"
-                                exit 1
-                                ;;
-                        esac
-                        ;;
-                -n | --run_as_nohup)
-                        case "$2" in
-                        true | false)
-                                echo "$1=$2"
-                                RUN_AS_NOHUP=$2
-                                shift 2
-                                ;;
-                        *)
-                                echo "error value in option $1, must be true|false"
-                                exit 1
-                                ;;
-                        esac
-                        ;;
-                -d | --debug_port)
-                        if [[ $2 -ge 0 ]] && [[ $2 -le 65535 ]] 2>/dev/null; then
-                                echo "$1=$2"
-                                DEBUG_PORT=$2
-                                shift 2
-                        else
-                                echo "$1=$2"
-                                echo "error value in option $1, must be port range[0-65535]"
-                                exit 1
-                        fi
-                        ;;
-                --jmx_hostname)
-                        echo "$1=$2"
-                        JMX_HOSTNAME=$2
-                        shift 2
-                        ;;
-                --jmx_port)
-                        if [[ $2 -ge 0 ]] && [[ $2 -le 65535 ]] 2>/dev/null; then
-                                echo "$1=$2"
-                                JMX_PORT=$2
-                                shift 2
-                        else
-                                echo "$1=$2"
-                                echo "error value in option $1, must be port range[0-65535]"
-                                exit 1
-                        fi
-                        ;;
-                --)
-                        shift
-                        break
-                        ;;
-                *)
-                        echo "Internal error!"
-                        exit 1
-                        ;;
-                esac
-        done
-        echo ""
-
-        if [ $# -gt 0 ]; then
-                command=$1
-        fi
+    if [ $# -gt 0 ]; then
+        command=$1
+    fi
 }
 
 run() {
-        parse_options $*
+    parse_options $*
 
-        cd $CURRENT_SCRIPT_DIR
-        if [ -z "$command" ]; then
-                start
-        else
-                case "$command" in
-                start) start ;;
-                stop) stop ;;
-                status) status ;;
-                log) print_log ;;
-                health) health_check ;;
-                h | help) print_usage ;;
-                *)
-                        echo "illegal command: $1"
-                        echo ""
-                        print_usage
-                        ;;
-                esac
-        fi
+    cd $CURRENT_SCRIPT_DIR
+    if [ -z "$command" ]; then
+        start
+    else
+        case "$command" in
+        start) start ;;
+        stop) stop ;;
+        status) status ;;
+        log) print_log ;;
+        health) health_check ;;
+        h | help) print_usage ;;
+        *)
+            echo "illegal command: $1"
+            echo ""
+            print_usage
+            ;;
+        esac
+    fi
 }
 
 run $*
