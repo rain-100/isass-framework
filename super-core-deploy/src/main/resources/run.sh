@@ -184,46 +184,46 @@ project_jar="@project.artifactId@-exec.jar"
 JVM_HOST_MEMORY_VARS="-Xms3G -Xmx6G -XX:MetaspaceSize=256M -XX:MaxMetaspaceSize=512M"
 
 # docker 环境下的JVM内存参数
-JVM_DOCKER_MEMORY_VARS="-XX:MetaspaceSize=256M -XX:MaxMetaspaceSize=512M -XX:MaxRAMPercentage=88.0"
+JVM_DOCKER_MEMORY_VARS="-XX:MaxRAMPercentage=88.0 -XX:MetaspaceSize=256M -XX:MaxMetaspaceSize=512M"
 
 # 默认JVM内存参数，如果设置了环境变量 JVM_MEMORY_VARS ，则会被环境变量覆盖
-${JVM_MEMORY_VARS:=""}
+: ${JVM_MEMORY_VARS:=""}
 echo "JVM_MEMORY_VARS=$JVM_MEMORY_VARS"
 
 # 默认JVM非内存参数，如果设置了环境变量 JVM_VARS ，则会被环境变量覆盖
-${JVM_VARS:='-server -XX:+PrintCommandLineFlags'}
+: ${JVM_VARS:="-server -XX:+PrintCommandLineFlags"}
 echo "JVM_VARS=$JVM_VARS"
 
 # 是否打印gc信息
-${JVM_PRINT_GC:="false"}
+: ${JVM_PRINT_GC:="false"}
 echo "JVM_PRINT_GC=$JVM_PRINT_GC"
 
 # java 远程调试端口。当设置此值时，本 java 应用会监听此端口，提供给开发人员进行连接，从而实现代码级别调试
-${DEBUG_PORT:=""}
+: ${DEBUG_PORT:=""}
 echo "DEBUG_PORT=$DEBUG_PORT"
 
 # jmx hostname。当设置此值时，本 java 应用会使用本参数设置 jmx 的 hostname。一般设置为本机 ip
-${JMX_HOSTNAME:=""}
+: ${JMX_HOSTNAME:=""}
 echo "JMX_HOSTNAME=$JMX_HOSTNAME"
 
 # jmx 端口。当设置此值时，本 java 应用会监听此端口，从而对 java 程序进行性能监控
-${JMX_PORT:=""}
+: ${JMX_PORT:=""}
 echo "JMX_PORT=$JMX_PORT"
 
 # 启动后是否自动打印日志，如果设置了环境变量 AUTO_TAIL_LOG，则会被环境变量覆盖
-${AUTO_TAIL_LOG:="true"}
+: ${AUTO_TAIL_LOG:="true"}
 echo "AUTO_TAIL_LOG=$AUTO_TAIL_LOG"
 
 # 启动前是否先删除所有日志文件，如果设置了环境变量 AUTO_TAIL_LOG，则会被环境变量覆盖
-${RM_LOG:="false"}
+: ${RM_LOG:="false"}
 echo "RM_LOG=$RM_LOG"
 
 # 启动 java 的命令是否结合 nohup 进行不挂断运行，如果设置了环境变量 RUN_AS_NOHUP，则会被环境变量覆盖
-${RUN_AS_NOHUP:="true"}
+: ${RUN_AS_NOHUP:="true"}
 echo "RUN_AS_NOHUP=$RUN_AS_NOHUP"
 
 # 当在 docker 环境中，启动 java 报错后，会导致容器退出，可配置此参数，阻止容器退出，便于进入容器调试问题
-${KEEP_DOCKER_RUNNING:="false"}
+: ${KEEP_DOCKER_RUNNING:="false"}
 echo "KEEP_DOCKER_RUNNING=$KEEP_DOCKER_RUNNING"
 
 # java 程序生成日志文件的目录，不能随便改
@@ -323,8 +323,8 @@ start() {
 
         echo "executing cmd:"
         echo "$cmd"
-        eval $cmd
         echo ""
+        eval $cmd
 
         if [[ $AUTO_TAIL_LOG = "true" ]] && [[ $RUN_AS_NOHUP = "true" ]]; then
                 echo 'log will printing after 5 second using command "tail -f -n 500" automatic.'
@@ -563,3 +563,18 @@ run() {
 }
 
 run $*
+
+# 知识：
+# 问AI
+# shell 脚本有一行内容是：${JVM_VARS:='-server -XX:+PrintCommandLineFlags'}
+# 执行脚本时这行报错，报错信息是 ./run.sh: line 194: -server: not found
+# 回答：
+# 在shell中，单独的${var:=value}会被替换为变量的值，但如果没有将其放在命令替换或赋值语句中，直接出现这样的表达式，shell可能会试图将其作为命令来执行。
+# 例如，如果JVM_VARS变量未设置，那么${JVM_VARS:=...}会展开为等号右边的值，也就是'-server -XX:+PrintCommandLineFlags'。
+# 这时候，如果这个表达式没有被正确引用或作为参数传递给某个命令，shell会将展开后的内容拆分成多个单词，并尝试将第一个单词（即“-server”）作为命令来执行，
+# 从而导致错误，因为“-server”显然不是一个有效的命令。
+# 因此，这一行的正确写法应该是将变量扩展用于赋值，而不是直接展开。例如：
+# JVM_VARS="${JVM_VARS:-'-server -XX:+PrintCommandLineFlags'}"
+# 或者更简单的方式：
+# : ${JVM_VARS:='-server -XX:+PrintCommandLineFlags'}
+# 冒号 : 是一个空操作命令，仅用于确保变量赋值生效。
