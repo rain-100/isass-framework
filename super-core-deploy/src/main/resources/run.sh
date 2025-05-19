@@ -191,7 +191,7 @@ ${JVM_MEMORY_VARS:=""}
 echo "JVM_MEMORY_VARS=$JVM_MEMORY_VARS"
 
 # 默认JVM非内存参数，如果设置了环境变量 JVM_VARS ，则会被环境变量覆盖
-${JVM_VARS:="-server -XX:+PrintCommandLineFlags"}
+${JVM_VARS:='-server -XX:+PrintCommandLineFlags'}
 echo "JVM_VARS=$JVM_VARS"
 
 # 是否打印gc信息
