@@ -180,38 +180,55 @@ project_name="@project.artifactId@"
 # 运行包名
 project_jar="@project.artifactId@-exec.jar"
 
+# 主机环境下的JVM内存参数
+JVM_HOST_MEMORY_VARS="-Xms3G -Xmx6G -XX:MetaspaceSize=256M -XX:MaxMetaspaceSize=512M"}
+
+# docker 环境下的JVM内存参数
+JVM_DOCKER_MEMORY_VARS="-XX:MetaspaceSize=256M -XX:MaxMetaspaceSize=512M -XX:MaxRAMPercentage=88.0"}
+
 # 默认JVM内存参数，如果设置了环境变量 JVM_MEMORY_VARS ，则会被环境变量覆盖
-jvm_memory_vars=${JVM_MEMORY_VARS="-Xms3G -Xmx6G -XX:NewRatio=1 -XX:SurvivorRatio=8 -XX:InitialSurvivorRatio=8 -XX:MetaspaceSize=256M -XX:MaxMetaspaceSize=512M"}
+${JVM_MEMORY_VARS:=""}
+echo "JVM_MEMORY_VARS=$JVM_MEMORY_VARS"
 
 # 默认JVM非内存参数，如果设置了环境变量 JVM_VARS ，则会被环境变量覆盖
-jvm_vars=${JVM_VARS="-server -XX:+PrintCommandLineFlags"}
+${JVM_VARS:="-server -XX:+PrintCommandLineFlags"}
+echo "JVM_VARS=$JVM_VARS"
 
 # 是否打印gc信息
-jvm_print_gc=${JVM_PRINT_GC="false"}
+${JVM_PRINT_GC:="false"}
+echo "JVM_PRINT_GC=$JVM_PRINT_GC"
 
 # java 远程调试端口。当设置此值时，本 java 应用会监听此端口，提供给开发人员进行连接，从而实现代码级别调试
-debug_port=${DEBUG_PORT=""}
+${DEBUG_PORT:=""}
+echo "DEBUG_PORT=$DEBUG_PORT"
 
 # jmx hostname。当设置此值时，本 java 应用会使用本参数设置 jmx 的 hostname。一般设置为本机 ip
-jmx_hostname=${JMX_HOSTNAME=""}
+${JMX_HOSTNAME:=""}
+echo "JMX_HOSTNAME=$JMX_HOSTNAME"
 
 # jmx 端口。当设置此值时，本 java 应用会监听此端口，从而对 java 程序进行性能监控
-jmx_port=${JMX_PORT=""}
-
-# java 程序生成日志文件的目录，不能随便改
-log_path="./logs/"
+${JMX_PORT:=""}
+echo "JMX_PORT=$JMX_PORT"
 
 # 启动后是否自动打印日志，如果设置了环境变量 AUTO_TAIL_LOG，则会被环境变量覆盖
-auto_tail_log=${AUTO_TAIL_LOG="true"}
+${AUTO_TAIL_LOG:="true"}
+echo "AUTO_TAIL_LOG=$AUTO_TAIL_LOG"
 
 # 启动前是否先删除所有日志文件，如果设置了环境变量 AUTO_TAIL_LOG，则会被环境变量覆盖
-rm_log=${RM_LOG="false"}
+${RM_LOG:="false"}
+echo "RM_LOG=$RM_LOG"
 
 # 启动 java 的命令是否结合 nohup 进行不挂断运行，如果设置了环境变量 RUN_AS_NOHUP，则会被环境变量覆盖
-run_as_nohup=${RUN_AS_NOHUP="true"}
+${RUN_AS_NOHUP:="true"}
+echo "RUN_AS_NOHUP=$RUN_AS_NOHUP"
 
 # 当在 docker 环境中，启动 java 报错后，会导致容器退出，可配置此参数，阻止容器退出，便于进入容器调试问题
-keep_docker_running=${KEEP_DOCKER_RUNNING="false"}
+${KEEP_DOCKER_RUNNING:="false"}
+echo "KEEP_DOCKER_RUNNING=$KEEP_DOCKER_RUNNING"
+
+# java 程序生成日志文件的目录，不能随便改
+LOG_PATH="./logs/"
+echo "LOG_PATH=$LOG_PATH"
 
 #-------------------------------------------------------------------
 # 以下内容请不要修改
@@ -232,6 +249,7 @@ print_usage() {
         echo "  start                     [default command] start the server"
         echo "  stop                      stop the server"
         echo "  status                    status the server"
+        echo "  health                    health check"
         echo "  log                       print log"
         echo "  h, help                   print help information"
 
@@ -249,11 +267,9 @@ print_usage() {
 
 get_pid() {
         if [ ! -f "application.pid" ]; then
-                echo "file 'application.pid' not found, server maybe stopped."
                 pid=''
         else
                 pid=$(head -n 1 application.pid)
-                echo "found pid[${pid}] in file './application.pid'"
                 pid="${pid}"
         fi
 }
@@ -265,7 +281,7 @@ start() {
 
         if [ "$pid" != "" ]; then
                 if [ -d "/proc/${pid}" ]; then
-                        echo "${project_name} is running, pid is ${pid}, can not start repeatedly!"
+                        echo "found pid file './application.pid', ${project_name} is running, pid is ${pid}, can not start repeatedly!"
                         exit 1
                 fi
         fi
@@ -273,25 +289,36 @@ start() {
         echo "try to start ${project_name} ..."
         echo ""
 
-        jvm_params="${jvm_vars} ${jvm_memory_vars}"
-        if [ $jvm_print_gc = "true" ]; then
-                jvm_params="${jvm_params} -XX:+PrintGC -XX:+PrintGCDetails -XX:+PrintGCDateStamps -Xloggc:${log_path}/gc.log"
+        # 判断 JVM_MEMORY_VARS 是否为空，为空内根据当前环境是否docker来使用JVM_DOCKER_MEMORY_VARS 或 JVM_HOST_MEMORY_VARS 来赋值给 JVM_MEMORY_VARS
+        if [ -z "$JVM_MEMORY_VARS" ]; then
+            if [ -f /.dockerenv ]; then
+                # "Running in Docker"
+                JVM_MEMORY_VARS="${JVM_DOCKER_MEMORY_VARS}"
+            else
+                # "Not running in Docker"
+                JVM_MEMORY_VARS="${JVM_HOST_MEMORY_VARS}"
+            fi
         fi
-        if [ -n "$debug_port" ]; then
-                jvm_params="${jvm_params} -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=$debug_port"
+
+        jvm_params="${JVM_VARS} ${JVM_MEMORY_VARS}"
+        if [ $JVM_PRINT_GC = "true" ]; then
+                jvm_params="${jvm_params} -XX:+PrintGC -XX:+PrintGCDetails -XX:+PrintGCDateStamps -Xloggc:${LOG_PATH}/gc.log"
         fi
-        if [ -n "$jmx_port" ]; then
-                jvm_params="${jvm_params} -Djava.rmi.server.hostname=${jmx_hostname} -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=$jmx_port -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false"
+        if [ -n "$DEBUG_PORT" ]; then
+                jvm_params="${jvm_params} -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=$DEBUG_PORT"
+        fi
+        if [ -n "$JMX_PORT" ]; then
+                jvm_params="${jvm_params} -Djava.rmi.server.hostname=${JMX_HOSTNAME} -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=$JMX_PORT -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false"
         fi
 
         cmd="java ${jvm_params} -jar ${project_jar}"
-        if [ $run_as_nohup = "true" ]; then
+        if [ $RUN_AS_NOHUP = "true" ]; then
                 cmd="nohup $cmd 1>/dev/null 2>&1 &"
         fi
 
-        if [ $rm_log = "true" ]; then
+        if [ $RM_LOG = "true" ]; then
                 echo "deleting all log files..."
-                eval "rm -rf ${log_path}/*"
+                eval "rm -rf ${LOG_PATH}/*"
         fi
 
         echo "executing cmd:"
@@ -299,7 +326,7 @@ start() {
         eval $cmd
         echo ""
 
-        if [[ $auto_tail_log = "true" ]] && [[ $run_as_nohup = "true" ]]; then
+        if [[ $AUTO_TAIL_LOG = "true" ]] && [[ $RUN_AS_NOHUP = "true" ]]; then
                 echo 'log will printing after 5 second using command "tail -f -n 500" automatic.'
                 echo 'you can use "ctrl+c" to exit log printing, and will not close the application.'
                 echo ''
@@ -307,12 +334,12 @@ start() {
                 sleep 5
                 print_log
         else
-                if [ $run_as_nohup != "true" ]; then
+                if [ $RUN_AS_NOHUP != "true" ]; then
                         echo "app started, use './run.sh status' to check status"
                 fi
         fi
 
-        if [ $keep_docker_running = "true" ]; then
+        if [ $KEEP_DOCKER_RUNNING = "true" ]; then
                 tail -f /dev/null
         fi
 }
@@ -356,10 +383,10 @@ status() {
 }
 
 print_log() {
-        if [ ! -d ${log_path} ]; then
-                echo "print log error, can not found log folder [${log_path}], please try print log later."
+        if [ ! -d ${LOG_PATH} ]; then
+                echo "print log error, can not found log folder [${LOG_PATH}], please try print log later."
         else
-                cd ${log_path}
+                cd ${LOG_PATH}
                 filename=$(ls -t | grep ^log | head -n1 | awk '{print $0}')
                 tail -f -n 500 $filename
         fi
@@ -434,19 +461,19 @@ parse_options() {
                         ;;
                 --print_gc)
                         echo "$1"
-                        jvm_print_gc="true"
+                        JVM_PRINT_GC="true"
                         shift
                         ;;
                 -r | --rm_log)
                         echo "$1"
-                        rm_log="true"
+                        RM_LOG="true"
                         shift
                         ;;
                 -l | --auto_tail_log)
                         case "$2" in
                         true | false)
                                 echo "$1=$2"
-                                auto_tail_log=$2
+                                AUTO_TAIL_LOG=$2
                                 shift 2
                                 ;;
                         *)
@@ -459,7 +486,7 @@ parse_options() {
                         case "$2" in
                         true | false)
                                 echo "$1=$2"
-                                run_as_nohup=$2
+                                RUN_AS_NOHUP=$2
                                 shift 2
                                 ;;
                         *)
@@ -471,7 +498,7 @@ parse_options() {
                 -d | --debug_port)
                         if [[ $2 -ge 0 ]] && [[ $2 -le 65535 ]] 2>/dev/null; then
                                 echo "$1=$2"
-                                debug_port=$2
+                                DEBUG_PORT=$2
                                 shift 2
                         else
                                 echo "$1=$2"
@@ -481,13 +508,13 @@ parse_options() {
                         ;;
                 --jmx_hostname)
                         echo "$1=$2"
-                        jmx_hostname=$2
+                        JMX_HOSTNAME=$2
                         shift 2
                         ;;
                 --jmx_port)
                         if [[ $2 -ge 0 ]] && [[ $2 -le 65535 ]] 2>/dev/null; then
                                 echo "$1=$2"
-                                jmx_port=$2
+                                JMX_PORT=$2
                                 shift 2
                         else
                                 echo "$1=$2"
