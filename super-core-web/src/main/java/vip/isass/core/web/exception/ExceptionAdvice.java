@@ -172,6 +172,7 @@ package vip.isass.core.web.exception;
 import cn.hutool.core.exceptions.ExceptionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.catalina.connector.ClientAbortException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import vip.isass.core.exception.IExceptionMapping;
@@ -203,6 +204,9 @@ public class ExceptionAdvice {
     private Resp<?> exceptionHandler(Exception e) {
         if (e instanceof UnifiedException) {
             log.debug(e.getMessage(), e);
+        } else if (ExceptionUtil.isCausedBy(e, ClientAbortException.class)) {
+            log.debug("http 链接被客户端断开，io操作失败：{}", e.getMessage());
+            return null;
         } else {
             log.error(e.getMessage(), e);
         }
@@ -230,20 +234,20 @@ public class ExceptionAdvice {
             }
 
             return resp == null
-                ? new Resp<>()
-                .setSuccess(false)
-                .setStatus(ObjectUtil.defaultIfNull(exception.getStatus(), StatusMessageEnum.UNDEFINED.getStatus()))
-                .setMessage(exception.getMsg())
-                : resp;
+                    ? new Resp<>()
+                    .setSuccess(false)
+                    .setStatus(ObjectUtil.defaultIfNull(exception.getStatus(), StatusMessageEnum.UNDEFINED.getStatus()))
+                    .setMessage(exception.getMsg())
+                    : resp;
         }
 
         resp = createRespByExceptionFromExceptionMappings(e);
         return resp == null
-            ? new Resp<>()
-            .setSuccess(Boolean.FALSE)
-            .setStatus(StatusMessageEnum.UNDEFINED.getStatus())
-            .setMessage(defaultMessage(ExceptionUtil.unwrap(e)))
-            : resp;
+                ? new Resp<>()
+                .setSuccess(Boolean.FALSE)
+                .setStatus(StatusMessageEnum.UNDEFINED.getStatus())
+                .setMessage(defaultMessage(ExceptionUtil.unwrap(e)))
+                : resp;
     }
 
     private Resp<?> createRespByExceptionFromExceptionMappings(Exception e) {
@@ -254,9 +258,9 @@ public class ExceptionAdvice {
             }
 
             return new Resp<>()
-                .setSuccess(false)
-                .setStatus(statusMessage.getStatus())
-                .setMessage(exceptionMapping.parseMessage(e, statusMessage));
+                    .setSuccess(false)
+                    .setStatus(statusMessage.getStatus())
+                    .setMessage(exceptionMapping.parseMessage(e, statusMessage));
         }
         return null;
     }
