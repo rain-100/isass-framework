@@ -320,6 +320,8 @@
         <fastjson.version>1.2.83</fastjson.version>
         <commons-compress.version>1.26.1</commons-compress.version>
         <javassist.version>3.25.0-GA</javassist.version>
+        <xFileStorage.version>2.2.1</xFileStorage.version>
+        <amazonaws-s3.version>1.11.415</amazonaws-s3.version>
     </properties>
 
     <!-- maven功能说明 -->
@@ -895,6 +897,18 @@
                 <groupId>org.javassist</groupId>
                 <artifactId>javassist</artifactId>
                 <version>${javassist.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.dromara.x-file-storage</groupId>
+                <artifactId>x-file-storage-spring</artifactId>
+                <version>${xFileStorage.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.amazonaws</groupId>
+                <artifactId>aws-java-sdk-s3</artifactId>
+                <version>${amazonaws-s3.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
