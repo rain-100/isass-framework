@@ -204,7 +204,7 @@ public class MybatisPlusMetaObjectHandler implements MetaObjectHandler {
         if (loginUser != null) {
             String name = metaObject.getOriginalObject().getClass().getName();
             // 不是 user app 关联关系的表时才赋值
-            if (name.contains("V2UserApp")) {
+            if (!name.contains("V2UserApp")) {
                 setFieldValByName("appId", loginUser.getAppId(), metaObject);
             }
         }
