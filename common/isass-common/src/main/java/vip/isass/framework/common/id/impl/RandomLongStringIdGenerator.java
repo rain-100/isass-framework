@@ -176,7 +176,6 @@ import vip.isass.framework.common.id.IdGenerator;
  * @author rain
  */
 @Slf4j
-@SuppressWarnings("rawtypes")
 @AutoService(IdGenerator.class)
 public class RandomLongStringIdGenerator implements IdGenerator<String> {
 

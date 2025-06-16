@@ -174,7 +174,6 @@ import vip.isass.framework.common.id.IdGenerator;
 /**
  * @author rain
  */
-@SuppressWarnings("rawtypes")
 @AutoService(IdGenerator.class)
 public class NoneIdGenerator implements IdGenerator<Void> {
 

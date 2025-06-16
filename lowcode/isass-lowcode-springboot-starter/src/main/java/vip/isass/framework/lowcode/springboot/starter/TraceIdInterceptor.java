@@ -166,12 +166,13 @@
  * Library.
  */
 
-package vip.isass.framework.web.springmvc.interceptor;
+package vip.isass.framework.lowcode.springboot.starter;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.skywalking.apm.toolkit.trace.TraceContext;
 import org.springframework.stereotype.Component;
+import vip.isass.framework.web.springmvc.interceptor.IsassHandlerInterceptor;
 
 /**
  * @author Rain
