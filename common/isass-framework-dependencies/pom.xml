@@ -327,6 +327,10 @@
         <log4j-to-slf4j.version>2.23.1</log4j-to-slf4j.version>
         <jul-to-slf4j.version>2.0.13</jul-to-slf4j.version>
 
+        <!-- 文件管理 -->
+        <xFileStorage.version>2.2.1</xFileStorage.version>
+        <amazonaws-s3.version>1.11.415</amazonaws-s3.version>
+
         <!-- region plugins version-->
         <maven-source-plugin.version>3.3.1</maven-source-plugin.version>
         <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
@@ -883,6 +887,19 @@
                 <groupId>com.squareup.okhttp3</groupId>
                 <artifactId>okhttp</artifactId>
                 <version>${okhttp.version}</version>
+            </dependency>
+
+
+            <dependency>
+                <groupId>org.dromara.x-file-storage</groupId>
+                <artifactId>x-file-storage-spring</artifactId>
+                <version>${xFileStorage.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.amazonaws</groupId>
+                <artifactId>aws-java-sdk-s3</artifactId>
+                <version>${amazonaws-s3.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

@@ -172,6 +172,7 @@ import cn.hutool.core.exceptions.ExceptionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.catalina.connector.ClientAbortException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import vip.isass.framework.common.exception.IExceptionMapping;
@@ -197,10 +198,22 @@ public class ExceptionAdvice {
     /**
      * 处理 controller 抛出的异常
      */
+    /**
+     * 判断是否由指定异常类引起
+     *
+     * @param throwable    异常
+     * @param causeClasses 定义的引起异常的类
+     * @return 是否由指定异常类引起
+     * @since 4.1.13
+     */
+    @SuppressWarnings("unchecked")
     @ExceptionHandler(Exception.class)
     private Resp<?> exceptionHandler(Exception e) {
         if (e instanceof UnifiedException) {
             log.debug(e.getMessage(), e);
+        } else if (ExceptionUtil.isCausedBy(e, ClientAbortException.class)) {
+            log.debug("http 链接被客户端断开，io操作失败：{}", e.getMessage());
+            return null;
         } else {
             log.error(e.getMessage(), e);
         }

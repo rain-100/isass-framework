@@ -220,8 +220,18 @@
         });
 
         socket.onAny(function (event, data) {
-            if (filterEvents.length != 0 && filterEvents.indexOf(event) == -1) {
-                return;
+            // 如果设置了事件过滤，则判断是否需要展示本条消息
+            if (filterEvents.length != 0) {
+                let match = false;
+                for (let i = 0; i < filterEvents.length; i++) {
+                    if (event.startsWith(filterEvents[i])) {
+                        match = true;
+                        break;
+                    }
+                }
+                if (!match) {
+                    return;
+                }
             }
 
             let str = data;

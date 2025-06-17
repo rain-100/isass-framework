@@ -172,6 +172,7 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
+import io.netty.handler.codec.http.websocketx.WebSocketFrameAggregator;
 import io.netty.handler.stream.ChunkedWriteHandler;
 import io.netty.handler.timeout.IdleStateHandler;
 import jakarta.annotation.Resource;
@@ -212,6 +213,8 @@ public class WebsocketChannelInitializerHandler extends ChannelInitializerHandle
 
         pipeline.addLast("http-codec", new HttpServerCodec());
         pipeline.addLast("aggregator", new HttpObjectAggregator(65536));
+        // 将分片的 WebSocketFrame 聚合成完整的 FullWebSocketFrame, maxContentLength 设置为10M
+        pipeline.addLast("FrameAggregator", new WebSocketFrameAggregator(10 * 1024 * 1024));
         pipeline.addLast("http-chunked", new ChunkedWriteHandler());
         pipeline.addLast(channelEventHandler);
     }
