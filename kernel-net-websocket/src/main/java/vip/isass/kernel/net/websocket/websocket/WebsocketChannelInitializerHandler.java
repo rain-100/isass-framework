@@ -217,9 +217,9 @@ public class WebsocketChannelInitializerHandler extends ChannelInitializer<Socke
         // 将请求和应答消息编码或者解码为HTTP消息
         pipeline.addLast("http-codec", new HttpServerCodec());
         // 将HTTP消息的多个部分组合成一条完整的HTTP消息
-        pipeline.addLast("aggregator", new HttpObjectAggregator(65536));
+        pipeline.addLast("aggregator", new HttpObjectAggregator(websocketProperties.getAggregator()));
         // 将分片的 WebSocketFrame 聚合成完整的 FullWebSocketFrame, maxContentLength 设置为10M
-        pipeline.addLast("FrameAggregator", new WebSocketFrameAggregator(10 * 1024 * 1024));
+        pipeline.addLast("FrameAggregator", new WebSocketFrameAggregator(websocketProperties.getMaxFramePayloadLength()));
         // 用来向客户端发送HTML5文件，主要用于支持浏览器和服务端进行WebSocket通信
         pipeline.addLast("http-chunked", new ChunkedWriteHandler());
         pipeline.addLast(websocketChannelInboundHandler);

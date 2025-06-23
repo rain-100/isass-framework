@@ -195,4 +195,8 @@ public class WebsocketProperties {
 
     private String netExternalUrl;
 
+    private int aggregator = 65536;
+
+    private int maxFramePayloadLength = 10 * 1024 * 1024;
+
 }
