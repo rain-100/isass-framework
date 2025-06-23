@@ -253,8 +253,8 @@
         <skywalking.version>6.6.0</skywalking.version>
 
         <!-- 数据库 -->
-        <mybatis-plus.version>3.3.1</mybatis-plus.version>
-        <mybatis.version>3.5.7</mybatis.version>
+        <mybatis-plus.version>3.5.12</mybatis-plus.version>
+        <!--<mybatis.version>3.5.7</mybatis.version>-->
         <flyway.version>6.3.3</flyway.version>
         <sharding-jdbc.version>4.0.0-RC2</sharding-jdbc.version>
         <p6spy.version>3.9.0</p6spy.version>
@@ -362,6 +362,14 @@
                 <groupId>com.github.xiaoymin</groupId>
                 <artifactId>knife4j-dependencies</artifactId>
                 <version>${knife4j.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-bom</artifactId>
+                <version>${mybatis-plus.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -626,47 +634,11 @@
                 <version>${kingbase8.version}</version>
             </dependency>
 
-            <dependency>
-                <groupId>com.baomidou</groupId>
-                <artifactId>mybatis-plus-boot-starter</artifactId>
-                <version>${mybatis-plus.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.baomidou</groupId>
-                <artifactId>mybatis-plus-generator</artifactId>
-                <version>${mybatis-plus.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.baomidou</groupId>
-                <artifactId>mybatis-plus-annotation</artifactId>
-                <version>${mybatis-plus.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.mybatis</groupId>
-                        <artifactId>mybatis</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-
-            <dependency>
-                <groupId>org.mybatis</groupId>
-                <artifactId>mybatis</artifactId>
-                <version>${mybatis.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.baomidou</groupId>
-                <artifactId>mybatis-plus-extension</artifactId>
-                <version>${mybatis-plus.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.baomidou</groupId>
-                <artifactId>mybatis-plus-core</artifactId>
-                <version>${mybatis-plus.version}</version>
-            </dependency>
+            <!--<dependency>-->
+            <!--    <groupId>org.mybatis</groupId>-->
+            <!--    <artifactId>mybatis</artifactId>-->
+            <!--    <version>${mybatis.version}</version>-->
+            <!--</dependency>-->
 
             <dependency>
                 <groupId>p6spy</groupId>

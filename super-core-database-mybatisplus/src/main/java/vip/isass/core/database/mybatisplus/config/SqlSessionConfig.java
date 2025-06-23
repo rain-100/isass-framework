@@ -171,48 +171,44 @@ package vip.isass.core.database.mybatisplus.config;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ArrayUtil;
-import cn.hutool.core.util.StrUtil;
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.core.MybatisConfiguration;
+import com.baomidou.mybatisplus.autoconfigure.ConfigurationCustomizer;
+import com.baomidou.mybatisplus.autoconfigure.MybatisPlusPropertiesCustomizer;
+import com.baomidou.mybatisplus.autoconfigure.SqlSessionFactoryBeanCustomizer;
 import com.baomidou.mybatisplus.core.config.GlobalConfig;
-import com.baomidou.mybatisplus.core.injector.ISqlInjector;
-import com.baomidou.mybatisplus.extension.plugins.OptimisticLockerInterceptor;
-import com.baomidou.mybatisplus.extension.plugins.PaginationInterceptor;
-import com.baomidou.mybatisplus.extension.spring.MybatisSqlSessionFactoryBean;
+import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
+import com.baomidou.mybatisplus.extension.plugins.inner.DynamicTableNameInnerInterceptor;
+import com.baomidou.mybatisplus.extension.plugins.inner.OptimisticLockerInnerInterceptor;
+import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.logging.nologging.NoLoggingImpl;
 import org.apache.ibatis.mapping.DatabaseIdProvider;
 import org.apache.ibatis.mapping.VendorDatabaseIdProvider;
 import org.apache.ibatis.session.AutoMappingUnknownColumnBehavior;
-import org.apache.ibatis.session.SqlSessionFactory;
+import org.apache.ibatis.session.LocalCacheScope;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
-import org.apache.ibatis.type.TypeHandlerRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
-import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.lang.NonNull;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.annotation.TransactionManagementConfigurer;
-import vip.isass.core.database.mybatisplus.driver.MybatisXmlLanguageDriver;
 import vip.isass.core.database.mybatisplus.plus.handler.MybatisPlusMetaObjectHandler;
-import vip.isass.core.database.mybatisplus.typehandler.DefaultEnumTypeHandler;
+import vip.isass.core.database.mybatisplus.typehandler.enums.ExtendedCompositeEnumTypeHandler;
 import vip.isass.core.page.PageConst;
 
 import javax.annotation.Resource;
 import javax.sql.DataSource;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
 /**
  * @author rain
  */
+@Slf4j
 @Configuration
 @EnableTransactionManagement
 public class SqlSessionConfig implements TransactionManagementConfigurer {
@@ -220,51 +216,14 @@ public class SqlSessionConfig implements TransactionManagementConfigurer {
     @Resource
     private DataSource dataSource;
 
-    @Value("${spring.profiles:default}")
-    private String profiles;
-
-    @Value("${mybatis-plus.mapper-locations:}")
-    private List<String> mapperLocations;
-
     @Autowired(required = false)
     private List<IMapperLocationProvider> mapperLocationProviders;
-
-    @Value("${mybatis-plus.global-config.db-config.capital-mode:false}")
-    private boolean capitalMode;
-
-    @Value("${mybatisPlus.globalConfig.dbConfig.columnFormat:}")
-    private String columnFormat;
 
     @Autowired(required = false)
     private List<BaseTypeHandler<?>> baseTypeHandlers;
 
-    @Autowired(required = false)
-    private ISqlInjector sqlInjector;
-
-    @Bean
-    public GlobalConfig globalConfig() {
-        GlobalConfig.DbConfig dbConfig = new GlobalConfig.DbConfig();
-        dbConfig.setLogicDeleteValue(Boolean.TRUE.toString());
-        dbConfig.setLogicNotDeleteValue(Boolean.FALSE.toString());
-        dbConfig.setIdType(IdType.ASSIGN_ID);
-        dbConfig.setCapitalMode(capitalMode);
-        if (StrUtil.isNotBlank(columnFormat)) {
-            dbConfig.setColumnFormat(columnFormat);
-        }
-
-        GlobalConfig conf = new GlobalConfig();
-        conf.setBanner(false);
-        conf.setDbConfig(dbConfig);
-
-        if (sqlInjector != null) {
-            conf.setSqlInjector(sqlInjector);
-        }
-
-        // 自定义填充策略接口实现
-        conf.setMetaObjectHandler(new MybatisPlusMetaObjectHandler());
-
-        return conf;
-    }
+    @Value("${mybatis-plus.tableNameStrategy:none}")
+    private String tableNameStrategy;
 
     @Bean
     public DatabaseIdProvider databaseIdProvider() {
@@ -279,80 +238,68 @@ public class SqlSessionConfig implements TransactionManagementConfigurer {
         return databaseIdProvider;
     }
 
-    private org.springframework.core.io.Resource[] getMapperLocationsResources() throws Exception {
-        ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
-        List<org.springframework.core.io.Resource> mapperResources = new ArrayList<>();
+    @Bean
+    public MybatisPlusPropertiesCustomizer mybatisPlusPropertiesCustomizer() {
+        return properties -> {
+            GlobalConfig globalConfig = properties.getGlobalConfig()
+                    .setBanner(false)
 
-        parseMapperLocations(resolver, mapperResources, mapperLocations);
+                    // 自定义填充策略接口实现
+                    .setMetaObjectHandler(new MybatisPlusMetaObjectHandler());
 
-        if (mapperLocationProviders != null) {
-            for (IMapperLocationProvider mapperLocationProvider : mapperLocationProviders) {
-                parseMapperLocations(resolver, mapperResources, mapperLocationProvider.getMapperLocations());
+            globalConfig.getDbConfig()
+                    .setLogicDeleteValue(Boolean.TRUE.toString())
+                    .setLogicNotDeleteValue(Boolean.FALSE.toString());
+
+            if (CollUtil.isNotEmpty(mapperLocationProviders)) {
+                String[] array = mapperLocationProviders.stream()
+                        .map(IMapperLocationProvider::getMapperLocations)
+                        .flatMap(List::stream)
+                        .toArray(String[]::new);
+                properties.setMapperLocations(ArrayUtil.addAll(properties.getMapperLocations(), array));
             }
-        }
-
-        return mapperResources.isEmpty()
-            ? null
-            : ArrayUtil.toArray(mapperResources, org.springframework.core.io.Resource.class);
-    }
-
-    private void parseMapperLocations(ResourcePatternResolver resolver,
-                                      List<org.springframework.core.io.Resource> mapperResources,
-                                      List<String> mapperLocations) throws IOException {
-        if (CollUtil.isEmpty(mapperLocations)) {
-            return;
-        }
-
-        for (String mapperLocation : mapperLocations) {
-            if (StrUtil.isBlank(mapperLocation)) {
-                continue;
-            }
-
-            org.springframework.core.io.Resource[] resources = resolver.getResources(mapperLocation);
-            mapperResources.addAll(CollUtil.toList(resources));
-        }
+        };
     }
 
     @Bean
-    public SqlSessionFactory sqlSessionFactory(GlobalConfig globalConfig, DatabaseIdProvider databaseIdProvider) throws Exception {
-        MybatisSqlSessionFactoryBean sqlSessionFactory = new MybatisSqlSessionFactoryBean();
-        sqlSessionFactory.setDataSource(dataSource);
-        sqlSessionFactory.setMapperLocations(getMapperLocationsResources());
-        sqlSessionFactory.setTypeEnumsPackage("vip.isass.**");
+    public ConfigurationCustomizer configurationCustomizer() {
+        return configuration -> {
+            // Mybatis 一级缓存
+            // SESSION：Session 级别缓存，同一个 Session 相同查询语句不会再次查询数据库
+            // STATEMENT：关闭一级缓存
+            // 在单服务架构中（仅有一个程序提供相同服务），开启一级缓存不会影响业务，只会提高性能。
+            // 在微服务架构中需要关闭一级缓存，原因是：Service1 查询数据后，如果 Service2 修改了数据，Service1 再次查询时可能会得到过期数据。
+            configuration.setLocalCacheScope(LocalCacheScope.STATEMENT);
 
-        MybatisConfiguration configuration = new MybatisConfiguration();
-        configuration.setMapUnderscoreToCamelCase(true);
-        configuration.setCacheEnabled(false);
-        configuration.setDefaultScriptingLanguage(MybatisXmlLanguageDriver.class);
-        configuration.setJdbcTypeForNull(JdbcType.NULL);
-        configuration.setDefaultEnumTypeHandler(DefaultEnumTypeHandler.class);
-        configuration.setDatabaseId(databaseIdProvider.getDatabaseId(dataSource));
+            // 是否开启 MyBatis 二级缓存。
+            configuration.setCacheEnabled(false);
 
-        // 关闭 mybatis 日志。由 p6spy 实现日志打印
-        configuration.setLogImpl(NoLoggingImpl.class);
+            configuration.setJdbcTypeForNull(JdbcType.NULL);
 
-        if (CollUtil.isNotEmpty(baseTypeHandlers)) {
-            TypeHandlerRegistry typeHandlerRegistry = configuration.getTypeHandlerRegistry();
-            baseTypeHandlers.forEach(typeHandlerRegistry::register);
-        }
+            // 设置 MyBatis 的日志实现。关闭 mybatis 日志。由 p6spy 实现日志打印
+            configuration.setLogImpl(NoLoggingImpl.class);
 
-        /*
-         * MyBatis 自动映射时未知列或未知属性处理策略
-         * 通过该配置可指定 MyBatis 在自动映射过程中遇到未知列或者未知属性时如何处理，总共有 3 种可选值：
-         * AutoMappingUnknownColumnBehavior.NONE：不做任何处理 (默认值)
-         * AutoMappingUnknownColumnBehavior.WARNING：以日志的形式打印相关警告信息
-         * AutoMappingUnknownColumnBehavior.FAILING：当作映射失败处理，并抛出异常和详细信息
-         */
-        configuration.setAutoMappingUnknownColumnBehavior(AutoMappingUnknownColumnBehavior.WARNING);
+            // 枚举映射 https://baomidou.com/reference/#defaultenumtypehandler
+            configuration.setDefaultEnumTypeHandler(ExtendedCompositeEnumTypeHandler.class);
 
-        sqlSessionFactory.setConfiguration(configuration);
+            /*
+             * MyBatis 自动映射时未知列或未知属性处理策略
+             * 通过该配置可指定 MyBatis 在自动映射过程中遇到未知列或者未知属性时如何处理，总共有 3 种可选值：
+             * AutoMappingUnknownColumnBehavior.NONE：不做任何处理 (默认值)
+             * AutoMappingUnknownColumnBehavior.WARNING：以日志的形式打印相关警告信息
+             * AutoMappingUnknownColumnBehavior.FAILING：当作映射失败处理，并抛出异常和详细信息
+             */
+            configuration.setAutoMappingUnknownColumnBehavior(AutoMappingUnknownColumnBehavior.WARNING);
+        };
+    }
 
-        // 配置插件
-        sqlSessionFactory.setPlugins(
-            new PaginationInterceptor().setLimit(PageConst.MAX_PAGE_SIZE),
-            new OptimisticLockerInterceptor());
-        sqlSessionFactory.setGlobalConfig(globalConfig);
-        return sqlSessionFactory.getObject();
+    @Bean
+    public SqlSessionFactoryBeanCustomizer sqlSessionFactoryBeanCustomizer() {
+        return sqlSessionFactoryBean -> {
+            if (CollUtil.isNotEmpty(baseTypeHandlers)) {
+                baseTypeHandlers.forEach(sqlSessionFactoryBean::addTypeHandlers);
+            }
+        };
     }
 
     @NonNull
@@ -361,4 +308,30 @@ public class SqlSessionConfig implements TransactionManagementConfigurer {
         return new DataSourceTransactionManager(dataSource);
     }
 
+    @Bean
+    public MybatisPlusInterceptor mybatisPlusInterceptor() {
+        MybatisPlusInterceptor interceptor = new MybatisPlusInterceptor();
+        // 乐观锁插件
+        interceptor.addInnerInterceptor(new OptimisticLockerInnerInterceptor());
+
+        // 动态表名插件
+        if ("uppercase".equals(tableNameStrategy)) {
+            DynamicTableNameInnerInterceptor dynamicTableNameInnerInterceptor = new DynamicTableNameInnerInterceptor();
+            dynamicTableNameInnerInterceptor.setTableNameHandler((sql, tableName) -> tableName.toUpperCase());
+            interceptor.addInnerInterceptor(dynamicTableNameInnerInterceptor);
+        } else if ("lowercase".equals(tableNameStrategy)) {
+            DynamicTableNameInnerInterceptor dynamicTableNameInnerInterceptor = new DynamicTableNameInnerInterceptor();
+            dynamicTableNameInnerInterceptor.setTableNameHandler((sql, tableName) -> tableName.toLowerCase());
+            interceptor.addInnerInterceptor(dynamicTableNameInnerInterceptor);
+        } else if (!"none".equals(tableNameStrategy)) {
+            log.warn("Unsupported table name strategy: {}, using default behavior.", tableNameStrategy);
+        }
+
+        // 如果配置多个插件, 切记分页最后添加
+        PaginationInnerInterceptor paginationInnerInterceptor = new PaginationInnerInterceptor();
+        paginationInnerInterceptor.setMaxLimit(PageConst.MAX_PAGE_SIZE);
+        paginationInnerInterceptor.setOverflow(true);
+        interceptor.addInnerInterceptor(paginationInnerInterceptor);
+        return interceptor;
+    }
 }

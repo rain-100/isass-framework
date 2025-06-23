@@ -170,12 +170,15 @@
 package vip.isass.core.database.mybatisplus.plus;
 
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.AbstractWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
-import vip.isass.core.criteria.*;
+import vip.isass.core.criteria.ICriteria;
+import vip.isass.core.criteria.IPageCriteria;
+import vip.isass.core.criteria.ISelectColumnCriteria;
+import vip.isass.core.criteria.IWhereConditionCriteria;
+import vip.isass.core.criteria.WhereCondition;
 import vip.isass.core.entity.DbEntity;
 import vip.isass.core.entity.IEntity;
 
@@ -197,8 +200,8 @@ public class WrapperUtil {
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static <
-        E,
-        C extends ICriteria<E, C>> QueryWrapper<E> getQueryWrapper(ICriteria<E, C> criteria) {
+            E,
+            C extends ICriteria<E, C>> QueryWrapper<E> getQueryWrapper(ICriteria<E, C> criteria) {
         QueryWrapper<E> wrapper = new QueryWrapper<>();
 
         if (criteria instanceof ISelectColumnCriteria) {
@@ -217,25 +220,25 @@ public class WrapperUtil {
     }
 
     public static <
-        E extends IEntity<E>,
-        EDB extends DbEntity<E, EDB>,
-        C extends ICriteria<E, C>> QueryWrapper<EDB> getEdbQueryWrapper(ICriteria<E, C> criteria) {
+            E extends IEntity<E>,
+            EDB extends DbEntity<E, EDB>,
+            C extends ICriteria<E, C>> QueryWrapper<EDB> getEdbQueryWrapper(ICriteria<E, C> criteria) {
         return getEdbQueryWrapper(criteria, null);
     }
 
     @SuppressWarnings("unchecked")
     public static <
-        E extends IEntity<E>,
-        EDB extends DbEntity<E, EDB>,
-        C extends ICriteria<E, C>> QueryWrapper<EDB> getEdbQueryWrapper(ICriteria<E, C> criteria, Class<EDB> edbClass) {
+            E extends IEntity<E>,
+            EDB extends DbEntity<E, EDB>,
+            C extends ICriteria<E, C>> QueryWrapper<EDB> getEdbQueryWrapper(ICriteria<E, C> criteria, Class<EDB> edbClass) {
         return (QueryWrapper<EDB>) getQueryWrapper(criteria);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static <
-        E extends IEntity<E>,
-        EDB extends DbEntity<E, EDB>,
-        C extends ICriteria<E, C>> UpdateWrapper<EDB> getEdbUpdateWrapper(ICriteria<E, C> criteria) {
+            E extends IEntity<E>,
+            EDB extends DbEntity<E, EDB>,
+            C extends ICriteria<E, C>> UpdateWrapper<EDB> getEdbUpdateWrapper(ICriteria<E, C> criteria) {
         UpdateWrapper<EDB> wrapper = new UpdateWrapper<>();
 
         if (criteria instanceof IWhereConditionCriteria) {
@@ -257,8 +260,8 @@ public class WrapperUtil {
     }
 
     private static <
-        E,
-        C extends ISelectColumnCriteria<E, C>>
+            E,
+            C extends ISelectColumnCriteria<E, C>>
     void processSelectColumnsCriteria(QueryWrapper<E> wrapper, ISelectColumnCriteria<E, C> selectColumnCriteria) {
         List<String> selectColumns = selectColumnCriteria.getSelectColumns();
         if (CollUtil.isNotEmpty(selectColumns)) {
@@ -267,8 +270,8 @@ public class WrapperUtil {
     }
 
     private static <
-        E,
-        C extends IWhereConditionCriteria<E, C>>
+            E,
+            C extends IWhereConditionCriteria<E, C>>
     void processWhereConditionCriteria(AbstractWrapper<E, String, ?> wrapper, IWhereConditionCriteria<E, C> whereConditionCriteria) {
         List<WhereCondition> whereConditions = whereConditionCriteria.getWhereConditions();
         if (CollUtil.isNotEmpty(whereConditions)) {
@@ -277,8 +280,8 @@ public class WrapperUtil {
     }
 
     private static <
-        E,
-        C extends IPageCriteria<E, C>>
+            E,
+            C extends IPageCriteria<E, C>>
     void processPageCriteria(AbstractWrapper<E, String, ?> wrapper, IPageCriteria<E, C> pageCriteria) {
         if (StrUtil.isNotBlank(pageCriteria.getOrderBy())) {
             List<String> ascList = null;
@@ -315,8 +318,8 @@ public class WrapperUtil {
                     }
                 }
             }
-            wrapper.orderByAsc(ascList == null ? null : ArrayUtil.toArray(ascList, String.class));
-            wrapper.orderByDesc(descList == null ? null : ArrayUtil.toArray(descList, String.class));
+            wrapper.orderByAsc(ascList != null, ascList);
+            wrapper.orderByDesc(descList != null, descList);
         }
     }
 

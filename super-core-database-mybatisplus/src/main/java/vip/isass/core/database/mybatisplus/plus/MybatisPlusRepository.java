@@ -180,6 +180,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.metadata.TableInfo;
 import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.core.toolkit.reflect.GenericTypeUtils;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
@@ -213,13 +214,18 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public abstract class MybatisPlusRepository<
-    E extends IEntity<E>,
-    EDB extends DbEntity<E, EDB>,
-    C extends ICriteria<E, C>,
-    M extends IMapper<EDB>
-    >
-    extends ServiceImpl<M, EDB>
-    implements IRepository<E, C> {
+        E extends IEntity<E>,
+        EDB extends DbEntity<E, EDB>,
+        C extends ICriteria<E, C>,
+        M extends IMapper<EDB>
+        >
+        extends ServiceImpl<M, EDB>
+        implements IRepository<E, C> {
+
+    @SuppressWarnings("unchecked")
+    protected Class<EDB> currentModelClass() {
+        return (Class<EDB>) GenericTypeUtils.resolveTypeArguments(getClass(), MybatisPlusRepository.class)[1];
+    }
 
     // ****************************** 增 start ******************************
     @Override
@@ -234,15 +240,15 @@ public abstract class MybatisPlusRepository<
             TimeTracedEntity timeTracedEntity = (TimeTracedEntity) entity;
             TimeTracedEntity timeTracedDbEntity = (TimeTracedEntity) edb;
             timeTracedEntity.setCreateTime(timeTracedDbEntity.getCreateTime())
-                .setModifyTime(timeTracedDbEntity.getModifyTime());
+                    .setModifyTime(timeTracedDbEntity.getModifyTime());
         }
         if (entity instanceof UserTracedEntity) {
             UserTracedEntity userTracedEntity = (UserTracedEntity) entity;
             UserTracedEntity userTracedDbEntity = (UserTracedEntity) edb;
             userTracedEntity.setCreateUserId(userTracedDbEntity.getCreateUserId())
-                .setCreateUserName(userTracedDbEntity.getCreateUserName())
-                .setModifyUserId(userTracedDbEntity.getModifyUserId())
-                .setModifyUserName(userTracedDbEntity.getModifyUserName());
+                    .setCreateUserName(userTracedDbEntity.getCreateUserName())
+                    .setModifyUserId(userTracedDbEntity.getModifyUserId())
+                    .setModifyUserName(userTracedDbEntity.getModifyUserName());
         }
         if (entity instanceof ChainedEntity) {
             ChainedEntity chainedEntity = (ChainedEntity) entity;
@@ -350,8 +356,8 @@ public abstract class MybatisPlusRepository<
 
         String idColumnName = idEntity.getIdColumnName();
         boolean b = IdEntity.ID_COLUMN_NAME.equalsIgnoreCase(idColumnName)
-            ? super.updateById(edb)
-            : super.update(edb, new UpdateWrapper<EDB>().eq(idColumnName, idEntity.getId()));
+                ? super.updateById(edb)
+                : super.update(edb, new UpdateWrapper<EDB>().eq(idColumnName, idEntity.getId()));
 
         // 回写版本字段到 entity
         if (entity instanceof VersionEntity) {
@@ -383,6 +389,7 @@ public abstract class MybatisPlusRepository<
 
     @Override
     public E getEntityById(Serializable id) {
+
         Class<EDB> edbClass = currentModelClass();
         Serializable realId = id;
         TableInfo tableInfo = TableInfoHelper.getTableInfo(edbClass);
@@ -440,8 +447,8 @@ public abstract class MybatisPlusRepository<
         E entity = getByWrapper(wrapper);
         if (entity == null) {
             String values = wrapper == null
-                ? ""
-                : CollUtil.join(((QueryWrapper<EDB>) wrapper).getParamNameValuePairs().values(), ",");
+                    ? ""
+                    : CollUtil.join(((QueryWrapper<EDB>) wrapper).getParamNameValuePairs().values(), ",");
             throw new AbsentException(values);
         }
         return entity;
@@ -474,10 +481,10 @@ public abstract class MybatisPlusRepository<
             ((QueryWrapper<EDB>) wrapper).select(currentModelClass(), i -> !SensitiveDataProperty.PROPERTIES.contains(i.getProperty()));
         }
         return this.page(
-            new Page<EDB>(page.getCurrent(), page.getSize(), page.isSearchCount())
-                .setOptimizeCountSql(page.optimizeCountSql()),
-            wrapper)
-            .convert(DbEntityConvert::convertToEntity);
+                        new Page<EDB>(page.getCurrent(), page.getSize(), page.searchCount())
+                                .setOptimizeCountSql(page.optimizeCountSql()),
+                        wrapper)
+                .convert(DbEntityConvert::convertToEntity);
     }
 
     @Override
@@ -492,7 +499,7 @@ public abstract class MybatisPlusRepository<
     }
 
     public Integer countByWrapper(Wrapper<EDB> wrapper) {
-        return this.count(wrapper);
+        return (int) this.count(wrapper);
     }
 
     @Override
@@ -502,7 +509,7 @@ public abstract class MybatisPlusRepository<
 
     @Override
     public Integer countAll() {
-        return this.count(null);
+        return (int) this.count(null);
     }
 
     @Override
@@ -534,8 +541,8 @@ public abstract class MybatisPlusRepository<
     public void exceptionIfPresentByWrapper(Wrapper<EDB> wrapper) {
         if (isPresentByWrapper(wrapper)) {
             String values = wrapper == null
-                ? ""
-                : CollUtil.join(((QueryWrapper<EDB>) wrapper).getParamNameValuePairs().values(), ",");
+                    ? ""
+                    : CollUtil.join(((QueryWrapper<EDB>) wrapper).getParamNameValuePairs().values(), ",");
             throw new AlreadyPresentException(values);
         }
     }
@@ -548,8 +555,8 @@ public abstract class MybatisPlusRepository<
     public void exceptionIfAbsentByWrapper(Wrapper<EDB> wrapper) {
         if (!isPresentByWrapper(wrapper)) {
             String values = wrapper == null
-                ? ""
-                : CollUtil.join(((QueryWrapper<EDB>) wrapper).getParamNameValuePairs().values(), ",");
+                    ? ""
+                    : CollUtil.join(((QueryWrapper<EDB>) wrapper).getParamNameValuePairs().values(), ",");
             throw new AbsentException(values);
         }
     }

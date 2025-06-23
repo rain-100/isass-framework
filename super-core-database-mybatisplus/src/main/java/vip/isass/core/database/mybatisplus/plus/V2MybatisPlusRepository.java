@@ -182,6 +182,7 @@ import com.baomidou.mybatisplus.core.metadata.TableFieldInfo;
 import com.baomidou.mybatisplus.core.metadata.TableInfo;
 import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.core.toolkit.reflect.GenericTypeUtils;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -224,6 +225,11 @@ public abstract class V2MybatisPlusRepository<
         >
         extends ServiceImpl<M, EDB>
         implements IV2Repository<E, C> {
+
+    @SuppressWarnings("unchecked")
+    protected Class<EDB> currentModelClass() {
+        return (Class<EDB>) GenericTypeUtils.resolveTypeArguments(getClass(), V2MybatisPlusRepository.class)[1];
+    }
 
     // ****************************** 增 start ******************************
     @Override
@@ -561,7 +567,7 @@ public abstract class V2MybatisPlusRepository<
                     i -> !SensitiveDataProperty.PROPERTIES.contains(i.getProperty()));
         }
         return this.page(
-                        new Page<EDB>(page.getCurrent(), page.getSize(), page.isSearchCount())
+                        new Page<EDB>(page.getCurrent(), page.getSize(), page.searchCount())
                                 .setOptimizeCountSql(page.optimizeCountSql()),
                         wrapper)
                 .convert(V2DbEntityConvert::convertToEntity);
@@ -584,7 +590,7 @@ public abstract class V2MybatisPlusRepository<
     }
 
     public Integer countByWrapper(Wrapper<EDB> wrapper) {
-        return this.count(wrapper);
+        return (int) this.count(wrapper);
     }
 
     @Override
@@ -594,7 +600,7 @@ public abstract class V2MybatisPlusRepository<
 
     @Override
     public Integer countAll() {
-        return this.count(null);
+        return (int) this.count(null);
     }
 
     @Override
