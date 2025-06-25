@@ -176,7 +176,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.SneakyThrows;
 import lombok.experimental.Accessors;
-import vip.isass.core.entity.Json;
 import vip.isass.core.support.JsonUtil;
 
 import java.util.Date;
@@ -380,7 +379,7 @@ public class RequestLog {
      */
     @ApiModelProperty("微服务名")
     private String serviceName;
-    
+
     /**
      * <p>
      * 国密-完整性校验字符
@@ -390,7 +389,7 @@ public class RequestLog {
      */
     @ApiModelProperty("国密-完整性校验字符")
     private String gmHashValue;
-    
+
     /**
      * <p>
      * 国密-初始化向量
@@ -400,7 +399,7 @@ public class RequestLog {
      */
     @ApiModelProperty("国密-初始化向量")
     private String iv;
-    
+
     /**
      * <p>
      * 加密服务类型
@@ -415,25 +414,25 @@ public class RequestLog {
     @SneakyThrows
     public String toString() {
         return "RequestLog{" +
-            "title='" + title + '\'' +
-            ", userId='" + userId + '\'' +
-            ", nickName='" + nickName + '\'' +
-            ", uri='" + uri + '\'' +
-            ", method='" + method + '\'' +
-            ", requestHeader=" + JsonUtil.DEFAULT_INSTANCE.writeValueAsString(requestHeader) +
-            ", responseHeader=" + JsonUtil.DEFAULT_INSTANCE.writeValueAsString(responseHeader) +
-            ", requestParam='" + requestParam + '\'' +
-            ", responseContent='" + responseContent + '\'' +
-            ", exceptionMessage='" + exceptionMessage + '\'' +
-            ", exceptionDetail='" + exceptionDetail + '\'' +
-            ", os='" + os + '\'' +
-            ", browser='" + browser + '\'' +
-            ", remoteAddr='" + remoteAddr + '\'' +
-            ", requestTime=" + DateUtil.formatDateTime(new Date(requestTime)) +
-            ", cost=" + cost +
-            ", tenantId='" + tenantId + '\'' +
-            ", appId='" + appId + '\'' +
-            ", serviceName='" + serviceName + '\'' +
-            '}';
+                "title='" + title + '\'' +
+                ", userId='" + userId + '\'' +
+                ", nickName='" + nickName + '\'' +
+                ", uri='" + uri + '\'' +
+                ", method='" + method + '\'' +
+                ", requestHeader=" + JsonUtil.DEFAULT_INSTANCE.writeValueAsString(requestHeader) +
+                ", responseHeader=" + JsonUtil.DEFAULT_INSTANCE.writeValueAsString(responseHeader) +
+                ", requestParam='" + requestParam + '\'' +
+                ", responseContent='" + responseContent + '\'' +
+                ", exceptionMessage='" + exceptionMessage + '\'' +
+                ", exceptionDetail='" + exceptionDetail + '\'' +
+                ", os='" + os + '\'' +
+                ", browser='" + browser + '\'' +
+                ", remoteAddr='" + remoteAddr + '\'' +
+                ", requestTime=" + DateUtil.formatDateTime(new Date(requestTime)) +
+                ", cost=" + cost +
+                ", tenantId='" + tenantId + '\'' +
+                ", appId='" + appId + '\'' +
+                ", serviceName='" + serviceName + '\'' +
+                '}';
     }
 }

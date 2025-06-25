@@ -198,7 +198,6 @@ import springfox.documentation.spi.service.contexts.SecurityContext;
 import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.spring.web.readers.operation.CachingOperationNameGenerator;
 import springfox.documentation.swagger2.annotations.EnableSwagger2WebMvc;
-import vip.isass.core.entity.Json;
 import vip.isass.core.support.ExceptionCatcher;
 import vip.isass.core.web.security.authentication.jwt.JwtConst;
 
@@ -237,7 +236,6 @@ public class WebSwaggerAutoConfiguration {
                 .directModelSubstitute(LocalDateTime.class, Long.class)
                 .directModelSubstitute(LocalDate.class, Long.class)
                 .directModelSubstitute(LocalTime.class, Long.class)
-                .directModelSubstitute(Json.class, Map.class)
                 .directModelSubstitute(JsonNode.class, Map.class)
                 .directModelSubstitute(ObjectNode.class, Map.class)
                 .directModelSubstitute(ArrayNode.class, List.class)

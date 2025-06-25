@@ -174,6 +174,8 @@ import cn.hutool.core.lang.Assert;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.TreeNode;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -188,17 +190,14 @@ import com.fasterxml.jackson.databind.ser.std.NumberSerializer;
 import com.fasterxml.jackson.databind.ser.std.StdDelegatingSerializer;
 import lombok.Getter;
 import lombok.SneakyThrows;
-import vip.isass.core.entity.Json;
 import vip.isass.core.map.MultiKeyMultiValueBiMap;
 import vip.isass.core.map.MultiValueBiMap;
-import vip.isass.core.support.json.DefaultJson;
 import vip.isass.core.support.json.LocalDateTimeToLongConvert;
 import vip.isass.core.support.json.LocalDateToLongConvert;
 import vip.isass.core.support.json.LocalTimeToLongConvert;
 import vip.isass.core.support.json.LongToLocalDateTimeConvert;
 import vip.isass.core.support.json.MapToMultiKeyMultiValueBiMapConvert;
 import vip.isass.core.support.json.MapToMultiValueBiMapConvert;
-import vip.isass.core.support.json.ObjectToJsonConvert;
 import vip.isass.core.support.json.StringToLocalDateConvert;
 import vip.isass.core.support.json.StringToLocalDateTimeConvert;
 import vip.isass.core.support.json.StringToLocalTimeConvert;
@@ -236,7 +235,6 @@ public class JsonUtil {
             .addSerializer(LocalTime.class, new StdDelegatingSerializer(new LocalTimeToLongConvert()))
             //        .addDeserializer(LocalTime.class, new StdDelegatingDeserializer<>(new LongToLocalTimeConvert()))
             .addDeserializer(LocalTime.class, new StdDelegatingDeserializer<>(new StringToLocalTimeConvert()))
-            .addDeserializer(Json.class, new StdDelegatingDeserializer<>(new ObjectToJsonConvert()))
             .addSerializer(BigDecimal.class, (JsonSerializer<BigDecimal>) NumberSerializer.bigDecimalAsStringSerializer())
             .addSerializer(Double.class, new DoubleSerializer())
             .addSerializer(double.class, new DoubleSerializer())
@@ -351,6 +349,14 @@ public class JsonUtil {
         return DEFAULT_INSTANCE.convertValue(fromValue, typeReference);
     }
 
+    public static <T> T treeToValue(TreeNode treeNode, Class<T> valueType) {
+        try {
+            return DEFAULT_INSTANCE.treeToValue(treeNode, valueType);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @SneakyThrows
     @SuppressWarnings("unchecked")
     public static List<Map<String, Object>> readListMap(String json) {
@@ -403,10 +409,6 @@ public class JsonUtil {
 
         itemSet.addAll(tobeMergeItems);
         return JsonUtil.convertValue(itemSet, ArrayNode.class);
-    }
-
-    public static Json fromObject(Object object) {
-        return new DefaultJson().fromObject(object);
     }
 
     @Getter

@@ -184,7 +184,6 @@ import java.sql.PreparedStatement;
  */
 public class PostgresqlJsonNodeTypeHandler implements IJsonNodeTypeHandler {
 
-
     @Override
     public String getSupportDatabaseProductName() {
         return "PostgreSQL";
