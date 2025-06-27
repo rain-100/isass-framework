@@ -168,11 +168,14 @@
 
 package vip.isass.framework.net.core.handler.manager;
 
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.collection.ConcurrentHashSet;
 import cn.hutool.core.exceptions.ExceptionUtil;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.TypeUtil;
 import lombok.extern.slf4j.Slf4j;
+import vip.isass.framework.net.core.handler.IEventHandler;
 import vip.isass.framework.net.core.handler.OnAnyMessageEventHandler;
 import vip.isass.framework.net.core.handler.OnConnectEventHandler;
 import vip.isass.framework.net.core.handler.OnDisconnectEventHandler;
@@ -180,15 +183,19 @@ import vip.isass.framework.net.core.handler.OnErrorEventHandler;
 import vip.isass.framework.net.core.handler.OnMessageEventHandler;
 import vip.isass.framework.net.core.message.Message;
 import vip.isass.framework.net.core.message.MessageCmd;
-import vip.isass.framework.net.core.session.ISessionService;
+import vip.isass.framework.net.core.session.service.ISessionService;
 import vip.isass.framework.net.core.session.Session;
 import vip.isass.framework.serialization.jackson.ConvertUtil;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.ServiceLoader;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * todo 事件管理器
@@ -196,74 +203,82 @@ import java.util.Map;
  * @author Rain
  */
 @Slf4j
-// @Component
-public class EventManager implements IEventManager {
+public class EventManager {
+
+    static {
+        ServiceLoader<IEventHandler> eventHandlers = ServiceLoader.load(IEventHandler.class);
+        addHandlers(eventHandlers.stream().map(ServiceLoader.Provider::get).collect(Collectors.toList()));
+    }
 
     // @Autowired
     private ISessionService sessionService;
 
-    // @Autowired(required = false)
-    private List<OnConnectEventHandler> onConnectEventHandlers;
 
-    // @Autowired(required = false)
-    private List<OnDisconnectEventHandler> onDisconnectEventHandlers;
+    private static List<OnConnectEventHandler> ON_CONNECT_EVENT_HANDLERS = new ArrayList<>();
 
-    // @Autowired(required = false)
-    private List<OnErrorEventHandler> onErrorEventHandlers;
+    private static List<OnDisconnectEventHandler> ON_DISCONNECT_EVENT_HANDLERS = new ArrayList<>();
 
-    // @Autowired(required = false)
-    private List<OnAnyMessageEventHandler<?>> onAnyMessageEventHandlers;
+    private static List<OnErrorEventHandler> ON_ERROR_EVENT_HANDLERS = new ArrayList<>();
 
-    private List<OnMessageEventHandler<?>> onMessageEventHandlers;
+    private static List<OnAnyMessageEventHandler<?>> ON_ANY_MESSAGE_EVENT_HANDLERS = new ArrayList<>();
 
-    private Map<String, List<OnMessageEventHandler<?>>> onMessageEventHandlerMap = Collections.emptyMap();
+    private static List<OnMessageEventHandler<?>> ON_MESSAGE_EVENT_HANDLERS = new ArrayList<>();
 
-    // @Autowired(required = false)
-    // public void onMessageEventHandlers(@Autowired(required = false) List<OnMessageEventHandler<?>> onMessageEventHandlers) {
-    public void onMessageEventHandlers(List<OnMessageEventHandler<?>> onMessageEventHandlers) {
-        this.onMessageEventHandlers = onMessageEventHandlers;
-        if (onMessageEventHandlers == null) {
+    private static Map<String, List<OnMessageEventHandler<?>>> ON_MESSAGE_EVENT_HANDLER_MAP = new HashMap<>();
+
+    public static Set<IEventHandler> HANDLERS = new ConcurrentHashSet<>();
+
+    public static void addHandlers(Collection<IEventHandler> handlers) {
+        if (CollUtil.isEmpty(handlers)) {
             return;
         }
 
-        onMessageEventHandlerMap = MapUtil.newHashMap(onMessageEventHandlers.size());
-        onMessageEventHandlers
-                .forEach(h -> onMessageEventHandlerMap
-                        .computeIfAbsent(StrUtil.nullToEmpty(h.getCmd()), s -> new ArrayList<>())
-                        .add(h));
+        HANDLERS.addAll(handlers);
+        handlers.forEach(handler -> {
+            if (handler instanceof OnConnectEventHandler) {
+                ON_CONNECT_EVENT_HANDLERS.add((OnConnectEventHandler) handler);
+            } else if (handler instanceof OnDisconnectEventHandler) {
+                ON_DISCONNECT_EVENT_HANDLERS.add((OnDisconnectEventHandler) handler);
+            } else if (handler instanceof OnErrorEventHandler) {
+                ON_ERROR_EVENT_HANDLERS.add((OnErrorEventHandler) handler);
+            } else if (handler instanceof OnAnyMessageEventHandler) {
+                ON_ANY_MESSAGE_EVENT_HANDLERS.add((OnAnyMessageEventHandler<?>) handler);
+            } else if (handler instanceof OnMessageEventHandler<?> h) {
+                ON_MESSAGE_EVENT_HANDLERS.add(h);
+                ON_MESSAGE_EVENT_HANDLER_MAP
+                        .computeIfAbsent(StrUtil.nullToEmpty(h.getEvent()), s -> new ArrayList<>())
+                        .add(h);
+            }
+        });
     }
 
-    @Override
-    public void onConnect(Session<?> session) {
+    public static void onConnect(Session<?> session) {
         sessionService.addSession(session);
-        if (onConnectEventHandlers != null) {
-            onConnectEventHandlers.forEach(h -> h.onConnect(session));
-        }
+        ON_CONNECT_EVENT_HANDLERS.forEach(h -> h.onConnect(session));
 
         log.debug("[{}]客户端连接，客户端ip：{}", session.getServerType().getSimpleName(), session.getRemoteIp());
     }
 
-    @Override
-    public void onDisconnect(Session<?> session) {
-        if (onDisconnectEventHandlers != null) {
+    public static void onDisconnect(Session<?> session) {
+        ON_DISCONNECT_EVENT_HANDLERS.forEach(h -> {
             try {
-                onDisconnectEventHandlers.forEach(h -> h.onDisconnect(session));
+                h.onDisconnect(session);
             } catch (Exception e) {
-                log.error("执行 OnDisconnectEventHandler 异常：{}", e.getMessage(), e);
+                log.error("执行[{}.onDisconnect()]方法异常：{}", h.getClass().getSimpleName(), e.getMessage(), e);
             }
-        }
+        });
+
         sessionService.removeSession(session);
         log.debug("[{}]客户端断连，客户端ip：{}", session.getServerType().getSimpleName(), session.getRemoteIp());
     }
 
-    @Override
     @SuppressWarnings("unchecked")
-    public <T> void onMessage(Message message) {
-        log.trace("收到客户端消息: cmd[{}] payload[{}]", message.getCmd(), message.getPayload());
+    public static <T> void onMessage(Message message) {
+        log.trace("收到客户端消息: event[{}] payload[{}]", message.getCmd(), message.getPayload());
 
         List<OnMessageEventHandler<?>> handlers = StrUtil.isBlank(message.getCmd())
-                ? onMessageEventHandlers
-                : onMessageEventHandlerMap.get(message.getCmd());
+                ? ON_MESSAGE_EVENT_HANDLERS
+                : ON_MESSAGE_EVENT_HANDLER_MAP.get(message.getCmd());
 
         Map<Type, T> convertedPayloadMap = MapUtil.newHashMap(2);
 
@@ -298,8 +313,8 @@ public class EventManager implements IEventManager {
             }
         }
 
-        if (onAnyMessageEventHandlers != null) {
-            for (OnAnyMessageEventHandler<?> handler : onAnyMessageEventHandlers) {
+        if (ON_ANY_MESSAGE_EVENT_HANDLERS != null) {
+            for (OnAnyMessageEventHandler<?> handler : ON_ANY_MESSAGE_EVENT_HANDLERS) {
                 OnAnyMessageEventHandler<T> h = (OnAnyMessageEventHandler<T>) handler;
                 T convertedPayload;
                 try {
@@ -331,10 +346,9 @@ public class EventManager implements IEventManager {
         convertedPayloadMap.clear();
     }
 
-    @Override
-    public void onError(Session<?> session, Throwable throwable) {
-        if (onErrorEventHandlers != null) {
-            onErrorEventHandlers.forEach(h -> h.onError(session, null, null, throwable));
+    public static void onError(Session<?> session, Throwable throwable) {
+        if (ON_ERROR_EVENT_HANDLERS != null) {
+            ON_ERROR_EVENT_HANDLERS.forEach(h -> h.onError(session, null, null, throwable));
         }
         Throwable e = ExceptionUtil.unwrap(throwable);
         session.sendMessage(MessageCmd.ERROR, "发生异常" + e.getMessage());
@@ -346,7 +360,7 @@ public class EventManager implements IEventManager {
         session.close();
     }
 
-    private void replyMessage(Message message, String cmd, Object payload) {
+    private static void replyMessage(Message message, String cmd, Object payload) {
         if (message.getSenderSession() != null) {
             message.getSenderSession().sendMessage(cmd, payload);
             return;

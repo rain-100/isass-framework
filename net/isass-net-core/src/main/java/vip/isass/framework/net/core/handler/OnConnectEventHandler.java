@@ -175,7 +175,7 @@ import vip.isass.framework.net.core.session.Session;
  *
  * @author Rain
  */
-public interface OnConnectEventHandler {
+public interface OnConnectEventHandler extends IEventHandler {
 
     /**
      * 连接创建事件

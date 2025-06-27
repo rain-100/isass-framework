@@ -166,29 +166,67 @@
  * Library.
  */
 
-package vip.isass.framework.net.core.handler;
+package vip.isass.framework.net.core;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
-import lombok.experimental.SuperBuilder;
+import jakarta.annotation.PreDestroy;
+import lombok.extern.slf4j.Slf4j;
+import vip.isass.framework.net.core.server.Server;
 
-@Getter
-@Setter
-@ToString
-@SuperBuilder
-@NoArgsConstructor
-@AllArgsConstructor
-public class P2pMessage {
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ServiceLoader;
 
-    private String fromUserId;
+/**
+ * 网络模块管理器
+ * 负责资源初始化
+ */
+@Slf4j
+public class NetModuleManager {
 
-    private String targetUserId;
+    /**
+     * 已启动的网络服务
+     */
+    private static List<Server> SERVERS = new ArrayList<>();
 
-    private String bizType;
+    /**
+     * 启动服务
+     * 所有通过 spi 实现的 Server 都会启动
+     */
+    public static void startServers() {
+        ServiceLoader<Server> servers = ServiceLoader.load(Server.class);
+        for (Server server : servers) {
+            try {
+                server.start();
+                SERVERS.add(server);
+            } catch (Exception e) {
+                log.error("启动[{}]失败：{}", server.getClass().getSimpleName(), e.getMessage(), e);
+            }
+        }
+    }
 
-    private Object message;
+    /**
+     * 启动服务
+     */
+    public static void startServer(Server server) {
+        server.start();
+        SERVERS.add(server);
+    }
 
+    /**
+     * 停止服务
+     */
+    @PreDestroy
+    public static void stopServers() {
+        Iterator<Server> iterator = SERVERS.iterator();
+        while (iterator.hasNext()) {
+            Server next = iterator.next();
+            try {
+                next.stop();
+            } catch (Exception e) {
+                log.error("关闭网络模块服务[{}]失败：{}", next.getClass().getSimpleName(), e.getMessage(), e);
+            }
+            iterator.remove();
+        }
+    }
 }

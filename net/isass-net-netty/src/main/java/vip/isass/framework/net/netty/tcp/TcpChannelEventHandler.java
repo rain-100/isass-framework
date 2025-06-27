@@ -175,7 +175,7 @@ import jakarta.annotation.Resource;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
-import vip.isass.framework.net.core.session.ISessionService;
+import vip.isass.framework.net.core.session.service.ISessionService;
 import vip.isass.framework.net.netty.channel.ChannelEventHandler;
 import vip.isass.framework.net.netty.packet.TcpPacket;
 import vip.isass.framework.net.netty.request.Request;

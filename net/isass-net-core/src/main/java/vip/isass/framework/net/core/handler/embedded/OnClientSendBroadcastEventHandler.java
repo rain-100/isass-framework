@@ -166,41 +166,36 @@
  * Library.
  */
 
-package vip.isass.framework.net.core.handler.manager;
+package vip.isass.framework.net.core.handler.embedded;
 
-import vip.isass.framework.net.core.handler.IMessageEventRegister;
+import com.google.auto.service.AutoService;
+import jakarta.annotation.Resource;
+import vip.isass.framework.net.core.handler.IEventHandler;
 import vip.isass.framework.net.core.handler.OnMessageEventHandler;
-
-import java.util.List;
-import java.util.stream.Collectors;
+import vip.isass.framework.net.core.message.Message;
+import vip.isass.framework.net.core.message.MessageCmd;
+import vip.isass.framework.net.core.session.service.ISessionService;
 
 /**
- * todo 消息事件处理注册管理
+ * 客户端发送的广播事件处理器
  *
  * @author rain
  */
-public class MessageEventRegisterManager {
+@AutoService(IEventHandler.class)
+public class OnClientSendBroadcastEventHandler implements OnMessageEventHandler<Object> {
 
-    private List<IMessageEventRegister> messageEventRegisters;
+    @Resource
+    private ISessionService sessionService;
 
-    private List<OnMessageEventHandler<?>> onMessageEventHandlers;
-
-    public void afterPropertiesSet() {
-        register();
+    @Override
+    public String getEvent() {
+        return MessageCmd.CLIENT_SEND_BROADCAST;
     }
 
-    private void register() {
-        if (messageEventRegisters == null || onMessageEventHandlers == null) {
-            return;
-        }
-
-        messageEventRegisters.forEach(r -> r.listening(
-                        onMessageEventHandlers
-                                .stream()
-                                .map(OnMessageEventHandler::getCmd)
-                                .collect(Collectors.toSet())
-                )
-        );
+    @Override
+    public Object onMessage(Message message, Object payload) {
+        sessionService.broadcastMessage(MessageCmd.CLIENT_SEND_BROADCAST, payload);
+        return null;
     }
 
 }

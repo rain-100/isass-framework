@@ -168,8 +168,8 @@
 
 package vip.isass.framework.net.websocket;
 
-import org.springframework.stereotype.Component;
-import vip.isass.framework.net.core.handler.IMessageEventRegister;
+import com.google.auto.service.AutoService;
+import vip.isass.framework.net.core.event.register.IMessageEventRegister;
 
 import java.util.Collection;
 
@@ -179,7 +179,7 @@ import java.util.Collection;
  *
  * @author rain
  */
-@Component
+@AutoService(IMessageEventRegister.class)
 public class WebsocketEventHandlerRegister implements IMessageEventRegister {
 
     @Override

@@ -168,32 +168,9 @@
 
 package vip.isass.framework.net.core.handler;
 
-import vip.isass.framework.common.service.Resp;
-import vip.isass.framework.net.core.message.Message;
-import vip.isass.framework.net.core.message.MessageCmd;
-import vip.isass.framework.net.core.session.ISessionService;
-
 /**
- * 登录事件处理器
- *
- * @author rain
+ * @author Rain
  */
-// @Configuration
-// @ConditionalOnBean(Server.class)
-public class OnLogoutEventHandler implements OnMessageEventHandler<String> {
-
-    // @Autowired
-    private ISessionService sessionService;
-
-    @Override
-    public String getCmd() {
-        return MessageCmd.LOGOUT;
-    }
-
-    @Override
-    public Object onMessage(Message message, String token) {
-        sessionService.removeUserId(message.getSenderSessionId());
-        return Resp.bizSuccess("登出成功");
-    }
+public interface IEventHandler {
 
 }

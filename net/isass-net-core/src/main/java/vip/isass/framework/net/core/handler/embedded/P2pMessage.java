@@ -166,45 +166,29 @@
  * Library.
  */
 
-package vip.isass.framework.net.core.handler;
+package vip.isass.framework.net.core.handler.embedded;
 
-import jakarta.annotation.Resource;
-import vip.isass.framework.common.service.Resp;
-import vip.isass.framework.net.core.message.Message;
-import vip.isass.framework.net.core.message.MessageCmd;
-import vip.isass.framework.net.core.session.ISessionService;
-import vip.isass.framework.security.core.authentication.jwt.JwtInfo;
-import vip.isass.framework.security.core.authentication.jwt.JwtUtil;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.experimental.SuperBuilder;
 
-import java.util.Collections;
+@Getter
+@Setter
+@ToString
+@SuperBuilder
+@NoArgsConstructor
+@AllArgsConstructor
+public class P2pMessage {
 
-/**
- * 登录事件处理器
- *
- * @author rain
- */
-public class OnLoginEventHandler implements OnMessageEventHandler<String> {
+    private String fromUserId;
 
-    // @Value("${security.jwt.secret:" + JwtUtil.DEFAULT_SECRET + "}")
-    private String secret;
+    private String targetUserId;
 
-    @Resource
-    private ISessionService sessionService;
+    private String bizType;
 
-    @Override
-    public String getCmd() {
-        return MessageCmd.LOGIN;
-    }
-
-    @Override
-    public Object onMessage(Message message, String token) {
-        JwtInfo jwtInfo = JwtUtil.parse(token, secret);
-        sessionService.setUserId(message.getSenderSessionId(), jwtInfo.getUid());
-        Long appId = jwtInfo.getAid();
-        if (appId != null) {
-            sessionService.setTags(message.getSenderSessionId(), Collections.singleton("appId:" + appId.toString()));
-        }
-        return Resp.bizSuccess(jwtInfo);
-    }
+    private Object message;
 
 }

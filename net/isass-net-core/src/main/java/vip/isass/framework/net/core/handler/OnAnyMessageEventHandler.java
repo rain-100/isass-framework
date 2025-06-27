@@ -168,7 +168,6 @@
 
 package vip.isass.framework.net.core.handler;
 
-import vip.isass.framework.net.core.session.Session;
 import vip.isass.framework.net.core.message.Message;
 
 /**
@@ -176,7 +175,7 @@ import vip.isass.framework.net.core.message.Message;
  *
  * @author Rain
  */
-public interface OnAnyMessageEventHandler<T> {
+public interface OnAnyMessageEventHandler<T> extends IEventHandler {
 
     /**
      * 收到消息事件
@@ -186,18 +185,5 @@ public interface OnAnyMessageEventHandler<T> {
      * @return 需要响应的消息体
      */
     Object onMessage(Message message, T payload);
-
-    /**
-     * todo 获取分区键，同一分区键的事件会串行出来，不同分区键的事件会并行处理。
-     * 默认返回空字符串，即事件默认会串行处理
-     *
-     * @param session 会话
-     * @param cmd     路由命令
-     * @param payload 消息体
-     * @return 分区键
-     */
-    default String partitionKey(Session<?> session, String cmd, T payload) {
-        return "";
-    }
 
 }

@@ -1,5 +1,9 @@
- # kernel-net-core
- 
+# kernel-net-core
+
+## 事件注册
+
+项目启动时，需要调用 MessageEventRegisterManager.register 方法，注册事件
+
 ``` yaml
 kernel:
   net:

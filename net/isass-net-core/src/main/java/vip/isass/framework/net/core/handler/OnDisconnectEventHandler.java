@@ -175,7 +175,7 @@ import vip.isass.framework.net.core.session.Session;
  *
  * @author Rain
  */
-public interface OnDisconnectEventHandler {
+public interface OnDisconnectEventHandler extends IEventHandler {
 
     /**
      * 断开连接事件

@@ -166,22 +166,21 @@
  * Library.
  */
 
-package vip.isass.framework.net.core.session;
+package vip.isass.framework.net.core.session.manage;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.extra.cglib.CglibUtil;
 import lombok.extern.slf4j.Slf4j;
 import vip.isass.framework.common.entrypoint.EntryPointAnno;
 import vip.isass.framework.common.entrypoint.HttpMethod;
 import vip.isass.framework.common.entrypoint.PathVariable;
 import vip.isass.framework.common.entrypoint.RequestBody;
 import vip.isass.framework.common.entrypoint.RequestParam;
-import vip.isass.framework.common.util.map.MultiKeyMultiValueBiMap;
-import vip.isass.framework.common.util.map.MultiValueBiMap;
 import vip.isass.framework.net.core.message.Message;
+import vip.isass.framework.net.core.session.Session;
+import vip.isass.framework.net.core.session.SessionBindingInfoChangeReq;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
@@ -194,94 +193,20 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
- * 会话管理器抽象类
+ * 网络会话服务，提供给业务应用调用
  *
  * @author Rain
  */
 @Slf4j
-// @Configuration
-// @ConditionalOnMissingBean(name = "sessionServiceClientProxy")
-public class LocalSessionService implements ISessionService {
-
-    // region sessionId 和 session 关系
-
-    /**
-     * 保存所有会话
-     * <p> {@literal Map<sessionId, Session>}
-     */
-    private final Map<String, Session<?>> sessionMap = new ConcurrentHashMap<>();
-
-    /**
-     * 所有会话 map 的不可变 map
-     */
-    private final Map<String, Session<?>> unmodifiableSessionMap = Collections.unmodifiableMap(sessionMap);
-
-    // endregion
-
-    private final MultiValueBiMap<String, String> userAndSessionMap = new MultiValueBiMap<>();
-
-    private final MultiValueBiMap<String, String> aliasAndSessionMap = new MultiValueBiMap<>();
-
-    private final MultiKeyMultiValueBiMap<String, String> sessionAndTagMap = new MultiKeyMultiValueBiMap<>();
-
-    // region session
-
-    @Override
-    public void addSession(Session<?> session) {
-        Assert.notNull(session, "session 不能为 null");
-        sessionMap.put(session.getSessionId(), session);
-    }
-
-    @Override
-    public Session<?> removeSession(String sessionId) {
-        Session<?> remove = sessionMap.remove(sessionId);
-        if (remove != null) {
-            removeUserId(sessionId);
-            removeAlias(sessionId);
-            removeTags(sessionId);
-        }
-        return remove;
-    }
-
-    @Override
-    public Session<?> getSessionById(String sessionId) {
-        return sessionMap.get(sessionId);
-    }
-
-    // @Override
-    // public Collection<String> findSessionIds(String userId) {
-    //     return userAndSessionMap.get(userId);
-    // }
-
-    @Override
-    public Collection<Session<?>> findAllSessions() {
-        return unmodifiableSessionMap.values();
-    }
-
-    @Override
-    public SessionInfoCollection getSessionInfoCollection() {
-        return SessionInfoCollection.builder()
-                .sessions(sessionMap.values()
-                        .parallelStream()
-                        .map(s -> CglibUtil.copy(s, DisplaySession.class))
-                        .collect(Collectors.toList()))
-                .userAndSessionMap(userAndSessionMap)
-                .aliasAndSessionMap(aliasAndSessionMap)
-                .sessionAndTagMap(sessionAndTagMap)
-                .build();
-    }
-
-    // endregion
+public class NetSessionService {
 
     // region user
 
-    @Override
     @EntryPointAnno(name = "获取用户 id", group = "网络会话服务", route = "/${spring.application.name}/session/{sessionId}/userId")
     public String getUserId(@PathVariable("sessionId") String sessionId) {
-        return userAndSessionMap.getKey(sessionId);
+        return SessionManager..getKey(sessionId);
     }
 
-    @Override
     public void setUserId(String sessionId, String userId) {
         Session<?> session = sessionMap.get(sessionId);
         if (session == null) {
@@ -291,12 +216,10 @@ public class LocalSessionService implements ISessionService {
         userAndSessionMap.put(userId, sessionId);
     }
 
-    @Override
     public void removeUserId(String sessionId) {
         userAndSessionMap.removeValue(sessionId);
     }
 
-    @Override
     @EntryPointAnno(name = "批量判断用户是否在线", group = "网络会话服务", route = "/${spring.application.name}/session/user/isOnline", httpMethod = HttpMethod.POST)
     public Map<String, Boolean> isOnline(@RequestBody Collection<String> userIds) {
         Map<String, Boolean> result = MapUtil.newHashMap(userIds.size());
@@ -310,13 +233,11 @@ public class LocalSessionService implements ISessionService {
 
     // region alias
 
-    @Override
     @EntryPointAnno(name = "获取会话别名", group = "网络会话服务", route = "/${spring.application.name}/session/{sessionId}/alias")
     public String getAlias(@PathVariable("sessionId") String sessionId) {
         return aliasAndSessionMap.getKey(sessionId);
     }
 
-    @Override
     public void setAlias(String sessionId, String alias) {
         Session<?> session = sessionMap.get(sessionId);
         if (session == null) {
@@ -326,7 +247,6 @@ public class LocalSessionService implements ISessionService {
         aliasAndSessionMap.put(alias, sessionId);
     }
 
-    @Override
     public void removeAlias(String sessionId) {
         aliasAndSessionMap.removeValue(sessionId);
     }
@@ -335,13 +255,11 @@ public class LocalSessionService implements ISessionService {
 
     // region tag
 
-    @Override
     @EntryPointAnno(name = "获取会话标签", group = "网络会话服务", route = "/${spring.application.name}/session/tags")
     public Collection<String> findTags(@PathVariable("sessionId") String sessionId) {
         return sessionAndTagMap.get(sessionId);
     }
 
-    @Override
     @EntryPointAnno(name = "根据用户获取标签", group = "网络会话服务", route = "/${spring.application.name}/session/tags/{userId}")
     public Collection<String> findTagsByUserId(@PathVariable("userId") String userId) {
         Collection<String> sessionIds = userAndSessionMap.get(userId);
@@ -376,7 +294,6 @@ public class LocalSessionService implements ISessionService {
     //     return sessionIds;
     // }
 
-    @Override
     @EntryPointAnno(name = "根据标签查找会话", group = "网络会话服务", route = "/${spring.application.name}/session/any")
     public Collection<String> findSessionsByAnyMatchTags(@RequestParam("tags") Collection<String> tags) {
         return tags.stream()
@@ -386,21 +303,18 @@ public class LocalSessionService implements ISessionService {
                 .collect(Collectors.toSet());
     }
 
-    @Override
     @EntryPointAnno(name = "判断会话是否拥有任意给定的标签", group = "网络会话服务", route = "/${spring.application.name}/session/{sessionId}/containAnyTag")
     public boolean containAnyTag(@PathVariable("sessionId") @Nonnull String sessionId, @RequestParam("tags") @Nonnull Collection<String> tags) {
         Collection<String> existingTags = sessionAndTagMap.get(sessionId);
         return CollUtil.containsAny(existingTags, tags);
     }
 
-    @Override
     @EntryPointAnno(name = "判断会话是否拥有所有给定的标签", group = "网络会话服务", route = "/${spring.application.name}/session/{sessionId}/containTags")
     public boolean containAllTags(@PathVariable("sessionId") String sessionId, @RequestParam("tags") Collection<String> tags) {
         Collection<String> existingTags = sessionAndTagMap.get(sessionId);
         return CollUtil.containsAll(existingTags, tags);
     }
 
-    @Override
     public void setTags(String sessionId, Collection<String> tags) {
         Session<?> session = sessionMap.get(sessionId);
         if (session == null) {
@@ -409,7 +323,6 @@ public class LocalSessionService implements ISessionService {
         sessionAndTagMap.replaceValues(sessionId, tags);
     }
 
-    @Override
     public void addTags(String sessionId, Collection<String> tags) {
         Session<?> session = sessionMap.get(sessionId);
         if (session == null) {
@@ -418,7 +331,6 @@ public class LocalSessionService implements ISessionService {
         sessionAndTagMap.putAll(sessionId, tags);
     }
 
-    @Override
     public void setTagsByUserId(String userId, Collection<String> tags) {
         Collection<String> sessionIds = userAndSessionMap.get(userId);
         if (CollUtil.isEmpty(sessionIds)) {
@@ -427,7 +339,6 @@ public class LocalSessionService implements ISessionService {
         sessionIds.forEach(s -> setTags(s, tags));
     }
 
-    @Override
     public void addTagsByUserId(String userId, Collection<String> tags) {
         Collection<String> sessionIds = userAndSessionMap.get(userId);
         if (CollUtil.isEmpty(sessionIds)) {
@@ -436,12 +347,10 @@ public class LocalSessionService implements ISessionService {
         sessionIds.forEach(s -> addTags(s, tags));
     }
 
-    @Override
     public void removeTags(String sessionId) {
         sessionAndTagMap.removeAll(sessionId);
     }
 
-    @Override
     public void removeTags(String sessionId, Collection<String> tags) {
         Session<?> session = sessionMap.get(sessionId);
         if (session == null) {
@@ -450,7 +359,6 @@ public class LocalSessionService implements ISessionService {
         sessionAndTagMap.removeValues(sessionId, tags);
     }
 
-    @Override
     public void removeTagsByUserId(String userId, Collection<String> tags) {
         Collection<String> sessionIds = userAndSessionMap.get(userId);
         if (CollUtil.isEmpty(sessionIds)) {
@@ -463,14 +371,12 @@ public class LocalSessionService implements ISessionService {
 
     // region message
 
-    @Override
     public void broadcastMessage(String cmd, Object payload) {
         sessionMap.entrySet()
                 .parallelStream()
                 .forEach(entry -> entry.getValue().sendMessage(cmd, payload));
     }
 
-    @Override
     public void sendMessageByUserId(String cmd, Object payload, String userId) {
         Collection<String> sessions = userAndSessionMap.get(userId);
         if (CollUtil.isEmpty(sessions)) {
@@ -481,14 +387,12 @@ public class LocalSessionService implements ISessionService {
                 .forEach(s -> s.sendMessage(cmd, payload));
     }
 
-    @Override
     public void sendMessageByUserIds(String cmd, Object payload, Collection<String> userIds) {
         for (String userId : userIds) {
             sendMessageByUserId(cmd, payload, userId);
         }
     }
 
-    @Override
     public void sendMessageToLoginUsers(String cmd, Object payload) {
         userAndSessionMap.entries()
                 .parallelStream()
@@ -497,7 +401,6 @@ public class LocalSessionService implements ISessionService {
                 .forEach(s -> s.sendMessage(cmd, payload));
     }
 
-    @Override
     public void sendMessageByAlias(String cmd, Object payload, String alias) {
         Collection<String> sessionIds = aliasAndSessionMap.get(alias);
         if (sessionIds == null) {
@@ -508,7 +411,6 @@ public class LocalSessionService implements ISessionService {
                 .forEach(s -> s.sendMessage(cmd, payload));
     }
 
-    @Override
     public void sendMessageByAlias(String cmd, Object payload, Collection<String> aliases) {
         Set<String> sentSessionIds = new HashSet<>();
         for (String alias : aliases) {
@@ -530,7 +432,6 @@ public class LocalSessionService implements ISessionService {
         }
     }
 
-    @Override
     public void sendMessageByTag(String cmd, Object payload, String tag) {
         Collection<String> sessionIds = sessionAndTagMap.getKey(tag);
         if (sessionIds == null) {
@@ -541,7 +442,6 @@ public class LocalSessionService implements ISessionService {
                 .forEach(s -> s.sendMessage(cmd, payload));
     }
 
-    @Override
     public void sendMessageByTags(String cmd, Object payload, Collection<String> tags) {
         Set<String> sentSessionIds = new HashSet<>();
         for (String tag : tags) {
@@ -564,7 +464,6 @@ public class LocalSessionService implements ISessionService {
         }
     }
 
-    @Override
     public void sendMessageByAnyTags(String cmd, Object payload, Collection<String> tags) {
         Map<String, Boolean> sentSessionIds = new ConcurrentHashMap<>();
         for (String tag : tags) {
@@ -587,7 +486,6 @@ public class LocalSessionService implements ISessionService {
      *
      * @param message 消息
      */
-    @Override
     @EntryPointAnno(name = "发送消息给客户端", group = "网络会话服务", route = "/${spring.application.name}/session/send", httpMethod = HttpMethod.POST)
     public void sendMessage(@RequestBody Message message) {
         // 1：判断 receiverSession 和 receiverSessionId
@@ -756,7 +654,6 @@ public class LocalSessionService implements ISessionService {
         }
     }
 
-    @Override
     @EntryPointAnno(name = "批量发送消息给客户端", group = "网络会话服务", route = "/${spring.application.name}/session/send/batch", httpMethod = HttpMethod.POST)
     public void sendMessages(@RequestBody Collection<Message> messages) {
         messages.parallelStream().forEach(this::sendMessage);

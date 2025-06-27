@@ -173,9 +173,9 @@ import com.corundumstudio.socketio.annotation.OnDisconnect;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import vip.isass.framework.net.core.session.ISessionService;
-import vip.isass.framework.net.core.session.Session;
 import vip.isass.framework.net.core.handler.manager.EventManager;
+import vip.isass.framework.net.core.session.service.ISessionService;
+import vip.isass.framework.net.core.session.Session;
 
 /**
  * socketIo 断开连接事件监听器
@@ -189,13 +189,10 @@ public class OnSocketIoDisconnectListener {
     @Autowired
     private ISessionService sessionManager;
 
-    @Autowired
-    private EventManager eventManager;
-
     @OnDisconnect
     public void onDisconnect(SocketIOClient client) {
         Session<?> session = sessionManager.getSessionById(client.getSessionId().toString());
-        eventManager.onDisconnect(session);
+        EventManager.onDisconnect(session);
     }
 
 }

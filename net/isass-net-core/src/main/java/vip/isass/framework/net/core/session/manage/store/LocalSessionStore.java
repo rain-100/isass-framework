@@ -166,346 +166,74 @@
  * Library.
  */
 
-package vip.isass.framework.net.core.session;
+package vip.isass.framework.net.core.session.manage.store;
 
 import cn.hutool.core.lang.Assert;
-import vip.isass.framework.net.core.message.Message;
+import cn.hutool.extra.cglib.CglibUtil;
+import vip.isass.framework.common.util.map.MultiKeyMultiValueBiMap;
+import vip.isass.framework.common.util.map.MultiValueBiMap;
+import vip.isass.framework.net.core.session.DisplaySession;
+import vip.isass.framework.net.core.session.Session;
+import vip.isass.framework.net.core.session.SessionInfoCollection;
 
-import javax.annotation.Nonnull;
-import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
- * 会话服务，记录已经建立链接的会话，上层应用使用本接口发送消息给对端
- * 删除 session 时，会自动调用 session 的 close 方法
- *
- * @author Rain
+ * 基于本地内存的会话存储器
+ * 适用于单体化非集群模式的会话管理
  */
-public interface ISessionService {
+public class LocalSessionStore implements ISessionStore {
 
     /**
-     * 默认的命名空间
+     * 保存所有会话
+     * <p> {@literal Map<sessionId, Session>}
      */
-    String DEFAULT_NAMESPACE = "default";
-
-    // region session
-
-    /**
-     * 新增会话
-     * todo 不应该暴露此接口给应用调用
-     *
-     * @param session 会话
-     */
-    void addSession(Session<?> session);
+    public static final Map<String, Session<?>> sessionMap = new ConcurrentHashMap<>();
 
     /**
-     * 删除会话
-     * todo 不应该暴露此接口给应用调用
-     *
-     * @param session 会话
+     * 所有会话 map 的不可变 map
      */
-    default void removeSession(Session<?> session) {
+    public final Map<String, Session<?>> unmodifiableSessionMap = Collections.unmodifiableMap(sessionMap);
+
+    public final MultiValueBiMap<String, String> userAndSessionMap = new MultiValueBiMap<>();
+
+    public final MultiValueBiMap<String, String> aliasAndSessionMap = new MultiValueBiMap<>();
+
+    public final MultiKeyMultiValueBiMap<String, String> sessionAndTagMap = new MultiKeyMultiValueBiMap<>();
+
+    public void addSession(Session<?> session) {
+        session.hashCode()
         Assert.notNull(session, "session 不能为 null");
-        removeSession(session.getSessionId());
+        sessionMap.put(session.getSessionId(), session);
     }
 
-    /**
-     * 根据会话 id 删除会话
-     * todo 不应该暴露此接口给应用调用
-     *
-     * @param sessionId 会话 id
-     * @return 被删除的会话
-     */
-    Session<?> removeSession(String sessionId);
+    public Session<?> removeSession(String sessionId) {
+        Session<?> remove = sessionMap.remove(sessionId);
+        if (remove != null) {
+            removeUserId(sessionId);
+            removeAlias(sessionId);
+            removeTags(sessionId);
+        }
+        return remove;
+    }
 
-    /**
-     * 根据链接通道获取会话
-     * todo 不应该暴露此接口给应用调用
-     *
-     * @param sessionId 会话 id
-     * @return 会话
-     */
-    Session<?> getSessionById(String sessionId);
+    public Session<?> getSessionById(String sessionId) {
+        return sessionMap.get(sessionId);
+    }
 
-    /**
-     * 获取会话 id
-     *
-     * @param userId 用户 id
-     * @return 会话 id 集合
-     */
-    // Collection<String> findSessionIds(String userId);
+    public SessionInfoCollection getSessionInfoCollection() {
+        return SessionInfoCollection.builder()
+                .sessions(sessionMap.values()
+                        .parallelStream()
+                        .map(s -> CglibUtil.copy(s, DisplaySession.class))
+                        .collect(Collectors.toList()))
+                .userAndSessionMap(userAndSessionMap)
+                .aliasAndSessionMap(aliasAndSessionMap)
+                .sessionAndTagMap(sessionAndTagMap)
+                .build();
+    }
 
-    /**
-     * 获取所有会话
-     *
-     * @return 会话集合
-     */
-    Collection<Session<?>> findAllSessions();
-
-    /**
-     * 获取 session 所有信息，用于调试
-     *
-     * @return 会话信息集合
-     */
-    SessionInfoCollection getSessionInfoCollection();
-
-    // endregion
-
-    // region user id
-
-    /**
-     * 获取用户 id
-     *
-     * @return 用户 id
-     */
-    String getUserId(String sessionId);
-
-    /**
-     * 设置用户 id
-     *
-     * @param userId 用户 id
-     */
-    void setUserId(String sessionId, String userId);
-
-    /**
-     * 删除指定会话绑定的用户
-     *
-     * @param sessionId 会话 id
-     */
-    void removeUserId(String sessionId);
-
-    /**
-     * 批量判断用户是否在线
-     *
-     * @param userIds 用户 id 集合
-     * @return 每个用户是否在线
-     */
-    Map<String, Boolean> isOnline(Collection<String> userIds);
-
-    // endregion
-
-    // region alias
-
-    /**
-     * 获取别名
-     *
-     * @return 别名
-     */
-    String getAlias(String sessionId);
-
-    /**
-     * 设置别名
-     *
-     * @param sessionId 会话
-     * @param alias     别名
-     */
-    void setAlias(String sessionId, String alias);
-
-    /**
-     * 删除会话的别名
-     *
-     * @param sessionId 会话 id
-     */
-    void removeAlias(String sessionId);
-
-    // endregion
-
-    // region tag
-
-    /**
-     * 获取标签
-     *
-     * @return 标签列表
-     */
-    Collection<String> findTags(String sessionId);
-
-    /**
-     * 根据用户获取标签
-     *
-     * @return 标签列表
-     */
-    Collection<String> findTagsByUserId(String userId);
-
-    /**
-     * 查找符合所有标签的会话
-     *
-     * @param tags 标签集合
-     * @return 符合条件的会话集合
-     */
-    // Collection<String> findSessionIds(Collection<String> tags);
-
-    /**
-     * 根据标签查找会话
-     *
-     * @param tags 标签集合
-     * @return 符合条件的会话集合
-     */
-    Collection<String> findSessionsByAnyMatchTags(Collection<String> tags);
-
-    /**
-     * 判断会话是否拥有任意给定的标签
-     *
-     * @param sessionId 会话 id
-     * @param tags      给定的标签
-     * @return 是否拥有标签
-     */
-    boolean containAnyTag(@Nonnull String sessionId, @Nonnull Collection<String> tags);
-
-    /**
-     * 判断会话是否拥有所有给定的标签
-     *
-     * @param sessionId 会话 id
-     * @param tags      给定的标签
-     * @return 是否拥有标签
-     */
-    boolean containAllTags(String sessionId, Collection<String> tags);
-
-    /**
-     * 设置标签
-     *
-     * @param tags 标签集合
-     */
-    void setTags(String sessionId, Collection<String> tags);
-
-    /**
-     * 设置标签
-     *
-     * @param userId 用户 id
-     */
-    void setTagsByUserId(String userId, Collection<String> tags);
-
-    /**
-     * 添加标签
-     *
-     * @param tags 标签集合
-     */
-    void addTags(String sessionId, Collection<String> tags);
-
-    /**
-     * 添加标签
-     *
-     * @param userId 用户 id
-     */
-    void addTagsByUserId(String userId, Collection<String> tags);
-
-    /**
-     * 删除标签
-     *
-     * @param sessionId 会话 id
-     */
-    void removeTags(String sessionId);
-
-    /**
-     * 删除标签
-     *
-     * @param sessionId 会话 id
-     * @param tags      标签集合
-     */
-    void removeTags(String sessionId, Collection<String> tags);
-
-    /**
-     * 删除标签
-     *
-     * @param userId 用户 id
-     */
-    void removeTagsByUserId(String userId, Collection<String> tags);
-
-    // endregion
-
-    // region message
-
-    /**
-     * 广播消息
-     *
-     * @param cmd     路由命令
-     * @param payload 消息内容
-     */
-    void broadcastMessage(String cmd, Object payload);
-
-    /**
-     * 发送消息给指定的用户
-     *
-     * @param cmd     路由命令
-     * @param payload 消息内容
-     * @param userId  用户 id
-     */
-    void sendMessageByUserId(String cmd, Object payload, String userId);
-
-    /**
-     * 发送消息给指定的用户集合
-     *
-     * @param cmd     路由命令
-     * @param payload 消息内容
-     * @param userIds 用户 id 集合
-     */
-    void sendMessageByUserIds(String cmd, Object payload, Collection<String> userIds);
-
-    /**
-     * 发送消息给已登录用户
-     *
-     * @param cmd     路由命令
-     * @param payload 消息内容
-     */
-    void sendMessageToLoginUsers(String cmd, Object payload);
-
-    /**
-     * 发送消息给拥有指定标签的用户
-     *
-     * @param cmd     路由命令
-     * @param payload 消息内容
-     * @param alias   标签
-     */
-    void sendMessageByAlias(String cmd, Object payload, String alias);
-
-    /**
-     * 发送消息给拥有指定标签的用户
-     *
-     * @param cmd     路由命令
-     * @param payload 消息内容
-     * @param aliases 标签集合
-     */
-    void sendMessageByAlias(String cmd, Object payload, Collection<String> aliases);
-
-    /**
-     * 发送消息给拥有指定标签的用户
-     *
-     * @param cmd     路由命令
-     * @param payload 消息内容
-     * @param tag     标签
-     */
-    void sendMessageByTag(String cmd, Object payload, String tag);
-
-    /**
-     * 发送消息给拥有指定标签的用户
-     *
-     * @param cmd     路由命令
-     * @param payload 消息内容
-     * @param tags    标签集合
-     */
-    void sendMessageByTags(String cmd, Object payload, Collection<String> tags);
-
-    /**
-     * 发送消息给拥有任意指定标签的用户
-     *
-     * @param cmd     路由命令
-     * @param payload 消息内容
-     * @param tags    标签集合
-     */
-    void sendMessageByAnyTags(String cmd, Object payload, Collection<String> tags);
-
-    /**
-     * 发送消息给客户端
-     *
-     * @param message 消息
-     */
-    void sendMessage(Message message);
-
-    /**
-     * 发送消息给客户端
-     *
-     * @param messages 消息列表
-     */
-    void sendMessages(Collection<Message> messages);
-
-    // endregion
 }

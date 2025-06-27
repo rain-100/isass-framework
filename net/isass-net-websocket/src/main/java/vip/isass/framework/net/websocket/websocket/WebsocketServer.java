@@ -168,6 +168,7 @@
 
 package vip.isass.framework.net.websocket.websocket;
 
+import com.google.auto.service.AutoService;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
@@ -178,7 +179,6 @@ import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 import vip.isass.framework.net.core.server.NetProtocol;
 import vip.isass.framework.net.core.server.Server;
 import vip.isass.framework.net.websocket.WebsocketProperties;
@@ -191,7 +191,7 @@ import java.util.concurrent.Executors;
  * @author Rain
  */
 @Slf4j
-@Component
+@AutoService(Server.class)
 public class WebsocketServer implements Server {
 
     @Resource

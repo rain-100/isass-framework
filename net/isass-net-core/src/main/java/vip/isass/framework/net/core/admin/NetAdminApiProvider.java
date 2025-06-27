@@ -172,7 +172,7 @@ import cn.hutool.core.collection.CollUtil;
 import vip.isass.framework.common.entrypoint.EntryPointEntity;
 import vip.isass.framework.common.entrypoint.ApiGroup;
 import vip.isass.framework.common.service.Resp;
-import vip.isass.framework.net.core.session.ISessionService;
+import vip.isass.framework.net.core.session.service.ISessionService;
 import vip.isass.framework.net.core.session.SessionInfoCollection;
 
 import java.util.List;

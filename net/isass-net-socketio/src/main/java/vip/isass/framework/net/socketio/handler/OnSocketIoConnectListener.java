@@ -171,7 +171,6 @@ package vip.isass.framework.net.socketio.handler;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.annotation.OnConnect;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import vip.isass.framework.net.core.handler.manager.EventManager;
 import vip.isass.framework.net.socketio.SocketIoSession;
@@ -185,13 +184,10 @@ import vip.isass.framework.net.socketio.SocketIoSession;
 @Component
 public class OnSocketIoConnectListener {
 
-    @Autowired
-    private EventManager eventManager;
-
     @OnConnect
     public void onConnect(SocketIOClient client) {
         SocketIoSession socketIoSession = new SocketIoSession(client);
-        eventManager.onConnect(socketIoSession);
+        EventManager.onConnect(socketIoSession);
     }
 
 }

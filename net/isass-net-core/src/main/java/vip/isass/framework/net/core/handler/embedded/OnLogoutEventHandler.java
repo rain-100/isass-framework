@@ -166,30 +166,36 @@
  * Library.
  */
 
-package vip.isass.framework.net.core.handler;
+package vip.isass.framework.net.core.handler.embedded;
 
-import java.util.Collection;
+import com.google.auto.service.AutoService;
+import vip.isass.framework.common.service.Resp;
+import vip.isass.framework.net.core.handler.IEventHandler;
+import vip.isass.framework.net.core.handler.OnMessageEventHandler;
+import vip.isass.framework.net.core.message.Message;
+import vip.isass.framework.net.core.message.MessageCmd;
+import vip.isass.framework.net.core.session.service.ISessionService;
 
 /**
- * 消息事件处理器的注册器，长连接实现方实现此接口，把消息事件处理器绑定到长连接实现服务
+ * 登录事件处理器
  *
  * @author rain
  */
-public interface IMessageEventRegister {
+@AutoService(IEventHandler.class)
+public class OnLogoutEventHandler implements OnMessageEventHandler<String> {
 
-    /**
-     * 监听路由命令
-     *
-     * @param commands 路由命令
-     */
-    void listening(Collection<String> commands);
+    // @Autowired
+    private ISessionService sessionService;
 
-    /**
-     * 删除监听
-     * 取消监听路由命令
-     *
-     * @param commands 路由命令
-     */
-    void removeListening(Collection<String> commands);
+    @Override
+    public String getEvent() {
+        return MessageCmd.LOGOUT;
+    }
+
+    @Override
+    public Object onMessage(Message message, String token) {
+        sessionService.removeUserId(message.getSenderSessionId());
+        return Resp.bizSuccess("登出成功");
+    }
 
 }

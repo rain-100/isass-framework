@@ -168,6 +168,7 @@
 
 package vip.isass.framework.net.netty.tcp;
 
+import com.google.auto.service.AutoService;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
@@ -189,8 +190,7 @@ import java.util.concurrent.Executors;
  * @author Rain
  */
 @Slf4j
-// @Configuration
-// @ConditionalOnProperty(prefix = "core-net.tcp", name = "enabled", havingValue = "true")
+@AutoService(Server.class)
 public class TcpServer implements Server {
 
     @Resource

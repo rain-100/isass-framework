@@ -175,7 +175,7 @@ import vip.isass.framework.net.core.session.Session;
  *
  * @author Rain
  */
-public interface OnErrorEventHandler {
+public interface OnErrorEventHandler extends IEventHandler {
 
     /**
      * 收到错误消息事件

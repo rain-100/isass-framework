@@ -193,7 +193,7 @@ import vip.isass.framework.net.core.message.Message;
 import vip.isass.framework.net.core.server.NetProtocol;
 import vip.isass.framework.net.core.server.NetServerInfo;
 import vip.isass.framework.net.core.server.allocator.INodeAllocatorService;
-import vip.isass.framework.net.core.session.ISessionService;
+import vip.isass.framework.net.core.session.service.ISessionService;
 import vip.isass.framework.net.core.session.Session;
 import vip.isass.framework.net.core.session.SessionBindingInfoChangeReq;
 import vip.isass.framework.net.core.session.SessionInfoCollection;

@@ -1,0 +1,922 @@
+/*
+ *                    GNU LESSER GENERAL PUBLIC LICENSE
+ *                        Version 3, 29 June 2007
+ *
+ *  Copyright (C) 2007 Free Software Foundation, Inc. <http://fsf.org/>
+ *  Everyone is permitted to copy and distribute verbatim copies
+ *  of this license document, but changing it is not allowed.
+ *
+ *
+ *   This version of the GNU Lesser General Public License incorporates
+ * the terms and conditions of version 3 of the GNU General Public
+ * License, supplemented by the additional permissions listed below.
+ *
+ *   0. Additional Definitions.
+ *
+ *   As used herein, "this License" refers to version 3 of the GNU Lesser
+ * General Public License, and the "GNU GPL" refers to version 3 of the GNU
+ * General Public License.
+ *
+ *   "The Library" refers to a covered work governed by this License,
+ * other than an Application or a Combined Work as defined below.
+ *
+ *   An "Application" is any work that makes use of an interface provided
+ * by the Library, but which is not otherwise based on the Library.
+ * Defining a subclass of a class defined by the Library is deemed a mode
+ * of using an interface provided by the Library.
+ *
+ *   A "Combined Work" is a work produced by combining or linking an
+ * Application with the Library.  The particular version of the Library
+ * with which the Combined Work was made is also called the "Linked
+ * Version".
+ *
+ *   The "Minimal Corresponding Source" for a Combined Work means the
+ * Corresponding Source for the Combined Work, excluding any source code
+ * for portions of the Combined Work that, considered in isolation, are
+ * based on the Application, and not on the Linked Version.
+ *
+ *   The "Corresponding Application Code" for a Combined Work means the
+ * object code and/or source code for the Application, including any data
+ * and utility programs needed for reproducing the Combined Work from the
+ * Application, but excluding the System Libraries of the Combined Work.
+ *
+ *   1. Exception to Section 3 of the GNU GPL.
+ *
+ *   You may convey a covered work under sections 3 and 4 of this License
+ * without being bound by section 3 of the GNU GPL.
+ *
+ *   2. Conveying Modified Versions.
+ *
+ *   If you modify a copy of the Library, and, in your modifications, a
+ * facility refers to a function or data to be supplied by an Application
+ * that uses the facility (other than as an argument passed when the
+ * facility is invoked), then you may convey a copy of the modified
+ * version:
+ *
+ *    a) under this License, provided that you make a good faith effort to
+ *    ensure that, in the event an Application does not supply the
+ *    function or data, the facility still operates, and performs
+ *    whatever part of its purpose remains meaningful, or
+ *
+ *    b) under the GNU GPL, with none of the additional permissions of
+ *    this License applicable to that copy.
+ *
+ *   3. Object Code Incorporating Material from Library Header Files.
+ *
+ *   The object code form of an Application may incorporate material from
+ * a header file that is part of the Library.  You may convey such object
+ * code under terms of your choice, provided that, if the incorporated
+ * material is not limited to numerical parameters, data structure
+ * layouts and accessors, or small macros, inline functions and templates
+ * (ten or fewer lines in length), you do both of the following:
+ *
+ *    a) Give prominent notice with each copy of the object code that the
+ *    Library is used in it and that the Library and its use are
+ *    covered by this License.
+ *
+ *    b) Accompany the object code with a copy of the GNU GPL and this license
+ *    document.
+ *
+ *   4. Combined Works.
+ *
+ *   You may convey a Combined Work under terms of your choice that,
+ * taken together, effectively do not restrict modification of the
+ * portions of the Library contained in the Combined Work and reverse
+ * engineering for debugging such modifications, if you also do each of
+ * the following:
+ *
+ *    a) Give prominent notice with each copy of the Combined Work that
+ *    the Library is used in it and that the Library and its use are
+ *    covered by this License.
+ *
+ *    b) Accompany the Combined Work with a copy of the GNU GPL and this license
+ *    document.
+ *
+ *    c) For a Combined Work that displays copyright notices during
+ *    execution, include the copyright notice for the Library among
+ *    these notices, as well as a reference directing the user to the
+ *    copies of the GNU GPL and this license document.
+ *
+ *    d) Do one of the following:
+ *
+ *        0) Convey the Minimal Corresponding Source under the terms of this
+ *        License, and the Corresponding Application Code in a form
+ *        suitable for, and under terms that permit, the user to
+ *        recombine or relink the Application with a modified version of
+ *        the Linked Version to produce a modified Combined Work, in the
+ *        manner specified by section 6 of the GNU GPL for conveying
+ *        Corresponding Source.
+ *
+ *        1) Use a suitable shared library mechanism for linking with the
+ *        Library.  A suitable mechanism is one that (a) uses at run time
+ *        a copy of the Library already present on the user's computer
+ *        system, and (b) will operate properly with a modified version
+ *        of the Library that is interface-compatible with the Linked
+ *        Version.
+ *
+ *    e) Provide Installation Information, but only if you would otherwise
+ *    be required to provide such information under section 6 of the
+ *    GNU GPL, and only to the extent that such information is
+ *    necessary to install and execute a modified version of the
+ *    Combined Work produced by recombining or relinking the
+ *    Application with a modified version of the Linked Version. (If
+ *    you use option 4d0, the Installation Information must accompany
+ *    the Minimal Corresponding Source and Corresponding Application
+ *    Code. If you use option 4d1, you must provide the Installation
+ *    Information in the manner specified by section 6 of the GNU GPL
+ *    for conveying Corresponding Source.)
+ *
+ *   5. Combined Libraries.
+ *
+ *   You may place library facilities that are a work based on the
+ * Library side by side in a single library together with other library
+ * facilities that are not Applications and are not covered by this
+ * License, and convey such a combined library under terms of your
+ * choice, if you do both of the following:
+ *
+ *    a) Accompany the combined library with a copy of the same work based
+ *    on the Library, uncombined with any other library facilities,
+ *    conveyed under the terms of this License.
+ *
+ *    b) Give prominent notice with the combined library that part of it
+ *    is a work based on the Library, and explaining where to find the
+ *    accompanying uncombined form of the same work.
+ *
+ *   6. Revised Versions of the GNU Lesser General Public License.
+ *
+ *   The Free Software Foundation may publish revised and/or new versions
+ * of the GNU Lesser General Public License from time to time. Such new
+ * versions will be similar in spirit to the present version, but may
+ * differ in detail to address new problems or concerns.
+ *
+ *   Each version is given a distinguishing version number. If the
+ * Library as you received it specifies that a certain numbered version
+ * of the GNU Lesser General Public License "or any later version"
+ * applies to it, you have the option of following the terms and
+ * conditions either of that published version or of any later version
+ * published by the Free Software Foundation. If the Library as you
+ * received it does not specify a version number of the GNU Lesser
+ * General Public License, you may choose any version of the GNU Lesser
+ * General Public License ever published by the Free Software Foundation.
+ *
+ *   If the Library as you received it specifies that a proxy can decide
+ * whether future versions of the GNU Lesser General Public License shall
+ * apply, that proxy's public statement of acceptance of any version is
+ * permanent authorization for you to choose that version for the
+ * Library.
+ */
+
+package vip.isass.framework.common.util.map;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
+import java.util.function.Function;
+
+/**
+ * 线程安全的双向多键多值 Map
+ *
+ * @param <K> 键类型
+ * @param <V> 值类型
+ */
+@SuppressWarnings("unchecked")
+public class BiMultiKeyMultiValueMap<K, V> {
+
+    /**
+     * 正向映射：key -> value集合
+     */
+    private final ConcurrentMap<K, Set<V>> keyToValues = new ConcurrentHashMap<>();
+
+    /**
+     * 反向映射：value -> key集合
+     */
+    private final ConcurrentMap<V, Set<K>> valueToKeys = new ConcurrentHashMap<>();
+
+    /**
+     * 同步锁
+     */
+    private final Object lock = new Object();
+
+    // region 获取方法
+
+    /**
+     * 获取键对应的所有值集合
+     *
+     * @param key 键
+     * @return 值集合
+     */
+    public Set<V> getValues(K key) {
+        return key == null
+                ? Collections.emptySet()
+                : (Set<V>) unmodifiableSet(keyToValues.get(key));
+    }
+
+    /**
+     * 获取值对应的所有键集合
+     *
+     * @param value 值
+     * @return 键集合
+     */
+    public Set<K> getKeys(V value) {
+        return value == null
+                ? Collections.emptySet()
+                : (Set<K>) unmodifiableSet(valueToKeys.get(value));
+    }
+
+    /**
+     * 获取键对应的值集合，如果不存在则返回默认值
+     *
+     * @param key          键
+     * @param defaultValue 默认值集合
+     * @return 值集合或默认值
+     */
+    public Set<V> getOrDefault(K key, Set<V> defaultValue) {
+        if (key == null) {
+            return defaultValue;
+        }
+
+        Set<V> values = keyToValues.get(key);
+        return values == null
+                ? defaultValue
+                : Collections.unmodifiableSet(values);
+    }
+
+    /**
+     * 获取所有键的集合
+     *
+     * @return 键集合
+     */
+    public Set<K> keySet() {
+        return Collections.unmodifiableSet(keyToValues.keySet());
+    }
+
+    /**
+     * 获取所有值的集合
+     *
+     * @return 值集合
+     */
+    public Set<V> valueSet() {
+        return Collections.unmodifiableSet(valueToKeys.keySet());
+    }
+
+    /**
+     * 获取所有键值关系的只读视图
+     */
+    public Map<K, Set<V>> asMap() {
+        return Collections.unmodifiableMap(keyToValues);
+    }
+
+    // endregion
+
+    // region 存在性检查方法
+
+
+    /**
+     * 检查是否包含特定键值对
+     */
+    public boolean contains(K key, V value) {
+        if (key == null || value == null) {
+            return false;
+        }
+
+        Set<V> values = keyToValues.get(key);
+        return values != null && values.contains(value);
+    }
+
+    /**
+     * 检查是否包含键
+     *
+     * @param key 要检查的键
+     * @return 是否包含
+     */
+    public boolean containsKey(K key) {
+        if (key == null) {
+            return false;
+        }
+        return keyToValues.containsKey(key);
+    }
+
+    /**
+     * 检查是否包含值
+     *
+     * @param value 要检查的值
+     * @return 是否包含
+     */
+    public boolean containsValue(V value) {
+        if (value == null) {
+            return false;
+        }
+        return valueToKeys.containsKey(value);
+    }
+
+    /**
+     * 检查映射是否为空
+     */
+    public boolean isEmpty() {
+        return keyToValues.isEmpty() && valueToKeys.isEmpty();
+    }
+
+    /**
+     * 获取键的数量
+     */
+    public int keySize() {
+        return keyToValues.size();
+    }
+
+    /**
+     * 获取值的数量
+     */
+    public int valueSize() {
+        return valueToKeys.size();
+    }
+
+    // endregion
+
+    // region 新增方法
+
+    /**
+     * 如果键对应的值集合中不包含指定值，则添加键值对
+     *
+     * @param key   键
+     * @param value 值
+     * @return 如果添加成功返回 true，如果值已存在返回 false
+     */
+    public boolean putIfAbsent(K key, V value) {
+        if (key == null) {
+            throw new NullPointerException("key cannot be null");
+        }
+        if (value == null) {
+            throw new NullPointerException("value cannot be null");
+        }
+
+        synchronized (lock) {
+            // 检查值是否已存在
+            Set<V> values = keyToValues.get(key);
+            if (values != null && values.contains(value)) {
+                return false;
+            }
+
+            // 添加键值对
+            put(key, value);
+            return true;
+        }
+    }
+
+
+    /**
+     * 添加键值对
+     *
+     * @param key   键
+     * @param value 值
+     */
+    public void put(K key, V value) {
+        // 严格的空值检查
+        if (key == null) {
+            throw new NullPointerException("key cannot be null");
+        }
+        if (value == null) {
+            throw new NullPointerException("value cannot be null");
+        }
+
+        synchronized (lock) {
+            // 更新正向映射
+            keyToValues.computeIfAbsent(key, k -> ConcurrentHashMap.newKeySet()).add(value);
+
+            // 更新反向映射
+            valueToKeys.computeIfAbsent(value, v -> ConcurrentHashMap.newKeySet()).add(key);
+        }
+    }
+
+    /**
+     * 批量添加键值对
+     */
+    public void putAll(K key, Collection<? extends V> values) {
+        if (key == null) {
+            throw new NullPointerException("Key cannot be null");
+        }
+        if (values == null || values.isEmpty()) {
+            return;
+        }
+
+        synchronized (lock) {
+            Set<V> valueSet = keyToValues.computeIfAbsent(key, k -> ConcurrentHashMap.newKeySet());
+            for (V value : values) {
+                if (value == null) continue;
+                valueSet.add(value);
+                valueToKeys.computeIfAbsent(value, v -> ConcurrentHashMap.newKeySet()).add(key);
+            }
+        }
+    }
+
+    /**
+     * 从另一个Map批量添加所有键值对
+     */
+    public void putAll(Map<? extends K, ? extends Collection<? extends V>> map) {
+        if (map == null) {
+            return;
+        }
+
+        synchronized (lock) {
+            map.forEach((key, values) -> {
+                if (key != null) {
+                    Set<V> valueSet = keyToValues.computeIfAbsent(key, k -> ConcurrentHashMap.newKeySet());
+                    for (V value : values) {
+                        if (value != null) {
+                            valueSet.add(value);
+                            valueToKeys.computeIfAbsent(value, v -> ConcurrentHashMap.newKeySet()).add(key);
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    // endregion
+
+    // region 替换方法
+
+    /**
+     * 替换特定键的旧值为新值
+     *
+     * @param key      键
+     * @param oldValue 旧值
+     * @param newValue 新值
+     * @return 如果替换成功返回 true，如果键不存在或旧值不存在返回 false
+     */
+    public boolean replace(K key, V oldValue, V newValue) {
+        if (key == null) {
+            return false;
+        }
+        if (oldValue == null || newValue == null) {
+            return false;
+        }
+
+        synchronized (lock) {
+            // 检查键和旧值是否存在
+            Set<V> values = keyToValues.get(key);
+            if (values == null || !values.contains(oldValue)) {
+                return false;
+            }
+
+            // 移除旧值
+            values.remove(oldValue);
+            values.add(newValue);
+
+            // 更新反向映射
+            // 移除旧值关联
+            Set<K> oldKeys = valueToKeys.get(oldValue);
+            if (oldKeys != null) {
+                oldKeys.remove(key);
+                if (oldKeys.isEmpty()) valueToKeys.remove(oldValue);
+            }
+
+            // 添加新值关联
+            valueToKeys.computeIfAbsent(newValue, v -> ConcurrentHashMap.newKeySet()).add(key);
+
+            return true;
+        }
+    }
+
+    /**
+     * 替换键对应的所有值为单值（效果等同于先移除键的所有关联，再添加新的键值对）
+     *
+     * @param key   键
+     * @param value 新值
+     * @return 被替换的旧值集合，如果键不存在返回空集合
+     */
+    public Set<V> replace(K key, V value) {
+        if (key == null) {
+            return Collections.emptySet();
+        }
+        if (value == null) {
+            throw new NullPointerException("Value cannot be null");
+        }
+
+        synchronized (lock) {
+            // 获取当前值集合
+            Set<V> oldValues = keyToValues.remove(key);
+            if (oldValues != null) {
+                // 清理旧关联
+                for (V oldValue : oldValues) {
+                    Set<K> keysForValue = valueToKeys.get(oldValue);
+                    if (keysForValue != null) {
+                        keysForValue.remove(key);
+                        if (keysForValue.isEmpty()) valueToKeys.remove(oldValue);
+                    }
+                }
+            }
+
+            // 添加新关联
+            keyToValues.computeIfAbsent(key, k -> ConcurrentHashMap.newKeySet()).add(value);
+            valueToKeys.computeIfAbsent(value, v -> ConcurrentHashMap.newKeySet()).add(key);
+
+            return oldValues != null ? oldValues : Collections.emptySet();
+        }
+    }
+
+    /**
+     * 替换键对应的所有值为新值集合
+     *
+     * @param key       键
+     * @param newValues 新值集合
+     * @return 被替换的旧值集合，如果键不存在返回空集合
+     */
+    public Set<V> replace(K key, Set<? extends V> newValues) {
+        if (key == null) {
+            return Collections.emptySet();
+        }
+        if (newValues == null) {
+            throw new NullPointerException("New values cannot be null");
+        }
+
+        synchronized (lock) {
+            return setValuesForKey(key, newValues);
+        }
+    }
+
+    // endregion
+
+    // region 删除方法
+
+    /**
+     * 移除特定键值对
+     *
+     * @param key   键
+     * @param value 值
+     */
+    public void remove(K key, V value) {
+        // 严格的空值检查
+        if (key == null) {
+            throw new NullPointerException("key cannot be null");
+        }
+        if (value == null) {
+            throw new NullPointerException("value cannot be null");
+        }
+
+        synchronized (lock) {
+            // 更新正向映射
+            if (keyToValues.containsKey(key)) {
+                Set<V> values = keyToValues.get(key);
+                values.remove(value);
+                if (values.isEmpty()) {
+                    keyToValues.remove(key);
+                }
+            }
+
+            // 更新反向映射
+            if (valueToKeys.containsKey(value)) {
+                Set<K> keys = valueToKeys.get(value);
+                keys.remove(key);
+                if (keys.isEmpty()) {
+                    valueToKeys.remove(value);
+                }
+            }
+        }
+    }
+
+    /**
+     * 删除键及其所有关联值
+     *
+     * @param key 要删除的键
+     * @return 被删除的值集合
+     */
+    public Set<V> removeKey(K key) {
+        if (key == null) {
+            return Collections.emptySet();
+        }
+
+        synchronized (lock) {
+            Set<V> values = keyToValues.remove(key);
+            if (values != null) {
+                for (V value : values) {
+                    Set<K> keys = valueToKeys.get(value);
+                    if (keys != null) {
+                        keys.remove(key);
+                        if (keys.isEmpty()) {
+                            valueToKeys.remove(value);
+                        }
+                    }
+                }
+            }
+            return values != null ? Collections.unmodifiableSet(values) : Collections.emptySet();
+        }
+    }
+
+    /**
+     * 删除值及其所有关联键
+     *
+     * @param value 要删除的值
+     * @return 被删除的键集合
+     */
+    public Set<K> removeValue(V value) {
+        if (value == null) {
+            return Collections.emptySet();
+        }
+        synchronized (lock) {
+            Set<K> keys = valueToKeys.remove(value);
+            if (keys != null) {
+                for (K key : keys) {
+                    Set<V> values = keyToValues.get(key);
+                    if (values != null) {
+                        values.remove(value);
+                        if (values.isEmpty()) {
+                            keyToValues.remove(key);
+                        }
+                    }
+                }
+            }
+            return keys != null ? Collections.unmodifiableSet(keys) : Collections.emptySet();
+        }
+    }
+
+    /**
+     * 清空所有映射
+     */
+    public void clear() {
+        synchronized (lock) {
+            keyToValues.clear();
+            valueToKeys.clear();
+        }
+    }
+
+    // endregion
+
+    // region 遍历方法
+
+    /**
+     * 所有键值对
+     * <p>
+     * 遍历过程中 key、value 有可能被移除，业务需要自行判空处理
+     *
+     * @param action 对每个键值对执行的操作
+     */
+    public void forEach(BiConsumer<? super K, ? super V> action) {
+        if (action == null) {
+            throw new NullPointerException("action cannot be null");
+        }
+
+        keyToValues.forEach((key, values) -> {
+            for (V value : values) {
+                //
+                action.accept(key, value);
+            }
+        });
+    }
+
+    /**
+     * 高效键遍历
+     *
+     * @param action 对每个键执行的操作
+     */
+    public void forEachKey(Consumer<? super K> action) {
+        keyToValues.keySet().forEach(action);
+    }
+
+    /**
+     * 高效值遍历
+     *
+     * @param action 对每个值执行的操作
+     */
+    public void forEachValue(Consumer<? super V> action) {
+        valueToKeys.keySet().forEach(action);
+    }
+
+    // endregion
+
+    // region 计算方法
+
+    /**
+     * 计算指定键的值集合
+     *
+     * @param key               要计算的键
+     * @param remappingFunction 接收当前值集合，返回新值集合的函数
+     * @return 新值集合
+     */
+    public Set<V> compute(K key, BiFunction<? super K, ? super Set<V>, ? extends Set<? extends V>> remappingFunction) {
+        synchronized (lock) {
+            Objects.requireNonNull(remappingFunction);
+            if (key == null) return Collections.emptySet();
+
+            // 获取当前值集合
+            Set<V> currentValues = keyToValues.get(key);
+            currentValues = currentValues != null ? new HashSet<>(currentValues) : new HashSet<>();
+
+            // 应用计算函数
+            Set<? extends V> newValues = remappingFunction.apply(key, Collections.unmodifiableSet(currentValues));
+
+            // 处理计算结果
+            if (newValues == null) {
+                return removeKey(key);
+            } else {
+                return setValuesForKey(key, newValues);
+            }
+        }
+    }
+
+    /**
+     * 如果键不存在或值集合为空，则计算新值集合并添加
+     *
+     * @param key             键
+     * @param mappingFunction 生成值集合的函数
+     * @return 新值集合
+     */
+    public Set<V> computeIfAbsent(K key, Function<? super K, ? extends Set<? extends V>> mappingFunction) {
+        synchronized (lock) {
+            Objects.requireNonNull(mappingFunction);
+            if (key == null) return Collections.emptySet();
+
+            Set<V> currentValues = keyToValues.get(key);
+            if (currentValues != null && !currentValues.isEmpty()) {
+                return Collections.unmodifiableSet(currentValues);
+            }
+
+            Set<? extends V> newValues = mappingFunction.apply(key);
+            if (newValues != null && !newValues.isEmpty()) {
+                return setValuesForKey(key, newValues);
+            }
+            return Collections.emptySet();
+        }
+    }
+
+    /**
+     * 如果键存在且值集合非空，则计算新值集合并替换
+     *
+     * @param key               键
+     * @param remappingFunction 计算函数
+     * @return 新值集合或空集
+     */
+    public Set<V> computeIfPresent(K key, BiFunction<? super K, ? super Set<V>, ? extends Set<? extends V>> remappingFunction) {
+        synchronized (lock) {
+            Objects.requireNonNull(remappingFunction);
+            if (key == null) return Collections.emptySet();
+
+            Set<V> currentValues = keyToValues.get(key);
+            if (currentValues == null || currentValues.isEmpty()) {
+                return Collections.emptySet();
+            }
+
+            // 应用计算函数
+            Set<? extends V> newValues = remappingFunction.apply(key, Collections.unmodifiableSet(currentValues));
+
+            if (newValues == null) {
+                removeKey(key);
+                return Collections.emptySet();
+            } else {
+                return setValuesForKey(key, newValues);
+            }
+        }
+    }
+
+    /**
+     * 计算指定值的键集合
+     */
+    public Set<K> computeForValue(V value, BiFunction<? super V, ? super Set<K>, ? extends Set<? extends K>> remappingFunction) {
+        synchronized (lock) {
+            Objects.requireNonNull(remappingFunction);
+            if (value == null) return Collections.emptySet();
+
+            // 获取当前键集合
+            Set<K> currentKeys = valueToKeys.get(value);
+            currentKeys = currentKeys != null ? new HashSet<>(currentKeys) : new HashSet<>();
+
+            // 应用计算函数
+            Set<? extends K> newKeys = remappingFunction.apply(value, Collections.unmodifiableSet(currentKeys));
+
+            // 处理计算结果
+            if (newKeys == null) {
+                return removeValue(value);
+            } else {
+                return setKeysForValue(value, newKeys);
+            }
+        }
+    }
+
+    /**
+     * 如果值不存在或键集合为空，则计算新键集合并添加
+     */
+    public Set<K> computeIfValueAbsent(V value, Function<? super V, ? extends Set<? extends K>> mappingFunction) {
+        synchronized (lock) {
+            Objects.requireNonNull(mappingFunction);
+            if (value == null) return Collections.emptySet();
+
+            Set<K> currentKeys = valueToKeys.get(value);
+            if (currentKeys != null && !currentKeys.isEmpty()) {
+                return Collections.unmodifiableSet(currentKeys);
+            }
+
+            Set<? extends K> newKeys = mappingFunction.apply(value);
+            if (newKeys != null && !newKeys.isEmpty()) {
+                return setKeysForValue(value, newKeys);
+            }
+            return Collections.emptySet();
+        }
+    }
+
+    // endregion
+
+    // region 辅助方法
+
+    private Set<?> unmodifiableSet(Set<?> set) {
+        return (set == null || set.isEmpty())
+                ? Collections.emptySet()
+                : Collections.unmodifiableSet(set);
+    }
+
+    /**
+     * 设置键的关联值集合并更新反向映射
+     * <p>
+     * 此方法需在锁内调用，以确保线程安全。
+     */
+    private Set<V> setValuesForKey(K key, Set<? extends V> newValues) {
+        // 检查并过滤 null 值
+        Set<V> filteredValues = new HashSet<>();
+        for (V value : newValues) {
+            if (value != null) {
+                filteredValues.add(value);
+            }
+        }
+
+        // 完全替换旧值
+        Set<V> oldValues = keyToValues.getOrDefault(key, Collections.emptySet());
+
+        // 移除旧关联
+        oldValues.forEach(oldValue -> {
+            Set<K> keysForValue = valueToKeys.get(oldValue);
+            if (keysForValue != null) {
+                keysForValue.remove(key);
+                if (keysForValue.isEmpty()) {
+                    valueToKeys.remove(oldValue);
+                }
+            }
+        });
+
+        // 更新正向映射
+        if (filteredValues.isEmpty()) {
+            keyToValues.remove(key);
+            return Collections.emptySet();
+        } else {
+            keyToValues.put(key, ConcurrentHashMap.newKeySet());
+            keyToValues.get(key).addAll(filteredValues);
+        }
+
+        // 更新反向映射
+        filteredValues.forEach(value -> {
+            valueToKeys.computeIfAbsent(value, v -> ConcurrentHashMap.newKeySet()).add(key);
+        });
+
+        return Collections.unmodifiableSet(filteredValues);
+    }
+
+    /**
+     * 设置值的关联键集合并更新正向映射
+     */
+    private Set<K> setKeysForValue(V value, Set<? extends K> newKeys) {
+        // 检查并过滤 null 键
+        Set<K> filteredKeys = new HashSet<>();
+        for (K key : newKeys) {
+            if (key != null) {
+                filteredKeys.add(key);
+            }
+        }
+
+        // 完全替换旧键
+        Set<K> oldKeys = valueToKeys.getOrDefault(value, Collections.emptySet());
+
+        // 移除旧关联
+        oldKeys.forEach(oldKey -> {
+            Set<V> valuesForKey = keyToValues.get(oldKey);
+            if (valuesForKey != null) {
+                valuesForKey.remove(value);
+                if (valuesForKey.isEmpty()) {
+                    keyToValues.remove(oldKey);
+                }
+            }
+        });
+
+        // 更新反向映射
+        if (filteredKeys.isEmpty()) {
+            valueToKeys.remove(value);
+            return Collections.emptySet();
+        } else {
+            valueToKeys.put(value, ConcurrentHashMap.newKeySet());
+            valueToKeys.get(value).addAll(filteredKeys);
+        }
+
+        // 更新正向映射
+        filteredKeys.forEach(key -> {
+            keyToValues.computeIfAbsent(key, k -> ConcurrentHashMap.newKeySet()).add(value);
+        });
+
+        return Collections.unmodifiableSet(filteredKeys);
+    }
+
+    // endregion
+}

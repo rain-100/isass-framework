@@ -168,13 +168,19 @@
 
 package vip.isass.framework.net.socketio;
 
+import cn.hutool.core.collection.CollUtil;
 import com.corundumstudio.socketio.SocketIOServer;
+import com.google.auto.service.AutoService;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import vip.isass.framework.net.core.handler.manager.EventManager;
+import vip.isass.framework.net.core.message.Message;
 import vip.isass.framework.net.core.server.NetProtocol;
 import vip.isass.framework.net.core.server.Server;
+import vip.isass.framework.net.core.session.Session;
+
+import java.util.Collection;
 
 /**
  * socketIo 服务端
@@ -182,7 +188,7 @@ import vip.isass.framework.net.core.server.Server;
  * @author Rain
  */
 @Slf4j
-@Component
+@AutoService(Server.class)
 public class SocketIoServer implements Server {
 
     @Getter
@@ -209,6 +215,36 @@ public class SocketIoServer implements Server {
     @Override
     public NetProtocol netProtocol() {
         return NetProtocol.socketio;
+    }
+
+    public void listening(Collection<String> events) {
+        if (socketIoServer == null) {
+            return;
+        }
+
+        for (String event : events) {
+            socketIoServer
+                    .addEventListener(
+                            event,
+                            Object.class,
+                            (client, data, ackSender) -> {
+                                Session<?> session = sessionService.getSessionById(client.getSessionId().toString());
+                                EventManager.onMessage(
+                                        Message.builder()
+                                                .senderSessionId(session.getSessionId())
+                                                .senderSession(session)
+                                                .cmd(event)
+                                                .payload(data)
+                                                .build());
+                            });
+        }
+    }
+
+    public void removeListening(Collection<String> events) {
+        if (CollUtil.isEmpty(events)) {
+            return;
+        }
+        events.forEach(c -> socketIoServer.removeAllListeners(c));
     }
 
 }

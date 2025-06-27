@@ -176,7 +176,7 @@ import org.springframework.data.redis.listener.Topic;
 import org.springframework.stereotype.Component;
 import vip.isass.framework.database.redis.IRedisSubscriber;
 import vip.isass.framework.net.core.NetRedisKey;
-import vip.isass.framework.net.core.session.ISessionService;
+import vip.isass.framework.net.core.session.service.ISessionService;
 
 /**
  * 服务端推送消息给客户端时，使用 redis 的 pubsub 功能中转消息

@@ -166,66 +166,31 @@
  * Library.
  */
 
-package vip.isass.framework.net.socketio;
+package vip.isass.framework.net.core.session.manage;
 
-import cn.hutool.core.collection.CollUtil;
-import jakarta.annotation.Resource;
-import org.springframework.stereotype.Component;
-import vip.isass.framework.net.core.handler.IMessageEventRegister;
-import vip.isass.framework.net.core.handler.manager.EventManager;
-import vip.isass.framework.net.core.message.Message;
-import vip.isass.framework.net.core.session.ISessionService;
 import vip.isass.framework.net.core.session.Session;
+import vip.isass.framework.net.core.session.manage.store.ISessionStore;
+import vip.isass.framework.net.core.session.manage.store.LocalSessionStore;
 
-import java.util.Collection;
+public class SessionManager {
 
-/**
- * socketIo 消息事件监听器
- *
- * @author rain
- */
-@Component
-public class SocketIoEventHandlerRegister implements IMessageEventRegister {
+    private static ISessionStore SESSION_STORE;
 
-    @Resource
-    private SocketIoServer socketIoServer;
-
-    @Resource
-    private ISessionService sessionService;
-
-    @Resource
-    private EventManager eventManager;
-
-    @Override
-    public void listening(Collection<String> commands) {
-        if (socketIoServer == null) {
-            return;
-        }
-
-        for (String cmd : commands) {
-            socketIoServer.getSocketIoServer()
-                    .addEventListener(
-                            cmd,
-                            Object.class,
-                            (client, data, ackSender) -> {
-                                Session<?> session = sessionService.getSessionById(client.getSessionId().toString());
-                                eventManager.onMessage(
-                                        Message.builder()
-                                                .senderSessionId(session.getSessionId())
-                                                .senderSession(session)
-                                                .cmd(cmd)
-                                                .payload(data)
-                                                .build());
-                            });
-        }
+    public static void initSessionStore() {
+        // 网络服务单体化非集群模式下使用本地会话储存器，其他情况使用 redis 会话存储器
+        SESSION_STORE = new LocalSessionStore();
     }
 
-    @Override
-    public void removeListening(Collection<String> commands) {
-        if (CollUtil.isEmpty(commands)) {
-            return;
-        }
-        commands.forEach(c -> socketIoServer.getSocketIoServer().removeAllListeners(c));
+    public void addSession(Session<?> session) {
+        SESSION_STORE.addSession(session);
+    }
+
+    public Session<?> removeSession(String sessionId) {
+        return SESSION_STORE.removeSession(sessionId);
+    }
+
+    public Session<?> getSessionById(String sessionId) {
+        return SESSION_STORE.getSessionById(sessionId);
     }
 
 }

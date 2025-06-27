@@ -213,7 +213,7 @@ public class CmdCollectService {
 
         Long now = SystemClock.now();
         Collection<CmdCollectDto> cmdCollectDtoList = onMessageEventHandlers.stream()
-                .map(OnMessageEventHandler::getCmd)
+                .map(OnMessageEventHandler::getEvent)
                 .map(c -> CmdCollectDto.builder().cmd(c).collectTime(now).build())
                 .collect(Collectors.toSet());
 

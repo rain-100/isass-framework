@@ -202,7 +202,7 @@ import org.springframework.stereotype.Component;
 import vip.isass.framework.net.core.handler.manager.EventManager;
 import vip.isass.framework.net.core.message.Message;
 import vip.isass.framework.net.core.message.MessageCmd;
-import vip.isass.framework.net.core.session.ISessionService;
+import vip.isass.framework.net.core.session.service.ISessionService;
 import vip.isass.framework.net.websocket.packet.WebsocketPacket;
 import vip.isass.framework.net.websocket.session.WebsocketClientSession;
 import vip.isass.framework.serialization.jackson.JsonUtil;

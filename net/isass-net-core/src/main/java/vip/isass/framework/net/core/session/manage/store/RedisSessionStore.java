@@ -166,29 +166,11 @@
  * Library.
  */
 
-package vip.isass.framework.net.core.handler;
-
-import vip.isass.framework.net.core.message.Message;
-import vip.isass.framework.net.core.message.MessageCmd;
+package vip.isass.framework.net.core.session.manage.store;
 
 /**
- * ping 事件处理器
- *
- * @author rain
+ * 基于redis的会话存储器
+ * 适用于分布式集群模式的会话管理
  */
-// @Configuration
-// @ConditionalOnBean(Server.class)
-public class OnPingEventHandler implements OnMessageEventHandler<String> {
-
-    @Override
-    public String getCmd() {
-        return MessageCmd.PING;
-    }
-
-    @Override
-    public Object onMessage(Message message, String ping) {
-        message.getSenderSession().sendMessage(MessageCmd.PONG, "");
-        return null;
-    }
-
+public class RedisSessionStore implements ISessionStore {
 }
