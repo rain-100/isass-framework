@@ -168,12 +168,7 @@
 
 package vip.isass.framework.common.util.map;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.BiConsumer;
@@ -278,7 +273,6 @@ public class BiMultiKeyMultiValueMap<K, V> {
 
     // region 存在性检查方法
 
-
     /**
      * 检查是否包含特定键值对
      */
@@ -298,10 +292,7 @@ public class BiMultiKeyMultiValueMap<K, V> {
      * @return 是否包含
      */
     public boolean containsKey(K key) {
-        if (key == null) {
-            return false;
-        }
-        return keyToValues.containsKey(key);
+        return key != null && keyToValues.containsKey(key);
     }
 
     /**
@@ -311,10 +302,7 @@ public class BiMultiKeyMultiValueMap<K, V> {
      * @return 是否包含
      */
     public boolean containsValue(V value) {
-        if (value == null) {
-            return false;
-        }
-        return valueToKeys.containsKey(value);
+        return value != null && valueToKeys.containsKey(value);
     }
 
     /**
@@ -343,42 +331,12 @@ public class BiMultiKeyMultiValueMap<K, V> {
     // region 新增方法
 
     /**
-     * 如果键对应的值集合中不包含指定值，则添加键值对
-     *
-     * @param key   键
-     * @param value 值
-     * @return 如果添加成功返回 true，如果值已存在返回 false
-     */
-    public boolean putIfAbsent(K key, V value) {
-        if (key == null) {
-            throw new NullPointerException("key cannot be null");
-        }
-        if (value == null) {
-            throw new NullPointerException("value cannot be null");
-        }
-
-        synchronized (lock) {
-            // 检查值是否已存在
-            Set<V> values = keyToValues.get(key);
-            if (values != null && values.contains(value)) {
-                return false;
-            }
-
-            // 添加键值对
-            put(key, value);
-            return true;
-        }
-    }
-
-
-    /**
      * 添加键值对
      *
      * @param key   键
      * @param value 值
      */
     public void put(K key, V value) {
-        // 严格的空值检查
         if (key == null) {
             throw new NullPointerException("key cannot be null");
         }
@@ -400,7 +358,7 @@ public class BiMultiKeyMultiValueMap<K, V> {
      */
     public void putAll(K key, Collection<? extends V> values) {
         if (key == null) {
-            throw new NullPointerException("Key cannot be null");
+            throw new NullPointerException("key cannot be null");
         }
         if (values == null || values.isEmpty()) {
             return;
@@ -409,7 +367,9 @@ public class BiMultiKeyMultiValueMap<K, V> {
         synchronized (lock) {
             Set<V> valueSet = keyToValues.computeIfAbsent(key, k -> ConcurrentHashMap.newKeySet());
             for (V value : values) {
-                if (value == null) continue;
+                if (value == null) {
+                    continue;
+                }
                 valueSet.add(value);
                 valueToKeys.computeIfAbsent(value, v -> ConcurrentHashMap.newKeySet()).add(key);
             }
@@ -420,22 +380,58 @@ public class BiMultiKeyMultiValueMap<K, V> {
      * 从另一个Map批量添加所有键值对
      */
     public void putAll(Map<? extends K, ? extends Collection<? extends V>> map) {
-        if (map == null) {
+        if (map == null || map.isEmpty()) {
             return;
         }
 
         synchronized (lock) {
-            map.forEach((key, values) -> {
-                if (key != null) {
-                    Set<V> valueSet = keyToValues.computeIfAbsent(key, k -> ConcurrentHashMap.newKeySet());
-                    for (V value : values) {
-                        if (value != null) {
-                            valueSet.add(value);
-                            valueToKeys.computeIfAbsent(value, v -> ConcurrentHashMap.newKeySet()).add(key);
-                        }
-                    }
+            for (Map.Entry<? extends K, ? extends Collection<? extends V>> entry : map.entrySet()) {
+                if (entry.getKey() == null || entry.getValue() == null) {
+                    continue;
                 }
-            });
+
+                Set<V> valueSet = keyToValues.computeIfAbsent(entry.getKey(), k -> ConcurrentHashMap.newKeySet());
+                for (V value : entry.getValue()) {
+                    if (value == null) {
+                        continue;
+                    }
+                    valueSet.add(value);
+                    valueToKeys.computeIfAbsent(value, v -> ConcurrentHashMap.newKeySet()).add(entry.getKey());
+                }
+            }
+        }
+    }
+
+    /**
+     * 如果键对应的值集合中不包含指定值，则添加键值对
+     *
+     * @param key   键
+     * @param value 值
+     * @return 如果添加成功返回 true，如果值已存在返回 false
+     */
+    public boolean putIfAbsent(K key, V value) {
+        if (key == null) {
+            throw new NullPointerException("key cannot be null");
+        }
+        if (value == null) {
+            throw new NullPointerException("value cannot be null");
+        }
+
+        Set<V> values = keyToValues.get(key);
+        if (values != null && values.contains(value)) {
+            return false;
+        }
+
+        synchronized (lock) {
+            // double check
+            values = keyToValues.get(key);
+            if (values != null && values.contains(value)) {
+                return false;
+            }
+
+            // 添加键值对
+            put(key, value);
+            return true;
         }
     }
 
@@ -449,13 +445,10 @@ public class BiMultiKeyMultiValueMap<K, V> {
      * @param key      键
      * @param oldValue 旧值
      * @param newValue 新值
-     * @return 如果替换成功返回 true，如果键不存在或旧值不存在返回 false
+     * @return 如果替换成功返回 true，如果键或旧值或新值不存在返回 false
      */
     public boolean replace(K key, V oldValue, V newValue) {
-        if (key == null) {
-            return false;
-        }
-        if (oldValue == null || newValue == null) {
+        if (key == null || oldValue == null || newValue == null) {
             return false;
         }
 
@@ -475,7 +468,9 @@ public class BiMultiKeyMultiValueMap<K, V> {
             Set<K> oldKeys = valueToKeys.get(oldValue);
             if (oldKeys != null) {
                 oldKeys.remove(key);
-                if (oldKeys.isEmpty()) valueToKeys.remove(oldValue);
+                if (oldKeys.isEmpty()) {
+                    valueToKeys.remove(oldValue);
+                }
             }
 
             // 添加新值关联
@@ -497,7 +492,7 @@ public class BiMultiKeyMultiValueMap<K, V> {
             return Collections.emptySet();
         }
         if (value == null) {
-            throw new NullPointerException("Value cannot be null");
+            throw new NullPointerException("value cannot be null");
         }
 
         synchronized (lock) {
@@ -507,9 +502,13 @@ public class BiMultiKeyMultiValueMap<K, V> {
                 // 清理旧关联
                 for (V oldValue : oldValues) {
                     Set<K> keysForValue = valueToKeys.get(oldValue);
-                    if (keysForValue != null) {
-                        keysForValue.remove(key);
-                        if (keysForValue.isEmpty()) valueToKeys.remove(oldValue);
+                    if (keysForValue == null) {
+                        continue;
+                    }
+
+                    keysForValue.remove(key);
+                    if (keysForValue.isEmpty()) {
+                        valueToKeys.remove(oldValue);
                     }
                 }
             }
@@ -518,7 +517,7 @@ public class BiMultiKeyMultiValueMap<K, V> {
             keyToValues.computeIfAbsent(key, k -> ConcurrentHashMap.newKeySet()).add(value);
             valueToKeys.computeIfAbsent(value, v -> ConcurrentHashMap.newKeySet()).add(key);
 
-            return oldValues != null ? oldValues : Collections.emptySet();
+            return (Set<V>) unmodifiableSet(oldValues);
         }
     }
 
@@ -534,7 +533,7 @@ public class BiMultiKeyMultiValueMap<K, V> {
             return Collections.emptySet();
         }
         if (newValues == null) {
-            throw new NullPointerException("New values cannot be null");
+            throw new NullPointerException("new values cannot be null");
         }
 
         synchronized (lock) {
@@ -561,10 +560,15 @@ public class BiMultiKeyMultiValueMap<K, V> {
             throw new NullPointerException("value cannot be null");
         }
 
+        // 锁前预判断
+        if (!keyToValues.containsKey(key)) {
+            return;
+        }
+
         synchronized (lock) {
             // 更新正向映射
-            if (keyToValues.containsKey(key)) {
-                Set<V> values = keyToValues.get(key);
+            Set<V> values = keyToValues.get(key);
+            if (values != null) {
                 values.remove(value);
                 if (values.isEmpty()) {
                     keyToValues.remove(key);
@@ -572,8 +576,8 @@ public class BiMultiKeyMultiValueMap<K, V> {
             }
 
             // 更新反向映射
-            if (valueToKeys.containsKey(value)) {
-                Set<K> keys = valueToKeys.get(value);
+            Set<K> keys = valueToKeys.get(value);
+            if (keys != null) {
                 keys.remove(key);
                 if (keys.isEmpty()) {
                     valueToKeys.remove(value);
@@ -589,24 +593,27 @@ public class BiMultiKeyMultiValueMap<K, V> {
      * @return 被删除的值集合
      */
     public Set<V> removeKey(K key) {
-        if (key == null) {
+        if (key == null || !keyToValues.containsKey(key)) {
             return Collections.emptySet();
         }
 
         synchronized (lock) {
             Set<V> values = keyToValues.remove(key);
-            if (values != null) {
-                for (V value : values) {
-                    Set<K> keys = valueToKeys.get(value);
-                    if (keys != null) {
-                        keys.remove(key);
-                        if (keys.isEmpty()) {
-                            valueToKeys.remove(value);
-                        }
-                    }
+            if (values == null || values.isEmpty()) {
+                return Collections.emptySet();
+            }
+
+            for (V value : values) {
+                Set<K> keys = valueToKeys.get(value);
+                if (keys == null) {
+                    continue;
+                }
+                keys.remove(key);
+                if (keys.isEmpty()) {
+                    valueToKeys.remove(value);
                 }
             }
-            return values != null ? Collections.unmodifiableSet(values) : Collections.emptySet();
+            return Collections.unmodifiableSet(values);
         }
     }
 
@@ -620,20 +627,24 @@ public class BiMultiKeyMultiValueMap<K, V> {
         if (value == null) {
             return Collections.emptySet();
         }
+
         synchronized (lock) {
             Set<K> keys = valueToKeys.remove(value);
-            if (keys != null) {
-                for (K key : keys) {
-                    Set<V> values = keyToValues.get(key);
-                    if (values != null) {
-                        values.remove(value);
-                        if (values.isEmpty()) {
-                            keyToValues.remove(key);
-                        }
-                    }
+            if (keys == null || keys.isEmpty()) {
+                return Collections.emptySet();
+            }
+
+            for (K key : keys) {
+                Set<V> values = keyToValues.get(key);
+                if (values == null) {
+                    continue;
+                }
+                values.remove(value);
+                if (values.isEmpty()) {
+                    keyToValues.remove(key);
                 }
             }
-            return keys != null ? Collections.unmodifiableSet(keys) : Collections.emptySet();
+            return Collections.unmodifiableSet(keys);
         }
     }
 
@@ -665,28 +676,31 @@ public class BiMultiKeyMultiValueMap<K, V> {
 
         keyToValues.forEach((key, values) -> {
             for (V value : values) {
-                //
                 action.accept(key, value);
             }
         });
     }
 
     /**
-     * 高效键遍历
+     * 键遍历
      *
      * @param action 对每个键执行的操作
      */
     public void forEachKey(Consumer<? super K> action) {
-        keyToValues.keySet().forEach(action);
+        for (Map.Entry<K, Set<V>> entry : keyToValues.entrySet()) {
+            action.accept(entry.getKey());
+        }
     }
 
     /**
-     * 高效值遍历
+     * 值遍历
      *
      * @param action 对每个值执行的操作
      */
     public void forEachValue(Consumer<? super V> action) {
-        valueToKeys.keySet().forEach(action);
+        for (Map.Entry<V, Set<K>> entry : valueToKeys.entrySet()) {
+            action.accept(entry.getKey());
+        }
     }
 
     // endregion
@@ -701,19 +715,25 @@ public class BiMultiKeyMultiValueMap<K, V> {
      * @return 新值集合
      */
     public Set<V> compute(K key, BiFunction<? super K, ? super Set<V>, ? extends Set<? extends V>> remappingFunction) {
-        synchronized (lock) {
-            Objects.requireNonNull(remappingFunction);
-            if (key == null) return Collections.emptySet();
+        if (key == null) {
+            return Collections.emptySet();
+        }
+        if (remappingFunction == null) {
+            throw new NullPointerException("remapping function can not be null");
+        }
 
+        synchronized (lock) {
             // 获取当前值集合
             Set<V> currentValues = keyToValues.get(key);
-            currentValues = currentValues != null ? new HashSet<>(currentValues) : new HashSet<>();
+            if (currentValues == null) {
+                currentValues = ConcurrentHashMap.newKeySet();
+            }
 
             // 应用计算函数
-            Set<? extends V> newValues = remappingFunction.apply(key, Collections.unmodifiableSet(currentValues));
+            Set<? extends V> newValues = remappingFunction.apply(key, currentValues);
 
             // 处理计算结果
-            if (newValues == null) {
+            if (newValues == null || newValues.isEmpty()) {
                 return removeKey(key);
             } else {
                 return setValuesForKey(key, newValues);
