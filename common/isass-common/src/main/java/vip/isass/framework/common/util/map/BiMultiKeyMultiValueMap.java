@@ -178,6 +178,8 @@ import java.util.function.Function;
 
 /**
  * 线程安全的双向多键多值 Map
+ * <p>
+ * key 和 value 都不支持 null
  *
  * @param <K> 键类型
  * @param <V> 值类型
@@ -356,7 +358,7 @@ public class BiMultiKeyMultiValueMap<K, V> {
     /**
      * 批量添加键值对
      */
-    public void putAll(K key, Collection<? extends V> values) {
+    public void putAll(K key, Collection<V> values) {
         if (key == null) {
             throw new NullPointerException("key cannot be null");
         }
@@ -379,13 +381,13 @@ public class BiMultiKeyMultiValueMap<K, V> {
     /**
      * 从另一个Map批量添加所有键值对
      */
-    public void putAll(Map<? extends K, ? extends Collection<? extends V>> map) {
+    public void putAll(Map<? extends K, ? extends Collection<V>> map) {
         if (map == null || map.isEmpty()) {
             return;
         }
 
         synchronized (lock) {
-            for (Map.Entry<? extends K, ? extends Collection<? extends V>> entry : map.entrySet()) {
+            for (Map.Entry<? extends K, ? extends Collection<V>> entry : map.entrySet()) {
                 if (entry.getKey() == null || entry.getValue() == null) {
                     continue;
                 }
@@ -528,7 +530,7 @@ public class BiMultiKeyMultiValueMap<K, V> {
      * @param newValues 新值集合
      * @return 被替换的旧值集合，如果键不存在返回空集合
      */
-    public Set<V> replace(K key, Set<? extends V> newValues) {
+    public Set<V> replace(K key, Set<V> newValues) {
         if (key == null) {
             return Collections.emptySet();
         }
@@ -669,7 +671,7 @@ public class BiMultiKeyMultiValueMap<K, V> {
      *
      * @param action 对每个键值对执行的操作
      */
-    public void forEach(BiConsumer<? super K, ? super V> action) {
+    public void forEach(BiConsumer<? super K, V> action) {
         if (action == null) {
             throw new NullPointerException("action cannot be null");
         }
@@ -697,7 +699,7 @@ public class BiMultiKeyMultiValueMap<K, V> {
      *
      * @param action 对每个值执行的操作
      */
-    public void forEachValue(Consumer<? super V> action) {
+    public void forEachValue(Consumer<V> action) {
         for (Map.Entry<V, Set<K>> entry : valueToKeys.entrySet()) {
             action.accept(entry.getKey());
         }
@@ -714,7 +716,7 @@ public class BiMultiKeyMultiValueMap<K, V> {
      * @param remappingFunction 接收当前值集合，返回新值集合的函数
      * @return 新值集合
      */
-    public Set<V> compute(K key, BiFunction<? super K, ? super Set<V>, ? extends Set<? extends V>> remappingFunction) {
+    public Set<V> compute(K key, BiFunction<? super K, ? super Set<V>, ? extends Set<V>> remappingFunction) {
         if (key == null) {
             return Collections.emptySet();
         }
@@ -725,19 +727,21 @@ public class BiMultiKeyMultiValueMap<K, V> {
         synchronized (lock) {
             // 获取当前值集合
             Set<V> currentValues = keyToValues.get(key);
-            if (currentValues == null) {
-                currentValues = ConcurrentHashMap.newKeySet();
-            }
+
+            // 复制一个临时集合供函数计算，不能让计算函数直接改变原始集合
+            currentValues = currentValues == null ? new HashSet<>() : new HashSet<>(currentValues);
 
             // 应用计算函数
-            Set<? extends V> newValues = remappingFunction.apply(key, currentValues);
+            Set<V> newValues = remappingFunction.apply(key, currentValues);
 
-            // 处理计算结果
+            // 应用计算结果
             if (newValues == null || newValues.isEmpty()) {
-                return removeKey(key);
+                removeKey(key);
             } else {
-                return setValuesForKey(key, newValues);
+                setValuesForKey(key, newValues);
             }
+
+            return (Set<V>) unmodifiableSet(newValues);
         }
     }
 
@@ -748,21 +752,27 @@ public class BiMultiKeyMultiValueMap<K, V> {
      * @param mappingFunction 生成值集合的函数
      * @return 新值集合
      */
-    public Set<V> computeIfAbsent(K key, Function<? super K, ? extends Set<? extends V>> mappingFunction) {
-        synchronized (lock) {
-            Objects.requireNonNull(mappingFunction);
-            if (key == null) return Collections.emptySet();
+    public Set<V> computeIfAbsent(K key, Function<? super K, ? extends Set<V>> mappingFunction) {
+        if (key == null) {
+            throw new NullPointerException("key cannot be null");
+        }
+        if (mappingFunction == null) {
+            throw new NullPointerException("mapping function can not be null");
+        }
 
+        synchronized (lock) {
             Set<V> currentValues = keyToValues.get(key);
             if (currentValues != null && !currentValues.isEmpty()) {
                 return Collections.unmodifiableSet(currentValues);
             }
 
-            Set<? extends V> newValues = mappingFunction.apply(key);
-            if (newValues != null && !newValues.isEmpty()) {
+            Set<V> newValues = mappingFunction.apply(key);
+            if (newValues == null || newValues.isEmpty()) {
+                removeKey(key);
+                return Collections.emptySet();
+            } else {
                 return setValuesForKey(key, newValues);
             }
-            return Collections.emptySet();
         }
     }
 
@@ -773,20 +783,23 @@ public class BiMultiKeyMultiValueMap<K, V> {
      * @param remappingFunction 计算函数
      * @return 新值集合或空集
      */
-    public Set<V> computeIfPresent(K key, BiFunction<? super K, ? super Set<V>, ? extends Set<? extends V>> remappingFunction) {
-        synchronized (lock) {
-            Objects.requireNonNull(remappingFunction);
-            if (key == null) return Collections.emptySet();
+    public Set<V> computeIfPresent(K key, BiFunction<? super K, ? super Set<V>, ? extends Set<V>> remappingFunction) {
+        if (key == null) {
+            throw new NullPointerException("key cannot be null");
+        }
+        if (remappingFunction == null) {
+            throw new NullPointerException("remapping function can not be null");
+        }
 
+        synchronized (lock) {
             Set<V> currentValues = keyToValues.get(key);
             if (currentValues == null || currentValues.isEmpty()) {
                 return Collections.emptySet();
             }
 
             // 应用计算函数
-            Set<? extends V> newValues = remappingFunction.apply(key, Collections.unmodifiableSet(currentValues));
-
-            if (newValues == null) {
+            Set<V> newValues = remappingFunction.apply(key, Collections.unmodifiableSet(currentValues));
+            if (newValues == null || newValues.isEmpty()) {
                 removeKey(key);
                 return Collections.emptySet();
             } else {
@@ -798,20 +811,26 @@ public class BiMultiKeyMultiValueMap<K, V> {
     /**
      * 计算指定值的键集合
      */
-    public Set<K> computeForValue(V value, BiFunction<? super V, ? super Set<K>, ? extends Set<? extends K>> remappingFunction) {
-        synchronized (lock) {
-            Objects.requireNonNull(remappingFunction);
-            if (value == null) return Collections.emptySet();
+    public Set<K> computeForValue(V value, BiFunction<V, ? super Set<K>, ? extends Set<K>> remappingFunction) {
+        if (value == null) {
+            throw new NullPointerException("value cannot be null");
+        }
+        if (remappingFunction == null) {
+            throw new NullPointerException("remapping function can not be null");
+        }
 
+        synchronized (lock) {
             // 获取当前键集合
             Set<K> currentKeys = valueToKeys.get(value);
-            currentKeys = currentKeys != null ? new HashSet<>(currentKeys) : new HashSet<>();
+
+            // 复制一个临时集合供函数计算，不能让计算函数直接改变原始集合
+            currentKeys = currentKeys == null ? new HashSet<>() : new HashSet<>(currentKeys);
 
             // 应用计算函数
-            Set<? extends K> newKeys = remappingFunction.apply(value, Collections.unmodifiableSet(currentKeys));
+            Set<K> newKeys = remappingFunction.apply(value, currentKeys);
 
-            // 处理计算结果
-            if (newKeys == null) {
+            // 应用计算结果
+            if (newKeys == null || newKeys.isEmpty()) {
                 return removeValue(value);
             } else {
                 return setKeysForValue(value, newKeys);
@@ -822,21 +841,56 @@ public class BiMultiKeyMultiValueMap<K, V> {
     /**
      * 如果值不存在或键集合为空，则计算新键集合并添加
      */
-    public Set<K> computeIfValueAbsent(V value, Function<? super V, ? extends Set<? extends K>> mappingFunction) {
-        synchronized (lock) {
-            Objects.requireNonNull(mappingFunction);
-            if (value == null) return Collections.emptySet();
+    public Set<K> computeIfValueAbsent(V value, Function<V, ? extends Set<K>> mappingFunction) {
+        if (value == null) {
+            throw new NullPointerException("value cannot be null");
+        }
+        if (mappingFunction == null) {
+            throw new NullPointerException("mapping function can not be null");
+        }
 
+        synchronized (lock) {
             Set<K> currentKeys = valueToKeys.get(value);
+            // 存在则返回
             if (currentKeys != null && !currentKeys.isEmpty()) {
                 return Collections.unmodifiableSet(currentKeys);
             }
 
-            Set<? extends K> newKeys = mappingFunction.apply(value);
-            if (newKeys != null && !newKeys.isEmpty()) {
+            Set<K> newKeys = mappingFunction.apply(value);
+            if (newKeys == null || newKeys.isEmpty()) {
+                return Collections.emptySet();
+            } else {
                 return setKeysForValue(value, newKeys);
             }
-            return Collections.emptySet();
+        }
+    }
+
+    /**
+     * 如果值存在或键集合非空，则计算新键集合并替换
+     */
+    public Set<K> computeIfValuePresent(V value, BiFunction<V, ? super Set<K>, ? extends Set<K>> remappingFunction) {
+        if (value == null) {
+            throw new NullPointerException("value cannot be null");
+        }
+        if (remappingFunction == null) {
+            throw new NullPointerException("remapping function can not be null");
+        }
+
+        synchronized (lock) {
+            Set<K> currentKeys = valueToKeys.get(value);
+            // 存在则返回
+            if (currentKeys == null || currentKeys.isEmpty()) {
+                return Collections.emptySet();
+            }
+
+            // 应用计算函数
+            Set<K> newKeys = remappingFunction.apply(value, Collections.unmodifiableSet(currentKeys));
+            if (newKeys == null || newKeys.isEmpty()) {
+                removeValue(value);
+                return Collections.emptySet();
+            } else {
+                return setKeysForValue(value, newKeys);
+            }
         }
     }
 
@@ -854,88 +908,90 @@ public class BiMultiKeyMultiValueMap<K, V> {
      * 设置键的关联值集合并更新反向映射
      * <p>
      * 此方法需在锁内调用，以确保线程安全。
+     *
+     * @param key 键，调用方需保证不能为 null
+     * @return 返回设置后的不可变值集合
      */
-    private Set<V> setValuesForKey(K key, Set<? extends V> newValues) {
-        // 检查并过滤 null 值
-        Set<V> filteredValues = new HashSet<>();
-        for (V value : newValues) {
-            if (value != null) {
-                filteredValues.add(value);
-            }
+    private Set<V> setValuesForKey(K key, Set<V> newValues) {
+        if (newValues == null || newValues.isEmpty()) {
+            removeKey(key);
+            return Collections.emptySet();
         }
 
-        // 完全替换旧值
-        Set<V> oldValues = keyToValues.getOrDefault(key, Collections.emptySet());
-
-        // 移除旧关联
-        oldValues.forEach(oldValue -> {
-            Set<K> keysForValue = valueToKeys.get(oldValue);
-            if (keysForValue != null) {
-                keysForValue.remove(key);
-                if (keysForValue.isEmpty()) {
-                    valueToKeys.remove(oldValue);
+        // 将 newValues 转换成 KeySetView 以待添加到映射
+        if (!(newValues instanceof ConcurrentHashMap.KeySetView)) {
+            Set<V> tempNewValues = newValues;
+            newValues = ConcurrentHashMap.newKeySet();
+            // 过滤 null 值
+            for (V value : tempNewValues) {
+                if (value != null) {
+                    newValues.add(value);
                 }
             }
-        });
-
-        // 更新正向映射
-        if (filteredValues.isEmpty()) {
-            keyToValues.remove(key);
-            return Collections.emptySet();
-        } else {
-            keyToValues.put(key, ConcurrentHashMap.newKeySet());
-            keyToValues.get(key).addAll(filteredValues);
         }
 
-        // 更新反向映射
-        filteredValues.forEach(value -> {
-            valueToKeys.computeIfAbsent(value, v -> ConcurrentHashMap.newKeySet()).add(key);
-        });
+        // 删除旧的映射
+        removeKey(key);
 
-        return Collections.unmodifiableSet(filteredValues);
+        // 如果新的映射为空，则返回空集合
+        if (newValues.isEmpty()) {
+            return Collections.emptySet();
+        }
+
+        // 添加正向映射
+        keyToValues.put(key, newValues);
+
+        // 添加反向映射
+        for (V value : newValues) {
+            valueToKeys.computeIfAbsent(value, v -> ConcurrentHashMap.newKeySet()).add(key);
+        }
+
+        return Collections.unmodifiableSet(newValues);
     }
 
     /**
      * 设置值的关联键集合并更新正向映射
+     * <p>
+     * 此方法需在锁内调用，以确保线程安全。
+     *
+     * @param value 值，调用方需保证不能为 null
+     * @return 返回设置后的不可变值集合
      */
-    private Set<K> setKeysForValue(V value, Set<? extends K> newKeys) {
-        // 检查并过滤 null 键
-        Set<K> filteredKeys = new HashSet<>();
-        for (K key : newKeys) {
-            if (key != null) {
-                filteredKeys.add(key);
-            }
+    private Set<K> setKeysForValue(V value, Set<K> newKeys) {
+        if (newKeys == null || newKeys.isEmpty()) {
+            removeValue(value);
+            return Collections.emptySet();
         }
 
-        // 完全替换旧键
-        Set<K> oldKeys = valueToKeys.getOrDefault(value, Collections.emptySet());
-
-        // 移除旧关联
-        oldKeys.forEach(oldKey -> {
-            Set<V> valuesForKey = keyToValues.get(oldKey);
-            if (valuesForKey != null) {
-                valuesForKey.remove(value);
-                if (valuesForKey.isEmpty()) {
-                    keyToValues.remove(oldKey);
+        // 将 newKeys 转换成 KeySetView 以待添加到映射
+        if (!(newKeys instanceof ConcurrentHashMap.KeySetView)) {
+            Set<K> tempNewKeys = newKeys;
+            newKeys = ConcurrentHashMap.newKeySet();
+            // 过滤 null 值
+            for (K key : tempNewKeys) {
+                if (key != null) {
+                    newKeys.add(key);
                 }
             }
-        });
-
-        // 更新反向映射
-        if (filteredKeys.isEmpty()) {
-            valueToKeys.remove(value);
-            return Collections.emptySet();
-        } else {
-            valueToKeys.put(value, ConcurrentHashMap.newKeySet());
-            valueToKeys.get(value).addAll(filteredKeys);
         }
 
-        // 更新正向映射
-        filteredKeys.forEach(key -> {
-            keyToValues.computeIfAbsent(key, k -> ConcurrentHashMap.newKeySet()).add(value);
-        });
+        // 删除旧的映射
+        removeValue(value);
 
-        return Collections.unmodifiableSet(filteredKeys);
+        // 如果新的映射为空，则返回空集合
+        if (newKeys.isEmpty()) {
+            return Collections.emptySet();
+        }
+
+        // 添加反向映射
+        valueToKeys.put(value, newKeys);
+
+        // 添加正向映射
+        for (K key : newKeys) {
+            keyToValues.computeIfAbsent(key, k -> ConcurrentHashMap.newKeySet()).add(value);
+        }
+
+        return Collections.unmodifiableSet(newKeys);
     }
 
     // endregion
