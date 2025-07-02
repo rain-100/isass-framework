@@ -176,7 +176,6 @@ import vip.isass.framework.net.core.session.DisplaySession;
 import vip.isass.framework.net.core.session.Session;
 import vip.isass.framework.net.core.session.SessionInfoCollection;
 
-import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -194,18 +193,20 @@ public class LocalSessionStore implements ISessionStore {
     public static final Map<String, Session<?>> sessionMap = new ConcurrentHashMap<>();
 
     /**
-     * 所有会话 map 的不可变 map
+     * 保存所有会话
+     * <p> {@literal Map<userId, sessionId>}
      */
-    public final Map<String, Session<?>> unmodifiableSessionMap = Collections.unmodifiableMap(sessionMap);
-
     public final MultiValueBiMap<String, String> userAndSessionMap = new MultiValueBiMap<>();
 
-    public final MultiValueBiMap<String, String> aliasAndSessionMap = new MultiValueBiMap<>();
-
+    /**
+     * 保存所有会话
+     * <p> {@literal Map<sessionId, tag>}
+     */
     public final MultiKeyMultiValueBiMap<String, String> sessionAndTagMap = new MultiKeyMultiValueBiMap<>();
 
+    // region session 操作
+
     public void addSession(Session<?> session) {
-        session.hashCode()
         Assert.notNull(session, "session 不能为 null");
         sessionMap.put(session.getSessionId(), session);
     }
@@ -214,7 +215,6 @@ public class LocalSessionStore implements ISessionStore {
         Session<?> remove = sessionMap.remove(sessionId);
         if (remove != null) {
             removeUserId(sessionId);
-            removeAlias(sessionId);
             removeTags(sessionId);
         }
         return remove;
@@ -224,6 +224,10 @@ public class LocalSessionStore implements ISessionStore {
         return sessionMap.get(sessionId);
     }
 
+    public Map<String, Session<?>> getSessionMap() {
+        return sessionMap;
+    }
+
     public SessionInfoCollection getSessionInfoCollection() {
         return SessionInfoCollection.builder()
                 .sessions(sessionMap.values()
@@ -231,9 +235,45 @@ public class LocalSessionStore implements ISessionStore {
                         .map(s -> CglibUtil.copy(s, DisplaySession.class))
                         .collect(Collectors.toList()))
                 .userAndSessionMap(userAndSessionMap)
-                .aliasAndSessionMap(aliasAndSessionMap)
                 .sessionAndTagMap(sessionAndTagMap)
                 .build();
     }
 
+    // endregion
+
+    // region user 操作
+
+    @Override
+    public String getUserId(String sessionId) {
+        return userAndSessionMap.getKey(sessionId);
+    }
+
+    @Override
+    public boolean setUserId(String sessionId, String userId) {
+        userAndSessionMap.put(userId, sessionId);
+        return false;
+    }
+
+    public void removeUserId(String sessionId) {
+        Assert.notBlank(sessionId, "sessionId 不能为 null 或空字符串");
+        userAndSessionMap.removeValue(sessionId);
+    }
+
+    public MultiValueBiMap<String, String> getUserAndSessionMap() {
+        return userAndSessionMap;
+    }
+
+    // endregion
+
+    // region tag 操作
+
+    private void removeTags(String sessionId) {
+        sessionAndTagMap.removeKey(sessionId);
+    }
+
+    public MultiKeyMultiValueBiMap<String, String> getSessionAndTagMap() {
+        return sessionAndTagMap;
+    }
+
+    // endregion
 }

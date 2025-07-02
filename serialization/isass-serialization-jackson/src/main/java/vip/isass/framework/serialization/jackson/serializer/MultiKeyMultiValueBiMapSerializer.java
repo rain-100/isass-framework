@@ -174,8 +174,6 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import vip.isass.framework.common.util.map.MultiKeyMultiValueBiMap;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Set;
 
 /**
  * 多键多值的集合序列化器
@@ -183,16 +181,8 @@ import java.util.Set;
 public class MultiKeyMultiValueBiMapSerializer extends JsonSerializer<MultiKeyMultiValueBiMap> {
 
     @Override
-    @SuppressWarnings("unchecked")
-    public void serialize(MultiKeyMultiValueBiMap value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
-        Set<?> keySet = value.keySet();
-        gen.writeStartObject();
-        for (Object key : keySet) {
-            Collection<?> collection = value.get(key);
-            gen.writeFieldName(key.toString());
-            gen.writeObject(collection);
-        }
-        gen.writeEndObject();
+    public void serialize(MultiKeyMultiValueBiMap map, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+        gen.writeObject(map.asMap());
     }
 
 }

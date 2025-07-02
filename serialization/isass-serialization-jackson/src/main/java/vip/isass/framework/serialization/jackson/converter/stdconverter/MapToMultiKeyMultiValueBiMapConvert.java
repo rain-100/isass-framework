@@ -179,6 +179,7 @@ import java.util.Map;
 public class MapToMultiKeyMultiValueBiMapConvert extends StdConverter<Map<Object, Object>, MultiKeyMultiValueBiMap<Object, Object>> {
 
     @Override
+    @SuppressWarnings({"rawtypes", "unchecked"})
     public MultiKeyMultiValueBiMap<Object, Object> convert(Map<Object, Object> value) {
         if (value == null) {
             return null;
@@ -186,7 +187,11 @@ public class MapToMultiKeyMultiValueBiMapConvert extends StdConverter<Map<Object
 
         MultiKeyMultiValueBiMap<Object, Object> multiValueBiMap = new MultiKeyMultiValueBiMap<>();
         for (Map.Entry<Object, Object> entry : value.entrySet()) {
-            multiValueBiMap.putAll(entry.getKey(), (Iterable<?>) entry.getValue());
+            if (entry.getValue() instanceof Iterable iterable) {
+                // 如果值是一个可迭代对象，则将其作为多个值添加
+                multiValueBiMap.putAll(entry.getKey(), iterable);
+
+            }
         }
         return multiValueBiMap;
     }

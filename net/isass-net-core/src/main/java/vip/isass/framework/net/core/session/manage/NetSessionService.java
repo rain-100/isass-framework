@@ -172,6 +172,7 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.extra.cglib.CglibUtil;
 import lombok.extern.slf4j.Slf4j;
 import vip.isass.framework.common.entrypoint.EntryPointAnno;
 import vip.isass.framework.common.entrypoint.HttpMethod;
@@ -179,8 +180,10 @@ import vip.isass.framework.common.entrypoint.PathVariable;
 import vip.isass.framework.common.entrypoint.RequestBody;
 import vip.isass.framework.common.entrypoint.RequestParam;
 import vip.isass.framework.net.core.message.Message;
+import vip.isass.framework.net.core.session.DisplaySession;
 import vip.isass.framework.net.core.session.Session;
 import vip.isass.framework.net.core.session.SessionBindingInfoChangeReq;
+import vip.isass.framework.net.core.session.SessionInfoCollection;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
@@ -204,16 +207,11 @@ public class NetSessionService {
 
     @EntryPointAnno(name = "获取用户 id", group = "网络会话服务", route = "/${spring.application.name}/session/{sessionId}/userId")
     public String getUserId(@PathVariable("sessionId") String sessionId) {
-        return SessionManager..getKey(sessionId);
+        return SessionManager.getUserId(sessionId);
     }
 
     public void setUserId(String sessionId, String userId) {
-        Session<?> session = sessionMap.get(sessionId);
-        if (session == null) {
-            return;
-        }
-        userAndSessionMap.removeValue(sessionId);
-        userAndSessionMap.put(userId, sessionId);
+        SessionManager.setUserId(sessionId, userId);
     }
 
     public void removeUserId(String sessionId) {
@@ -660,6 +658,10 @@ public class NetSessionService {
     }
 
     // endregion
+
+    public static SessionInfoCollection getSessionInfoCollection() {
+        return SessionManager.getSessionInfoCollection();
+    }
 
     @EntryPointAnno(name = "保存会话绑定信息", group = "网络会话服务", route = "/${spring.application.name}/session/info", httpMethod = HttpMethod.POST)
     public void saveSessionInfo(@RequestBody SessionBindingInfoChangeReq req) {

@@ -169,22 +169,16 @@
 package vip.isass.framework.net.core.admin;
 
 import cn.hutool.core.collection.CollUtil;
-import vip.isass.framework.common.entrypoint.EntryPointEntity;
 import vip.isass.framework.common.entrypoint.ApiGroup;
+import vip.isass.framework.common.entrypoint.EntryPointEntity;
 import vip.isass.framework.common.service.Resp;
-import vip.isass.framework.net.core.session.service.ISessionService;
 import vip.isass.framework.net.core.session.SessionInfoCollection;
+import vip.isass.framework.net.core.session.manage.NetSessionService;
 
 import java.util.List;
 import java.util.function.Function;
 
 public class NetAdminApiProvider {
-
-    private ISessionService sessionService;
-
-    public NetAdminApiProvider(ISessionService sessionService) {
-        this.sessionService = sessionService;
-    }
 
     public List<ApiGroup> getApiGroups() {
         return CollUtil.newArrayList(
@@ -194,7 +188,7 @@ public class NetAdminApiProvider {
                         .entryPointEntities(CollUtil.newArrayList(
                                         EntryPointEntity.builder()
                                                 .route("/session")
-                                                .function((Function<Object, Resp<SessionInfoCollection>>) o -> Resp.bizSuccess(sessionService.getSessionInfoCollection()))
+                                                .function((Function<Object, Resp<SessionInfoCollection>>) o -> Resp.bizSuccess(NetSessionService.getSessionInfoCollection()))
                                                 .build()
                                 )
                         )

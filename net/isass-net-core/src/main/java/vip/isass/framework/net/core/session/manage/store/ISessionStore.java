@@ -168,7 +168,11 @@
 
 package vip.isass.framework.net.core.session.manage.store;
 
+import vip.isass.framework.common.util.map.MultiKeyMultiValueBiMap;
+import vip.isass.framework.common.util.map.MultiValueBiMap;
 import vip.isass.framework.net.core.session.Session;
+
+import java.util.Map;
 
 public interface ISessionStore {
 
@@ -178,4 +182,13 @@ public interface ISessionStore {
 
     Session<?> getSessionById(String sessionId);
 
+    Map<String, Session<?>> getSessionMap();
+
+    String getUserId(String sessionId);
+
+    boolean setUserId(String sessionId, String userId);
+
+    MultiValueBiMap<String, String> getUserAndSessionMap();
+
+    MultiKeyMultiValueBiMap<String, String> getSessionAndTagMap();
 }

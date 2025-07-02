@@ -168,9 +168,17 @@
 
 package vip.isass.framework.net.core.session.manage;
 
+import cn.hutool.extra.cglib.CglibUtil;
+import vip.isass.framework.common.util.map.MultiKeyMultiValueBiMap;
+import vip.isass.framework.common.util.map.MultiValueBiMap;
+import vip.isass.framework.net.core.session.DisplaySession;
 import vip.isass.framework.net.core.session.Session;
+import vip.isass.framework.net.core.session.SessionInfoCollection;
 import vip.isass.framework.net.core.session.manage.store.ISessionStore;
 import vip.isass.framework.net.core.session.manage.store.LocalSessionStore;
+
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class SessionManager {
 
@@ -181,16 +189,38 @@ public class SessionManager {
         SESSION_STORE = new LocalSessionStore();
     }
 
-    public void addSession(Session<?> session) {
+    public static String getUserId(String sessionId) {
+        return SESSION_STORE.getUserId(sessionId);
+    }
+
+    public static boolean setUserId(String sessionId, String userId) {
+        return SESSION_STORE.setUserId(sessionId, userId);
+    }
+
+    public static void addSession(Session<?> session) {
         SESSION_STORE.addSession(session);
     }
 
-    public Session<?> removeSession(String sessionId) {
+    public static Session<?> removeSession(String sessionId) {
         return SESSION_STORE.removeSession(sessionId);
     }
 
-    public Session<?> getSessionById(String sessionId) {
+    public static Session<?> getSessionById(String sessionId) {
         return SESSION_STORE.getSessionById(sessionId);
     }
 
+    public static SessionInfoCollection getSessionInfoCollection() {
+        Map<String, Session<?>> sessionMap = SESSION_STORE.getSessionMap();
+        MultiValueBiMap<String, String> userAndSessionMap = SESSION_STORE.getUserAndSessionMap();
+        MultiKeyMultiValueBiMap<String, String> sessionAndTagMap = SESSION_STORE.getSessionAndTagMap();
+
+        return SessionInfoCollection.builder()
+                .sessions(sessionMap.values()
+                        .parallelStream()
+                        .map(s -> CglibUtil.copy(s, DisplaySession.class))
+                        .collect(Collectors.toList()))
+                .userAndSessionMap(userAndSessionMap)
+                .sessionAndTagMap(sessionAndTagMap)
+                .build();
+    }
 }
