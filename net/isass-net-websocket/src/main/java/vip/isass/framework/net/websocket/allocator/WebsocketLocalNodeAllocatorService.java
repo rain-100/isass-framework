@@ -168,14 +168,7 @@
 
 package vip.isass.framework.net.websocket.allocator;
 
-import cn.hutool.core.net.NetUtil;
-import cn.hutool.core.util.StrUtil;
-import jakarta.annotation.Resource;
 import lombok.Getter;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Configuration;
 import vip.isass.framework.net.core.server.NetProtocol;
 import vip.isass.framework.net.core.server.NetServerInfo;
 import vip.isass.framework.net.core.server.allocator.INodeAllocatorService;
@@ -184,15 +177,9 @@ import vip.isass.framework.net.websocket.WebsocketProperties;
 import java.util.Collection;
 import java.util.Collections;
 
-@Configuration
-@ConditionalOnProperty(name = "kernel.net.proxy.enabled", havingValue = "false", matchIfMissing = true)
-public class WebsocketLocalNodeAllocatorService implements INodeAllocatorService, InitializingBean {
+public class WebsocketLocalNodeAllocatorService implements INodeAllocatorService {
 
-    @Resource
     private WebsocketProperties websocketProperties;
-
-    @Value("${server.port}")
-    private int httpPort;
 
     @Getter
     private final NetProtocol netProtocol = NetProtocol.websocket;
@@ -209,22 +196,20 @@ public class WebsocketLocalNodeAllocatorService implements INodeAllocatorService
         return Collections.singleton(netServerInfo);
     }
 
-    @Override
     public void afterPropertiesSet() {
-        String internalIp = NetUtil.getLocalhostStr();
-        this.netServerInfo = NetServerInfo.builder()
-                .netProtocol(netProtocol)
-                .externalIp(StrUtil.blankToDefault(websocketProperties.getExternalIp(), internalIp))
-                .internalIp(internalIp)
-                .httpPort(httpPort)
-                .httpSecure(Boolean.FALSE)
-                .netExternalPort(websocketProperties.getNetExternalPort() == null
-                        ? websocketProperties.getPort()
-                        : websocketProperties.getNetExternalPort())
-                .netExternalUrl(websocketProperties.getNetExternalUrl())
-                .build();
-        if (StrUtil.isBlank(netServerInfo.getNetExternalUrl())) {
-            netServerInfo.setNetExternalUrl("ws://" + netServerInfo.getExternalIp() + ":" + netServerInfo.getNetExternalPort());
-        }
+        // String internalIp = NetUtil.getLocalhostStr();
+        // this.netServerInfo = NetServerInfo.builder()
+        //         .externalIp(StrUtil.blankToDefault(websocketProperties.getExternalIp(), internalIp))
+        //         .internalIp(internalIp)
+        //         .httpPort(httpPort)
+        //         .httpSecure(Boolean.FALSE)
+        //         .externalPort(websocketProperties.getNetExternalPort() == null
+        //                 ? websocketProperties.getPort()
+        //                 : websocketProperties.getNetExternalPort())
+        //         .netExternalUrl(websocketProperties.getNetExternalUrl())
+        //         .build();
+        // if (StrUtil.isBlank(netServerInfo.getNetExternalUrl())) {
+        //     netServerInfo.setNetExternalUrl("ws://" + netServerInfo.getHost() + ":" + netServerInfo.getPort());
+        // }
     }
 }

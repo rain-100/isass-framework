@@ -169,17 +169,23 @@
 package vip.isass.framework.net.socketio;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.lang.Assert;
+import cn.hutool.core.util.StrUtil;
+import com.corundumstudio.socketio.SocketConfig;
 import com.corundumstudio.socketio.SocketIOServer;
 import com.google.auto.service.AutoService;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import vip.isass.framework.net.core.handler.manager.EventManager;
-import vip.isass.framework.net.core.message.Message;
+import vip.isass.framework.net.core.handler.manager.NetEventManager;
+import vip.isass.framework.net.core.message.OnMessage;
 import vip.isass.framework.net.core.server.NetProtocol;
 import vip.isass.framework.net.core.server.Server;
 import vip.isass.framework.net.core.session.Session;
+import vip.isass.framework.net.core.session.manage.NetSessionManager;
+import vip.isass.framework.net.socketio.handler.OnSocketIoErrorListener;
 
+import java.io.InputStream;
 import java.util.Collection;
 
 /**
@@ -192,7 +198,6 @@ import java.util.Collection;
 public class SocketIoServer implements Server {
 
     @Getter
-    @Autowired
     private SocketIOServer socketIoServer;
 
     @Override
@@ -200,9 +205,59 @@ public class SocketIoServer implements Server {
         return socketIoServer.getConfiguration().getHostname() + ":" + socketIoServer.getConfiguration().getPort();
     }
 
+    @Getter
+    @Setter
+    private SocketIoProperties socketIoProperties;
+
+    private void createSocketIOServer() {
+        com.corundumstudio.socketio.Configuration config = new com.corundumstudio.socketio.Configuration();
+        config.setHostname(socketIoProperties.getListeningHost());
+        config.setPort(socketIoProperties.getListeningPort());
+        config.setMaxHttpContentLength(socketIoProperties.getMaxHttpContentLength());
+        config.setMaxFramePayloadLength(socketIoProperties.getMaxFramePayloadLength());
+        config.setBossThreads(1);
+        config.setExceptionListener(new OnSocketIoErrorListener());
+
+        // ssl
+        if (StrUtil.isNotBlank(socketIoProperties.getKeyStorePath())) {
+            try {
+                InputStream inputStream = ClassLoader.getSystemResourceAsStream(socketIoProperties.getKeyStorePath());
+                if (inputStream != null) {
+                    config.setKeyStore(inputStream);
+                    config.setKeyStoreFormat(socketIoProperties.getKeyStoreFormat());
+                    config.setKeyStorePassword(socketIoProperties.getKeyStorePassword());
+                }
+            } catch (Exception e) {
+                log.error("socketio 加载证书失败", e);
+            }
+        }
+
+        SocketConfig sockConfig = new SocketConfig();
+        // 解决SOCKET服务端重启"Address already in use"异常
+        sockConfig.setReuseAddress(true);
+        sockConfig.setTcpKeepAlive(false);
+        config.setSocketConfig(sockConfig);
+
+        socketIoServer = new SocketIOServer(config);
+    }
+
     @Override
     public void start() {
+        Assert.notNull(socketIoProperties, "please init SocketIoProperties first");
+
+        createSocketIOServer();
+
         socketIoServer.start();
+
+        socketIoServer.addConnectListener(client -> {
+            SocketIoSession socketIoSession = new SocketIoSession(client);
+            NetEventManager.onConnect(socketIoSession);
+        });
+
+        socketIoServer.addDisconnectListener(client -> {
+            Session<?> session = NetSessionManager.INSTANCE.getSessionById(client.getSessionId().toString());
+            NetEventManager.onDisconnect(session);
+        });
     }
 
     @Override
@@ -228,13 +283,13 @@ public class SocketIoServer implements Server {
                             event,
                             Object.class,
                             (client, data, ackSender) -> {
-                                Session<?> session = sessionService.getSessionById(client.getSessionId().toString());
-                                EventManager.onMessage(
-                                        Message.builder()
-                                                .senderSessionId(session.getSessionId())
+                                Session<?> session = NetSessionManager.INSTANCE.getSessionById(client.getSessionId().toString());
+                                NetEventManager.onMessage(
+                                        OnMessage.builder()
                                                 .senderSession(session)
-                                                .cmd(event)
-                                                .payload(data)
+                                                .senderSessionId(session.getSessionId())
+                                                .event(event)
+                                                .source(data)
                                                 .build());
                             });
         }

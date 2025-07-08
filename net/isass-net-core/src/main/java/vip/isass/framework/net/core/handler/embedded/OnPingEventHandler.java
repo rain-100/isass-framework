@@ -171,8 +171,8 @@ package vip.isass.framework.net.core.handler.embedded;
 import com.google.auto.service.AutoService;
 import vip.isass.framework.net.core.handler.IEventHandler;
 import vip.isass.framework.net.core.handler.OnMessageEventHandler;
-import vip.isass.framework.net.core.message.Message;
-import vip.isass.framework.net.core.message.MessageCmd;
+import vip.isass.framework.net.core.message.EmbeddedMessageEvent;
+import vip.isass.framework.net.core.message.OnMessage;
 
 /**
  * ping 事件处理器
@@ -184,12 +184,12 @@ public class OnPingEventHandler implements OnMessageEventHandler<String> {
 
     @Override
     public String getEvent() {
-        return MessageCmd.PING;
+        return EmbeddedMessageEvent.PING;
     }
 
     @Override
-    public Object onMessage(Message message, String ping) {
-        message.getSenderSession().sendMessage(MessageCmd.PONG, "");
+    public Object onMessage(OnMessage onMessage, String ping) {
+        onMessage.getSenderSession().sendMessage(EmbeddedMessageEvent.PONG, "");
         return null;
     }
 

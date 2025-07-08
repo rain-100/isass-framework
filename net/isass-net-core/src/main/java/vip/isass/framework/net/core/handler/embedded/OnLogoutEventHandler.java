@@ -172,9 +172,9 @@ import com.google.auto.service.AutoService;
 import vip.isass.framework.common.service.Resp;
 import vip.isass.framework.net.core.handler.IEventHandler;
 import vip.isass.framework.net.core.handler.OnMessageEventHandler;
-import vip.isass.framework.net.core.message.Message;
-import vip.isass.framework.net.core.message.MessageCmd;
-import vip.isass.framework.net.core.session.service.ISessionService;
+import vip.isass.framework.net.core.message.EmbeddedMessageEvent;
+import vip.isass.framework.net.core.message.OnMessage;
+import vip.isass.framework.net.core.session.manage.NetSessionServiceFactory;
 
 /**
  * 登录事件处理器
@@ -184,17 +184,14 @@ import vip.isass.framework.net.core.session.service.ISessionService;
 @AutoService(IEventHandler.class)
 public class OnLogoutEventHandler implements OnMessageEventHandler<String> {
 
-    // @Autowired
-    private ISessionService sessionService;
-
     @Override
     public String getEvent() {
-        return MessageCmd.LOGOUT;
+        return EmbeddedMessageEvent.LOGOUT;
     }
 
     @Override
-    public Object onMessage(Message message, String token) {
-        sessionService.removeUserId(message.getSenderSessionId());
+    public Object onMessage(OnMessage onMessage, String token) {
+        NetSessionServiceFactory.INSTANCE.removeUserId(onMessage.getSenderSessionId());
         return Resp.bizSuccess("登出成功");
     }
 

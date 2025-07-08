@@ -177,46 +177,62 @@ import lombok.experimental.SuperBuilder;
 
 @Getter
 @Setter
-@SuperBuilder
 @ToString
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 public class NetServerInfo {
 
-    /**
-     * 提供服务的协议
-     */
-    private NetProtocol netProtocol;
+    // region 监听侧
 
     /**
-     * 外网 ip
+     * 监听host(一般监听0.0.0.0)
      */
-    private String externalIp;
+    private String listeningHost;
 
     /**
-     * 内网 ip
+     * 监听端口
      */
-    private String internalIp;
+    private int listeningPort;
+
+    // endregion
+
+    // region 业务侧
 
     /**
-     * http 服务端口
+     * 业务host。给业务前端连接的host(ip或域名)
      */
-    private Integer httpPort;
+    private String host;
 
     /**
-     * http 服务端口是否使用 https
+     * 业务端口。给业务前端连接的端口
      */
-    private Boolean httpSecure;
+    private int port;
 
     /**
-     * 网络服务外网端口
+     * 业务协议是否使用安全协议
      */
-    private Integer netExternalPort;
+    private Boolean secure;
+
+    // endregion
+
+    // region 管理侧
 
     /**
-     * 网络服务外网 url
+     * 管理ip(用于内部管理)
      */
-    private String netExternalUrl;
+    private String managementIp;
 
+    /**
+     * 管理端口
+     */
+    private Integer managementPort;
+
+    /**
+     * 管理协议是否使用安全协议
+     */
+    private Boolean managementSecure;
+
+    // endregion
 
 }

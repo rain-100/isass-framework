@@ -168,6 +168,7 @@
 
 package vip.isass.framework.net.websocket.websocket;
 
+import cn.hutool.core.lang.Assert;
 import com.google.auto.service.AutoService;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.netty.bootstrap.ServerBootstrap;
@@ -178,6 +179,8 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import jakarta.annotation.Resource;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import vip.isass.framework.net.core.server.NetProtocol;
 import vip.isass.framework.net.core.server.Server;
@@ -197,7 +200,8 @@ public class WebsocketServer implements Server {
     @Resource
     private WebsocketChannelInitializerHandler websocketChannelInitializerHandler;
 
-    @Resource
+    @Getter
+    @Setter
     private WebsocketProperties websocketProperties;
 
     private ExecutorService executorService;
@@ -208,10 +212,12 @@ public class WebsocketServer implements Server {
 
     @Override
     public String getListeningAddress() {
-        return websocketProperties.getHostName() + ":" + websocketProperties.getPort();
+        return websocketProperties.getListeningHost() + ":" + websocketProperties.getListeningPort();
     }
 
     public void start() {
+        Assert.notNull(websocketProperties, "please init SocketIoProperties first");
+
         if (executorService == null) {
             executorService = Executors.newSingleThreadExecutor(
                     new ThreadFactoryBuilder()
@@ -231,7 +237,9 @@ public class WebsocketServer implements Server {
                         .handler(new LoggingHandler(LogLevel.DEBUG))
                         .childHandler(websocketChannelInitializerHandler);
 
-                ChannelFuture f = bootstrap.bind(websocketProperties.getHostName(), websocketProperties.getPort()).sync();
+                ChannelFuture f = bootstrap
+                        .bind(websocketProperties.getListeningHost(), websocketProperties.getListeningPort())
+                        .sync();
                 f.channel().closeFuture().sync();
             } catch (InterruptedException e) {
                 log.error("websocket 服务器启动失败！{}", e.getMessage(), e);

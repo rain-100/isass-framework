@@ -166,33 +166,122 @@
  * Library.
  */
 
-package vip.isass.framework.net.socketio.handler;
+package vip.isass.framework.net.core.session.manage;
 
-import com.corundumstudio.socketio.SocketIOClient;
-import com.corundumstudio.socketio.annotation.OnDisconnect;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import vip.isass.framework.net.core.handler.manager.EventManager;
-import vip.isass.framework.net.core.session.service.ISessionService;
-import vip.isass.framework.net.core.session.Session;
+import vip.isass.framework.net.core.message.SendMessageReq;
+import vip.isass.framework.net.core.session.SessionBindingInfoChangeReq;
+import vip.isass.framework.net.core.session.SessionInfoCollection;
+import vip.isass.framework.net.core.session.manage.INetSessionService;
+
+import java.util.Collection;
 
 /**
- * socketIo 断开连接事件监听器
- *
- * @author rain
+ * 基于redis的会话存储器
+ * 适用于分布式集群模式的会话管理
  */
-@Slf4j
-@Component
-public class OnSocketIoDisconnectListener {
-
-    @Autowired
-    private ISessionService sessionManager;
-
-    @OnDisconnect
-    public void onDisconnect(SocketIOClient client) {
-        Session<?> session = sessionManager.getSessionById(client.getSessionId().toString());
-        EventManager.onDisconnect(session);
+public class RedisNetSessionImpl implements INetSessionService {
+    @Override
+    public SessionInfoCollection getSessionInfoCollection() {
+        return null;
     }
 
+    @Override
+    public void saveSessionInfo(SessionBindingInfoChangeReq req) {
+
+    }
+
+    @Override
+    public String getUserId(String sessionId) {
+        return null;
+    }
+
+    @Override
+    public boolean setUserId(String sessionId, String userId) {
+        return false;
+    }
+
+    @Override
+    public void removeUserId(String sessionId) {
+
+    }
+
+    @Override
+    public void setTags(String sessionId, Collection<String> tags) {
+
+    }
+
+    @Override
+    public void addTags(String sessionId, Collection<String> tags) {
+
+    }
+
+    @Override
+    public void removeTags(String sessionId) {
+
+    }
+
+    @Override
+    public void removeTags(String sessionId, Collection<String> removeTags) {
+
+    }
+
+    @Override
+    public void addTagsByUserId(String userId, Collection<String> tags) {
+
+    }
+
+    @Override
+    public void setTagsByUserId(String userId, Collection<String> tags) {
+
+    }
+
+    @Override
+    public void removeTagsByUserId(String userId, Collection<String> tags) {
+
+    }
+
+    @Override
+    public void broadcastMessage(String event, Object payload) {
+
+    }
+
+    @Override
+    public void sendMessageByUserId(String event, Object payload, String userId) {
+
+    }
+
+    @Override
+    public void sendMessageByUserIds(String event, Object payload, Collection<String> userIds) {
+
+    }
+
+    @Override
+    public void sendMessageToLoginUsers(String event, Object payload) {
+
+    }
+
+    @Override
+    public void sendMessageByTag(String event, Object payload, String tag) {
+
+    }
+
+    @Override
+    public void sendMessageByTags(String event, Object payload, Collection<String> tags) {
+
+    }
+
+    @Override
+    public void sendMessageByAnyTags(String event, Object payload, Collection<String> tags) {
+
+    }
+
+    @Override
+    public void sendMessage(SendMessageReq sendMessageReq) {
+
+    }
+
+    @Override
+    public void sendMessages(Collection<SendMessageReq> sendMessageReqs) {
+
+    }
 }

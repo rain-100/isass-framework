@@ -196,7 +196,6 @@ import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
-import vip.isass.framework.net.core.session.service.ISessionService;
 import vip.isass.framework.net.netty.channel.ChannelEventHandler;
 import vip.isass.framework.net.netty.packet.TcpPacket;
 import vip.isass.framework.net.netty.request.Request;
@@ -218,10 +217,6 @@ public class WebsocketChannelEventHandler extends SimpleChannelInboundHandler<Ob
 
     @Getter
     @Resource
-    private ISessionService sessionService;
-
-    @Getter
-    @Resource
     private RequestManager requestManager;
 
     @Override
@@ -235,7 +230,7 @@ public class WebsocketChannelEventHandler extends SimpleChannelInboundHandler<Ob
     }
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
+    protected void channelRead0(ChannelHandlerContext ctx, Object msg) {
         if (msg instanceof FullHttpRequest) {
             handleHttpRequest(ctx, (FullHttpRequest) msg);
         } else if (msg instanceof WebSocketFrame) {
@@ -250,7 +245,7 @@ public class WebsocketChannelEventHandler extends SimpleChannelInboundHandler<Ob
     }
 
     @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         exceptionCaught0(ctx, cause);
     }
 

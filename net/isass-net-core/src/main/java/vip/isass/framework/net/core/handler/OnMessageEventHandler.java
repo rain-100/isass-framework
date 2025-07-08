@@ -168,7 +168,7 @@
 
 package vip.isass.framework.net.core.handler;
 
-import vip.isass.framework.net.core.message.Message;
+import vip.isass.framework.net.core.message.OnMessage;
 
 /**
  * 收到路由消息事件处理器
@@ -187,9 +187,8 @@ public interface OnMessageEventHandler<T> extends IEventHandler {
     /**
      * 收到消息事件
      *
-     * @param message 消息
      * @return 需要响应的消息体
      */
-    Object onMessage(Message message, T payload);
+    Object onMessage(OnMessage onMessage, T payload);
 
 }

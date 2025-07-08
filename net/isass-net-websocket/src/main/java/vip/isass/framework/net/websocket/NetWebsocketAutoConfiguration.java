@@ -168,16 +168,8 @@
 
 package vip.isass.framework.net.websocket;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.scheduling.annotation.EnableScheduling;
-
 /**
  * @author Rain
  */
-@ComponentScan
-@Configuration
-@ConditionalOnProperty(name = {"kernel.net.enabled", "kernel.net.websocket.enabled"}, havingValue = "true")
 public class NetWebsocketAutoConfiguration {
 }

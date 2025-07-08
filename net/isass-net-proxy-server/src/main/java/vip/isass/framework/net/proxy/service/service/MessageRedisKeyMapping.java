@@ -186,7 +186,7 @@ import lombok.ToString;
 @AllArgsConstructor
 public class MessageRedisKeyMapping {
 
-    private String cmdPrefix;
+    private String eventPrefix;
 
     private String serviceName;
 

@@ -168,30 +168,35 @@
 
 package vip.isass.framework.net.websocket;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
+import lombok.ToString;
+import lombok.experimental.SuperBuilder;
+import vip.isass.framework.net.core.server.NetServerInfo;
 
 @Getter
 @Setter
-@Configuration
-@ConfigurationProperties(prefix = "kernel.net.websocket")
-public class WebsocketProperties {
-
-    private String hostName = "0.0.0.0";
-
-    private int port = 20071;
+@ToString
+@SuperBuilder
+@NoArgsConstructor
+@AllArgsConstructor
+public class WebsocketProperties extends NetServerInfo {
 
     /**
      * 链路空闲超时时间(ms)，包括读和写
      */
     private int timeout = 300_000;
 
-    private String externalIp;
+    /**
+     * 将HTTP消息的多个部分组合成一条完整的HTTP消息
+     */
+    private int maxHttpContentLength = 65536;
 
-    private Integer netExternalPort;
-
-    private String netExternalUrl;
+    /**
+     * 将分片的 WebSocketFrame 聚合成完整的 FullWebSocketFrame
+     */
+    private int maxFramePayloadLength = 10 * 1024 * 1024;
 
 }

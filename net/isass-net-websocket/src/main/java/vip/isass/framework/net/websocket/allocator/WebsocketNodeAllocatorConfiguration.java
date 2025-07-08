@@ -168,32 +168,23 @@
 
 package vip.isass.framework.net.websocket.allocator;
 
-import cn.hutool.core.util.StrUtil;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import vip.isass.framework.net.core.server.NetProtocol;
-import vip.isass.framework.net.core.server.NetServerInfo;
 import vip.isass.framework.net.core.server.allocator.INodeAllocatorService;
-import vip.isass.framework.net.proxy.core.ConsistentHashNodeAllocatorService;
 
 /**
  * @author isass
  */
-@Configuration
-@ConditionalOnProperty(name = {"kernel.net.enabled", "kernel.net.proxy.enabled"}, havingValue = "true")
 public class WebsocketNodeAllocatorConfiguration {
 
-    @Bean
     public INodeAllocatorService websocketConsistentHashNodeAllocatorService() {
-        return new ConsistentHashNodeAllocatorService(NetProtocol.websocket) {
-
-            @Override
-            public void formatNetExternalUrl(NetServerInfo netServerInfo) {
-                if (StrUtil.isBlank(netServerInfo.getNetExternalUrl())) {
-                    netServerInfo.setNetExternalUrl("ws://" + netServerInfo.getExternalIp() + ":" + netServerInfo.getNetExternalPort());
-                }
-            }
-        };
+        return null;
+        // return new ConsistentHashNodeAllocatorService(NetProtocol.websocket) {
+        //
+        //     @Override
+        //     public void formatNetExternalUrl(NetServerInfo netServerInfo) {
+        //         if (StrUtil.isBlank(netServerInfo.getNetExternalUrl())) {
+        //             netServerInfo.setNetExternalUrl("ws://" + netServerInfo.getHost() + ":" + netServerInfo.getPort());
+        //         }
+        //     }
+        // };
     }
 }

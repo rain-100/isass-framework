@@ -490,7 +490,7 @@ public class MultiKeyMultiValueBiMap<K, V> {
      * @param newValues 新值集合
      * @return 被替换的旧值集合，如果键不存在返回空集合
      */
-    public Set<V> replace(K key, Set<V> newValues) {
+    public Set<V> replace(K key, Collection<V> newValues) {
         if (key == null) {
             return Collections.emptySet();
         }
@@ -917,7 +917,7 @@ public class MultiKeyMultiValueBiMap<K, V> {
             filterNull(newValues, valueIterable);
         }
 
-        // 如果新的映射为空，则返回空集合
+        // 如果新的集合为空，则删除映射
         if (newValues.isEmpty()) {
             return Collections.emptySet();
         }
@@ -959,7 +959,7 @@ public class MultiKeyMultiValueBiMap<K, V> {
             filterNull(newKeys, keyIterable);
         }
 
-        // 如果新的集合为空，则返回空集合
+        // 如果新的集合为空，则删除映射
         if (newKeys.isEmpty()) {
             return Collections.emptySet();
         }
@@ -1010,7 +1010,7 @@ public class MultiKeyMultiValueBiMap<K, V> {
      * @param value 要删除的值
      * @return 被删除的键集合
      */
-    public Set<K> removeValue0(V value) {
+    private Set<K> removeValue0(V value) {
         Set<K> keys = valueToKeys.remove(value);
         if (keys == null || keys.isEmpty()) {
             return Collections.emptySet();

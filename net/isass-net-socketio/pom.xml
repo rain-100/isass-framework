@@ -191,11 +191,6 @@
         </dependency>
 
         <dependency>
-            <groupId>vip.isass</groupId>
-            <artifactId>isass-net-proxy-core</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>com.corundumstudio.socketio</groupId>
             <artifactId>netty-socketio</artifactId>
         </dependency>

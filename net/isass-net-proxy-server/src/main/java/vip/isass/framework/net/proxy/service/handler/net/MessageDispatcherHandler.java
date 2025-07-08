@@ -169,9 +169,10 @@
 package vip.isass.framework.net.proxy.service.handler.net;
 
 import cn.hutool.core.lang.Assert;
-import vip.isass.framework.net.core.handler.OnAnyMessageEventHandler;
-import vip.isass.framework.net.core.message.Message;
-import vip.isass.framework.net.core.message.MessageCmd;
+import vip.isass.framework.net.core.handler.OnMessageEventHandler;
+import vip.isass.framework.net.core.message.EmbeddedMessageEvent;
+import vip.isass.framework.net.core.message.OnMessage;
+import vip.isass.framework.net.core.message.SendMessageReq;
 import vip.isass.framework.net.proxy.service.service.GatewayToRedisMessageService;
 
 /**
@@ -179,31 +180,37 @@ import vip.isass.framework.net.proxy.service.service.GatewayToRedisMessageServic
  *
  * @author Administrator
  */
-public class MessageDispatcherHandler implements OnAnyMessageEventHandler<Object> {
+public class MessageDispatcherHandler implements OnMessageEventHandler<Object> {
 
-    private String serviceNameCmdPrefix;
+    private final String serviceNameEventPrefix;
 
-    private GatewayToRedisMessageService gatewayToRedisMessageService;
+    private final GatewayToRedisMessageService gatewayToRedisMessageService;
 
     public MessageDispatcherHandler(String serviceName,
                                     GatewayToRedisMessageService gatewayToRedisMessageService) {
         Assert.notBlank(serviceName, "serviceName 必填");
-        this.serviceNameCmdPrefix = "/" + serviceName + "/";
+        this.serviceNameEventPrefix = "/" + serviceName + "/";
         this.gatewayToRedisMessageService = gatewayToRedisMessageService;
     }
 
     @Override
-    public Object onMessage(Message message, Object payload) {
+    public String getEvent() {
+        return EmbeddedMessageEvent.ANY_EVENT;
+    }
+
+    @Override
+    public Object onMessage(OnMessage onMessage, Object payload) {
         // 如果是本微服务或 core 的路由，已经由 eventManager 进行过处理
-        if (message.getCmd().startsWith(serviceNameCmdPrefix) || message.getCmd().startsWith(MessageCmd.CORE_PREFIX)) {
+        if (onMessage.getEvent().startsWith(serviceNameEventPrefix)
+                || onMessage.getEvent().startsWith(EmbeddedMessageEvent.CORE_PREFIX)) {
             return null;
         }
 
         // 属于其他微服务的消息，把消息推送到 redis，让具体的微服务处理消息
-        gatewayToRedisMessageService.push(Message.builder()
-                .senderSessionId(message.getSenderSessionId())
-                .senderSession(message.getSenderSession())
-                .cmd(message.getCmd())
+        gatewayToRedisMessageService.push(SendMessageReq.builder()
+                .senderSessionId(onMessage.getSenderSessionId())
+                .senderSession(onMessage.getSenderSession())
+                .event(onMessage.getEvent())
                 .payload(payload)
                 .build());
         return null;

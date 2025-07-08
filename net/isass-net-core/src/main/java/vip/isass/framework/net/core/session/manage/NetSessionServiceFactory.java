@@ -166,114 +166,26 @@
  * Library.
  */
 
-package vip.isass.framework.net.core.session.manage.store;
+package vip.isass.framework.net.core.session.manage;
 
-import cn.hutool.core.lang.Assert;
-import cn.hutool.extra.cglib.CglibUtil;
-import vip.isass.framework.common.util.map.MultiKeyMultiValueBiMap;
-import vip.isass.framework.common.util.map.MultiValueBiMap;
-import vip.isass.framework.net.core.session.DisplaySession;
-import vip.isass.framework.net.core.session.Session;
-import vip.isass.framework.net.core.session.SessionInfoCollection;
+import lombok.extern.slf4j.Slf4j;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
+import java.util.ServiceLoader;
 
 /**
- * 基于本地内存的会话存储器
- * 适用于单体化非集群模式的会话管理
+ * 网络会话服务工厂
+ *
+ * @author Rain
  */
-public class LocalSessionStore implements ISessionStore {
+@Slf4j
+public class NetSessionServiceFactory {
 
-    /**
-     * 保存所有会话
-     * <p> {@literal Map<sessionId, Session>}
-     */
-    public static final Map<String, Session<?>> sessionMap = new ConcurrentHashMap<>();
+    public static INetSessionService INSTANCE;
 
-    /**
-     * 保存所有会话
-     * <p> {@literal Map<userId, sessionId>}
-     */
-    public final MultiValueBiMap<String, String> userAndSessionMap = new MultiValueBiMap<>();
-
-    /**
-     * 保存所有会话
-     * <p> {@literal Map<sessionId, tag>}
-     */
-    public final MultiKeyMultiValueBiMap<String, String> sessionAndTagMap = new MultiKeyMultiValueBiMap<>();
-
-    // region session 操作
-
-    public void addSession(Session<?> session) {
-        Assert.notNull(session, "session 不能为 null");
-        sessionMap.put(session.getSessionId(), session);
+    static {
+        INSTANCE = ServiceLoader.load(INetSessionService.class)
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("No implementation of INetSessionService found. Please ensure that a valid implementation is available in the classpath."));
+        log.info("NetSessionServiceFactory use {} as NetSessionService implementation", INSTANCE.getClass().getName());
     }
-
-    public Session<?> removeSession(String sessionId) {
-        Session<?> remove = sessionMap.remove(sessionId);
-        if (remove != null) {
-            removeUserId(sessionId);
-            removeTags(sessionId);
-        }
-        return remove;
-    }
-
-    public Session<?> getSessionById(String sessionId) {
-        return sessionMap.get(sessionId);
-    }
-
-    public Map<String, Session<?>> getSessionMap() {
-        return sessionMap;
-    }
-
-    public SessionInfoCollection getSessionInfoCollection() {
-        return SessionInfoCollection.builder()
-                .sessions(sessionMap.values()
-                        .parallelStream()
-                        .map(s -> CglibUtil.copy(s, DisplaySession.class))
-                        .collect(Collectors.toList()))
-                .userAndSessionMap(userAndSessionMap)
-                .sessionAndTagMap(sessionAndTagMap)
-                .build();
-    }
-
-    // endregion
-
-    // region user 操作
-
-    @Override
-    public String getUserId(String sessionId) {
-        return userAndSessionMap.getKey(sessionId);
-    }
-
-    @Override
-    public boolean setUserId(String sessionId, String userId) {
-        userAndSessionMap.put(userId, sessionId);
-        return false;
-    }
-
-    public void removeUserId(String sessionId) {
-        Assert.notBlank(sessionId, "sessionId 不能为 null 或空字符串");
-        userAndSessionMap.removeValue(sessionId);
-    }
-
-    public MultiValueBiMap<String, String> getUserAndSessionMap() {
-        return userAndSessionMap;
-    }
-
-    // endregion
-
-    // region tag 操作
-
-    private void removeTags(String sessionId) {
-        sessionAndTagMap.removeKey(sessionId);
-    }
-
-    public MultiKeyMultiValueBiMap<String, String> getSessionAndTagMap() {
-        return sessionAndTagMap;
-    }
-
-    // endregion
 }

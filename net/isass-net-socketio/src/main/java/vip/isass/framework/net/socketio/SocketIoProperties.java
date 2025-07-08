@@ -168,31 +168,32 @@
 
 package vip.isass.framework.net.socketio;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
+import lombok.ToString;
+import lombok.experimental.SuperBuilder;
+import vip.isass.framework.net.core.server.NetServerInfo;
 
 @Getter
 @Setter
-@Configuration
-@ConfigurationProperties(prefix = "kernel.net.socketio")
-public class SocketIoProperties {
+@ToString
+@SuperBuilder
+@NoArgsConstructor
+@AllArgsConstructor
+public class SocketIoProperties extends NetServerInfo {
 
     private boolean enabled;
-
-    private String hostName = "0.0.0.0";
-
-    private int port = 20001;
 
     private int maxHttpContentLength = 64 * 1024;
 
     private int maxFramePayloadLength = 64 * 1024;
 
-    private String externalIp;
+    private String keyStorePath;
 
-    private Integer netExternalPort;
+    private String keyStoreFormat;
 
-    private String netExternalUrl;
+    private String keyStorePassword;
 
 }

@@ -168,14 +168,12 @@
 
 package vip.isass.framework.net.core.handler.embedded;
 
-
 import com.google.auto.service.AutoService;
-import jakarta.annotation.Resource;
 import vip.isass.framework.net.core.handler.IEventHandler;
 import vip.isass.framework.net.core.handler.OnMessageEventHandler;
-import vip.isass.framework.net.core.message.Message;
-import vip.isass.framework.net.core.message.MessageCmd;
-import vip.isass.framework.net.core.session.service.ISessionService;
+import vip.isass.framework.net.core.message.EmbeddedMessageEvent;
+import vip.isass.framework.net.core.message.OnMessage;
+import vip.isass.framework.net.core.session.manage.NetSessionServiceFactory;
 
 /**
  * 客户端发起p2p消息
@@ -185,18 +183,15 @@ import vip.isass.framework.net.core.session.service.ISessionService;
 @AutoService(IEventHandler.class)
 public class OnClientP2pEventHandler implements OnMessageEventHandler<P2pMessage> {
 
-    @Resource
-    private ISessionService sessionService;
-
     @Override
     public String getEvent() {
-        return MessageCmd.CLIENT_P2P;
+        return EmbeddedMessageEvent.CLIENT_P2P;
     }
 
     @Override
-    public Object onMessage(Message message, P2pMessage payload) {
-        sessionService.sendMessageByUserId(
-                MessageCmd.CLIENT_P2P,
+    public Object onMessage(OnMessage onMessage, P2pMessage payload) {
+        NetSessionServiceFactory.INSTANCE.sendMessageByUserId(
+                EmbeddedMessageEvent.CLIENT_P2P,
                 payload,
                 payload.getTargetUserId());
         return null;

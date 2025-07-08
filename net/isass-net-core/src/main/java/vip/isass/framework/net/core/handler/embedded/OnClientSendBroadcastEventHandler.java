@@ -169,12 +169,11 @@
 package vip.isass.framework.net.core.handler.embedded;
 
 import com.google.auto.service.AutoService;
-import jakarta.annotation.Resource;
 import vip.isass.framework.net.core.handler.IEventHandler;
 import vip.isass.framework.net.core.handler.OnMessageEventHandler;
-import vip.isass.framework.net.core.message.Message;
-import vip.isass.framework.net.core.message.MessageCmd;
-import vip.isass.framework.net.core.session.service.ISessionService;
+import vip.isass.framework.net.core.message.EmbeddedMessageEvent;
+import vip.isass.framework.net.core.message.OnMessage;
+import vip.isass.framework.net.core.session.manage.NetSessionServiceFactory;
 
 /**
  * 客户端发送的广播事件处理器
@@ -184,17 +183,14 @@ import vip.isass.framework.net.core.session.service.ISessionService;
 @AutoService(IEventHandler.class)
 public class OnClientSendBroadcastEventHandler implements OnMessageEventHandler<Object> {
 
-    @Resource
-    private ISessionService sessionService;
-
     @Override
     public String getEvent() {
-        return MessageCmd.CLIENT_SEND_BROADCAST;
+        return EmbeddedMessageEvent.CLIENT_SEND_BROADCAST;
     }
 
     @Override
-    public Object onMessage(Message message, Object payload) {
-        sessionService.broadcastMessage(MessageCmd.CLIENT_SEND_BROADCAST, payload);
+    public Object onMessage(OnMessage onMessage, Object payload) {
+        NetSessionServiceFactory.INSTANCE.broadcastMessage(EmbeddedMessageEvent.CLIENT_SEND_BROADCAST, payload);
         return null;
     }
 

@@ -266,7 +266,7 @@
 
         <!-- net -->
         <netty.version>4.1.111.Final</netty.version>
-        <netty-socketio.version>2.0.9</netty-socketio.version>
+        <netty-socketio.version>2.0.13</netty-socketio.version>
 
         <!-- 序列化 -->
         <protobuf-java.version>4.27.1</protobuf-java.version>
@@ -525,12 +525,6 @@
             <dependency>
                 <groupId>vip.isass</groupId>
                 <artifactId>isass-net-socketio</artifactId>
-                <version>${isass-framework.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>vip.isass</groupId>
-                <artifactId>isass-net-proxy-core</artifactId>
                 <version>${isass-framework.version}</version>
             </dependency>
 

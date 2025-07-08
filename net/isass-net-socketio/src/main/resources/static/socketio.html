@@ -244,13 +244,13 @@
         })
     }
 
-    function output(message) {
-        var element = $("<div>" + " " + message + "</div>");
+    function output(sendMessageReq) {
+        var element = $("<div>" + " " + sendMessageReq + "</div>");
         $('#console').prepend(element);
     }
 
-    function serverOutput(message) {
-        var element = $("<div>" + message + "</div>");
+    function serverOutput(sendMessageReq) {
+        var element = $("<div>" + sendMessageReq + "</div>");
         $('#console').prepend(element);
     }
 

@@ -188,7 +188,7 @@ public interface INodeAllocatorService {
      */
     default String allocateAccessUrl(String clientIp) {
         NetServerInfo info = allocate(clientIp);
-        return info.getNetExternalUrl();
+        return info.getHost() + ":" + info.getPort();
     }
 
     Collection<NetServerInfo> getAll();

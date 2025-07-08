@@ -169,13 +169,13 @@
 package vip.isass.framework.net.core.handler.embedded;
 
 import com.google.auto.service.AutoService;
-import jakarta.annotation.Resource;
 import vip.isass.framework.common.service.Resp;
 import vip.isass.framework.net.core.handler.IEventHandler;
 import vip.isass.framework.net.core.handler.OnMessageEventHandler;
-import vip.isass.framework.net.core.message.Message;
-import vip.isass.framework.net.core.message.MessageCmd;
-import vip.isass.framework.net.core.session.service.ISessionService;
+import vip.isass.framework.net.core.message.EmbeddedMessageEvent;
+import vip.isass.framework.net.core.message.OnMessage;
+import vip.isass.framework.net.core.session.EmbeddedTag;
+import vip.isass.framework.net.core.session.manage.NetSessionServiceFactory;
 import vip.isass.framework.security.core.authentication.jwt.JwtInfo;
 import vip.isass.framework.security.core.authentication.jwt.JwtUtil;
 
@@ -192,21 +192,18 @@ public class OnLoginEventHandler implements OnMessageEventHandler<String> {
     // @Value("${security.jwt.secret:" + JwtUtil.DEFAULT_SECRET + "}")
     private String secret;
 
-    @Resource
-    private ISessionService sessionService;
-
     @Override
     public String getEvent() {
-        return MessageCmd.LOGIN;
+        return EmbeddedMessageEvent.LOGIN;
     }
 
     @Override
-    public Object onMessage(Message message, String token) {
+    public Object onMessage(OnMessage onMessage, String token) {
         JwtInfo jwtInfo = JwtUtil.parse(token, secret);
-        sessionService.setUserId(message.getSenderSessionId(), jwtInfo.getUid());
+        NetSessionServiceFactory.INSTANCE.setUserId(onMessage.getSenderSessionId(), jwtInfo.getUid());
         Long appId = jwtInfo.getAid();
         if (appId != null) {
-            sessionService.setTags(message.getSenderSessionId(), Collections.singleton("appId:" + appId.toString()));
+            NetSessionServiceFactory.INSTANCE.setTags(onMessage.getSenderSessionId(), Collections.singleton(EmbeddedTag.APP_ID + appId));
         }
         return Resp.bizSuccess(jwtInfo);
     }

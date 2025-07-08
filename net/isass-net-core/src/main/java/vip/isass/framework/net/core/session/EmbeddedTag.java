@@ -166,29 +166,12 @@
  * Library.
  */
 
-package vip.isass.framework.net.core.session.manage.store;
+package vip.isass.framework.net.core.session;
 
-import vip.isass.framework.common.util.map.MultiKeyMultiValueBiMap;
-import vip.isass.framework.common.util.map.MultiValueBiMap;
-import vip.isass.framework.net.core.session.Session;
+public interface EmbeddedTag {
 
-import java.util.Map;
+    String APP_ID = "appId:";
 
-public interface ISessionStore {
+    String EquipmentId = "eid:";
 
-    void addSession(Session<?> session);
-
-    Session<?> removeSession(String sessionId);
-
-    Session<?> getSessionById(String sessionId);
-
-    Map<String, Session<?>> getSessionMap();
-
-    String getUserId(String sessionId);
-
-    boolean setUserId(String sessionId, String userId);
-
-    MultiValueBiMap<String, String> getUserAndSessionMap();
-
-    MultiKeyMultiValueBiMap<String, String> getSessionAndTagMap();
 }

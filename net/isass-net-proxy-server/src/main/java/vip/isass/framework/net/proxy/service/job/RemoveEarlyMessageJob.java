@@ -169,8 +169,6 @@
 package vip.isass.framework.net.proxy.service.job;
 
 import jakarta.annotation.Resource;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
 import vip.isass.framework.net.proxy.service.service.RemoveC2SMessageService;
 
 /**
@@ -178,7 +176,6 @@ import vip.isass.framework.net.proxy.service.service.RemoveC2SMessageService;
  *
  * @author rain
  */
-@Component
 public class RemoveEarlyMessageJob {
 
     @Resource
@@ -187,7 +184,7 @@ public class RemoveEarlyMessageJob {
     /**
      * 每5分钟执行一次
      */
-    @Scheduled(initialDelay = 5 * 60 * 1000, fixedDelay = 5 * 60 * 1000)
+    // @Scheduled(initialDelay = 5 * 60 * 1000, fixedDelay = 5 * 60 * 1000)
     public void process() {
         removeC2SMessageService.process();
     }

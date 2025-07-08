@@ -207,18 +207,6 @@ public class SessionBindingInfoChangeReq {
     private Boolean removeUserId;
 
     /**
-     * 重新设置会话绑定的别名，resetAlias(优先)、removeAlias 二选一
-     * resetAlias 只能用在根据 sessionId 修改信息的情况
-     */
-    private String alias;
-
-    /**
-     * 移除会话绑定的别名
-     * removeAlias 只能用在根据 sessionId 修改信息的情况
-     */
-    private Boolean removeAlias;
-
-    /**
      * 重新设置会话绑定的标签，resetTags(优先)、removeAllTags 二选一
      * resetAlias 只能用在根据 sessionId 修改信息的情况
      */

@@ -168,22 +168,8 @@
 
 package vip.isass.framework.net.proxy.service.service;
 
-import com.baomidou.lock.annotation.Lock4j;
-import jakarta.annotation.Resource;
-import org.springframework.data.redis.core.Cursor;
-import org.springframework.data.redis.core.RedisCallback;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.ScanOptions;
-import org.springframework.data.redis.core.script.DefaultRedisScript;
-import org.springframework.data.redis.serializer.RedisSerializer;
-import org.springframework.stereotype.Service;
 import vip.isass.framework.common.entrypoint.EntryPointAnno;
-import vip.isass.framework.common.util.LocalDateTimeUtil;
-import vip.isass.framework.net.core.NetRedisKey;
-import vip.isass.framework.net.core.message.Message;
 
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -191,17 +177,13 @@ import java.util.Set;
  *
  * @author rain
  */
-@Service
 public class RemoveC2SMessageService {
-
-    @Resource
-    private RedisTemplate<String, Message> redisTemplate;
 
     /**
      * 每隔5分钟删除一次5分钟前的旧消息
      */
     @SuppressWarnings("unchecked")
-    @Lock4j(name = "removeEarlyMessage", acquireTimeout = 0, expire = 30_000)
+    // @Lock4j(name = "removeEarlyMessage", acquireTimeout = 0, expire = 30_000)
     @EntryPointAnno(name = "删除 redis 旧的 c2s 消息", group = "网络会话管理器(调试专用)", route = "/${spring.application.name}/redis/removeEarlyMessageService")
     public void process() {
         Set<String> keys = scanKeys();
@@ -214,37 +196,37 @@ public class RemoveC2SMessageService {
         redis 要在6.2.0 及以上才有 MINID 策略
         Starting with Redis version 6.2.0: Added the MINID trimming strategy and the LIMIT option.
          */
-        String luaScript = "return redis.call('XTRIM', KEYS[1], 'MINID', '~', ARGV[1])";
-        DefaultRedisScript<Long> redisScript = new DefaultRedisScript<>(luaScript, Long.class);
-        String fiveMinuteAgo = LocalDateTimeUtil.localDateTimeToEpochMilli(LocalDateTimeUtil.now().minusMinutes(5)) + "";
-        keys.forEach(k -> redisTemplate.execute(
-                redisScript,
-                RedisSerializer.string(),
-                (RedisSerializer<Long>) redisTemplate.getValueSerializer(),
-                Collections.singletonList(k),
-                fiveMinuteAgo));
+        // String luaScript = "return redis.call('XTRIM', KEYS[1], 'MINID', '~', ARGV[1])";
+        // DefaultRedisScript<Long> redisScript = new DefaultRedisScript<>(luaScript, Long.class);
+        //
+        // String fiveMinuteAgo = LocalDateTimeUtil.localDateTimeToEpochMilli(LocalDateTimeUtil.now().minusMinutes(5)) + "";
+        // keys.forEach(k -> redisTemplate.execute(
+        //         redisScript,
+        //         RedisSerializer.string(),
+        //         (RedisSerializer<Long>) redisTemplate.getValueSerializer(),
+        //         Collections.singletonList(k),
+        //         fiveMinuteAgo));
     }
 
     public Set<String> scanKeys() {
-        RedisSerializer<?> keySerializer = redisTemplate.getKeySerializer();
-        return redisTemplate.execute((RedisCallback<Set<String>>) connection -> {
-            Set<String> keys = new HashSet<>();
-            try (Cursor<byte[]> cursor = connection.keyCommands().scan(
-                    ScanOptions.scanOptions()
-                            .match(NetRedisKey.REDIS_STREAM_PREFIX_KEY.concat("*"))
-                            .count(1000)
-                            .build())) {
-                while (cursor.hasNext()) {
-                    Object key = keySerializer.deserialize(cursor.next());
-                    if (key != null) {
-                        keys.add(key.toString());
-                    }
-                }
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-            return keys;
-        });
+        // RedisSerializer<?> keySerializer = redisTemplate.getKeySerializer();
+        // return redisTemplate.execute((RedisCallback<Set<String>>) connection -> {
+        //     Set<String> keys = new HashSet<>();
+        //     try (Cursor<byte[]> cursor = connection.keyCommands().scan(
+        //             ScanOptions.scanOptions()
+        //                     .match(NetRedisKey.REDIS_STREAM_PREFIX_KEY.concat("*"))
+        //                     .count(1000)
+        //                     .build())) {
+        //         while (cursor.hasNext()) {
+        //             Object key = keySerializer.deserialize(cursor.next());
+        //             keys.add(key.toString());
+        //         }
+        //     } catch (Exception e) {
+        //         throw new RuntimeException(e);
+        //     }
+        //     return keys;
+        // });
+        return null;
     }
 
 }

@@ -187,7 +187,7 @@
     <dependencies>
         <dependency>
             <groupId>vip.isass</groupId>
-            <artifactId>isass-net-proxy-core</artifactId>
+            <artifactId>isass-net-core</artifactId>
         </dependency>
 
         <dependency>

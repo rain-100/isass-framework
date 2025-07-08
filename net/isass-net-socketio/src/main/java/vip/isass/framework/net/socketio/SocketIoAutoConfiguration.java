@@ -168,58 +168,12 @@
 
 package vip.isass.framework.net.socketio;
 
-import com.corundumstudio.socketio.SocketConfig;
-import com.corundumstudio.socketio.SocketIOServer;
-import com.corundumstudio.socketio.annotation.SpringAnnotationScanner;
-import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import vip.isass.framework.net.socketio.handler.OnSocketIoErrorListener;
 
 /**
  * @author Rain
  */
 @Slf4j
-@ComponentScan
-@Configuration
-@ConditionalOnProperty(name = {"kernel.net.enabled", "kernel.net.socketio.enabled"}, havingValue = "true")
 public class SocketIoAutoConfiguration {
-
-    @Resource
-    private SocketIoProperties socketIoProperties;
-
-    @Autowired
-    private OnSocketIoErrorListener onErrorListener;
-
-    @Bean
-    public SocketIOServer socketIOServer() {
-        com.corundumstudio.socketio.Configuration config = new com.corundumstudio.socketio.Configuration();
-        config.setHostname(socketIoProperties.getHostName());
-        config.setPort(socketIoProperties.getPort());
-        config.setMaxHttpContentLength(socketIoProperties.getMaxHttpContentLength());
-        config.setMaxFramePayloadLength(socketIoProperties.getMaxFramePayloadLength());
-        config.setBossThreads(1);
-        config.setExceptionListener(onErrorListener);
-
-        SocketConfig sockConfig = new SocketConfig();
-        // 解决SOCKET服务端重启"Address already in use"异常
-        sockConfig.setReuseAddress(true);
-        sockConfig.setTcpKeepAlive(false);
-        config.setSocketConfig(sockConfig);
-
-        return new SocketIOServer(config);
-    }
-
-    /**
-     * 用于扫描 netty-socketio 的注解，比如 @OnConnect、@OnEvent
-     **/
-    @Bean
-    public SpringAnnotationScanner springAnnotationScanner(SocketIOServer socketIoServer) {
-        return new SpringAnnotationScanner(socketIoServer);
-    }
 
 }

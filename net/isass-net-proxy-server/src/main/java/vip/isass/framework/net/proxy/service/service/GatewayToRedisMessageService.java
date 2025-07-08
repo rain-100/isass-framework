@@ -168,61 +168,47 @@
 
 package vip.isass.framework.net.proxy.service.service;
 
-import jakarta.annotation.Resource;
-import org.springframework.data.redis.connection.stream.ObjectRecord;
-import org.springframework.data.redis.connection.stream.RecordId;
-import org.springframework.data.redis.connection.stream.StreamRecords;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.stereotype.Service;
+import cn.hutool.core.util.StrUtil;
 import vip.isass.framework.common.entrypoint.EntryPointAnno;
 import vip.isass.framework.common.entrypoint.RequestBody;
 import vip.isass.framework.net.core.NetRedisKey;
-import vip.isass.framework.net.core.message.Message;
-
-import java.util.Map;
+import vip.isass.framework.net.core.message.SendMessageReq;
 
 /**
- * 把网关收到客户端的消息，推送到 redis
+ * todo 把网关收到客户端的消息，推送到 redis
  *
  * @author rain
  */
-@Service
 public class GatewayToRedisMessageService {
 
-    @Resource
-    private RedisTemplate<String, Message> redisTemplate;
-
     public String createGroup(String key, String group) {
-        return redisTemplate.opsForStream().createGroup(key, group);
+        // return redisTemplate.opsForStream().createGroup(key, group);
+        return null;
     }
 
     @EntryPointAnno(name = "发送消息到redis", group = "网络会话管理器(调试专用)", route = "/${spring.application.name}/redis/push")
-    public RecordId push(@RequestBody Message message) {
-        String streamKey = parseStreamKeyFromCmd(message.getCmd());
-        ObjectRecord<String, Message> record = StreamRecords.newRecord()
-                .in(streamKey)
-                .ofObject(message)
-                .withId(RecordId.autoGenerate());
-        return redisTemplate.opsForStream().add(record);
+    public void push(@RequestBody SendMessageReq sendMessageReq) {
+        String streamKey = parseStreamKeyFromCmd(sendMessageReq.getEvent());
+        // ObjectRecord<String, SendMessageReq> record = StreamRecords.newRecord()
+        //         .in(streamKey)
+        //         .ofObject(sendMessageReq)
+        //         .withId(RecordId.autoGenerate());
+        // redisTemplate.opsForStream().add(record);
     }
 
     /**
-     * 根据 cmd 解析出目标微服务
-     * 返回的微服务需要在正在监听的微服务中，避免客户端发送大量无法匹配微服务的 cmd，造成创建大量无意义的 redis stream
+     * 根据 cmd 解析出需要推送到 redis stream 的 key
      *
      * @param cmd 路由命令
      * @return 微服务名
      */
     private String parseStreamKeyFromCmd(String cmd) {
-        Map<String, MessageRedisKeyMapping> mapping = ProxyClientCmdListeningService.getMessageRedisKeyMapping();
-        for (Map.Entry<String, MessageRedisKeyMapping> entry : mapping.entrySet()) {
-            if (!cmd.startsWith(entry.getKey())) {
-                continue;
-            }
-            return entry.getValue().getRedisKey();
+        String serviceName = StrUtil.removePrefix(cmd, "/");
+        serviceName = StrUtil.subBefore(serviceName, "/", false);
+        if (StrUtil.isBlank(serviceName)) {
+            return NetRedisKey.REDIS_STREAM_UNKNOWN_SERVICE_KEY;
         }
-
-        return NetRedisKey.REDIS_STREAM_UNKNOWN_SERVICE_KEY;
+        return NetRedisKey.REDIS_STREAM_PREFIX_KEY + serviceName;
     }
 
 }

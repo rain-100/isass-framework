@@ -194,15 +194,11 @@ import io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.util.CharsetUtil;
-import jakarta.annotation.Resource;
-import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
-import vip.isass.framework.net.core.handler.manager.EventManager;
-import vip.isass.framework.net.core.message.Message;
-import vip.isass.framework.net.core.message.MessageCmd;
-import vip.isass.framework.net.core.session.service.ISessionService;
+import vip.isass.framework.net.core.handler.manager.NetEventManager;
+import vip.isass.framework.net.core.message.EmbeddedMessageEvent;
+import vip.isass.framework.net.core.message.OnMessage;
 import vip.isass.framework.net.websocket.packet.WebsocketPacket;
 import vip.isass.framework.net.websocket.session.WebsocketClientSession;
 import vip.isass.framework.serialization.jackson.JsonUtil;
@@ -214,25 +210,17 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Rain
  */
 @Slf4j
-@Component
 @ChannelHandler.Sharable
 public class WebsocketChannelInboundHandler extends SimpleChannelInboundHandler<Object> {
 
     private Map<Channel, WebSocketServerHandshaker> handshakers = new ConcurrentHashMap<>(128);
-
-    @Getter
-    @Resource
-    private ISessionService sessionService;
-
-    @Resource
-    private EventManager eventManager;
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         // 新的channel激活时，绑定channel与session的关系
         Channel channel = ctx.channel();
         WebsocketClientSession session = new WebsocketClientSession(channel);
-        eventManager.onConnect(session);
+        NetEventManager.onConnect(session);
         channelRegistered(ctx);
     }
 
@@ -263,7 +251,7 @@ public class WebsocketChannelInboundHandler extends SimpleChannelInboundHandler<
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         Channel channel = ctx.channel();
         WebsocketClientSession session = new WebsocketClientSession(channel);
-        eventManager.onError(session, cause);
+        NetEventManager.onError(session, cause);
         ctx.close();
     }
 
@@ -273,7 +261,7 @@ public class WebsocketChannelInboundHandler extends SimpleChannelInboundHandler<
         Channel channel = ctx.channel();
         if (channel != null) {
             WebsocketClientSession session = new WebsocketClientSession(channel);
-            eventManager.onDisconnect(session);
+            NetEventManager.onDisconnect(session);
         }
 
         // todo 分发用户下线事件
@@ -294,7 +282,7 @@ public class WebsocketChannelInboundHandler extends SimpleChannelInboundHandler<
 
         if (frame instanceof BinaryWebSocketFrame) {
             WebsocketClientSession session = new WebsocketClientSession(ctx.channel());
-            session.sendMessage(MessageCmd.ERROR, "暂不支持二进制帧");
+            session.sendMessage(EmbeddedMessageEvent.ERROR, "暂不支持二进制帧");
             return;
         }
 
@@ -305,12 +293,12 @@ public class WebsocketChannelInboundHandler extends SimpleChannelInboundHandler<
 
             WebsocketPacket packet = JsonUtil.DEFAULT_INSTANCE.readValue(request, WebsocketPacket.class);
             WebsocketClientSession session = new WebsocketClientSession(channel);
-            eventManager.onMessage(
-                    Message.builder()
+            NetEventManager.onMessage(
+                    OnMessage.builder()
                             .senderSessionId(session.getSessionId())
                             .senderSession(session)
-                            .cmd(packet.getCmd())
-                            .payload(packet.getPayload())
+                            .event(packet.getCmd())
+                            .source(packet.getPayload())
                             .build());
         }
     }

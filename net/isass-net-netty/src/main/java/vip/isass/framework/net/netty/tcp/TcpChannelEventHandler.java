@@ -175,7 +175,6 @@ import jakarta.annotation.Resource;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
-import vip.isass.framework.net.core.session.service.ISessionService;
 import vip.isass.framework.net.netty.channel.ChannelEventHandler;
 import vip.isass.framework.net.netty.packet.TcpPacket;
 import vip.isass.framework.net.netty.request.Request;
@@ -193,10 +192,6 @@ import java.util.Map;
 @ChannelHandler.Sharable
 // @ConditionalOnMissingBean(ChannelEventHandler.class)
 public class TcpChannelEventHandler extends ChannelInboundHandlerAdapter implements ChannelEventHandler {
-
-    @Resource
-    @Getter
-    private ISessionService sessionService;
 
     @Resource
     @Getter
@@ -231,7 +226,7 @@ public class TcpChannelEventHandler extends ChannelInboundHandlerAdapter impleme
     }
 
     @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         exceptionCaught0(ctx, cause);
     }
 

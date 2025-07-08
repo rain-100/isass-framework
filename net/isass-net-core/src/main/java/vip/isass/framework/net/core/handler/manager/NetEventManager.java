@@ -166,11 +166,182 @@
  * Library.
  */
 
-package vip.isass.framework.net.core.session.manage.store;
+package vip.isass.framework.net.core.handler.manager;
+
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.collection.ConcurrentHashSet;
+import cn.hutool.core.exceptions.ExceptionUtil;
+import cn.hutool.core.map.MapUtil;
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.core.util.TypeUtil;
+import lombok.extern.slf4j.Slf4j;
+import vip.isass.framework.net.core.handler.IEventHandler;
+import vip.isass.framework.net.core.handler.OnConnectEventHandler;
+import vip.isass.framework.net.core.handler.OnDisconnectEventHandler;
+import vip.isass.framework.net.core.handler.OnErrorEventHandler;
+import vip.isass.framework.net.core.handler.OnMessageEventHandler;
+import vip.isass.framework.net.core.message.EmbeddedMessageEvent;
+import vip.isass.framework.net.core.message.OnMessage;
+import vip.isass.framework.net.core.message.SendMessageReq;
+import vip.isass.framework.net.core.session.Session;
+import vip.isass.framework.net.core.session.manage.NetSessionManager;
+import vip.isass.framework.net.core.session.manage.NetSessionServiceFactory;
+import vip.isass.framework.serialization.jackson.ConvertUtil;
+
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.ServiceLoader;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
- * 基于redis的会话存储器
- * 适用于分布式集群模式的会话管理
+ * 网络事件管理器
+ *
+ * @author Rain
  */
-public class RedisSessionStore implements ISessionStore {
+@Slf4j
+@SuppressWarnings({"rawtypes", "unchecked"})
+public class NetEventManager {
+
+    static {
+        ServiceLoader<IEventHandler> eventHandlers = ServiceLoader.load(IEventHandler.class);
+        addHandlers(eventHandlers.stream().map(ServiceLoader.Provider::get).collect(Collectors.toList()));
+    }
+
+    private static final List<OnConnectEventHandler> ON_CONNECT_EVENT_HANDLERS = new ArrayList<>();
+
+    private static final List<OnDisconnectEventHandler> ON_DISCONNECT_EVENT_HANDLERS = new ArrayList<>();
+
+    private static final List<OnErrorEventHandler> ON_ERROR_EVENT_HANDLERS = new ArrayList<>();
+
+    private static final Map<String, List<OnMessageEventHandler>> ON_MESSAGE_EVENT_HANDLER_MAP = new HashMap<>();
+
+    public static Set<IEventHandler> HANDLERS = new ConcurrentHashSet<>();
+
+    public static void addHandlers(Collection<IEventHandler> handlers) {
+        if (CollUtil.isEmpty(handlers)) {
+            return;
+        }
+
+        HANDLERS.addAll(handlers);
+        handlers.forEach(handler -> {
+            if (handler instanceof OnConnectEventHandler) {
+                ON_CONNECT_EVENT_HANDLERS.add((OnConnectEventHandler) handler);
+            } else if (handler instanceof OnDisconnectEventHandler) {
+                ON_DISCONNECT_EVENT_HANDLERS.add((OnDisconnectEventHandler) handler);
+            } else if (handler instanceof OnErrorEventHandler) {
+                ON_ERROR_EVENT_HANDLERS.add((OnErrorEventHandler) handler);
+            } else if (handler instanceof OnMessageEventHandler<?> h) {
+                ON_MESSAGE_EVENT_HANDLER_MAP
+                        .computeIfAbsent(
+                                StrUtil.isBlank(h.getEvent()) ? EmbeddedMessageEvent.ANY_EVENT : h.getEvent(),
+                                e -> new ArrayList<>())
+                        .add(h);
+            }
+        });
+    }
+
+    public static void onConnect(Session<?> session) {
+        NetSessionManager.INSTANCE.addSession(session);
+        ON_CONNECT_EVENT_HANDLERS.forEach(h -> h.onConnect(session));
+
+        log.debug("[{}]客户端连接，客户端ip：{}", session.getServerType().getSimpleName(), session.getRemoteIp());
+    }
+
+    public static void onDisconnect(Session<?> session) {
+        ON_DISCONNECT_EVENT_HANDLERS.forEach(h -> {
+            try {
+                h.onDisconnect(session);
+            } catch (Exception e) {
+                log.error("执行[{}.onDisconnect()]方法异常：{}", h.getClass().getSimpleName(), e.getMessage(), e);
+            }
+        });
+
+        NetSessionManager.INSTANCE.removeSession(session);
+        log.debug("[{}]客户端断连，客户端ip：{}", session.getServerType().getSimpleName(), session.getRemoteIp());
+    }
+
+    public static void onMessage(OnMessage onMessage) {
+        log.trace("收到客户端消息: event[{}] payload[{}]", onMessage.getEvent(), onMessage.getSource());
+
+        Map<Type, Object> convertedPayloadMap = MapUtil.newHashMap(2);
+
+        // 如果消息指定具体的事件，且不是 any_event ，则使用具体的事件处理器
+        if (StrUtil.isNotBlank(onMessage.getEvent()) && !EmbeddedMessageEvent.ANY_EVENT.equals(onMessage.getEvent())) {
+            processMessage(ON_MESSAGE_EVENT_HANDLER_MAP.getOrDefault(onMessage.getEvent(), Collections.emptyList()),
+                    onMessage,
+                    convertedPayloadMap);
+        }
+
+        // 执行 any event 处理器
+        processMessage(ON_MESSAGE_EVENT_HANDLER_MAP.getOrDefault(EmbeddedMessageEvent.ANY_EVENT, Collections.emptyList()),
+                onMessage,
+                convertedPayloadMap);
+    }
+
+    private static void processMessage(List<OnMessageEventHandler> handlers, OnMessage onMessage, Map<Type, Object> convertedPayloadMap) {
+        for (OnMessageEventHandler handler : handlers) {
+            Object convertedPayload;
+            try {
+                Type actualType = TypeUtil.toParameterizedType(handler.getClass()).getActualTypeArguments()[0];
+                convertedPayload = convertedPayloadMap.computeIfAbsent(
+                        actualType,
+                        k -> ConvertUtil.convert(k, onMessage.getSource()));
+            } catch (Exception e) {
+                String errorMessage = StrUtil.format(
+                        "反序列化消息失败：cmd[{}],error[{}]",
+                        onMessage.getEvent(),
+                        e.getMessage());
+                log.error(errorMessage, e);
+                replyMessage(onMessage, EmbeddedMessageEvent.ERROR, errorMessage);
+                continue;
+            }
+
+            try {
+                Object process = handler.onMessage(onMessage, convertedPayload);
+                if (process != null) {
+                    replyMessage(onMessage, onMessage.getEvent(), process);
+                }
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+                replyMessage(onMessage, EmbeddedMessageEvent.ERROR, e.getMessage());
+            }
+        }
+    }
+
+    public static void onError(Session<?> session, Throwable throwable) {
+        ON_ERROR_EVENT_HANDLERS.forEach(h -> h.onError(session, null, null, throwable));
+        Throwable e = ExceptionUtil.unwrap(throwable);
+        session.sendMessage(EmbeddedMessageEvent.ERROR, "发生异常" + e.getMessage());
+        log.error("[{}]sessionId[{}]发生异常[{}]，将关闭该连接",
+                session.getServerType().getSimpleName(),
+                session.getSessionId(),
+                e.getMessage());
+        NetSessionManager.INSTANCE.removeSession(session);
+        session.close();
+    }
+
+    private static void replyMessage(OnMessage onMessage, String event, Object payload) {
+        if (onMessage.getSenderSession() != null) {
+            onMessage.getSenderSession().sendMessage(event, payload);
+            return;
+        }
+
+        if (StrUtil.isBlank(onMessage.getSenderSessionId())) {
+            return;
+        }
+
+        NetSessionServiceFactory.INSTANCE.sendMessage(SendMessageReq.builder()
+                .receiverSession(onMessage.getSenderSession())
+                .receiverSessionId(onMessage.getSenderSessionId())
+                .event(event)
+                .payload(payload)
+                .build());
+    }
+
 }

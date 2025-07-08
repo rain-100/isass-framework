@@ -202,7 +202,6 @@
         <module>mq/isass-mq-spring-event</module>
         <module>net/isass-net-core</module>
         <module>net/isass-net-netty</module>
-        <module>net/isass-net-proxy-core</module>
         <module>net/isass-net-proxy-server</module>
         <module>net/isass-net-proxy-upstream</module>
         <module>net/isass-net-socketio</module>

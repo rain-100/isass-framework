@@ -184,10 +184,6 @@
     <artifactId>isass-web-springmvc</artifactId>
     <version>${revision}</version>
 
-    <properties>
-        <spring-security.version>5.5.8</spring-security.version>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>vip.isass</groupId>

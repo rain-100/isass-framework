@@ -168,7 +168,7 @@
 
 package vip.isass.framework.net.core.handler.manager;
 
-import vip.isass.framework.net.core.message.Message;
+import vip.isass.framework.net.core.message.SendMessageReq;
 import vip.isass.framework.net.core.session.Session;
 
 /**
@@ -195,9 +195,9 @@ public interface IEventManager {
     /**
      * 收到路由消息事件
      *
-     * @param message 消息
+     * @param sendMessageReq 消息
      */
-    <T> void onMessage(Message message);
+    <T> void onMessage(SendMessageReq sendMessageReq);
 
     /**
      * 收到错误消息事件
