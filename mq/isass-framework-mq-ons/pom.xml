@@ -175,209 +175,29 @@
     <!-- 父项目信息 -->
     <parent>
         <groupId>vip.isass</groupId>
-        <artifactId>isass-framework-dependencies</artifactId>
+        <artifactId>isass-framework-parent</artifactId>
         <version>4.0.0-SNAPSHOT</version>
-        <relativePath>../isass-framework-dependencies</relativePath>
+        <relativePath>../../common/isass-framework-parent</relativePath>
     </parent>
 
     <!-- 本项目信息 -->
-    <artifactId>isass-framework-parent</artifactId>
+    <artifactId>isass-framework-mq-ons</artifactId>
     <version>4.0.0-SNAPSHOT</version>
-    <packaging>pom</packaging>
-
-    <!-- maven功能说明 -->
-    <!--
-    <scope>compile</scope>
-    默认就是compile，什么都不配置也就是意味着compile。
-    compile表示被依赖项目需要参与当前项目的编译，当然后续的测试，运行周期也参与其中，是一个比较强的依赖。打包的时候通常需要包含进去。
-
-    <scope>test</scope>
-    scope为test表示依赖项目仅仅参与测试相关的工作，包括测试代码的编译，执行。比较典型的如junit。
-
-    <scope>provided</scope>
-    意味着打包的时候可以不用包进去，别的设施(Web Container)会提供。
-    事实上该依赖理论上可以参与编译，测试，运行等周期。相当于compile，但是在打包阶段做了exclude的动作。
-
-    <scope>runtime</scope>
-    runtime表示被依赖项目无需参与项目的编译，不过后期的测试和运行周期需要其参与。
-    与compile相比，跳过编译而已，说实话在终端的项目（非开源，企业内部系统）中，和compile区别不是很大。
-    比较常见的如JSR×××的实现，对应的API jar是compile的，具体实现是runtime的，compile只需要知道接口就足够了。
-    oracle jdbc驱动架包就是一个很好的例子，一般scope为runtime。
-    另外runtime的依赖通常和optional搭配使用，optional为true。我可以用A实现，也可以用B实现。
-
-    <scope>import</scope>
-    import：从其它的pom文件中导入依赖设置。
-    -->
 
     <dependencies>
-        <!--
-            绝大部分的服务都需要依赖的jar包，可以配置这里，达到全局通用的效果
-            工具类、数据库连接等jar，不应该放到这里，因为有些服务不需要，例如服务注册与发现中心。
-            如果把这些不需要的jar也放到这里，则在服务打包时，会把这些不需要的jar也打包了，造成服务的jar包臃肿。
-         -->
-        <!--<dependency>-->
-        <!--<groupId>org.springframework.boot</groupId>-->
-        <!--<artifactId>spring-boot-devtools</artifactId>-->
-        <!--<optional>true</optional>-->
-        <!--</dependency>-->
-
-        <!--<dependency>-->
-        <!--<groupId>org.springframework.boot</groupId>-->
-        <!--<artifactId>spring-boot-dependencies</artifactId>-->
-        <!--<version>1.5.6.RELEASE</version>-->
-        <!--<type>pom</type>-->
-        <!--<scope>import</scope>-->
-        <!--</dependency>-->
-        <!-- AOP -->
-
         <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <scope>provided</scope>
+            <groupId>vip.isass</groupId>
+            <artifactId>isass-framework-common</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>cn.hutool</groupId>
-            <artifactId>hutool-all</artifactId>
+            <groupId>vip.isass</groupId>
+            <artifactId>isass-framework-mq-core</artifactId>
         </dependency>
 
-        <!--<dependency>-->
-        <!--    <groupId>com.google.code.findbugs</groupId>-->
-        <!--    <artifactId>annotations</artifactId>-->
-        <!--</dependency>-->
+        <dependency>
+            <groupId>com.aliyun.openservices</groupId>
+            <artifactId>ons-client</artifactId>
+        </dependency>
     </dependencies>
-
-    <build>
-        <resources>
-            <resource>
-                <directory>src/main/java</directory>
-                <includes>
-                    <include>**/*.xml</include>
-                </includes>
-            </resource>
-            <resource>
-                <directory>src/main/resources</directory>
-                <includes>
-                    <include>**/*.*</include>
-                </includes>
-            </resource>
-        </resources>
-
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-            </plugin>
-
-            <plugin>
-                <groupId>pl.project13.maven</groupId>
-                <artifactId>git-commit-id-plugin</artifactId>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-release-plugin</artifactId>
-            </plugin>
-        </plugins>
-    </build>
-
-    <profiles>
-        <profile>
-            <id>isass-deploy</id>
-            <build>
-                <plugins>
-                    <!--生成 Source jar 文件-->
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-source-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>attach-sources</id>
-                                <phase>compile</phase>
-                                <goals>
-                                    <goal>jar-no-fork</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-
-                    <!--生成Javadoc，关闭doclint,避免注解检查不通过-->
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-javadoc-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>attach-javadocs</id>
-                                <goals>
-                                    <goal>jar</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-
-                    <!--Maven GPG插件用于使用以下配置对组件进行签名-->
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-gpg-plugin</artifactId>
-                        <version>1.6</version>
-                        <configuration>
-                            <skip>false</skip>
-                        </configuration>
-                        <executions>
-                            <execution>
-                                <id>sign-artifacts</id>
-                                <phase>verify</phase>
-                                <goals>
-                                    <goal>sign</goal>
-                                </goals>
-                                <configuration>
-                                    <gpgArguments>
-                                        <arg>--pinentry-mode</arg>
-                                        <arg>loopback</arg>
-                                    </gpgArguments>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-
-                    <!--Nexus Staging Maven插件是将组件部署到OSSRH并将其发布到Central Repository的推荐方法-->
-                    <plugin>
-                        <groupId>org.sonatype.plugins</groupId>
-                        <artifactId>nexus-staging-maven-plugin</artifactId>
-                        <version>1.6.8</version>
-                        <extensions>true</extensions>
-                        <configuration>
-                            <serverId>ossrh</serverId>
-                            <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-                            <autoReleaseAfterClose>true</autoReleaseAfterClose>
-                        </configuration>
-                    </plugin>
-
-                    <!-- release plugin,用于发布到release仓库部署插件 -->
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-release-plugin</artifactId>
-                        <!--                        <configuration>-->
-                        <!--                            <tagNameFormat>@{project.version}</tagNameFormat>-->
-                        <!--                            <autoVersionSubmodules>true</autoVersionSubmodules>-->
-                        <!--                            <releaseProfiles>isass-deploy</releaseProfiles>-->
-                        <!--                            <useReleaseProfile>true</useReleaseProfile>-->
-                        <!--                            <arguments>-DskipTests</arguments>-->
-                        <!--                            <goals>deploy</goals>-->
-                        <!--                        </configuration>-->
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
 </project>

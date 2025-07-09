@@ -175,7 +175,7 @@
     <!-- 本项目信息 -->
     <groupId>vip.isass</groupId>
     <artifactId>isass-framework-dependencies</artifactId>
-    <version>${revision}</version>
+    <version>4.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <properties>
@@ -192,8 +192,7 @@
 
         <!-- region isass-core -->
 
-        <revision>4.0.0-SNAPSHOT</revision>
-        <isass-framework.version>${revision}</isass-framework.version>
+        <isass-framework.version>4.0.0-SNAPSHOT</isass-framework.version>
 
         <!-- endregion -->
 
@@ -232,9 +231,13 @@
         <!-- https://spring.io/projects/spring-cloud#overview -->
 
         <!-- https://spring.io/projects/spring-boot#learn -->
-        <spring-boot.version>3.4.5</spring-boot.version>
+        <spring-boot.version>3.5.3</spring-boot.version>
+
+        <!-- spring cloud 版本号-->
         <!-- https://spring.io/projects/spring-cloud#learn -->
-        <spring.cloud.version>2024.0.1</spring.cloud.version>
+        <!-- spring cloud 子项目版本号 -->
+        <!--https://docs.spring.io/spring-cloud-release/reference/index.html-->
+        <spring-cloud.version>2025.0.0</spring-cloud.version>
 
         <!--spring cloud alibaba 与 spring cloud 版本关系、以及 spring cloud alibaba 各组件版本关系-->
         <!-- https://sca.aliyun.com/docs/2023/overview/version-explain/?spm=5176.29160081.0.0.5f0478feHyXk54 -->
@@ -244,7 +247,7 @@
         <!-- https://github.com/alibaba/spring-cloud-alibaba/issues/3940 -->
         <!-- https://github.com/alibaba/spring-cloud-alibaba/issues/3948 -->
         <!-- https://github.com/alibaba/spring-cloud-alibaba/issues/3970 -->
-        <alibaba-nacos.version>2023.0.3.2</alibaba-nacos.version>
+        <alibaba-nacos.version>2023.0.3.3</alibaba-nacos.version>
 
         <jakarta.activation.version>2.1.3</jakarta.activation.version>
 
@@ -269,9 +272,9 @@
         <netty-socketio.version>2.0.13</netty-socketio.version>
 
         <!-- 序列化 -->
-        <protobuf-java.version>4.27.1</protobuf-java.version>
+        <protobuf-java.version>4.31.1</protobuf-java.version>
         <protobuf-java-format.version>1.4</protobuf-java-format.version>
-        <fastjson.version>2.0.51</fastjson.version>
+        <fastjson.version>2.0.57</fastjson.version>
 
         <!-- mq -->
         <ons.version>2.0.7.Final</ons.version>
@@ -285,8 +288,11 @@
         <xerces.version>2.12.2</xerces.version>
         <findbugs.version>3.0.1</findbugs.version>
         <cglib.version>3.3.0</cglib.version>
-        <commons-compress.version>1.26.2</commons-compress.version>
         <javassist.version>3.30.2-GA</javassist.version>
+
+        <!-- apache-commons-->
+        <commons-compress.version>1.26.2</commons-compress.version>
+        <commons-io.version>2.19.0</commons-io.version>
 
         <!-- api接口文档 -->
         <knife4j.version>4.5.0</knife4j.version>
@@ -323,21 +329,25 @@
         <pci.coordtransform4j.version>1.0.2</pci.coordtransform4j.version>
 
         <!-- 日志打印 -->
-        <logback.version>1.5.6</logback.version>
-        <log4j-to-slf4j.version>2.23.1</log4j-to-slf4j.version>
-        <jul-to-slf4j.version>2.0.13</jul-to-slf4j.version>
+        <!-- spring-boot-dependencies 已提供版本依赖管理-->
+        <!--<logback.version>1.5.18</logback.version>-->
+        <!-- spring-boot-dependencies 已提供版本依赖管理-->
+        <!--<jul-to-slf4j.version>2.0.17</jul-to-slf4j.version>-->
+        <log4j-to-slf4j.version>2.25.0</log4j-to-slf4j.version>
 
         <!-- 文件管理 -->
         <xFileStorage.version>2.2.1</xFileStorage.version>
-        <amazonaws-s3.version>1.11.415</amazonaws-s3.version>
+        <amazonaws-s3.version>1.12.787</amazonaws-s3.version>
 
         <!-- region plugins version-->
+
         <maven-source-plugin.version>3.3.1</maven-source-plugin.version>
-        <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
-        <maven-surefire-plugin.version>3.2.5</maven-surefire-plugin.version>
+        <maven-compiler-plugin.version>3.14.0</maven-compiler-plugin.version>
+        <maven-surefire-plugin.version>3.5.3</maven-surefire-plugin.version>
         <git-commit-id-plugin.version>4.9.10</git-commit-id-plugin.version>
         <maven-release-plugin.version>2.5.3</maven-release-plugin.version>
-        <maven-assembly-plugin.version>3.1.1</maven-assembly-plugin.version>
+        <maven-assembly-plugin.version>3.7.1</maven-assembly-plugin.version>
+
         <!-- endregion -->
     </properties>
 
@@ -358,7 +368,7 @@
             <dependency>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-dependencies</artifactId>
-                <version>${spring.cloud.version}</version>
+                <version>${spring-cloud.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -392,181 +402,181 @@
             <!-- vip.isass 系列 -->
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>isass-common</artifactId>
+                <artifactId>isass-framework-common</artifactId>
                 <version>${isass-framework.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>isass-build</artifactId>
+                <artifactId>isass-framework-build</artifactId>
                 <version>${isass-framework.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>isass-lowcode-core</artifactId>
+                <artifactId>isass-framework-nocode-core</artifactId>
                 <version>${isass-framework.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>isass-lowcode-generator</artifactId>
+                <artifactId>isass-framework-nocode-generator</artifactId>
                 <version>${isass-framework.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>isass-lowcode-springboot-starter</artifactId>
+                <artifactId>isass-framework-nocode-springboot-starter</artifactId>
                 <version>${isass-framework.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>isass-security-core</artifactId>
+                <artifactId>isass-framework-security-core</artifactId>
                 <version>${isass-framework.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>isass-security-springsecurity</artifactId>
+                <artifactId>isass-framework-security-springsecurity</artifactId>
                 <version>${isass-framework.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>isass-serialization-jackson</artifactId>
+                <artifactId>isass-framework-serialization-jackson</artifactId>
                 <version>${isass-framework.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>isass-serialization-protobuf</artifactId>
+                <artifactId>isass-framework-serialization-protobuf</artifactId>
                 <version>${isass-framework.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>isass-database-redis</artifactId>
+                <artifactId>isass-framework-database-redis</artifactId>
                 <version>${isass-framework.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>isass-database-core</artifactId>
+                <artifactId>isass-framework-database-core</artifactId>
                 <version>${isass-framework.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>isass-database-mysql</artifactId>
+                <artifactId>isass-framework-database-mysql</artifactId>
                 <version>${isass-framework.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>isass-database-postgresql</artifactId>
+                <artifactId>isass-framework-database-postgresql</artifactId>
                 <version>${isass-framework.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>isass-database-dameng</artifactId>
+                <artifactId>isass-framework-database-dameng</artifactId>
                 <version>${isass-framework.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>isass-database-mybatisplus</artifactId>
+                <artifactId>isass-framework-database-mybatisplus</artifactId>
                 <version>${isass-framework.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>isass-mq-core</artifactId>
+                <artifactId>isass-framework-mq-core</artifactId>
                 <version>${isass-framework.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>isass-mq-ons</artifactId>
+                <artifactId>isass-framework-mq-ons</artifactId>
                 <version>${isass-framework.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>isass-mq-spring-event</artifactId>
+                <artifactId>isass-framework-mq-spring-event</artifactId>
                 <version>${isass-framework.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>isass-mq-kafka011</artifactId>
+                <artifactId>isass-framework-mq-kafka011</artifactId>
                 <version>${isass-framework.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>isass-net-core</artifactId>
+                <artifactId>isass-framework-net-core</artifactId>
                 <version>${isass-framework.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>isass-net-netty</artifactId>
+                <artifactId>isass-framework-net-netty</artifactId>
                 <version>${isass-framework.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>isass-net-websocket</artifactId>
+                <artifactId>isass-framework-net-websocket</artifactId>
                 <version>${isass-framework.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>isass-net-socketio</artifactId>
+                <artifactId>isass-framework-net-socketio</artifactId>
                 <version>${isass-framework.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>isass-net-proxy-upstream</artifactId>
+                <artifactId>isass-framework-net-proxy-upstream</artifactId>
                 <version>${isass-framework.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>isass-net-proxy-server</artifactId>
+                <artifactId>isass-framework-net-proxy-server</artifactId>
                 <version>${isass-framework.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>isass-database-elasticsearch</artifactId>
+                <artifactId>isass-framework-database-elasticsearch</artifactId>
                 <version>${isass-framework.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>isass-rpc-okhttp</artifactId>
+                <artifactId>isass-framework-rpc-okhttp</artifactId>
                 <version>${isass-framework.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>isass-springboot-starter</artifactId>
+                <artifactId>isass-framework-springboot-starter</artifactId>
                 <version>${isass-framework.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>isass-web-springmvc</artifactId>
+                <artifactId>isass-framework-web-springmvc</artifactId>
                 <version>${isass-framework.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>isass-web-springmvc-starter</artifactId>
+                <artifactId>isass-framework-web-springmvc-starter</artifactId>
                 <version>${isass-framework.version}</version>
             </dependency>
 
@@ -751,6 +761,12 @@
             </dependency>
 
             <dependency>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>${commons-io.version}</version>
+            </dependency>
+
+            <dependency>
                 <groupId>xerces</groupId>
                 <artifactId>xercesImpl</artifactId>
                 <version>${xerces.version}</version>
@@ -860,21 +876,9 @@
             </dependency>
 
             <dependency>
-                <groupId>ch.qos.logback</groupId>
-                <artifactId>logback-classic</artifactId>
-                <version>${logback.version}</version>
-            </dependency>
-
-            <dependency>
                 <groupId>org.apache.logging.log4j</groupId>
                 <artifactId>log4j-to-slf4j</artifactId>
                 <version>${log4j-to-slf4j.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>jul-to-slf4j</artifactId>
-                <version>${jul-to-slf4j.version}</version>
             </dependency>
 
             <dependency>

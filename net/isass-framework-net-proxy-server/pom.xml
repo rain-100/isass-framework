@@ -172,108 +172,22 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
+    <!-- 父项目信息 -->
+    <parent>
+        <groupId>vip.isass</groupId>
+        <artifactId>isass-framework-parent</artifactId>
+        <version>4.0.0-SNAPSHOT</version>
+        <relativePath>../../common/isass-framework-parent</relativePath>
+    </parent>
+
     <!-- 本项目信息 -->
-    <!-- 正式版格式：super.x.y.z-release-->
-    <!-- 快照版格式：super.x.y.z-SNAPSHOT-->
-    <groupId>vip.isass</groupId>
-    <artifactId>isass-framework</artifactId>
+    <artifactId>isass-framework-net-proxy-server</artifactId>
     <version>4.0.0-SNAPSHOT</version>
-    <packaging>pom</packaging>
 
-    <modules>
-        <module>common/isass-framework-build</module>
-        <module>common/isass-framework-common</module>
-        <module>common/isass-framework-dependencies</module>
-        <module>common/isass-framework-parent</module>
-        <module>database/isass-framework-database-core</module>
-        <module>database/isass-framework-database-dameng</module>
-        <module>database/isass-framework-database-elasticsearch</module>
-        <module>database/isass-framework-database-mybatisplus</module>
-        <module>database/isass-framework-database-mysql</module>
-        <module>database/isass-framework-database-postgresql</module>
-        <module>database/isass-framework-database-redis</module>
-        <module>ioc/isass-framework-springboot-starter</module>
-        <module>lowcode/isass-framework-nocode-core</module>
-        <module>lowcode/isass-framework-nocode-generator</module>
-        <module>lowcode/isass-framework-nocode-springboot-starter</module>
-        <module>mq/isass-framework-mq-core</module>
-        <module>mq/isass-framework-mq-kafka011</module>
-        <module>mq/isass-framework-mq-ons</module>
-        <module>mq/isass-framework-mq-spring-event</module>
-        <module>net/isass-framework-net-core</module>
-        <module>net/isass-framework-net-netty</module>
-        <module>net/isass-framework-net-proxy-server</module>
-        <module>net/isass-framework-net-proxy-upstream</module>
-        <module>net/isass-framework-net-socketio</module>
-        <module>net/isass-framework-net-websocket</module>
-        <module>rpc/isass-framework-rpc-okhttp</module>
-        <module>security/isass-framework-security-core</module>
-        <module>security/isass-framework-security-springsecurity</module>
-        <module>serialization/isass-framework-serialization-jackson</module>
-        <module>serialization/isass-framework-serialization-protobuf</module>
-        <module>web/isass-framework-web-springmvc</module>
-        <module>web/isass-framework-web-springmvc-starter</module>
-    </modules>
-
-    <!-- 配置属性 -->
-    <properties>
-        <!-- region build properties -->
-
-        <java.version>21</java.version>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
-        <maven.compiler.source>${java.version}</maven.compiler.source>
-        <maven.compiler.target>${java.version}</maven.compiler.target>
-
-        <!-- endregion -->
-    </properties>
-
-    <licenses>
-        <license>
-            <name>GNU Lesser General Public License Version 3</name>
-            <url>http://www.gnu.org/licenses/lgpl.txt</url>
-            <distribution>repo</distribution>
-        </license>
-    </licenses>
-
-    <scm>
-        <tag>master</tag>
-        <url>https://gitee.com/isass/super</url>
-        <connection>scm:git:git@gitee.com:isass/super.git</connection>
-        <developerConnection>scm:git:git@gitee.com:isass/isass-framework.git</developerConnection>
-    </scm>
-
-    <developers>
-        <developer>
-            <name>Rain Lee</name>
-            <email>lizhirong100@163.com</email>
-            <organization>isass</organization>
-        </developer>
-    </developers>
-
-    <!--<distributionManagement>-->
-    <!--    <repository>-->
-    <!--        <id>ossrh</id>-->
-    <!--        <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>-->
-    <!--    </repository>-->
-
-    <!--    <snapshotRepository>-->
-    <!--        <id>ossrh</id>-->
-    <!--        <url>https://oss.sonatype.org/content/repositories/snapshots</url>-->
-    <!--    </snapshotRepository>-->
-    <!--</distributionManagement>-->
-    <distributionManagement>
-        <repository>
-            <id>${distribution.releases.id}</id>
-            <name>${distribution.releases.name}</name>
-            <url>${distribution.releases.url}</url>
-        </repository>
-
-        <snapshotRepository>
-            <id>${distribution.snapshot.id}</id>
-            <name>${distribution.snapshot.name}</name>
-            <url>${distribution.snapshot.url}</url>
-        </snapshotRepository>
-    </distributionManagement>
+    <dependencies>
+        <dependency>
+            <groupId>vip.isass</groupId>
+            <artifactId>isass-framework-net-core</artifactId>
+        </dependency>
+    </dependencies>
 </project>
