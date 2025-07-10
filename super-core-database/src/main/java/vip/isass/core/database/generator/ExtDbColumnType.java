@@ -177,6 +177,7 @@ import lombok.Getter;
  */
 public enum ExtDbColumnType implements IColumnType {
 
+    SHORT_ARRAY("Short[]", null),
     INTEGER_ARRAY("Integer[]", null),
     LONG_ARRAY("Long[]", null),
     BIG_DECIMAL_ARRAY("BigDecimal[]", null),
@@ -190,9 +191,8 @@ public enum ExtDbColumnType implements IColumnType {
     LOCAL_DATE_TIME_ARRAY("LocalDateTime[]", "java.time.LocalDateTime"),
     TIME_ARRAY("Time[]", "java.sql.Time"),
     LOCAL_TIME_ARRAY("LocalTime[]", "java.time.LocalTime"),
-    JSON("Json", "vip.isass.core.entity.json"),
-    JSONB("Json", "vip.isass.core.entity.json"),
-    JSONB_ARRAY("Json[]", "vip.isass.core.entity.json");
+    JSON("JsonNode", "com.fasterxml.jackson.databind.JsonNode"),
+    JSON_ARRAY("JsonNode[]", "com.fasterxml.jackson.databind.JsonNode");
 
     /**
      * 类型

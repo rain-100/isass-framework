@@ -81,8 +81,8 @@ public class V2${entity}Criteria
 
 <#---------- BEGIN 添加 getter setter 方法 ------------>
 <#list table.fields as field>
-    <#if buildInColumns?seq_contains(field.name)><#continue></#if>
-    <#if field.propertyType == "Json"><#continue></#if>
+    <#if buildInColumns?seq_contains(field.name?lower_case)><#continue></#if>
+    <#if field.propertyType == "JsonNode"><#continue></#if>
     // region ${field.propertyName}
 
     @Transient

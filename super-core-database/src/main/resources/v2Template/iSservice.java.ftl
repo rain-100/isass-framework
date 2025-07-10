@@ -20,7 +20,7 @@ import java.util.List;
  *
  * @author ${author}
  */
-public interface ${table.serviceName} extends IV2Service<V2${entity}, V2${entity}Criteria> {
+public interface IV2${entity}Service extends IV2Service<V2${entity}, V2${entity}Criteria> {
 
     String URI_FIRST_PART = "${cfg.controllerPrefix}/${entity?uncap_first}";
 
@@ -151,13 +151,13 @@ public interface ${table.serviceName} extends IV2Service<V2${entity}, V2${entity
 
     @Primary
     @Service
-    class V2${table.serviceImplName}Manager implements
-            ${table.serviceName},
-            IV2ServiceManager<V2${entity}, V2${entity}Criteria, ${table.serviceName}> {
+    class V2${entity}ServiceManager implements
+            IV2${entity}Service,
+            IV2ServiceManager<V2${entity}, V2${entity}Criteria, IV2${entity}Service> {
 
         @Getter
         @Autowired(required = false)
-        private List<${table.serviceName}> services;
+        private List<IV2${entity}Service> services;
 
         // region 新业务方法
 

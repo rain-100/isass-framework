@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ${cfg.criteriaPackageName}.V2${entity}Criteria;
 import ${cfg.entityPackageName}.V2${entity};
-import ${cfg.package}.${cfg.moduleName}.api.service.${table.serviceName};
-import ${cfg.servicePackageName}.V2${table.serviceImplName};
+import ${cfg.package}.${cfg.moduleName}.api.service.IV2${entity}Service;
+import ${cfg.servicePackageName}.V2${entity}Service;
 import vip.isass.core.web.structure.IV2Controller;
 
 /**
@@ -24,11 +24,11 @@ import vip.isass.core.web.structure.IV2Controller;
 @Slf4j
 @Api(tags = "v2<#if table.comment?trim?length gt 0>${table.comment}<#else>${entity}</#if>")
 @RestController
-@RequestMapping(${table.serviceName}.URI_FIRST_PART)
-public class ${table.controllerName} implements ${table.serviceName}, IV2Controller<V2${entity}, V2${entity}Criteria> {
+@RequestMapping(IV2${entity}Service.URI_FIRST_PART)
+public class V2${table.controllerName} implements IV2${entity}Service, IV2Controller<V2${entity}, V2${entity}Criteria> {
 
     @Getter
     @Autowired
-    private V2${table.serviceImplName} service;
+    private V2${entity}Service service;
 
 }

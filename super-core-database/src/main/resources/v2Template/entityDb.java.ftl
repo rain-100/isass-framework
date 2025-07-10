@@ -22,25 +22,25 @@ import ${cfg.entityPackageName}.V2${entity};
 import vip.isass.core.structure.entity.IV2DbEntity;
 
 <#list table.fields as field>
-<#if field.propertyType == "BigDecimal" && buildInColumns?seq_contains(field.name)>
+<#if field.propertyType == "BigDecimal" && buildInColumns?seq_contains(field.name?lower_case)>
 import java.math.BigDecimal;
 <#break>
 </#if>
 </#list>
 <#list table.fields as field>
-<#if field.propertyType == "LocalDate" && buildInColumns?seq_contains(field.name)>
+<#if field.propertyType == "LocalDate" && buildInColumns?seq_contains(field.name?lower_case)>
 import java.time.LocalDate;
 <#break>
 </#if>
 </#list>
 <#list table.fields as field>
-<#if field.propertyType == "LocalDateTime" && buildInColumns?seq_contains(field.name)>
+<#if field.propertyType == "LocalDateTime" && buildInColumns?seq_contains(field.name?lower_case)>
 import java.time.LocalDateTime;
 <#break>
 </#if>
 </#list>
 <#list table.fields as field>
-<#if field.propertyType == "LocalTime" && buildInColumns?seq_contains(field.name)>
+<#if field.propertyType == "LocalTime" && buildInColumns?seq_contains(field.name?lower_case)>
 import java.time.LocalTime;
 <#break>
 </#if>

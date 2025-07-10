@@ -171,10 +171,9 @@ package vip.isass.core.database.generator;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.map.MapUtil;
-import cn.hutool.core.util.ReflectUtil;
-import com.baomidou.mybatisplus.annotation.DbType;
 import com.baomidou.mybatisplus.generator.FastAutoGenerator;
 import com.baomidou.mybatisplus.generator.config.builder.CustomFile;
+import com.baomidou.mybatisplus.generator.config.rules.DateType;
 import com.baomidou.mybatisplus.generator.engine.FreemarkerTemplateEngine;
 import freemarker.ext.beans.BeansWrapper;
 import freemarker.ext.beans.BeansWrapperBuilder;
@@ -182,6 +181,8 @@ import freemarker.template.TemplateHashModel;
 import freemarker.template.Version;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import vip.isass.core.structure.entity.IV2LogicDeleteEntity;
+import vip.isass.core.structure.entity.IV2VersionEntity;
 
 @Slf4j
 public class V2MybatisPlusGenerator {
@@ -197,15 +198,11 @@ public class V2MybatisPlusGenerator {
                         .outputDir(meta.getOutputDir() + "/src/main/java")
                         .commentDate("yyyy-MM-dd")
                         .disableOpenDir()
-                        .enableSwagger())
+                        .enableSwagger()
+                        .dateType(DateType.TIME_PACK))
                 .dataSourceConfig(builder -> builder
                         .schema(meta.getSchemaName())
-                        .typeConvert(meta.getDbType() == DbType.MYSQL
-                                ? ReflectUtil.newInstance("vip.isass.core.database.mysql.IsassMySqlTypeConvert")
-                                : meta.getDbType() == DbType.POSTGRE_SQL
-                                ? ReflectUtil.newInstance("vip.isass.core.database.postgresql.convert.PostgreSqlTypeConvert")
-                                : null
-                        ))
+                        .typeConvertHandler(new TypeConvertHandler()))
                 .strategyConfig(builder -> builder
                         // 是否跳过视图
                         .enableSkipView()
@@ -217,10 +214,10 @@ public class V2MybatisPlusGenerator {
                         .addTablePrefix(meta.getTablePrefix())
 
                         // 需要包含的表名，允许正则表达式（与exclude二选一配置）
-                        .addInclude(meta.getIncludeTables())
+                        .addInclude(meta.getIncludeTables() == null ? new String[0] : meta.getIncludeTables())
 
                         // 需要排除的表名，允许正则表达式
-                        .addExclude(meta.getExcludeTables())
+                        .addExclude(meta.getExcludeTables() == null ? new String[0] : meta.getExcludeTables())
 
                         // 取消内置的 controller 模板
                         .controllerBuilder()
@@ -236,7 +233,15 @@ public class V2MybatisPlusGenerator {
 
                         // 取消内置的 entity 模板
                         .entityBuilder()
-                        .disable())
+                        .disable()
+
+                        // 乐观锁名称
+                        .versionPropertyName(IV2VersionEntity.VERSION_PROPERTY_NAME)
+                        .versionColumnName(IV2VersionEntity.VERSION_COLUMN_NAME)
+
+                        // 逻辑删除名称
+                        .logicDeletePropertyName(IV2LogicDeleteEntity.DELETE_FLAG_PROPERTY_NAME)
+                        .logicDeleteColumnName(IV2LogicDeleteEntity.DELETE_FLAG_COLUMN_NAME))
                 .packageConfig(builder -> builder
                         .parent(meta.getPackageName())
                         .moduleName(meta.getModuleName()))
@@ -267,62 +272,72 @@ public class V2MybatisPlusGenerator {
                                 .customFile(CollUtil.newArrayList(
                                         new CustomFile.Builder()
                                                 .templatePath("/v2Template/entity.java.ftl")
-                                                .packageName(meta.getPackageName() + ".api.model.entity.")
-                                                .formatNameFunction(tableInfo -> "V2" + tableInfo.getEntityName() + ".java")
+                                                .packageName("api.model.entity")
+                                                .fileName(".java")
+                                                .formatNameFunction(tableInfo -> "V2" + tableInfo.getEntityName())
                                                 .enableFileOverride()
                                                 .build(),
                                         new CustomFile.Builder()
                                                 .templatePath("/v2Template/criteria.java.ftl")
-                                                .packageName(meta.getPackageName() + ".api.model.criteria.")
-                                                .formatNameFunction(tableInfo -> "V2" + tableInfo.getEntityName() + "Criteria.java")
+                                                .packageName("api.model.criteria")
+                                                .fileName("Criteria.java")
+                                                .formatNameFunction(tableInfo -> "V2" + tableInfo.getEntityName())
                                                 .enableFileOverride()
                                                 .build(),
                                         new CustomFile.Builder()
                                                 .templatePath("/v2Template/entityDb.java.ftl")
-                                                .packageName(meta.getPackageName() + ".db.model.")
-                                                .formatNameFunction(tableInfo -> "V2" + tableInfo.getEntityName() + "Db.java")
+                                                .packageName("db.model")
+                                                .fileName("Db.java")
+                                                .formatNameFunction(tableInfo -> "V2" + tableInfo.getEntityName())
                                                 .enableFileOverride()
                                                 .build(),
                                         new CustomFile.Builder()
                                                 .templatePath("/v2Template/mapper.java.ftl")
-                                                .packageName(meta.getPackageName() + ".db.mapper.")
-                                                .formatNameFunction(tableInfo -> "V2" + tableInfo.getEntityName() + "Mapper.java")
+                                                .packageName("db.mapper")
+                                                .fileName("Mapper.java")
+                                                .formatNameFunction(tableInfo -> "V2" + tableInfo.getEntityName())
                                                 .enableFileOverride()
                                                 .build(),
                                         new CustomFile.Builder()
                                                 .templatePath("/v2Template/mapper.xml.ftl")
-                                                .packageName(meta.getPackageName() + ".db.mapper.xml.")
-                                                .formatNameFunction(tableInfo -> "V2" + tableInfo.getEntityName() + "Mapper.xml")
+                                                .packageName("db.mapper.xml")
+                                                .fileName("Mapper.xml")
+                                                .formatNameFunction(tableInfo -> "V2" + tableInfo.getEntityName())
                                                 .enableFileOverride()
                                                 .build(),
                                         new CustomFile.Builder()
                                                 .templatePath("/v2Template/repository.java.ftl")
-                                                .packageName(meta.getPackageName() + ".db.repository.")
-                                                .formatNameFunction(tableInfo -> "V2" + tableInfo.getEntityName() + "Repository.java")
+                                                .packageName("db.repository")
+                                                .fileName("Repository.java")
+                                                .formatNameFunction(tableInfo -> "V2" + tableInfo.getEntityName())
                                                 .enableFileOverride()
                                                 .build(),
                                         new CustomFile.Builder()
                                                 .templatePath("/v2Template/iSservice.java.ftl")
-                                                .packageName(meta.getPackageName() + ".api.service.")
-                                                .formatNameFunction(tableInfo -> "IV2" + tableInfo.getEntityName() + "Service.java")
+                                                .packageName("api.service")
+                                                .fileName("Service.java")
+                                                .formatNameFunction(tableInfo -> "IV2" + tableInfo.getEntityName())
                                                 .enableFileOverride()
                                                 .build(),
                                         new CustomFile.Builder()
                                                 .templatePath("/v2Template/localService.java.ftl")
-                                                .packageName(meta.getPackageName() + ".service.")
-                                                .formatNameFunction(tableInfo -> "V2" + tableInfo.getEntityName() + "Service.java")
+                                                .packageName("service")
+                                                .fileName("Service.java")
+                                                .formatNameFunction(tableInfo -> "V2" + tableInfo.getEntityName())
                                                 .enableFileOverride()
                                                 .build(),
                                         new CustomFile.Builder()
                                                 .templatePath("/v2Template/feignService.java.ftl")
-                                                .packageName(meta.getPackageName() + ".api.feign.")
-                                                .formatNameFunction(tableInfo -> "V2" + tableInfo.getEntityName() + "FeignService.java")
+                                                .packageName("api.feign")
+                                                .fileName("FeignService.java")
+                                                .formatNameFunction(tableInfo -> "V2" + tableInfo.getEntityName())
                                                 .enableFileOverride()
                                                 .build(),
                                         new CustomFile.Builder()
                                                 .templatePath("/v2Template/controller.java.ftl")
-                                                .packageName(meta.getPackageName() + ".controller.")
-                                                .formatNameFunction(tableInfo -> "V2" + tableInfo.getEntityName() + "Controller.java")
+                                                .packageName("controller")
+                                                .fileName("Controller.java")
+                                                .formatNameFunction(tableInfo -> "V2" + tableInfo.getEntityName())
                                                 .enableFileOverride()
                                                 .build()
                                 ));

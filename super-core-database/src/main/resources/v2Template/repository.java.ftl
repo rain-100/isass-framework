@@ -3,11 +3,11 @@
 package ${cfg.package}.${cfg.moduleName}.db.repository;
 
 import org.springframework.stereotype.Repository;
+import vip.isass.core.database.mybatisplus.plus.V2MybatisPlusRepository;
 import ${cfg.criteriaPackageName}.V2${entity}Criteria;
 import ${cfg.entityPackageName}.V2${entity};
 import ${cfg.mapperPackageName}.V2${entity}Mapper;
 import ${cfg.entityDbPackageName}.V2${entity}Db;
-import vip.isass.core.database.mybatisplus.plus.V2MybatisPlusRepository;
 
 /**
  * <p>

@@ -12,7 +12,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 </#if>
 </#list>
 <#list table.fields as field>
-<#if field.propertyType == "Json">
+<#if field.propertyType == "JsonNode">
 import com.fasterxml.jackson.databind.JsonNode;
 </#if>
 </#list>
@@ -51,11 +51,12 @@ import vip.isass.core.structure.entity.IV2TraceEntity;
 import vip.isass.core.structure.entity.IV2VersionEntity;
 </#if>
 <#list table.fields as field>
+    ${field.propertyType}
 <#if (field.propertyType == "LocalDate"
 || field.propertyType == "LocalTime"
 || field.propertyType == "LocalDateTime")
-&& field.name != cfg.traceEntity.CREATED_TIME_COLUMN_NAME
-&& field.name != cfg.traceEntity.MODIFY_TIME_COLUMN_NAME>
+&& field.name?lower_case != cfg.traceEntity.CREATED_TIME_COLUMN_NAME
+&& field.name?lower_case != cfg.traceEntity.MODIFY_TIME_COLUMN_NAME>
 import vip.isass.core.support.LocalDateTimeUtil;
 <#break>
 </#if>
@@ -149,11 +150,11 @@ public class V2${entity} implements
      * <#if (field.comment?trim?length > 0)>${field.comment}<#else>${field.propertyName}</#if>
      * </p>
      * 数据库字段名: ${field.name}
-     * 数据库字段类型: ${field.type}
+     * 数据库字段类型: ${field.metaInfo.typeName}
      */
     @ApiModelProperty("<#if (field.comment?trim?length > 0)>${field.comment}<#else>${field.propertyName}</#if>")<#if field.propertyName!?ends_with("Id") && field.propertyType == "Long">
     @JsonSerialize(using = ToStringSerializer.class)</#if>
-    private <#if field.comment!?contains("${enumStart}")>${field.propertyName?cap_first}<#elseif field.propertyType == "Json">JsonNode<#else>${field.propertyType}</#if> ${field.propertyName};
+    private <#if field.comment!?contains("${enumStart}")>${field.propertyName?cap_first}<#elseif field.propertyType == "JsonNode">JsonNode<#else>${field.propertyType}</#if> ${field.propertyName};
 
 </#list>
 <#---------- END 定义字段 ---------->
@@ -259,9 +260,9 @@ public class V2${entity} implements
 <#list table.fields as field>
     <#if field.keyFlag><#continue></#if>
     <#if field.propertyType?ends_with("[]")><#continue></#if>
-    <#if field.propertyType == "Json"><#continue></#if>
+    <#if field.propertyType == "JsonNode"><#continue></#if>
     <#if field.propertyType == "Collection<String>"><#continue></#if>
-    <#if buildInColumns?seq_contains(field.name)><#continue></#if>
+    <#if buildInColumns?seq_contains(field.name?lower_case)><#continue></#if>
     <#if field.propertyType == "LocalTime">
         set${field.propertyName?cap_first}(LocalDateTimeUtil.nowLocalTime());
         <#continue>
