@@ -2,42 +2,32 @@
 
 ## 更新日志
 
- 更新日志请查看 docs/changelog
+更新日志请查看 docs/changelog
 
 ## Git commit 规范
 
 ### commit message格式
 
-``` text
+```text
 <type>(<scope>): <subject>
 ```
 
 #### type(必须)
 
 用于说明git commit的类别，只允许使用下面的标识。
-          
-- feat：新功能（feature）。
 
+- feat：新功能（feature）。
 - fix/to：修复bug，可以是QA发现的BUG，也可以是研发自己发现的BUG。
 - fix：产生diff并自动修复此问题。适合于一次提交直接修复问题
 - to：只产生diff不自动修复此问题。适合于多次提交。最终修复问题提交时使用fix
-
 - docs：文档（documentation）。
- 
 - style：格式（不影响代码运行的变动）。
- 
 - refactor：重构（即不是新增功能，也不是修改bug的代码变动）。
- 
 - perf：优化相关，比如提升性能、体验。
- 
 - test：增加测试。
- 
 - chore：构建过程或辅助工具的变动。
- 
 - revert：回滚到上一个版本。
- 
 - merge：代码合并。
- 
 - sync：同步主线或分支的Bug。
 
 #### scope(可选)
@@ -55,7 +45,8 @@ subject是commit目的的简短描述，不超过50个字符。
 ---
 
 根据以上规范git commit message将是如下的格式：
-- fix(DAO):用户查询缺少username属性 
+
+- fix(DAO):用户查询缺少username属性
 - feat(Controller):用户查询接口开发
 
 ---
@@ -67,17 +58,19 @@ subject是commit目的的简短描述，不超过50个字符。
 - 格式化的commit message才可以用于自动化输出Change log。
 
 ## 服务注册与发现
+
 - spring.cloud.discovery.enabled（不用配置）
 - spring.cloud.nacos.discovery.enabled （是否启用 nacos 服务注册与发现，默认true）
 
 ## 配置中心
+
 - spring.cloud.nacos.config.enabled （是否启用 nacos 配置中心，默认true）
 
 ## Spring Boot之两种引入spring boot maven依赖的方式
 
 1、方式一：spring-boot-starter-parent
 
-``` xml
+```xml
 <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
@@ -87,9 +80,9 @@ subject是commit目的的简短描述，不超过50个字符。
 
 - 进入spring-boot-starter-parent里，能够发现它其实通过 parent 的方式依赖了咱们下面要讲的spring-boot-dependencies模块
 - 可以通过property覆盖内部的依赖
-2、方式二：使用spring-boot-dependenciesspa
+  2、方式二：使用spring-boot-dependenciesspa
 
-``` xml
+```xml
 <dependencyManagement>
     <dependencies>
         <dependency>
@@ -111,4 +104,5 @@ subject是commit目的的简短描述，不超过50个字符。
 > 综上所述，继承 spring-boot-starter-parent 适合于单模块项目或者已经采用 Spring Boot 的项目，而使用 dependencyManagement 元素适合于多模块项目或者需要更灵活依赖管理的场景。
 
 ## 版本定义参数
+
 https://maven.apache.org/maven-ci-friendly.html

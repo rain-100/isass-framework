@@ -193,9 +193,9 @@
         <module>database/isass-framework-database-postgresql</module>
         <module>database/isass-framework-database-redis</module>
         <module>ioc/isass-framework-springboot-starter</module>
-        <module>lowcode/isass-framework-nocode-core</module>
-        <module>lowcode/isass-framework-nocode-generator</module>
-        <module>lowcode/isass-framework-nocode-springboot-starter</module>
+        <module>nocode/isass-framework-nocode-core</module>
+        <module>nocode/isass-framework-nocode-generator</module>
+        <module>nocode/isass-framework-nocode-springboot-starter</module>
         <module>mq/isass-framework-mq-core</module>
         <module>mq/isass-framework-mq-kafka011</module>
         <module>mq/isass-framework-mq-ons</module>
