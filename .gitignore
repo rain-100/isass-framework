@@ -188,6 +188,8 @@ target/
 
 .txlcn/
 
+.vscode/
+
 release.properties
 pom.xml.releaseBackup
 application.pid
