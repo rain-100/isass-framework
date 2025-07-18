@@ -1,0 +1,6 @@
+vip.isass.framework.net.netty.NettyAutoConfiguration
+vip.isass.framework.net.netty.packet.impl.coder.IsassBinaryPacketEncoder
+vip.isass.framework.net.netty.packet.impl.coder.IsassBinaryPacketDecoder
+vip.isass.framework.net.netty.request.worker.normal.DefaultWorkerPool
+vip.isass.framework.net.netty.request.worker.normal.DefaultWorker
+vip.isass.framework.net.netty.request.handler.DefaultHttpRequestHandler 
