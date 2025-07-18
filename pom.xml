@@ -198,7 +198,6 @@
         <module>nocode/isass-framework-nocode-springboot-starter</module>
         <module>mq/isass-framework-mq-core</module>
         <module>mq/isass-framework-mq-kafka011</module>
-        <module>mq/isass-framework-mq-ons</module>
         <module>mq/isass-framework-mq-spring-event</module>
         <module>net/isass-framework-net-core</module>
         <module>net/isass-framework-net-netty</module>

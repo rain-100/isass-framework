@@ -498,12 +498,6 @@
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>isass-framework-mq-ons</artifactId>
-                <version>${isass-framework.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>vip.isass</groupId>
                 <artifactId>isass-framework-mq-spring-event</artifactId>
                 <version>${isass-framework.version}</version>
             </dependency>
@@ -578,12 +572,6 @@
                 <groupId>vip.isass</groupId>
                 <artifactId>isass-framework-web-springmvc-starter</artifactId>
                 <version>${isass-framework.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.aliyun.openservices</groupId>
-                <artifactId>ons-client</artifactId>
-                <version>${ons.version}</version>
             </dependency>
 
             <!-- 数据库 -->
