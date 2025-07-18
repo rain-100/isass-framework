@@ -176,7 +176,6 @@ import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.MappedJdbcTypes;
 import org.apache.ibatis.type.MappedTypes;
-import org.springframework.stereotype.Component;
 import vip.isass.framework.database.core.typehandler.IJsonNodeTypeHandler;
 import vip.isass.framework.serialization.jackson.JsonUtil;
 
@@ -192,7 +191,6 @@ import java.util.ServiceLoader;
  * @author Rain
  */
 @Slf4j
-@Component
 @MappedJdbcTypes(JdbcType.JAVA_OBJECT)
 @MappedTypes({JsonNode.class})
 public class JsonNodeTypeHandler extends BaseTypeHandler<JsonNode> {

@@ -172,7 +172,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.MappedJdbcTypes;
-import org.springframework.stereotype.Component;
 
 import java.sql.*;
 import java.time.LocalTime;
@@ -183,7 +182,6 @@ import java.time.LocalTime;
  * @author Rain
  */
 @Slf4j
-@Component
 @MappedJdbcTypes(JdbcType.ARRAY)
 public class LocalTimeArrayTypeHandler extends BaseTypeHandler<LocalTime[]> {
 

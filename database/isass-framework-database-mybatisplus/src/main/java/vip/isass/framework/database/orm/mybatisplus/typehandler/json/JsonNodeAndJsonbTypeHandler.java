@@ -177,7 +177,6 @@ import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.MappedJdbcTypes;
 import org.apache.ibatis.type.MappedTypes;
 import org.postgresql.util.PGobject;
-import org.springframework.stereotype.Component;
 import vip.isass.framework.serialization.jackson.JsonUtil;
 
 import java.sql.CallableStatement;
@@ -191,7 +190,6 @@ import java.sql.SQLException;
  * @author Rain
  */
 @Slf4j
-@Component
 @MappedJdbcTypes(JdbcType.JAVA_OBJECT)
 @MappedTypes({JsonNode.class})
 public class JsonNodeAndJsonbTypeHandler extends BaseTypeHandler<JsonNode> {

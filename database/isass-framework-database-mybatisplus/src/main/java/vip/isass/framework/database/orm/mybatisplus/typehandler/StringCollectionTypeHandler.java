@@ -175,7 +175,6 @@ import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.MappedJdbcTypes;
 import org.apache.ibatis.type.MappedTypes;
-import org.springframework.stereotype.Component;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -188,7 +187,6 @@ import java.util.HashSet;
  * @author Rain
  */
 @Slf4j
-@Component
 @MappedTypes({Collection.class, ArrayList.class, HashSet.class})
 @MappedJdbcTypes(JdbcType.ARRAY)
 public class StringCollectionTypeHandler extends BaseTypeHandler<Collection<String>> {
