@@ -70,7 +70,6 @@ isass 全称为 Intelligent System Architecture Service Solution 中文名为 �
 📁 mq/                                # 消息队列模块
 ├── 📦 isass-framework-mq-core
 ├── 📦 isass-framework-mq-kafka011
-├── 📦 isass-framework-mq-ons
 └── 📦 isass-framework-mq-spring-event
 
 📁 rpc/                               # 远程调用模块
@@ -143,7 +142,6 @@ isass-framework/
 ├── 📁 mq/                            # 专业服务层
 │   ├── 📦 isass-framework-mq-core
 │   ├── 📦 isass-framework-mq-kafka011
-│   ├── 📦 isass-framework-mq-ons
 │   └── 📦 isass-framework-mq-spring-event
 │
 ├── 📁 rpc/                           # 专业服务层
