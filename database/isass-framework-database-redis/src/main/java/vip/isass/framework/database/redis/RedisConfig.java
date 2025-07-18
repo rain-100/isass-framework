@@ -238,8 +238,7 @@ public class RedisConfig extends CachingConfigurerSupport {
         template.setDefaultSerializer(RedisSerializer.string());
 
         Jackson2JsonRedisSerializer<Object> jackson2JsonRedisSerializer =
-                new Jackson2JsonRedisSerializer<>(Object.class);
-        jackson2JsonRedisSerializer.setObjectMapper(JsonUtil.NOT_NULL_INSTANCE);
+                new Jackson2JsonRedisSerializer<>(JsonUtil.NOT_NULL_INSTANCE, Object.class);
 
         template.setValueSerializer(jackson2JsonRedisSerializer);
         template.setHashValueSerializer(jackson2JsonRedisSerializer);
