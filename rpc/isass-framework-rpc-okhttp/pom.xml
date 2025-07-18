@@ -184,9 +184,6 @@
     <artifactId>isass-framework-rpc-okhttp</artifactId>
     <version>4.0.0-SNAPSHOT</version>
 
-    <properties>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>vip.isass</groupId>
@@ -200,7 +197,7 @@
 
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
-            <artifactId>okhttp</artifactId>
+            <artifactId>logging-interceptor</artifactId>
         </dependency>
     </dependencies>
 </project>

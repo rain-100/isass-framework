@@ -7,13 +7,13 @@
 ## 1. 基础环境升级
 
 ### 1.1 JDK和Spring Boot版本升级
-- [ ] JDK升级到21，Spring Boot升级到3.x 【工作量：3人日】
-- [ ] 所有依赖升级到最新版本 【工作量：4人日】
+- [x] JDK升级到21，Spring Boot升级到3.x 【工作量：3人日】
+- [x] 所有依赖升级到最新版本 【工作量：4人日】
 
 ### 1.2 模块重命名和结构优化
 - [x] 模块重新命名，super改为isass，各模块的核心代码模块以core结尾
-- [ ] 使用Java模块化技术重新划分模块，核心模块与Spring解耦 【工作量：5人日】
-- [ ] 业务项目通过新建isass-framework-spring-starter模块与Spring集成 【工作量：15人日】
+- [ ] 使用Java模块化技术重新划分模块，核心模块与Spring解耦 【工作量：15人日】
+- [ ] 业务项目通过新建isass-framework-spring-starter模块与Spring集成 【工作量：5人日】
 
 ## 2. 框架内部依赖注入重构
 

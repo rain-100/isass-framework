@@ -171,7 +171,6 @@ package vip.isass.framework.common.util.map;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multiset;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import vip.isass.framework.common.util.StringPool;
 
 import java.util.Collection;
@@ -261,7 +260,7 @@ public class MultiValueBiMap<K, V> implements Multimap<K, V> {
     }
 
     @Override
-    public Collection<V> replaceValues(@Nullable K key, Iterable<? extends V> values) {
+    public Collection<V> replaceValues(K key, Iterable<? extends V> values) {
         Collection<V> existingValues;
         synchronized (StringPool.intern(key.toString())) {
             existingValues = multiValueMap.replaceValues(key, values);
@@ -279,7 +278,7 @@ public class MultiValueBiMap<K, V> implements Multimap<K, V> {
     }
 
     @Override
-    public Collection<V> removeAll(@Nullable Object key) {
+    public Collection<V> removeAll(Object key) {
         Collection<V> existingValues;
         synchronized (StringPool.intern(key.toString())) {
             existingValues = multiValueMap.removeAll(key);
@@ -294,7 +293,7 @@ public class MultiValueBiMap<K, V> implements Multimap<K, V> {
     }
 
     @Override
-    public boolean remove(@Nullable Object key, @Nullable Object value) {
+    public boolean remove(Object key, Object value) {
         boolean removed;
         synchronized (StringPool.intern(key.toString())) {
             removed = multiValueMap.remove(key, value);
