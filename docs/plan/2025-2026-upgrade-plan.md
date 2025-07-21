@@ -60,9 +60,6 @@
 📁 database/
 ├── 📦 isass-framework-database-core
 ├── 📦 isass-framework-database-liquibase
-├── 📦 isass-framework-database-mysql
-├── 📦 isass-framework-database-postgresql
-├── 📦 isass-framework-database-dameng
 ├── 📦 isass-framework-database-elasticsearch
 ├── 📦 isass-framework-database-redis
 └── 📦 isass-framework-database-mybatisplus

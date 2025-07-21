@@ -470,24 +470,6 @@
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>isass-framework-database-mysql</artifactId>
-                <version>${isass-framework.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>vip.isass</groupId>
-                <artifactId>isass-framework-database-postgresql</artifactId>
-                <version>${isass-framework.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>vip.isass</groupId>
-                <artifactId>isass-framework-database-dameng</artifactId>
-                <version>${isass-framework.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>vip.isass</groupId>
                 <artifactId>isass-framework-database-mybatisplus</artifactId>
                 <version>${isass-framework.version}</version>
             </dependency>

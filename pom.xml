@@ -186,11 +186,8 @@
         <module>common/isass-framework-dependencies</module>
         <module>common/isass-framework-parent</module>
         <module>database/isass-framework-database-core</module>
-        <module>database/isass-framework-database-dameng</module>
         <module>database/isass-framework-database-elasticsearch</module>
         <module>database/isass-framework-database-mybatisplus</module>
-        <module>database/isass-framework-database-mysql</module>
-        <module>database/isass-framework-database-postgresql</module>
         <module>database/isass-framework-database-redis</module>
         <module>ioc/isass-framework-springboot-starter</module>
         <module>nocode/isass-framework-nocode-core</module>

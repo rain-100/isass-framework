@@ -1,3 +1,0 @@
-# ApplicationContextInitializer
-org.springframework.context.ApplicationContextInitializer=\
-vip.isass.framework.database.dameng.sourcecode.DmdbResultSetMetaDataModifier

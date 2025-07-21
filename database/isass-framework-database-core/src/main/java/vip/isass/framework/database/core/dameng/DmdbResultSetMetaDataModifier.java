@@ -166,11 +166,61 @@
  * Library.
  */
 
-package vip.isass.framework.database.mysql;
+package vip.isass.framework.database.core.dameng;
 
+import javassist.ClassPool;
+import javassist.CtClass;
+import javassist.CtMethod;
+import javassist.CtNewMethod;
+import javassist.LoaderClassPath;
+import lombok.SneakyThrows;
 
-/**
- * @author Rain
- */
-public class DatabaseMysqlAutoConfiguration {
+public class DmdbResultSetMetaDataModifier {
+
+    static {
+        DmdbResultSetMetaDataModifier.init();
+    }
+
+    @SneakyThrows
+    public static void init() {
+        try {
+            Class.forName("dm.jdbc.driver.DmdbResultSetMetaData");
+        } catch (ClassNotFoundException e) {
+            // 如果没有这个类，说明不是 dameng 数据库，不需要修改
+            return;
+        }
+
+        ClassPool pool = ClassPool.getDefault();
+        pool.appendClassPath(new LoaderClassPath(Thread.currentThread().getContextClassLoader()));
+        CtClass ctClass = pool.get("dm.jdbc.driver.DmdbResultSetMetaData");
+        addDoGetColumnNameMethod(ctClass);
+        ctClass.toClass();
+        ctClass.detach();
+    }
+
+    /**
+     * 改写 do_getColumnName 方法。
+     * <p>
+     * baseName 是原字段名，name 是 sql 写的 as 别名
+     * <br>
+     * 旧的驱动，只拿 name，新的会拿 baseName，sql 都给了别名了，还拿 baseName
+     */
+    @SneakyThrows
+    private static void addDoGetColumnNameMethod(CtClass ctClass) {
+        String methodStr = " " +
+                "public String do_getColumnName(int var1) {" +
+                "    Column var2 = this.checkIndex($1);" +
+                "    String var3 = var2.name;" +
+                "    if (var3 == null) {" +
+                "        return var3;" +
+                "    } else if (this.connection.isColumnNameUpperCase()) {" +
+                "        return var3.toUpperCase();" +
+                "    } else {" +
+                "        return this.connection.isColumnNameLowerCase() ? var3.toLowerCase() : var3;" +
+                "    }" +
+                "}";
+        CtMethod method = CtNewMethod.make(methodStr, ctClass);
+        ctClass.addMethod(method);
+    }
+
 }

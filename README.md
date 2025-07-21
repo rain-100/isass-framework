@@ -38,9 +38,6 @@ isass 全称为 Intelligent System Architecture Service Solution 中文名为 �
 
 📁 database/                          # 数据库模块
 ├── 📦 isass-framework-database-core
-├── 📦 isass-framework-database-mysql
-├── 📦 isass-framework-database-postgresql
-├── 📦 isass-framework-database-dameng
 ├── 📦 isass-framework-database-elasticsearch
 ├── 📦 isass-framework-database-redis
 └── 📦 isass-framework-database-mybatisplus
@@ -121,7 +118,6 @@ isass-framework/
 │
 ├── 📁 database/                      # 基础服务层
 │   ├── 📦 isass-framework-database-core
-│   ├── 📦 isass-framework-database-mysql
 │   ├── 📦 isass-framework-database-postgresql
 │   ├── 📦 isass-framework-database-dameng
 │   ├── 📦 isass-framework-database-elasticsearch
@@ -224,8 +220,7 @@ https://maven.apache.org/maven-ci-friendly.html
 - `isass-framework-common`
 
 ### 数据库应用
-对于数据库应用，建议引入：
-- 具体的数据库模块（如 `isass-framework-database-mysql`）
+对于数据库应用，建议`isass-framework-database-core`，再引入具体的数据库驱动
 
 ### 完整Web应用
 对于完整的Web应用，建议引入：
