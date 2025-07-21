@@ -168,11 +168,8 @@
 
 package vip.isass.framework.database.core;
 
-import org.springframework.context.annotation.ComponentScan;
-
 /**
  * @author Rain
  */
-@ComponentScan
 public class DatabaseAutoConfiguration {
 }

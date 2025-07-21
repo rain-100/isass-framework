@@ -63,7 +63,7 @@
  *
  *   3. Object Code Incorporating Material from Library Header Files.
  *
- *   The object code form of an Application may incorporate material from
+ *    The object code form of an Application may incorporate material from
  * a header file that is part of the Library.  You may convey such object
  * code under terms of your choice, provided that, if the incorporated
  * material is not limited to numerical parameters, data structure
@@ -164,13 +164,68 @@
  * apply, that proxy's public statement of acceptance of any version is
  * permanent authorization for you to choose that version for the
  * Library.
+ *
  */
 
-package vip.isass.framework.database.mysql;
+package vip.isass.framework.springboot.starter.database.init;
 
+import cn.hutool.core.util.StrUtil;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationContextInitializer;
+import org.springframework.context.ConfigurableApplicationContext;
+import vip.isass.framework.database.core.init.DatabaseInitializerManager;
 
 /**
- * @author Rain
+ * 数据库初始化管理器
+ * jdbcUrl 指定的数据库不存在时自动创建数据库
+ *
+ * @author rain
  */
-public class DatabaseMysqlAutoConfiguration {
+@Slf4j
+public class DatabaseInitializerSpringStarter implements ApplicationContextInitializer<ConfigurableApplicationContext> {
+
+    private static volatile boolean RUN = false;
+
+    @Override
+    public void initialize(ConfigurableApplicationContext applicationContext) {
+        if (RUN) {
+            return;
+        }
+
+        try {
+            Class.forName("vip.isass.framework.database.core.init.DatabaseInitializerManager");
+        } catch (Exception e) {
+            log.info("当前项目没有引入数据库模块，跳过数据库初始化");
+            return;
+        } finally {
+            RUN = true;
+        }
+
+        String autoCreate = applicationContext.getEnvironment()
+                .getProperty("spring.datasource.autoCreate");
+        if ("false".equalsIgnoreCase(autoCreate)) {
+            RUN = true;
+            return;
+        }
+
+        String jdbcUrl = applicationContext.getEnvironment().getProperty(
+                "spring.datasource.dynamic.datasource.master.url");
+        String username = applicationContext.getEnvironment().getProperty(
+                "spring.datasource.dynamic.datasource.master.username");
+        String password = applicationContext.getEnvironment().getProperty(
+                "spring.datasource.dynamic.datasource.master.password");
+
+        if (StrUtil.hasBlank(jdbcUrl, username, password)) {
+            return;
+        }
+        try {
+            log.info("开始创建数据库: 数据库不存在则自动创建数据库");
+            DatabaseInitializerManager.initDatabase(jdbcUrl, username, password);
+        } catch (Exception e) {
+            log.info("数据库初始化失败");
+            log.error(e.getMessage(), e);
+        }
+        RUN = true;
+    }
+
 }

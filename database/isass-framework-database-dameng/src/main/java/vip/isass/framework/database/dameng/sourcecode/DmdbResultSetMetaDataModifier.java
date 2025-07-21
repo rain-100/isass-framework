@@ -174,17 +174,11 @@ import javassist.CtMethod;
 import javassist.CtNewMethod;
 import javassist.LoaderClassPath;
 import lombok.SneakyThrows;
-import org.springframework.context.ApplicationContextInitializer;
-import org.springframework.context.ConfigurableApplicationContext;
 
-public class DmdbResultSetMetaDataModifier implements ApplicationContextInitializer<ConfigurableApplicationContext> {
+public class DmdbResultSetMetaDataModifier {
 
     static {
         DmdbResultSetMetaDataModifier.init();
-    }
-
-    @Override
-    public void initialize(ConfigurableApplicationContext configurableApplicationContext) {
     }
 
     @SneakyThrows

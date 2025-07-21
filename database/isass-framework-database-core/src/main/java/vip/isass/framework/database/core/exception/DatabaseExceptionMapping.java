@@ -170,14 +170,12 @@ package vip.isass.framework.database.core.exception;
 
 import cn.hutool.core.exceptions.ExceptionUtil;
 import cn.hutool.core.map.MapUtil;
-import org.springframework.stereotype.Component;
 import vip.isass.framework.common.exception.IExceptionMapping;
 import vip.isass.framework.common.exception.code.IStatusMessage;
 
 import java.sql.SQLException;
 import java.util.Map;
 
-@Component
 public class DatabaseExceptionMapping implements IExceptionMapping {
 
     private static final Map<Class<? extends Exception>, IStatusMessage> EXCEPTION_MAPPING = MapUtil.<Class<? extends Exception>, IStatusMessage>builder()

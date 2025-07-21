@@ -175,10 +175,7 @@ import cn.hutool.db.Db;
 import cn.hutool.db.StatementUtil;
 import cn.hutool.db.ds.simple.SimpleDataSource;
 import cn.hutool.db.sql.SqlExecutor;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationContextInitializer;
-import org.springframework.context.ConfigurableApplicationContext;
 
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
@@ -194,58 +191,71 @@ import java.util.Map;
  * @author rain
  */
 @Slf4j
-public class DatabaseInitializerManager implements ApplicationContextInitializer<ConfigurableApplicationContext> {
-
-    private static volatile boolean RUN = false;
-
-    /**
-     * 主数据源数据库名
-     */
-    @Getter
-    private static String databaseName = "";
-
-    @Getter
-    private static String schemaName = "";
+public class DatabaseInitializerManager {
 
     /**
      * 定义可能的 schema 参数名
      */
     public static final String[] SCHEMA_PARAM_NAMES = {"schema", "SCHEMA", "currentSchema"};
 
-    @Override
-    public void initialize(ConfigurableApplicationContext applicationContext) {
-        if (RUN) {
-            return;
-        }
+    public static String DATABASE_NAME = "";
 
-        String autoCreate = applicationContext.getEnvironment()
-                .getProperty("spring.datasource.autoCreate");
-        if ("false".equalsIgnoreCase(autoCreate)) {
-            RUN = true;
-            return;
-        }
+    public static String SCHEMA_NAME = "";
 
-        String jdbcUrl = applicationContext.getEnvironment().getProperty(
-                "spring.datasource.dynamic.datasource.master.url");
-        String username = applicationContext.getEnvironment().getProperty(
-                "spring.datasource.dynamic.datasource.master.username");
-        String password = applicationContext.getEnvironment().getProperty(
-                "spring.datasource.dynamic.datasource.master.password");
+    public static volatile boolean INITIALIZED = false;
 
-        if (StrUtil.hasBlank(jdbcUrl, username, password)) {
-            return;
-        }
+    public static void initDatabase(String jdbcUrl, String username, String password) {
         try {
-            log.info("开始创建数据库: 数据库不存在则自动创建数据库");
-            initDatabase(jdbcUrl, username, password);
-        } catch (Exception e) {
-            log.info("数据库初始化失败");
-            log.error(e.getMessage(), e);
+            log.info("Start creating database if the database does not exist");
+
+            if (tryConnect(jdbcUrl, username, password)) {
+                return;
+            }
+
+            // 解析数据库名和schema名
+            DATABASE_NAME = parseDatabaseName(jdbcUrl);
+            SCHEMA_NAME = parseSchemaName(jdbcUrl);
+            log.info("database name: {}", DATABASE_NAME);
+            log.info("schema name: {}", SCHEMA_NAME);
+
+            // 如果有 schemaName，则尝试创建，创建成功，代表数据库已存在，则数据库初始化逻辑完成
+            if (StrUtil.isNotBlank(SCHEMA_NAME)) {
+                // jdbcUrl 去除 schema,否则 jdbc 连接不上
+                String tempJdbcUrl = removeJdbcUrlSchemaName(jdbcUrl);
+                if (execSql(tempJdbcUrl, username, password, getCreateSchemaSql(jdbcUrl, SCHEMA_NAME))) {
+                    return;
+                }
+            }
+
+            if (StrUtil.isBlank(DATABASE_NAME)) {
+                return;
+            }
+
+            // 处理 jdbcUrl 的 databaseName(去除或替换成默认数据库名) 和 schema(去除),否则 jdbc 连接不上
+            String tempJdbcUrl = replaceDatabaseName(jdbcUrl);
+            tempJdbcUrl = removeJdbcUrlSchemaName(tempJdbcUrl);
+            if (execSql(tempJdbcUrl, username, password, getCreateDatabaseSql(jdbcUrl, DATABASE_NAME))) {
+                // 数据库创建成功，如果 schemaName 不存在，则完成初始化
+                if (StrUtil.isBlank(SCHEMA_NAME)) {
+                    return;
+                }
+
+                // 尝试连接，因为 schemaName 可能是数据库会默认创建的，不用手工创建
+                if (tryConnect(jdbcUrl, username, password)) {
+                    return;
+                }
+
+                // 数据库创建成功了，但是连接不成功，代表 schema 需要手工创建
+                // jdbcUrl 去除 schema,否则 jdbc 连接不上
+                tempJdbcUrl = removeJdbcUrlSchemaName(jdbcUrl);
+                execSql(tempJdbcUrl, username, password, getCreateSchemaSql(jdbcUrl, SCHEMA_NAME));
+            }
+        } finally {
+            INITIALIZED = true;
         }
-        RUN = true;
     }
 
-    private boolean tryConnect(String jdbcUrl, String username, String password) {
+    private static boolean tryConnect(String jdbcUrl, String username, String password) {
         log.info("try connecting datasource using jdbcUrl: {}", jdbcUrl);
 
         // 尝试连接
@@ -259,58 +269,13 @@ public class DatabaseInitializerManager implements ApplicationContextInitializer
         }
     }
 
-    private void initDatabase(String jdbcUrl, String username, String password) {
-        if (tryConnect(jdbcUrl, username, password)) {
-            return;
-        }
-
-        // 解析数据库名和schema名
-        databaseName = parseDatabaseName(jdbcUrl);
-        schemaName = parseSchemaName(jdbcUrl);
-        log.info("database name: {}", databaseName);
-        log.info("schema name: {}", schemaName);
-
-        // 如果有 schemaName，则尝试创建，创建成功，代表数据库已存在，则数据库初始化逻辑完成
-        if (StrUtil.isNotBlank(schemaName)) {
-            // jdbcUrl 去除 schema,否则 jdbc 连接不上
-            String tempJdbcUrl = removeJdbcUrlSchemaName(jdbcUrl);
-            if (execSql(tempJdbcUrl, username, password, getCreateSchemaSql(jdbcUrl, schemaName))) {
-                return;
-            }
-        }
-
-        if (StrUtil.isBlank(databaseName)) {
-            return;
-        }
-
-        // 处理 jdbcUrl 的 databaseName(去除或替换成默认数据库名) 和 schema(去除),否则 jdbc 连接不上
-        String tempJdbcUrl = replaceDatabaseName(jdbcUrl);
-        tempJdbcUrl = removeJdbcUrlSchemaName(tempJdbcUrl);
-        if (execSql(tempJdbcUrl, username, password, getCreateDatabaseSql(jdbcUrl, databaseName))) {
-            // 数据库创建成功，如果 schemaName 不存在，则完成初始化
-            if (StrUtil.isBlank(schemaName)) {
-                return;
-            }
-
-            // 尝试连接，因为 schemaName 可能是数据库会默认创建的，不用手工创建
-            if (tryConnect(jdbcUrl, username, password)) {
-                return;
-            }
-
-            // 数据库创建成功了，但是连接不成功，代表 schema 需要手工创建
-            // jdbcUrl 去除 schema,否则 jdbc 连接不上
-            tempJdbcUrl = removeJdbcUrlSchemaName(jdbcUrl);
-            execSql(tempJdbcUrl, username, password, getCreateSchemaSql(jdbcUrl, schemaName));
-        }
-    }
-
     /**
      * 根据 jdbcUrl 解析出数据库名
      * 示例: jdbc:mysql://127.0.0.1:3306/attachment?useUnicode
      * 示例: jdbc:dm://172.25.23.66:5236?schema=test&stringtype=unspecified
      * 从提取到 attachment 作为数据库名，如果无法解析则返回null
      */
-    private String parseDatabaseName(String jdbcUrl) {
+    private static String parseDatabaseName(String jdbcUrl) {
         int index = jdbcUrl.indexOf("://");
         if (index == -1) {
             log.warn("can not parse database name from jdbcUrl: {}", jdbcUrl);
@@ -348,7 +313,7 @@ public class DatabaseInitializerManager implements ApplicationContextInitializer
      * 示例: jdbc:dm://172.25.23.66:5236?schema=test&stringtype=unspecified
      * 从提取到 auth 或 test 作为 schemaName
      */
-    private String parseSchemaName(String jdbcUrl) {
+    private static String parseSchemaName(String jdbcUrl) {
         // 分割 URL 为基本部分和查询字符串
         String[] parts = jdbcUrl.split("\\?", 2);
         if (parts.length < 2) {
@@ -387,11 +352,11 @@ public class DatabaseInitializerManager implements ApplicationContextInitializer
         return params;
     }
 
-    private boolean execSql(String jdbcUrl, String username, String password, String sql) {
+    private static boolean execSql(String jdbcUrl, String username, String password, String sql) {
         Db db = null;
         Connection conn = null;
         PreparedStatement preparedStatement = null;
-        try (SimpleDataSource ds = new SimpleDataSource(jdbcUrl, username, password);) {
+        try (SimpleDataSource ds = new SimpleDataSource(jdbcUrl, username, password)) {
             db = Db.use(ds);
             conn = ds.getConnection();
             log.info("exec sql: {}", sql);
@@ -423,27 +388,27 @@ public class DatabaseInitializerManager implements ApplicationContextInitializer
     /**
      * 删除 jdbcUrl 的数据库名
      */
-    private String replaceDatabaseName(String jdbcUrl) {
+    private static String replaceDatabaseName(String jdbcUrl) {
         if (jdbcUrl.contains(":postgresql:")) {
             // PostgreSQL 的 jdbcUrl 格式: jdbc:postgresql://host:port/database
             // 需要将数据库名替换为默认的 postgres
-            return jdbcUrl.replace("/" + databaseName, "/postgres");
+            return jdbcUrl.replace("/" + DATABASE_NAME, "/postgres");
         }
 
         if (jdbcUrl.contains(":kingbase")) {
             // Kingbase 的 jdbcUrl 格式: jdbc:kingbase8://host:port/database
             // 需要将数据库名替换为默认的 kingbase
-            return jdbcUrl.replace("/" + databaseName, "/kingbase");
+            return jdbcUrl.replace("/" + DATABASE_NAME, "/kingbase");
         }
 
         if (jdbcUrl.contains(":highgo:")) {
             // 瀚高 的 jdbcUrl 格式: jdbc:highgo://localhost:5866/mydatabase?currentSchema=myschema
             // 需要将数据库名替换为默认的 highgo
-            return jdbcUrl.replace("/" + databaseName, "/highgo");
+            return jdbcUrl.replace("/" + DATABASE_NAME, "/highgo");
         }
 
         // 其他未特殊处理的数据库，直接删除数据库名
-        return jdbcUrl.replace("/" + databaseName, "");
+        return jdbcUrl.replace("/" + DATABASE_NAME, "");
     }
 
     /**

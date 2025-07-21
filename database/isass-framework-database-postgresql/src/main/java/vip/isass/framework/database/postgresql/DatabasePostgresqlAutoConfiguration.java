@@ -168,13 +168,8 @@
 
 package vip.isass.framework.database.postgresql;
 
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-
 /**
  * @author Rain
  */
-@Configuration
-@ComponentScan
 public class DatabasePostgresqlAutoConfiguration {
 }
