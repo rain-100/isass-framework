@@ -207,6 +207,9 @@
 
     <scope>import</scope>
     import：从其它的pom文件中导入依赖设置。
+
+    <optional>true</optional>
+    控制依赖是否传递到下游模块。
     -->
 
     <dependencies>
