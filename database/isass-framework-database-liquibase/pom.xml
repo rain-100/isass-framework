@@ -90,8 +90,9 @@
   ~    the Library is used in it and that the Library and its use are
   ~    covered by this License.
   ~
-  ~    b) Accompany the Combined Work with a copy of the GNU GPL and this license
-  ~    document.
+  ~    b) Accompany the Combined Work with a copy of the Combined Work that
+  ~    the Library is used in it and that the Library and its use are
+  ~    covered by this License.
   ~
   ~    c) For a Combined Work that displays copyright notices during
   ~    execution, include the copyright notice for the Library among
@@ -177,67 +178,27 @@
         <groupId>vip.isass</groupId>
         <artifactId>isass-framework-parent</artifactId>
         <version>4.0.0-SNAPSHOT</version>
-        <relativePath>../isass-framework-parent</relativePath>
+        <relativePath>../../common/isass-framework-parent</relativePath>
     </parent>
 
     <!-- 本项目信息 -->
-    <artifactId>isass-framework-common</artifactId>
+    <artifactId>isass-framework-database-liquibase</artifactId>
     <version>4.0.0-SNAPSHOT</version>
 
     <dependencies>
-        <!-- 使 logback 配置文件支持 if 条件表达式       -->
         <dependency>
-            <groupId>org.codehaus.janino</groupId>
-            <artifactId>janino</artifactId>
+            <groupId>vip.isass</groupId>
+            <artifactId>isass-framework-common</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
+            <groupId>vip.isass</groupId>
+            <artifactId>isass-framework-database-core</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
+            <groupId>org.liquibase</groupId>
+            <artifactId>liquibase-core</artifactId>
         </dependency>
-
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-to-slf4j</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>jul-to-slf4j</artifactId>
-        </dependency>
-
-        <!-- 用于处理MIME（多用途互联网邮件扩展）数据类型，为应用程序提供统一的数据类型识别、操作和转换能力 -->
-        <dependency>
-            <groupId>jakarta.activation</groupId>
-            <artifactId>jakarta.activation-api</artifactId>
-        </dependency>
-
-        <!--JSR-330（Dependency Injection for Java）上下文和依赖注入规范 Context and Dependency Injection(CDI)-->
-        <dependency>
-            <groupId>jakarta.inject</groupId>
-            <artifactId>jakarta.inject-api</artifactId>
-        </dependency>
-
-        <!--<dependency>-->
-        <!--    <groupId>com.sun</groupId>-->
-        <!--    <artifactId>tools</artifactId>-->
-        <!--</dependency>-->
-
-        <dependency>
-            <groupId>com.google.auto.service</groupId>
-            <artifactId>auto-service</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.google.auto.service</groupId>
-            <artifactId>auto-service-annotations</artifactId>
-            <version>${auto-service.version}</version>
-        </dependency>
-
     </dependencies>
-</project>
+</project> 

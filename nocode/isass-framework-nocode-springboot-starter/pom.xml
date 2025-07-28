@@ -192,6 +192,11 @@
 
         <dependency>
             <groupId>vip.isass</groupId>
+            <artifactId>isass-framework-nocode-generator</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>vip.isass</groupId>
             <artifactId>isass-framework-web-springmvc-starter</artifactId>
         </dependency>
 

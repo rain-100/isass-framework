@@ -176,13 +176,12 @@ import cn.hutool.core.util.StrUtil;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import vip.isass.framework.common.exception.UnifiedException;
 import vip.isass.framework.common.exception.code.StatusMessageEnum;
-import vip.isass.framework.common.util.LocalDateTimeUtil;
 import vip.isass.framework.common.security.authentication.login.LoginUser;
+import vip.isass.framework.common.util.LocalDateTimeUtil;
 
 import javax.crypto.SecretKey;
 import java.time.temporal.ChronoUnit;
@@ -203,19 +202,20 @@ public class JwtUtil {
     public static String generateToken(LoginUser loginUser, String secret) {
         // 生产 token
         Map<String, Object> map = MapUtil.<String, Object>builder()
-                .put(JwtInfo.TENANT_ID, loginUser.getTenantId())
-                .put(JwtInfo.APP_ID, loginUser.getAppId())
-                .put(JwtInfo.USER_ID, loginUser.getUserId())
-                .put(JwtInfo.NICK_NAME, loginUser.getNickName())
-                .put(JwtInfo.TERMINAL_TYPE, loginUser.getTerminalType())
-                .put(JwtInfo.LOGIN_LOG_ID, loginUser.getLoginLogId())
                 .build();
         return Jwts.builder()
-                .setClaims(map)
-                .setExpiration(new Date(loginUser.getExpireAt() == null
+                .claims()
+                .add(JwtInfo.TENANT_ID, loginUser.getTenantId())
+                .add(JwtInfo.APP_ID, loginUser.getAppId())
+                .add(JwtInfo.USER_ID, loginUser.getUserId())
+                .add(JwtInfo.NICK_NAME, loginUser.getNickName())
+                .add(JwtInfo.TERMINAL_TYPE, loginUser.getTerminalType())
+                .add(JwtInfo.LOGIN_LOG_ID, loginUser.getLoginLogId())
+                .expiration(new Date(loginUser.getExpireAt() == null
                         ? SystemClock.now() + TOKEN_EFFECTIVE_MILLS
                         : loginUser.getExpireAt()))
-                .signWith(SignatureAlgorithm.HS256, secret)
+                .and()
+                .signWith(Keys.hmacShaKeyFor(Decoders.BASE64.decode(secret)), Jwts.SIG.HS256)
                 .compact();
     }
 

@@ -172,7 +172,7 @@ import cn.hutool.core.util.ReflectUtil;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
-import org.springframework.cache.annotation.CachingConfigurerSupport;
+import org.springframework.cache.annotation.CachingConfigurer;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -202,9 +202,9 @@ import java.util.concurrent.ThreadPoolExecutor;
 @Configuration
 @EnableCaching
 @ComponentScan
-public class RedisConfig extends CachingConfigurerSupport {
+public class RedisConfig implements CachingConfigurer {
 
-    public static final HashMapper HASH_MAPPER = new Jackson2HashMapper(false);
+    public static final HashMapper<Object, String, Object> HASH_MAPPER = new Jackson2HashMapper(false);
 
     private ThreadPoolTaskExecutor executor;
 

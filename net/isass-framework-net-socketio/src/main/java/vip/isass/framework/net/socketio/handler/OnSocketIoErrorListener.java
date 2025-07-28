@@ -208,7 +208,9 @@ public class OnSocketIoErrorListener implements ExceptionListener {
         NetEventManager.onError(session, e);
     }
 
+
     @Override
+    @SuppressWarnings("deprecation") // onPingException 接口源码被标记了 @Deprecated，但未说明原因及替代方案
     public void onPingException(Exception e, SocketIOClient client) {
         Session<?> session = NetSessionManager.INSTANCE.getSessionById(client.getSessionId().toString());
         NetEventManager.onError(session, e);

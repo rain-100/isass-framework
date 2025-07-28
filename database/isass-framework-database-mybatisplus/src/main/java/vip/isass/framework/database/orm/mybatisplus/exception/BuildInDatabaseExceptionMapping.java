@@ -190,10 +190,10 @@ import java.util.Map;
 public class BuildInDatabaseExceptionMapping implements IExceptionMapping {
 
     private static Map<Class<? extends Exception>, IStatusMessage> EXCEPTION_MAPPING = MapUtil.<Class<? extends Exception>, IStatusMessage>builder()
-        .put(DuplicateKeyException.class, StatusMessageEnum.DUPLICATE_KEY)
-        .put(TooManyResultsException.class, StatusMessageEnum.TOO_MANY_RESULT)
-        .put(BadSqlGrammarException.class, StatusMessageEnum.BAD_SQL_GRAMMAR)
-        .build();
+            .put(DuplicateKeyException.class, StatusMessageEnum.DUPLICATE_KEY)
+            .put(TooManyResultsException.class, StatusMessageEnum.TOO_MANY_RESULT)
+            .put(BadSqlGrammarException.class, StatusMessageEnum.BAD_SQL_GRAMMAR)
+            .build();
 
     @Override
     public IStatusMessage getStatusCode(Exception exception) {

@@ -169,6 +169,7 @@
 package vip.isass.framework.rpc.okhttp;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.lang.Assert;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.json.JSONUtil;
@@ -214,6 +215,8 @@ public class OkHttpUtil {
 
     public static HttpUrl newHttpUrl(String urlTemplate, String[] pathVariables, Map<String, ?> queryParams) {
         HttpUrl httpUrl = HttpUrl.parse(urlTemplate);
+        Assert.notNull(httpUrl, "无法解析URL: {}", urlTemplate);
+
         HttpUrl.Builder builder = httpUrl.newBuilder();
         if (ArrayUtil.isNotEmpty(pathVariables)) {
             int idx = 0;
@@ -242,16 +245,15 @@ public class OkHttpUtil {
     @SneakyThrows
     public static Response get(String url) {
         Request request = new Request.Builder().url(url).get().build();
-        Response response = CLIENT.newCall(request).execute();
-        return response;
+        return CLIENT.newCall(request).execute();
     }
 
     public static <T> T get(String url, Class<T> clazz) {
         Request request = new Request.Builder().url(url).get().build();
         Call call = CLIENT.newCall(request);
-        try (Response execute = call.execute();) {
+        try (Response execute = call.execute()) {
             ResponseBody body = execute.body();
-            String bodyStr = body == null ? "" : body.string();
+            String bodyStr = body.string();
             if (execute.isSuccessful()) {
                 return JsonUtil.readValue(bodyStr, clazz);
             }
@@ -265,9 +267,9 @@ public class OkHttpUtil {
     public static <T> T get(String url, TypeReference<T> typeReference) {
         Request request = new Request.Builder().url(url).get().build();
         Call call = CLIENT.newCall(request);
-        try (Response execute = call.execute();) {
+        try (Response execute = call.execute()) {
             ResponseBody body = execute.body();
-            String bodyStr = body == null ? "" : body.string();
+            String bodyStr = body.string();
             if (execute.isSuccessful()) {
                 return JsonUtil.readValue(bodyStr, typeReference);
             } else if (execute.code() == 404 && JSONUtil.isTypeJSON(bodyStr)) {
@@ -287,9 +289,9 @@ public class OkHttpUtil {
         HttpUrl httpUrl = newHttpUrl(urlTemplate, pathVariables, queryParams);
         Request request = new Request.Builder().url(httpUrl).get().build();
         Call call = CLIENT.newCall(request);
-        try (Response execute = call.execute();) {
+        try (Response execute = call.execute()) {
             ResponseBody body = execute.body();
-            String bodyStr = body == null ? "" : body.string();
+            String bodyStr = body.string();
             if (execute.isSuccessful()) {
                 return JsonUtil.readValue(bodyStr, typeReference);
             } else if (execute.code() == 404 && JSONUtil.isTypeJSON(bodyStr)) {
@@ -305,9 +307,9 @@ public class OkHttpUtil {
     public static String getAsString(String url) {
         Request request = new Request.Builder().url(url).get().build();
         Call call = CLIENT.newCall(request);
-        try (Response execute = call.execute();) {
+        try (Response execute = call.execute()) {
             ResponseBody body = execute.body();
-            String bodyStr = body == null ? "" : body.string();
+            String bodyStr = body.string();
             if (execute.isSuccessful()) {
                 return bodyStr;
             } else if (execute.code() == 404 && JSONUtil.isTypeJSON(bodyStr)) {
@@ -323,12 +325,12 @@ public class OkHttpUtil {
     public static byte[] getAsBytes(String url) {
         Request request = new Request.Builder().url(url).get().build();
         Call call = CLIENT.newCall(request);
-        try (Response execute = call.execute();) {
+        try (Response execute = call.execute()) {
             ResponseBody body = execute.body();
             if (execute.isSuccessful()) {
-                return body == null ? null : body.bytes();
+                return body.bytes();
             }
-            String bodyStr = body == null ? "" : body.string();
+            String bodyStr = body.string();
             throw new RuntimeException("调用" + request + " 失败，状态码：" + execute.code() + " 响应体：" + bodyStr);
         } catch (IOException e) {
             throw new RuntimeException("远程调用失败：" + request, e);
@@ -339,12 +341,12 @@ public class OkHttpUtil {
     public static InputStream getAsInputStream(String url) {
         Request request = new Request.Builder().url(url).get().build();
         Call call = CLIENT.newCall(request);
-        try (Response execute = call.execute();) {
+        try (Response execute = call.execute()) {
             ResponseBody body = execute.body();
             if (execute.isSuccessful()) {
-                return body == null ? null : body.byteStream();
+                return body.byteStream();
             }
-            String bodyStr = body == null ? "" : body.string();
+            String bodyStr = body.string();
             throw new RuntimeException("调用" + request + " 失败，状态码：" + execute.code() + " 响应体：" + bodyStr);
         } catch (IOException e) {
             throw new RuntimeException("远程调用失败：" + request, e);
@@ -355,9 +357,9 @@ public class OkHttpUtil {
     public static Map<String, Object> getAsMap(String url) {
         Request request = new Request.Builder().url(url).get().build();
         Call call = CLIENT.newCall(request);
-        try (Response execute = call.execute();) {
+        try (Response execute = call.execute()) {
             ResponseBody body = execute.body();
-            String bodyStr = body == null ? "" : body.string();
+            String bodyStr = body.string();
             if (execute.isSuccessful()) {
                 return JsonUtil.readMap(bodyStr);
             }
@@ -371,20 +373,26 @@ public class OkHttpUtil {
     public static Response post(String url, String[] pathVariables, Map<String, Object> queryParams, Object body) {
         HttpUrl httpUrl = newHttpUrl(url, pathVariables, queryParams);
         RequestBody requestBody = RequestBody.create(
-                okhttp3.MediaType.get("application/json"),
-                JsonUtil.NOT_NULL_INSTANCE.writeValueAsString(body));
+                JsonUtil.NOT_NULL_INSTANCE.writeValueAsString(body),
+                okhttp3.MediaType.get("application/json"));
         Request request = new Request.Builder().post(requestBody).url(httpUrl).build();
         return CLIENT.newCall(request).execute();
     }
 
-    @SneakyThrows
     public static <T> T post(String url, String[] pathVariables, Map<String, Object> queryParams, Object body, Class<T> clazz) {
-        return JsonUtil.readValue(post(url, pathVariables, queryParams, body).body().string(), clazz);
+        try (Response response = post(url, pathVariables, queryParams, body)) {
+            return JsonUtil.readValue(response.body().string(), clazz);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    @SneakyThrows
     public static <T> T post(String url, String[] pathVariables, Map<String, Object> queryParams, Object body, TypeReference<T> typeReference) {
-        return JsonUtil.readValue(post(url, pathVariables, queryParams, body).body().string(), typeReference);
+        try (Response response = post(url, pathVariables, queryParams, body)) {
+            return JsonUtil.readValue(response.body().string(), typeReference);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @SneakyThrows

@@ -169,6 +169,7 @@
 package vip.isass.framework.database.redis;
 
 import cn.hutool.core.util.TypeUtil;
+import jakarta.annotation.Nonnull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.connection.Message;
@@ -176,7 +177,6 @@ import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.listener.Topic;
 import vip.isass.framework.serialization.jackson.ConvertUtil;
 
-import jakarta.annotation.Nonnull;
 import java.lang.reflect.Type;
 
 /**

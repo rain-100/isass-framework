@@ -2,7 +2,7 @@
 
 ## 项目概述
 
-isass 全称为 Intelligent System Architecture Service Solution 中文名为 智能系统架构服务解决方案，是一个专注于 技术研发 团队的全生命周期整合解决方案，包括基础设施与中间件、开发框架与流程、运维部署与实施、团队管理与提升。其中后端开发框架是基于 java 以及主流开源框架整合的一套微服务框架，运维部署使用git、tekton、argocd、rancher，实现了全自动CI/CD。
+isass 全称为 Intelligent System Architecture Service Solution 中文名为 智能系统架构服务解决方案，是一个专注于 技术研发 团队的全生命周期整合解决方案，包括基础设施与中间件、开发框架与流程、运维部署与实施、团队管理与提升。其中后端开发框架是基于 java(jdk21) 以及主流开源框架整合的一套微服务框架，运维部署使用git、tekton、argocd、rancher，实现了全自动CI/CD。
 
 ## 模块层次结构
 

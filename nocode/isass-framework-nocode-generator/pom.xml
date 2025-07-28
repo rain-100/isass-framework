@@ -191,6 +191,11 @@
         </dependency>
 
         <dependency>
+            <groupId>vip.isass</groupId>
+            <artifactId>isass-framework-nocode-core</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>com.baomidou</groupId>
             <artifactId>mybatis-plus-generator</artifactId>
         </dependency>

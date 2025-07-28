@@ -231,7 +231,7 @@ public class PageValueInstantiator extends StdValueInstantiator {
     }
 
     private CreatorProperty creatorProperty(String name, JavaType type, int index, PropertyMetadata metadata) {
-        return new CreatorProperty(
+        return CreatorProperty.construct(
                 PropertyName.construct(name),
                 type,
                 null,

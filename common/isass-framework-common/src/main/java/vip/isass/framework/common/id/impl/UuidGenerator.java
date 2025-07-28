@@ -176,9 +176,11 @@ import java.util.UUID;
 /**
  * @author rain
  */
-@SuppressWarnings("rawtypes")
-@AutoService(IdGenerator.class)
+// @AutoService(IdGenerator.class)
 public class UuidGenerator implements IdGenerator<String> {
+
+    public UuidGenerator() {
+    }
 
     @Override
     public String next() {

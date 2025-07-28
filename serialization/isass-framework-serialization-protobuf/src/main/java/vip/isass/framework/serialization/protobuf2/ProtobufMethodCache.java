@@ -182,7 +182,7 @@ public class ProtobufMethodCache {
 
     public static final LoadingCache<String, Method> PARSE_METHOD_CACHE = CacheBuilder.newBuilder()
         .maximumSize(1000)
-        .build(new CacheLoader<String, Method>() {
+        .build(new CacheLoader<>() {
             @Override
             public Method load(String protoName) throws Exception {
                 Class<?> protoClass = Class.forName(protoName);
@@ -194,7 +194,7 @@ public class ProtobufMethodCache {
 
     public static final LoadingCache<String, Method> BUILDER_METHOD_CACHE = CacheBuilder.newBuilder()
         .maximumSize(1000)
-        .build(new CacheLoader<String, Method>() {
+        .build(new CacheLoader<>() {
             @Override
             public Method load(String protoName) throws Exception {
                 Class<?> protoClass = Class.forName(protoName);

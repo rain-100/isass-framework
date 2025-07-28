@@ -174,7 +174,8 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.MultiThreadIoEventLoopGroup;
+import io.netty.channel.nio.NioIoHandler;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
@@ -228,8 +229,18 @@ public class WebsocketServer implements Server {
         }
 
         executorService.execute(() -> {
-            boss = new NioEventLoopGroup();
-            worker = new NioEventLoopGroup();
+            // Boss Group (用于接受连接)
+            EventLoopGroup boss = new MultiThreadIoEventLoopGroup(
+                    1, // 线程数，boss通常只需要1个线程
+                    NioIoHandler.newFactory()   // 使用NioIoHandler的工厂
+            );
+
+            // Worker Group (用于处理连接的I/O操作)
+            EventLoopGroup worker = new MultiThreadIoEventLoopGroup(
+                    0, // 0表示自动计算线程数（CPU核心数*2）
+                    NioIoHandler.newFactory()
+            );
+
             try {
                 ServerBootstrap bootstrap = new ServerBootstrap();
                 bootstrap.group(boss, worker)
