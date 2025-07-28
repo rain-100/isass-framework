@@ -195,6 +195,7 @@
         <module>super-core-database-querydsl</module>
         <module>super-core-database-mysql</module>
         <module>super-core-database-postgresql</module>
+        <module>super-core-database-highgo</module>
         <module>super-core-database-dameng</module>
         <module>super-core-database-kingbase</module>
         <module>super-core-database-mybatisplus-postgresql</module>
@@ -263,6 +264,7 @@
         <kingbase8.version>8.6.20</kingbase8.version>
         <postgresql.version>42.4.3</postgresql.version>
         <mysql.version>8.0.33</mysql.version>
+        <highgo.version>6.2.4</highgo.version>
 
         <!-- net -->
         <netty.version>4.1.100.Final</netty.version>
@@ -461,6 +463,12 @@
 
             <dependency>
                 <groupId>vip.isass</groupId>
+                <artifactId>super-core-database-highgo</artifactId>
+                <version>${super-core.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>vip.isass</groupId>
                 <artifactId>super-core-database-dameng</artifactId>
                 <version>${super-core.version}</version>
             </dependency>
@@ -624,10 +632,17 @@
             </dependency>
 
             <dependency>
+                <groupId>com.highgo</groupId>
+                <artifactId>HgdbJdbc</artifactId>
+                <version>${highgo.version}</version>
+            </dependency>
+
+            <dependency>
                 <groupId>com.dameng</groupId>
                 <artifactId>DmJdbcDriver18</artifactId>
                 <version>${dameng.version}</version>
             </dependency>
+
             <dependency>
                 <groupId>com.kingbase8</groupId>
                 <artifactId>kingbase8</artifactId>
