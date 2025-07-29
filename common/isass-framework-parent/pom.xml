@@ -236,18 +236,8 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <!--<scope>provided</scope>-->
+            <scope>provided</scope>
         </dependency>
-
-        <dependency>
-            <groupId>cn.hutool</groupId>
-            <artifactId>hutool-all</artifactId>
-        </dependency>
-
-        <!--<dependency>-->
-        <!--    <groupId>com.google.code.findbugs</groupId>-->
-        <!--    <artifactId>annotations</artifactId>-->
-        <!--</dependency>-->
     </dependencies>
 
     <build>
