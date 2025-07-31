@@ -167,179 +167,49 @@
  *
  */
 
-package vip.isass.core.database.init;
+package vip.isass.core.database.mybatisplus.highgo;
 
-import cn.hutool.core.util.ServiceLoaderUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.db.Db;
-import cn.hutool.db.DbUtil;
-import cn.hutool.db.StatementUtil;
-import cn.hutool.db.ds.simple.SimpleDataSource;
-import cn.hutool.db.handler.NumberHandler;
-import cn.hutool.db.sql.SqlExecutor;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationContextInitializer;
-import org.springframework.context.ConfigurableApplicationContext;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.highgo.jdbc.util.PGobject;
+import lombok.SneakyThrows;
+import vip.isass.core.database.typehandler.IJsonNodeTypeHandler;
+import vip.isass.core.support.JsonUtil;
 
-import javax.sql.DataSource;
-import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.util.Collections;
-import java.util.List;
 
 /**
- * 数据库初始化管理器
- * jdbcUrl 指定的数据库不存在时自动创建数据库
+ * 处理字段类型为 Jsonb 的数据库映射关系
  *
- * @author rain
+ * @author Rain
  */
-@Slf4j
-public class DatabaseInitializerManager implements ApplicationContextInitializer<ConfigurableApplicationContext> {
-
-    private static volatile boolean RUN = false;
-
-    /**
-     * 主数据源数据库名
-     * -- GETTER --
-     *  获取主数据源数据库名
-     *
-     * @return 主数据源数据库名
-
-     */
-    @Getter
-    private static String masterDatasourceDatabaseName = "";
-    @Getter
-    private static String masterDatasourceSchemaName = "";
+public class HighgoJsonNodeTypeHandler implements IJsonNodeTypeHandler {
 
     @Override
-    public void initialize(ConfigurableApplicationContext applicationContext) {
-        if (RUN) {
-            return;
-        }
-
-        String autoCreate = applicationContext.getEnvironment().getProperty(
-                "spring.datasource.autoCreate");
-        if ("false".equalsIgnoreCase(autoCreate)) {
-            RUN = true;
-            return;
-        }
-
-        String jdbcUrl = applicationContext.getEnvironment().getProperty(
-                "spring.datasource.dynamic.datasource.master.url");
-        String username = applicationContext.getEnvironment().getProperty(
-                "spring.datasource.dynamic.datasource.master.username");
-        String password = applicationContext.getEnvironment().getProperty(
-                "spring.datasource.dynamic.datasource.master.password");
-
-        if (StrUtil.hasBlank(jdbcUrl, username, password)) {
-            return;
-        }
-        try {
-            log.info("开始创建数据库: 数据库不存在则自动创建数据库");
-            initDatabase(jdbcUrl, username, password);
-        } catch (Exception e) {
-            log.info("数据库初始化失败");
-            log.error(e.getMessage(), e);
-        }
-        RUN = true;
+    public String getSupportDatabaseProductName() {
+        return "Highgo";
     }
 
-    private void initDatabase(String jdbcUrl, String username, String password) {
-        String jdbcUrlOriginal = jdbcUrl.trim();
-        List<DatabaseInitializer> databaseInitializers = ServiceLoaderUtil.loadList(DatabaseInitializer.class);
-        if (databaseInitializers == null) {
-            log.error("cannot found DatabaseInitializer implements");
-            return;
+    @Override
+    @SneakyThrows
+    public void setNonNullParameter(PreparedStatement ps, int i, JsonNode parameter) {
+        PGobject pGobject = new PGobject();
+        pGobject.setValue(JsonUtil.DEFAULT_INSTANCE.writeValueAsString(parameter));
+        pGobject.setType("json");
+        ps.setObject(i, pGobject);
+//        PGobject pGobject = new PGobject();
+//        pGobject.setType("json");
+//        pGobject.setValue(JsonUtil.DEFAULT_INSTANCE.writeValueAsString(parameter));
+//        ps.setObject(i, pGobject);
+    }
+
+    @Override
+    @SneakyThrows
+    public JsonNode getJson(String value) {
+        if (value == null) {
+            return null;
         }
-
-        DatabaseInitializer databaseInitializer = null;
-        for (DatabaseInitializer temp : databaseInitializers) {
-            if (temp.match(jdbcUrl)) {
-                databaseInitializer = temp;
-                break;
-            }
-        }
-
-        if (databaseInitializer == null) {
-            log.error("cannot found DatabaseInitializer, jdbcUrl: {}", jdbcUrl);
-            return;
-        }
-
-        log.info("found master datasource jdbcUrl: {}", jdbcUrl);
-
-        masterDatasourceDatabaseName = databaseInitializer.parseDatabaseName(jdbcUrl);
-        masterDatasourceSchemaName = databaseInitializer.parseSchemaName(jdbcUrl);
-        log.info("database name: {}", masterDatasourceDatabaseName);
-        log.info("schema name: {}", masterDatasourceSchemaName);
-        jdbcUrl = databaseInitializer.removeDatabaseName(jdbcUrl, masterDatasourceDatabaseName);
-        log.info("remove database name jdbcUrl: {}", jdbcUrl);
-        String checkDatabaseNameExistSql = databaseInitializer.checkDatabaseNameExistSql(masterDatasourceDatabaseName);
-        String createDatabaseSql = databaseInitializer.createDatabaseSql(masterDatasourceDatabaseName);
-
-        DataSource ds = new SimpleDataSource(jdbcUrl, username, password);
-        Db db = DbUtil.use(ds);
-        Connection conn = null;
-
-        try {
-            conn = ds.getConnection();
-            boolean databaseExist = false;
-            if (checkDatabaseNameExistSql != null) {
-                log.info("running check database exist sql: {}", checkDatabaseNameExistSql);
-                Number query = SqlExecutor.query(conn, checkDatabaseNameExistSql, new NumberHandler(), Collections.emptyMap());
-                int databaseCount = query.intValue();
-                databaseExist = databaseCount > 0;
-            }
-
-            if (!databaseExist) {
-                log.info("running create database sql: {}", createDatabaseSql);
-                PreparedStatement preparedStatement = StatementUtil.prepareStatement(conn, createDatabaseSql);
-                SqlExecutor.execute(preparedStatement);
-            }
-        } catch (Exception e) {
-            log.error("database init fail :{}", e.getMessage(), e);
-        } finally {
-            db.closeConnection(conn);
-        }
-
-        // 初始化 schema
-        if(masterDatasourceSchemaName == null){
-            log.info("jdbcUrl:{} does not contain currentSchema or searchpath, use default schemaName", jdbcUrl);
-            return;
-        }
-        //原jdbc 经过因为需要新建数据库改成默认数据库，现在要创建schema 需要连已经创建的数据库后再创建schema
-        jdbcUrl = jdbcUrlOriginal;
-        log.info("jdbcUrl:{} need to create schemaName:{}, reconnect database", jdbcUrl, masterDatasourceSchemaName);
-        String checkSchemaExistSql = databaseInitializer.checkSchemaExistSql(masterDatasourceSchemaName);
-        String createSchemaSql = databaseInitializer.createSchemaSql(masterDatasourceSchemaName);
-        ds = new SimpleDataSource(jdbcUrl , username, password);
-        db = DbUtil.use(ds);
-        conn = null;
-
-        try {
-            conn = ds.getConnection();
-            boolean databaseExist = false;
-            if (checkSchemaExistSql != null) {
-                log.info("running check schema exist sql: {}", checkSchemaExistSql);
-                Number query = SqlExecutor.query(conn, checkSchemaExistSql, new NumberHandler(), Collections.emptyMap());
-                if (query != null) {
-                    int databaseCount = query.intValue();
-                    databaseExist = databaseCount > 0;
-                }
-            }
-
-            if (!databaseExist) {
-                log.info("running create schema sql: {}", createSchemaSql);
-                PreparedStatement preparedStatement = StatementUtil.prepareStatement(conn, createSchemaSql);
-                SqlExecutor.execute(preparedStatement);
-            }
-        } catch (Exception e) {
-            log.error("schema init fail :{}", e.getMessage(), e);
-        } finally {
-            db.closeConnection(conn);
-        }
-
-
+        return JsonUtil.DEFAULT_INSTANCE.readTree(value);
     }
 
 }

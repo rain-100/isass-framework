@@ -200,6 +200,7 @@
         <module>super-core-database-kingbase</module>
         <module>super-core-database-mybatisplus-postgresql</module>
         <module>super-core-database-mybatisplus-kingbase</module>
+        <module>super-core-database-mybatisplus-highgo</module>
         <module>super-core-database-mybatisplus-mysql</module>
         <module>super-core-database-sharding-jdbc</module>
         <module>super-core-mq</module>
@@ -500,6 +501,12 @@
             <dependency>
                 <groupId>vip.isass</groupId>
                 <artifactId>super-core-database-mybatisplus-kingbase</artifactId>
+                <version>${super-core.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>vip.isass</groupId>
+                <artifactId>super-core-database-mybatisplus-highgo</artifactId>
                 <version>${super-core.version}</version>
             </dependency>
 

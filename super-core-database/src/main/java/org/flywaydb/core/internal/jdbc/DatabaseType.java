@@ -302,6 +302,16 @@ public enum DatabaseType {
         if (databaseProductName.startsWith("Kingbase")) {
             return KINGBASE;
         }
+        if (databaseProductName.startsWith("Highgo")) {
+            String selectVersionQueryOutput = getSelectVersionOutput(connection);
+            if (databaseProductName.startsWith("PostgreSQL 8") && selectVersionQueryOutput.contains("Redshift")) {
+                return REDSHIFT;
+            }
+            if (selectVersionQueryOutput.contains("CockroachDB")) {
+                return COCKROACHDB;
+            }
+            return POSTGRESQL;
+        }
         throw new FlywayException("Unsupported Database: " + databaseProductName);
     }
 
