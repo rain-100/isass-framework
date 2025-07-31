@@ -5,6 +5,7 @@ module vip.isass.framework.database.liquibase {
     
     // 依赖的标准Java平台模块
     requires java.sql;
-    
+    requires liquibase.core;
+
     // 导出包
 } 
