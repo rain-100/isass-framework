@@ -87,7 +87,7 @@ isass 全称为 Intelligent System Architecture Service Solution 中文名为 �
 ├── 📦 isass-framework-web-springmvc
 └── 📦 isass-framework-web-springmvc-starter
 
-📁 nocode/                            # 低代码模块
+📁 nocode/                            # 零代码模块
 ├── 📦 isass-framework-nocode-core
 ├── 📦 isass-framework-nocode-generator
 └── 📦 isass-framework-nocode-springboot-starter
@@ -195,7 +195,7 @@ isass-framework/
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-dependencies</artifactId>
-            <version>2.2.1.RELEASE</version>
+            <version>3.5.3</version>
             <type>pom</type>
             <scope>import</scope>
         </dependency>
@@ -239,5 +239,5 @@ https://maven.apache.org/maven-ci-friendly.html
 
 - **当前版本**: 4.0.0-SNAPSHOT
 - **Java版本**: 21
-- **Spring Boot版本**: 3.5
+- **Spring Boot版本**: 3.5.3
 - **许可证**: GNU Lesser General Public License Version 3 
