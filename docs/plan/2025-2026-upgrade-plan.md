@@ -139,7 +139,7 @@ public class Resp<T> {
 - [ ] criteria类删除or、NotEqual等大量条件判断字段，只保留原始字段，以便加快编译速度和在idea打开java文件的速度。使用map接收并实现对应的判断逻辑 【工作量：4人日】
 - [ ] 新增access接入层，支持spring的controller、socketio消息监听器、kafka消息消费者、定时任务等。各个接入实现方式使用 IService 提供的信息动态生成，无需生成代码 【工作量：10人日】
 - [ ] v3通用controller使用spring接口动态生成，不再生成controller代码 【工作量：6人日】
-  [ ] 只使用1个 controller,实体的路径参数可以使用枚举类，在 api 文档中可以下拉选择 【工作量：3人日】
+- [ ] 只使用1个 controller,实体的路径参数可以使用枚举类，在 api 文档中可以下拉选择 【工作量：3人日】
 - [ ] 新增v3代码生成器 【工作量：8人日】
 
 ### 5.3 接口设计优化
@@ -148,10 +148,10 @@ public class Resp<T> {
 **新方案：**
 ```
 📁 nocode/
-├── 📦 isass-framework-nocode-core    # 核心功能
+├── 📦 isass-framework-nocode-core      # 核心功能
 ├── 📦 isass-framework-nocode-generator # 代码生成器
-├── 📦 isass-framework-nocode-api     # 统一API接口
-└── 📦 isass-framework-nocode-starter # 启动器
+├── 📦 isass-framework-nocode-api       # 统一API接口
+└── 📦 isass-framework-nocode-starter   # 启动器
 ```
 
 **优化内容：**

@@ -171,17 +171,15 @@ package vip.isass.framework.mq.core.producer;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
-import jakarta.annotation.Resource;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.SmartLifecycle;
-import org.springframework.stereotype.Component;
-import vip.isass.framework.mq.core.MqAutoConfiguration;
 import vip.isass.framework.mq.core.MqMessageContext;
+import vip.isass.framework.mq.core.MqProperties;
 
-import java.util.List;
 import java.util.Map;
+import java.util.ServiceLoader;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -189,23 +187,27 @@ import java.util.stream.Collectors;
  * @author Rain
  */
 @Slf4j
-@Component
-public class EventPublisher implements SmartLifecycle {
+public class EventPublisher {
 
-    @Autowired(required = false)
-    private List<ProducerManager> producerManagers;
+    private MqProperties mqProperties;
 
-    @Resource
-    private MqAutoConfiguration mqAutoConfiguration;
-
-    private static String DEFAULT_MANUFACTURER;
+    private static String SOURCE;
 
     /**
-     * key: manufacturer
+     * key: mq name
      */
-    private static Map<String, ProducerManager> producerManagerMap;
+    private static Map<String, ProducerManager> MQ_PRODUCER_MANAGER_MAP;
 
     private static boolean IS_RUNNING = false;
+
+    public static void loadComponents() {
+        log.info("loading mq produce managers...");
+        MQ_PRODUCER_MANAGER_MAP = ServiceLoader.load(ProducerManager.class)
+                .stream()
+                .map(ServiceLoader.Provider::get)
+                .peek(c -> log.info("loaded mq produce manager: {}", c.getClass().getName()))
+                .collect(Collectors.toMap(ProducerManager::name, Function.identity()));
+    }
 
     /**
      * 发布事件
@@ -213,64 +215,49 @@ public class EventPublisher implements SmartLifecycle {
      * @param mqMessageContext the mq message context
      */
     public static void send(@NonNull MqMessageContext mqMessageContext) {
-        Assert.notNull(producerManagerMap, "生产者管理器未初始化，或者没有启用mq，mq发送失败");
+        Assert.notNull(MQ_PRODUCER_MANAGER_MAP, "生产者管理器未初始化，或者没有启用mq，mq发送失败");
 
         // 找实现厂商
         if (StrUtil.isBlank(mqMessageContext.getManufacturer())) {
-            mqMessageContext.setManufacturer(DEFAULT_MANUFACTURER);
+            mqMessageContext.setManufacturer(SOURCE);
         }
         if (StrUtil.isBlank(mqMessageContext.getManufacturer())) {
-            mqMessageContext.setManufacturer(producerManagerMap.entrySet().iterator().next().getKey());
+            mqMessageContext.setManufacturer(MQ_PRODUCER_MANAGER_MAP.entrySet().iterator().next().getKey());
         }
 
-        ProducerManager producerManager = producerManagerMap.get(mqMessageContext.getManufacturer());
+        ProducerManager producerManager = MQ_PRODUCER_MANAGER_MAP.get(mqMessageContext.getManufacturer());
         Assert.notNull(producerManager, "厂商[{}]未启用或未配置 producerManager, mq 发送失败", mqMessageContext.getManufacturer());
         producerManager.send(mqMessageContext);
     }
 
-    @Override
+    @PostConstruct
     public void start() {
         IS_RUNNING = true;
-        if (mqAutoConfiguration.getEnable()) {
-            log.info("init mq producer manager");
-        } else {
-            log.info("mq is disable, skip to init EventPublisher");
+        log.info("isass.framework.mq.enable:{}", mqProperties.getEnabled());
+
+        if (Boolean.FALSE.equals(mqProperties.getEnabled())) {
+            log.info("skip to load mq produce module");
+        }
+
+        loadComponents();
+
+        if (CollUtil.isEmpty(MQ_PRODUCER_MANAGER_MAP)) {
             return;
         }
 
-        if (CollUtil.isEmpty(producerManagers)) {
-            log.info("can not find any ProducerManager, will skip it");
-            return;
-        }
-
-        producerManagers.stream()
-                .filter(s -> StrUtil.isBlank(s.manufacturer()))
-                .findFirst()
-                .ifPresent(s -> {
-                    throw new IllegalArgumentException(s.getClass().toGenericString() + " 的 manufacturer 不能为空");
-                });
-
-        producerManagerMap = producerManagers
+        MQ_PRODUCER_MANAGER_MAP.values()
                 .stream()
-                .filter(s -> StrUtil.isNotBlank(s.manufacturer()))
                 .filter(ProducerManager::isEnable)
-                .peek(ProducerManager::init)
-                .collect(Collectors.toMap(ProducerManager::manufacturer, Function.identity()));
+                .forEach(ProducerManager::init);
 
-        DEFAULT_MANUFACTURER = mqAutoConfiguration.getDefaultManufacturer();
+        SOURCE = mqProperties.getPrimary();
     }
 
-    @Override
+    @PreDestroy
     public void stop() {
-        if (CollUtil.isNotEmpty(producerManagers)) {
-            producerManagers.forEach(ProducerManager::destroy);
+        if (CollUtil.isNotEmpty(MQ_PRODUCER_MANAGER_MAP)) {
+            MQ_PRODUCER_MANAGER_MAP.values().forEach(ProducerManager::destroy);
         }
         IS_RUNNING = false;
     }
-
-    @Override
-    public boolean isRunning() {
-        return IS_RUNNING;
-    }
-
 }

@@ -169,14 +169,14 @@
 package vip.isass.framework.mq.core.consumer;
 
 import cn.hutool.core.collection.CollUtil;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.SmartLifecycle;
-import org.springframework.stereotype.Component;
-import vip.isass.framework.mq.core.MqAutoConfiguration;
+import vip.isass.framework.mq.core.MqProperties;
 
 import java.util.List;
+import java.util.ServiceLoader;
 
 /**
  * 查找所有订阅者，进行订阅
@@ -184,47 +184,50 @@ import java.util.List;
  * @author Rain
  */
 @Slf4j
-@Component
-public class MqConsumerAutoConfiguration implements SmartLifecycle {
+public class MqConsumerAutoConfiguration {
 
-    @Autowired(required = false)
-    private List<MqConsumerManager> mqConsumerManagers;
+    private static List<MqConsumerManager> MQ_CONSUMER_MANAGERS;
 
-    @Resource
-    private MqAutoConfiguration mqAutoConfiguration;
+    private MqProperties mqProperties;
 
     private static boolean IS_RUNNING = false;
 
-    @Override
+    public static void loadComponents() {
+        log.info("loading mq consumer managers...");
+        MQ_CONSUMER_MANAGERS = ServiceLoader.load(MqConsumerManager.class)
+                .stream()
+                .map(ServiceLoader.Provider::get)
+                .peek(c -> log.info("loaded mq consumer manager: {}", c.getClass().getName()))
+                .toList();
+    }
+
+    @PostConstruct
     public void start() {
         IS_RUNNING = true;
-        if (mqAutoConfiguration.getEnable()) {
-            log.info("init mq consumer manager");
-        } else {
-            log.info("isass event system is disable, will skip it");
+        log.info("isass.framework.mq.enable:{}", mqProperties.getEnabled());
+
+        if (Boolean.FALSE.equals(mqProperties.getEnabled())) {
+            log.info("skip to load mq consumer module");
             return;
         }
 
-        if (CollUtil.isEmpty(mqConsumerManagers)) {
+        loadComponents();
+
+        if (CollUtil.isEmpty(MQ_CONSUMER_MANAGERS)) {
             return;
         }
-        mqConsumerManagers
+        MQ_CONSUMER_MANAGERS
                 .stream()
                 .filter(MqConsumerManager::isEnable)
                 .forEach(MqConsumerManager::subscribe);
     }
 
-    @Override
+    @PreDestroy
     public void stop() {
-        if (CollUtil.isNotEmpty(mqConsumerManagers)) {
-            mqConsumerManagers.forEach(MqConsumerManager::destroy);
+        if (CollUtil.isNotEmpty(MQ_CONSUMER_MANAGERS)) {
+            MQ_CONSUMER_MANAGERS.forEach(MqConsumerManager::destroy);
         }
         IS_RUNNING = false;
-    }
-
-    @Override
-    public boolean isRunning() {
-        return IS_RUNNING;
     }
 
 }

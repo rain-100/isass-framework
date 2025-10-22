@@ -173,7 +173,7 @@ import cn.hutool.core.exceptions.ExceptionUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.StrUtil;
-import jakarta.annotation.Resource;
+import com.google.auto.service.AutoService;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.SneakyThrows;
@@ -212,11 +212,11 @@ import java.util.stream.Collectors;
 @Getter
 @Setter
 @Accessors(chain = true)
+@AutoService(MqConsumerManager.class)
 public class Kafka011ConsumerManager implements MqConsumerManager {
 
     private ExecutorService executorService;
 
-    @Resource
     private Kafka011Configuration kafka011Configuration;
 
     private List<IMqConsumer> mqConsumers;
@@ -325,7 +325,6 @@ public class Kafka011ConsumerManager implements MqConsumerManager {
             }
         }
     }
-
 
     private String parseTopic(IMqConsumer mqConsumer, InstanceConfiguration instanceConfiguration) {
         if (StrUtil.isNotBlank(mqConsumer.getTopic())) {

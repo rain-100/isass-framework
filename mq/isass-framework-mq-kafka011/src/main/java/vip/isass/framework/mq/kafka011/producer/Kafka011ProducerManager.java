@@ -171,6 +171,7 @@ package vip.isass.framework.mq.kafka011.producer;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
+import com.google.auto.service.AutoService;
 import jakarta.annotation.Resource;
 import vip.isass.framework.mq.core.MessageType;
 import vip.isass.framework.mq.core.MqMessageContext;
@@ -190,12 +191,11 @@ import java.util.stream.Collectors;
 /**
  * @author Rain
  */
+@AutoService(ProducerManager.class)
 public class Kafka011ProducerManager implements ProducerManager {
 
-    @Resource
     private Kafka011Configuration kafka011Configuration;
 
-    @Resource
     private Kafka011ProducerAutoConfiguration kafka011ProducerAutoConfiguration;
 
     private Map<String, Kafka011Producer> producerGroupByProducerId = Collections.emptyMap();
@@ -235,7 +235,7 @@ public class Kafka011ProducerManager implements ProducerManager {
     }
 
     @Override
-    public String manufacturer() {
+    public String name() {
         return Kafka011Const.MANUFACTURER;
     }
 

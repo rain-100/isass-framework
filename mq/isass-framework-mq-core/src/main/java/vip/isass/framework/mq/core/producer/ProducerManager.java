@@ -181,7 +181,7 @@ public interface ProducerManager {
      *
      * @return manufacturer name
      */
-    String manufacturer();
+    String name();
 
     void init();
 

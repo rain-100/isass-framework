@@ -1,8 +1,12 @@
+import vip.isass.framework.mq.core.consumer.MqConsumerManager;
+import vip.isass.framework.mq.core.producer.ProducerManager;
+
 module vip.isass.framework.mq.core {
+    uses MqConsumerManager;
+    uses ProducerManager;
+
     // 依赖的框架模块
     requires vip.isass.framework.common;
-    requires spring.beans;
-    requires spring.context;
     requires jakarta.annotation;
     requires cn.hutool;
     requires org.slf4j;

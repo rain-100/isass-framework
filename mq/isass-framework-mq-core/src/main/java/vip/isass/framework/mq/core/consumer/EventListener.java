@@ -168,11 +168,13 @@
 
 package vip.isass.framework.mq.core.consumer;
 
-import org.springframework.stereotype.Component;
 import vip.isass.framework.mq.core.MessageType;
 
-import java.lang.annotation.*;
-
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * @author Rain
@@ -180,16 +182,12 @@ import java.lang.annotation.*;
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-@Component
 public @interface EventListener {
 
     /**
-     * 提供实现的厂商
-     * 例如：阿里云rocketmq、kafaka、rabbitmq
-     *
-     * @return manufacturer
+     * mq源
      */
-    String manufacturer() default "";
+    String source() default "master";
 
     /**
      * @return region

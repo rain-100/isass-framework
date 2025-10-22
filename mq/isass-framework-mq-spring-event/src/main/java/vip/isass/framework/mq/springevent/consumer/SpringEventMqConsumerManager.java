@@ -171,6 +171,7 @@ package vip.isass.framework.mq.springevent.consumer;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.exceptions.ExceptionUtil;
 import cn.hutool.core.util.StrUtil;
+import com.google.auto.service.AutoService;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -189,12 +190,11 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Component
+@AutoService(MqConsumerManager.class)
 public class SpringEventMqConsumerManager implements ApplicationListener<IsassMqEvent>, MqConsumerManager {
 
-    @Autowired(required = false)
     private List<IMqConsumer> mqConsumers;
 
-    @Resource
     private SpringEventConfiguration springEventConfiguration;
 
     @Override

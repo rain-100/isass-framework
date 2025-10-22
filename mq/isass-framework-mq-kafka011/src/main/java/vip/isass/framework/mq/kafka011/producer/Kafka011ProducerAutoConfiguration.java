@@ -188,7 +188,6 @@ import java.util.Objects;
 @Slf4j
 public class Kafka011ProducerAutoConfiguration {
 
-    @Resource
     private Kafka011Configuration kafka011Configuration;
 
     @Getter

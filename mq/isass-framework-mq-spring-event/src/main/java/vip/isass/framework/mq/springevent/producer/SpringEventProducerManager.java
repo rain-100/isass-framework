@@ -168,9 +168,9 @@
 
 package vip.isass.framework.mq.springevent.producer;
 
+import com.google.auto.service.AutoService;
 import jakarta.annotation.Resource;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Component;
 import vip.isass.framework.mq.core.MqMessageContext;
 import vip.isass.framework.mq.core.producer.ProducerManager;
 import vip.isass.framework.mq.springevent.SpringEventConfiguration;
@@ -179,10 +179,9 @@ import vip.isass.framework.mq.springevent.SpringEventConst;
 /**
  * @author Rain
  */
-@Component
+@AutoService(ProducerManager.class)
 public class SpringEventProducerManager implements ProducerManager {
 
-    @Resource
     private ApplicationEventPublisher applicationEventPublisher;
 
     @Resource
@@ -196,7 +195,7 @@ public class SpringEventProducerManager implements ProducerManager {
     }
 
     @Override
-    public String manufacturer() {
+    public String name() {
         return SpringEventConst.MANUFACTURER;
     }
 

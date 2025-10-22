@@ -170,9 +170,6 @@ package vip.isass.framework.mq.core;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
 
@@ -181,20 +178,21 @@ import java.util.List;
  */
 @Getter
 @Setter
-@Configuration
-@ComponentScan
-public class MqAutoConfiguration {
+public class MqProperties {
 
     /**
      * 总开关
      */
-    @Value("${mq.enable:false}")
-    private Boolean enable;
+    // @Value("${isass.framework.mq.enable:false}")
+    private Boolean enabled;
 
-    @Value("${mq.default.manufacturer:}")
-    private String defaultManufacturer;
+    /**
+     * 主 mq 源
+     */
+    // @Value("${isass.framework.mq.primary:master}")
+    private String primary;
 
-    @Value("${mq.disable.disableConsumerIds:}")
+    // @Value("${isass.framework.mq.disable.disableConsumerIds:}")
     private List<String> disableConsumerIds;
 
 }

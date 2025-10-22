@@ -9,6 +9,7 @@ module vip.isass.framework.mq.kafka011 {
     requires com.fasterxml.jackson.databind;
     requires org.slf4j;
     requires static lombok;
+    requires com.google.auto.service;
 
     // 导出包
     exports vip.isass.framework.mq.kafka011;
