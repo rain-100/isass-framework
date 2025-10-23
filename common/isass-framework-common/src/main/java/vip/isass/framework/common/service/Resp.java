@@ -209,6 +209,11 @@ public class Resp<T> {
     private String message;
 
     /**
+     * 详细信息
+     */
+    private String detailMessage;
+
+    /**
      * 调用接口得到的数据
      */
     private T data;
