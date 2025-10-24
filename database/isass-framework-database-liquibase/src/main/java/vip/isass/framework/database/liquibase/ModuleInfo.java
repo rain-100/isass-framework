@@ -166,7 +166,7 @@
  * Library.
  */
 
-package vip.isass.framework.security.core;
+package vip.isass.framework.database.liquibase;
 
 import java.lang.invoke.MethodHandles;
 

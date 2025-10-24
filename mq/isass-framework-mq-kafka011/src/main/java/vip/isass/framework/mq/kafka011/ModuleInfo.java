@@ -166,7 +166,7 @@
  * Library.
  */
 
-package vip.isass.framework.security.core;
+package vip.isass.framework.mq.kafka011;
 
 import java.lang.invoke.MethodHandles;
 
