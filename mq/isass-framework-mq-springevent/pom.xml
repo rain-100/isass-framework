@@ -181,7 +181,7 @@
     </parent>
 
     <!-- 本项目信息 -->
-    <artifactId>isass-framework-mq-spring-event</artifactId>
+    <artifactId>isass-framework-mq-springevent</artifactId>
     <version>4.0.0-SNAPSHOT</version>
 
     <dependencies>

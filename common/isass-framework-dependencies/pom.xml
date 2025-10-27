@@ -494,7 +494,7 @@
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>isass-framework-mq-spring-event</artifactId>
+                <artifactId>isass-framework-mq-springevent</artifactId>
                 <version>${isass-framework.version}</version>
             </dependency>
 
