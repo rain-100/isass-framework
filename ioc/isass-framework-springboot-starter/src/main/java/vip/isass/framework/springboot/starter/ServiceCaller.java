@@ -172,21 +172,24 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.annotation.Order;
+import vip.isass.framework.common.service.ServiceOrder;
 
 import java.util.Collection;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
+ * todo 移除 spring 依赖
+ *
  * @author isass
  */
-public interface ServiceCaller {
+public class ServiceCaller {
 
-    Logger LOGGER = LoggerFactory.getLogger(ServiceCaller.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ServiceCaller.class);
 
-    default <S, V> V apply(Collection<S> services, Function<S, V> function) {
-        if (services == null) {
-            throw new UnsupportedOperationException("当前环境没有" + this.getClass().getSimpleName());
+    public static <S, V> V apply(Collection<S> services, Function<S, V> function) {
+        if (services == null || services.isEmpty()) {
+            throw new UnsupportedOperationException("服务调用失败，服务实现列表为空");
         }
 
         boolean hasLocalService = false;
@@ -209,9 +212,9 @@ public interface ServiceCaller {
         return null;
     }
 
-    default <S> void consume(Collection<S> services, Consumer<S> consumer) {
-        if (services == null) {
-            throw new UnsupportedOperationException("当前环境没有" + this.getClass().getSimpleName());
+    public static <S> void consume(Collection<S> services, Consumer<S> consumer) {
+        if (services == null || services.isEmpty()) {
+            throw new UnsupportedOperationException("服务调用失败，服务实现列表为空");
         }
 
         for (S service : services) {
@@ -220,9 +223,9 @@ public interface ServiceCaller {
         }
     }
 
-    default <S> void consumeWithoutException(Collection<S> services, Consumer<S> consumer) {
-        if (services == null) {
-            throw new UnsupportedOperationException("当前环境没有" + this.getClass().getSimpleName());
+    public static <S> void consumeWithoutException(Collection<S> services, Consumer<S> consumer) {
+        if (services == null || services.isEmpty()) {
+            throw new UnsupportedOperationException("服务调用失败，服务实现列表为空");
         }
 
         for (S service : services) {

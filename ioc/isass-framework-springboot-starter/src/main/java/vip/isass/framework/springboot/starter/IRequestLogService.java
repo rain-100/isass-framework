@@ -170,7 +170,7 @@ package vip.isass.framework.springboot.starter;
 
 import java.util.List;
 
-public interface IRequestLogService extends ServiceCaller {
+public interface IRequestLogService {
 
     void add(RequestLog requestLog);
 

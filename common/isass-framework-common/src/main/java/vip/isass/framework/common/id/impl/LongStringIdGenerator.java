@@ -166,21 +166,33 @@
  * Library.
  */
 
-package vip.isass.framework.springboot.starter;
+package vip.isass.framework.common.id.impl;
+
+import lombok.extern.slf4j.Slf4j;
+import vip.isass.framework.common.id.IdGenerator;
 
 /**
- * 实现接口的排序，数字越少越靠前
+ * @author rain
  */
-public interface ServiceOrder {
+@Slf4j
+// @AutoService(IdGenerator.class)
+public class LongStringIdGenerator implements IdGenerator<String> {
 
-    int CACHE_SERVICE = 10;
+    public LongStringIdGenerator() {
+    }
 
-    int LOCAL_SERVICE = 20;
+    @Override
+    public String next() {
+        return LongIdGenerator.get().toString();
+    }
 
-    int FEIGN_SERVICE = 30;
+    @Override
+    public boolean support(Class<?> clazz) {
+        return clazz == String.class;
+    }
 
-    int CONTROLLER = 100;
-
-    int SERVER_MANAGER = Integer.MIN_VALUE;
-
+    @Override
+    public int getOrder() {
+        return 500;
+    }
 }

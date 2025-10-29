@@ -166,34 +166,21 @@
  * Library.
  */
 
-package vip.isass.framework.common.id.impl;
-
-import com.google.auto.service.AutoService;
-import lombok.extern.slf4j.Slf4j;
-import vip.isass.framework.common.id.IdGenerator;
+package vip.isass.framework.common.service;
 
 /**
- * @author rain
+ * 实现接口的排序，数字越少越靠前
  */
-@Slf4j
-// @AutoService(IdGenerator.class)
-public class RandomLongStringIdGenerator implements IdGenerator<String> {
+public interface ServiceOrder {
 
-    public RandomLongStringIdGenerator() {
-    }
+    int CACHE_SERVICE = 10;
 
-    @Override
-    public String next() {
-        return RandomLongIdGenerator.get().toString();
-    }
+    int LOCAL_SERVICE = 20;
 
-    @Override
-    public boolean support(Class<?> clazz) {
-        return clazz == String.class;
-    }
+    int FEIGN_SERVICE = 30;
 
-    @Override
-    public int getOrder() {
-        return 500;
-    }
+    int CONTROLLER = 100;
+
+    int SERVER_MANAGER = Integer.MIN_VALUE;
+
 }

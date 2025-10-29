@@ -1,3 +1,6 @@
+import vip.isass.framework.common.id.impl.LongIdGenerator;
+import vip.isass.framework.common.id.impl.LongStringIdGenerator;
+
 module vip.isass.framework.common {
     // 依赖的标准Java平台模块
     requires java.base;
@@ -44,8 +47,8 @@ module vip.isass.framework.common {
     provides vip.isass.framework.common.id.IdGenerator
             with vip.isass.framework.common.id.impl.NoneIdGenerator,
                     vip.isass.framework.common.id.impl.UuidGenerator,
-                    vip.isass.framework.common.id.impl.RandomLongIdGenerator,
-                    vip.isass.framework.common.id.impl.RandomLongStringIdGenerator;
+                    LongIdGenerator,
+                    LongStringIdGenerator;
     provides vip.isass.framework.common.exception.IExceptionMapping
             with vip.isass.framework.common.exception.IsassCoreExceptionMapping;
 

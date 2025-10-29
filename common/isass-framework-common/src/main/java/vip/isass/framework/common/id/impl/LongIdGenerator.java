@@ -169,7 +169,6 @@
 package vip.isass.framework.common.id.impl;
 
 import cn.hutool.core.util.RandomUtil;
-import com.google.auto.service.AutoService;
 import lombok.extern.slf4j.Slf4j;
 import vip.isass.framework.common.id.IdGenerator;
 
@@ -178,9 +177,9 @@ import vip.isass.framework.common.id.IdGenerator;
  */
 @Slf4j
 // @AutoService(IdGenerator.class)
-public class RandomLongIdGenerator implements IdGenerator<Long> {
+public class LongIdGenerator implements IdGenerator<Long> {
 
-    public RandomLongIdGenerator() {
+    public LongIdGenerator() {
     }
 
     @Override

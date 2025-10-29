@@ -12,6 +12,7 @@ module vip.isass.framework.database.core {
     requires org.slf4j;
     requires com.fasterxml.jackson.databind;
     requires static lombok;
+    requires cn.hutool;
 
     // 导出数据库核心包
     exports vip.isass.framework.database.core;
