@@ -14,5 +14,5 @@
                  \/__/         \/__/         \/__/         \/__/
 /////////////////////////////////////////////////////////////////////${AnsiColor.DEFAULT}
 project: ${spring.application.name:unknow}
-服务名: ${info.service-name-cn:未知}
+服务名: ${info.service-name-cn:unknow}
 version: ${info.version:unknow}

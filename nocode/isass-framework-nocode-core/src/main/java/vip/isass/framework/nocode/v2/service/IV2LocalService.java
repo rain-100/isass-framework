@@ -201,8 +201,6 @@ public interface IV2LocalService<
 
     IV2Repository<E, C> getRepository();
 
-    IV2Service<E, C> getService();
-
     @Override
     default int getOrder() {
         return Ordered.HIGHER_PRECEDENCE;

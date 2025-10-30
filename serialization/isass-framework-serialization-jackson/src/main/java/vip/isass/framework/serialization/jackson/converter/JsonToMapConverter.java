@@ -169,6 +169,7 @@
 package vip.isass.framework.serialization.jackson.converter;
 
 import cn.hutool.core.util.StrUtil;
+import com.google.auto.service.AutoService;
 import vip.isass.framework.common.converter.Converter;
 import vip.isass.framework.serialization.jackson.JsonUtil;
 
@@ -179,6 +180,7 @@ import java.util.Map;
  *
  * @author Rain
  */
+@AutoService(Converter.class)
 public class JsonToMapConverter implements Converter<String, Map<String, Object>> {
 
     @Override

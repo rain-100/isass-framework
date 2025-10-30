@@ -5,6 +5,7 @@ module vip.isass.framework.serialization.jackson {
     requires com.fasterxml.jackson.databind;
     requires org.slf4j;
     requires static lombok;
+    requires com.google.auto.service;
 
     // 导出包
     exports vip.isass.framework.serialization.jackson;

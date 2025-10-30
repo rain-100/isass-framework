@@ -239,7 +239,7 @@ public class WebConfig implements WebMvcConfigurer {
         httpRequestFactory.setConnectTimeout(CONN_TIMEOUT_IN_MILLIS);
 
         RestTemplate restTemplate = new RestTemplate(httpRequestFactory);
-        restTemplate.getMessageConverters().add(0, new StringHttpMessageConverter(StandardCharsets.UTF_8));
+        restTemplate.getMessageConverters().addFirst(new StringHttpMessageConverter(StandardCharsets.UTF_8));
         restTemplate.setInterceptors(Collections.singletonList(restTemplateInterceptor));
         return restTemplate;
     }
@@ -259,17 +259,12 @@ public class WebConfig implements WebMvcConfigurer {
         }
     }
 
-    @Bean
-    public WebMvcConfigurer corsConfigurer() {
-        return new WebMvcConfigurer() {
-            @Override
-            public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/**")
-                        .allowedOrigins(allowedOrigins)
-                        .allowedMethods(allowedMethods)
-                        .allowedHeaders(allowedHeaders);
-            }
-        };
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/**")
+                .allowedOrigins(allowedOrigins)
+                .allowedMethods(allowedMethods)
+                .allowedHeaders(allowedHeaders);
     }
 
     @Override

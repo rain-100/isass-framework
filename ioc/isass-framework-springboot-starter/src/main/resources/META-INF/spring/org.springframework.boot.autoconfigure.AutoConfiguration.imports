@@ -1,1 +1,2 @@
-vip.isass.framework.springboot.starter.SpringBootStarterAutoConfiguration 
+vip.isass.framework.springboot.starter.SpringBootStarterAutoConfiguration
+vip.isass.framework.springboot.starter.database.init.DatabaseInitializerSpringStarter
