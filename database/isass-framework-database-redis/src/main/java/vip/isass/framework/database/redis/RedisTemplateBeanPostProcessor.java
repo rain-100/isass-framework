@@ -166,30 +166,48 @@
  * Library.
  */
 
-package vip.isass.framework.mq.kafka011.config;
+package vip.isass.framework.database.redis;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
-import lombok.experimental.Accessors;
+import cn.hutool.core.util.ReflectUtil;
+import lombok.SneakyThrows;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.RedisSerializer;
+import vip.isass.framework.serialization.jackson.JsonUtil;
 
-import java.util.Map;
+import static vip.isass.framework.database.redis.RedisConfig.HASH_MAPPER;
 
-/**
- * 阿里云mq实例配置
- *
- * @author Rain
- */
-@Getter
-@Setter
-@ToString
-@Accessors(chain = true)
-public class ProducerConfiguration {
+public class RedisTemplateBeanPostProcessor implements BeanPostProcessor {
 
-    private String producerId;
+    @Override
+    public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+        if (!(bean instanceof RedisTemplate<?, ?> redisTemplate) || !"redisTemplate".equals(beanName)) {
+            return bean;
+        }
 
-    private String defaultTopic;
+        redisTemplate.setDefaultSerializer(RedisSerializer.string());
 
-    private Map<String, String> properties;
+        Jackson2JsonRedisSerializer<Object> jackson2JsonRedisSerializer =
+                new Jackson2JsonRedisSerializer<>(JsonUtil.NOT_NULL_INSTANCE, Object.class);
 
+        redisTemplate.setValueSerializer(jackson2JsonRedisSerializer);
+        redisTemplate.setHashValueSerializer(jackson2JsonRedisSerializer);
+        return redisTemplate;
+    }
+
+
+    @Override
+    @SneakyThrows
+    public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+        if (!(bean instanceof RedisTemplate<?, ?> redisTemplate) || !"redisTemplate".equals(beanName)) {
+            return bean;
+        }
+
+        // 修改 stream 类型的 hashMapper
+        Object o = ReflectUtil.newInstance(Class.forName("org.springframework.data.redis.core.DefaultStreamOperations"), redisTemplate, HASH_MAPPER);
+        ReflectUtil.setFieldValue(redisTemplate, "streamOps", o);
+        return redisTemplate;
+    }
 }

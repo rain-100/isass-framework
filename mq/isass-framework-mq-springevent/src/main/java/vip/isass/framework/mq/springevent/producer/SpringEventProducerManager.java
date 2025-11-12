@@ -171,7 +171,7 @@ package vip.isass.framework.mq.springevent.producer;
 import com.google.auto.service.AutoService;
 import jakarta.annotation.Resource;
 import org.springframework.context.ApplicationEventPublisher;
-import vip.isass.framework.mq.core.MqMessageContext;
+import vip.isass.framework.mq.core.MqMessage;
 import vip.isass.framework.mq.core.producer.ProducerManager;
 import vip.isass.framework.mq.springevent.SpringEventConfiguration;
 import vip.isass.framework.mq.springevent.SpringEventConst;
@@ -187,11 +187,11 @@ public class SpringEventProducerManager implements ProducerManager {
     @Resource
     private SpringEventConfiguration springEventConfiguration;
 
-    private SpringEventProducer springEventProducer;
+    private SpringEventMqProducer springEventMqProducer;
 
     @Override
     public void init() {
-        springEventProducer = new SpringEventProducer(applicationEventPublisher, springEventConfiguration);
+        springEventMqProducer = new SpringEventMqProducer(applicationEventPublisher, springEventConfiguration);
     }
 
     @Override
@@ -210,8 +210,8 @@ public class SpringEventProducerManager implements ProducerManager {
     }
 
     @Override
-    public void send(MqMessageContext mqMessageContext) {
-        springEventProducer.send(mqMessageContext);
+    public void send(MqMessage mqMessage) {
+        springEventMqProducer.send(mqMessage);
     }
 
 }

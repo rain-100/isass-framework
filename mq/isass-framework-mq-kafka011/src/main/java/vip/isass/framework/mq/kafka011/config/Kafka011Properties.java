@@ -166,128 +166,52 @@
  * Library.
  */
 
-package vip.isass.framework.mq.core;
+package vip.isass.framework.mq.kafka011.config;
 
-import cn.hutool.core.map.MapUtil;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.experimental.Accessors;
+import vip.isass.framework.mq.core.config.MqSourceProperties;
 
-import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
  * @author Rain
  */
-public interface MqMessageContext {
+@Getter
+@Setter
+@ToString
+@Accessors(chain = true)
+public class Kafka011Properties extends MqSourceProperties {
 
-    /**
-     * 提供实现的厂商
-     * 例如：阿里云rocketmq、kafaka、rabbitmq
-     *
-     * @return the manufacturer name
-     */
-    String getManufacturer();
+    private String instanceName;
 
-    MqMessageContext setManufacturer(String manufacturer);
+    private String servers;
 
-    int getMessageType();
+    private String enableAutoCommit;
 
-    MqMessageContext setMessageType(int messageType);
+    private String autoCommitIntervalMs;
 
-    /**
-     * 消息主题，一级消息类型，通过 Topic 对消息进行分类。
-     * <p>
-     * 生产时用到
-     *
-     * @return topic
-     */
-    String getTopic();
+    private String autoOffsetReset;
 
-    MqMessageContext setTopic(String topic);
+    private String sessionTimeoutMs;
 
-    /**
-     * 消息标签，二级消息类型，用来进一步区分某个 Topic 下的消息分类。
-     * <p>
-     * 生产时用到
-     *
-     * @return tag
-     */
-    String getTag();
+    private String defaultTopic;
 
-    MqMessageContext setTag(String tag);
+    private String commonMessageTopic;
 
-    /**
-     * 消息的业务标识，由消息生产者（Producer）设置，唯一标识某个业务逻辑。
-     * 请尽可能全局唯一，以方便您在无法正常收到消息情况下，可通过阿里云服务器管理控制台查询消息并补发
-     * <p>
-     * 生产时用到
-     *
-     * @return key
-     */
-    String getKey();
+    private String shardingSequentialMessageTopic;
 
-    MqMessageContext setKey(String key);
+    private String globalSequentialMessageTopic;
 
-    /**
-     * 对于指定的一个 Topic，所有消息根据 sharding key 进行分区。
-     * 同一个分区内的消息按照严格的 FIFO 顺序进行发布和消费。
-     * Sharding key 是顺序消息中用来区分不同分区的关键字段
-     *
-     * @return sharding key
-     */
-    String getShardingKey();
+    private String timingMessageTopic;
 
-    MqMessageContext setShardingKey(String shardingKeys);
+    private String defaultProducer;
 
-    /**
-     * Producer 将消息发送到 MQ 服务端，但并不期望这条消息立马投递，而是推迟到在当前时间点之后的某一个时间投递到 Consumer 进行消费，该消息即定时消息。
-     * 如果 consumeAtMills 与 DelayMills 均赋值，则忽略 delayMills
-     * <p>
-     * 生产时用到
-     *
-     * @return time of to be consume
-     */
-    Long getConsumeAtMills();
+    private Map<String, String> properties;
 
-    MqMessageContext setConsumeAtMills(Long consumeAtMills);
-
-    /**
-     * Producer 将消息发送到 MQ 服务端，但并不期望这条消息立马投递，而是延迟一定时间后才投递到 Consumer 进行消费，该消息即延时消息。
-     * 如果 consumeAtMills 与 DelayMills 均赋值，则忽略 delayMills
-     * <p>
-     * 生产时用到
-     *
-     * @return time of delay
-     */
-    Long getDelayMills();
-
-    MqMessageContext setDelayMills(Long delayMills);
-
-    /**
-     * 生产时用到
-     *
-     * @return payload
-     */
-    Object getPayload();
-
-    MqMessageContext setPayload(Object payload);
-
-    long getCreateTime();
-
-    MqMessageContext setCreateTime(long createTime);
-
-    Map<String, Object> getProperties();
-
-    MqMessageContext setProperties(Map<String, Object> properties);
-
-    default String getStringProperty(String key) {
-        return MapUtil.getStr(getProperties(), key);
-    }
-
-    default MqMessageContext setProperty(String key, Object value) {
-        if (getProperties() == null) {
-            setProperties(new HashMap<>());
-        }
-        getProperties().put(key, value);
-        return this;
-    }
+    private List<ProducerProperties> producers;
 
 }

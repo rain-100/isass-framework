@@ -168,7 +168,7 @@
 
 package vip.isass.framework.mq.core.producer;
 
-import vip.isass.framework.mq.core.MqMessageContext;
+import vip.isass.framework.mq.core.MqMessage;
 
 /**
  * @author Rain
@@ -189,6 +189,6 @@ public interface ProducerManager {
 
     boolean isEnable();
 
-    void send(MqMessageContext mqMessageContext);
+    void send(MqMessage mqMessage);
 
 }

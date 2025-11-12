@@ -1,9 +1,9 @@
-import vip.isass.framework.mq.core.consumer.MqConsumerManager;
+import vip.isass.framework.mq.core.consumer.IMqMessageHandler;
 import vip.isass.framework.mq.core.producer.ProducerManager;
 
 module vip.isass.framework.mq.core {
-    uses MqConsumerManager;
     uses ProducerManager;
+    uses IMqMessageHandler;
 
     // 依赖的框架模块
     requires vip.isass.framework.common;
@@ -17,4 +17,5 @@ module vip.isass.framework.mq.core {
     exports vip.isass.framework.mq.core;
     exports vip.isass.framework.mq.core.consumer;
     exports vip.isass.framework.mq.core.producer;
+    exports vip.isass.framework.mq.core.config;
 } 

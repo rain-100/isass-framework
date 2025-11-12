@@ -166,14 +166,30 @@
  * Library.
  */
 
-package vip.isass.framework.mq.core;
+package vip.isass.framework.mq.kafka011.config;
 
-public interface MqConst {
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.experimental.Accessors;
 
-    String PRODUCER_ID = "producerId";
+import java.util.Map;
 
-    String CONSUMER_ID = "consumerId";
+/**
+ * 阿里云mq实例配置
+ *
+ * @author Rain
+ */
+@Getter
+@Setter
+@ToString
+@Accessors(chain = true)
+public class ProducerProperties {
 
-    String INSTANCE = "instance";
+    private String producerId;
+
+    private String defaultTopic;
+
+    private Map<String, String> properties;
 
 }

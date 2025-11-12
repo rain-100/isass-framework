@@ -166,25 +166,180 @@
  * Library.
  */
 
-package vip.isass.framework.mq.core;
+package vip.isass.framework.mq.kafka011.consumer;
+
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.exceptions.ExceptionUtil;
+import cn.hutool.core.map.MapUtil;
+import cn.hutool.core.util.StrUtil;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.SneakyThrows;
+import lombok.experimental.Accessors;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.consumer.Consumer;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
+import vip.isass.framework.mq.core.MessageType;
+import vip.isass.framework.mq.core.MqMessage;
+import vip.isass.framework.mq.core.consumer.FailStrategy;
+import vip.isass.framework.mq.core.consumer.IMqMessageHandler;
+import vip.isass.framework.mq.kafka011.Kafka011Const;
+import vip.isass.framework.mq.kafka011.config.InstanceConfiguration;
+import vip.isass.framework.mq.kafka011.config.Kafka011Properties;
+import vip.isass.framework.serialization.jackson.JsonUtil;
+
+import java.util.Collections;
+import java.util.Optional;
+import java.util.Properties;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * @author Rain
- * 参考文档
- * https://help.aliyun.com/document_detail/43163.html?spm=a2c4g.11186623.2.5.18db510d11I6uF
  */
-public enum SubscribeModel {
+@Slf4j
+@Getter
+@Setter
+@Accessors(chain = true)
+public class Kafka011MessageHandler implements IMqMessageHandler {
 
-    /**
-     * 广播消费模式
-     * 当使用广播消费模式时，MQ 会将每条消息推送给集群内所有注册过的客户端，保证消息至少被每台机器消费一次。
-     */
-    BROADCASTING,
+    private ExecutorService executorService;
 
-    /**
-     * 集群消费模式
-     * 当使用集群消费模式时，MQ 认为任意一条消息只需要被集群内的任意一个消费者处理即可。
-     */
-    CLUSTERING
+    private Kafka011Properties kafka011Properties;
+
+    public Kafka011MessageHandler(Kafka011Properties kafka011Properties) {
+        this.kafka011Properties = kafka011Properties;
+    }
+
+    @Override
+    public String getType() {
+        return Kafka011Const.TYPE;
+    }
+
+    @Override
+    public void subscribe() {
+        Runnable task = task();
+        executorService = Executors.newFixedThreadPool(tasks.size());
+        tasks.forEach(executorService::execute);
+    }
+
+    private Runnable task() {
+        return () -> {
+            log.info("开始订阅事件,consumerId[{}]", mc.getConsumerId());
+
+            String instance = MapUtil.getStr(mc.getProperties(), Kafka011Const.INSTANCE);
+            Properties properties = createProperties();
+            KafkaConsumer<String, String> consumer = new KafkaConsumer<>(properties);
+            consumer.subscribe(Collections.singletonList(
+
+                    parseTopic(mc, instanceConfiguration)));
+            consumers.add(consumer);
+
+            //noinspection InfiniteLoopStatement
+            while (true) {
+                ConsumerRecords<String, String> records = consumer.poll(100);
+                for (ConsumerRecord<String, String> record : records) {
+                    log.debug("收到mq消息：{}", record);
+                    Object payload;
+                    try {
+                        payload = getPayload(mc, record);
+                    } catch (Exception e) {
+                        log.error("反序列化mq消息错误，此消息将标记为消费成功：{}，", e.getMessage(), e);
+                        continue;
+                    }
+                    MqMessage mqMessageContext = MqMessage.builder()
+                            .topic(record.topic())
+                            .key(record.key())
+                            .messageType(mc.getMessageType())
+                            .payload(payload)
+                            .build();
+                    doConsume(mc, mqMessageContext);
+                }
+            }
+        };
+    }
+
+    private Properties createProperties() {
+        Properties properties = new Properties();
+        properties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, properties.getServers());
+        properties.put(ConsumerConfig.GROUP_ID_CONFIG, kafka011Properties.getConsumerId());
+        Optional.ofNullable(properties.getEnableAutoCommit()).ifPresent(p -> properties.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, p));
+        Optional.ofNullable(properties.getAutoCommitIntervalMs()).ifPresent(p -> properties.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, p));
+        Optional.ofNullable(properties.getAutoOffsetReset()).ifPresent(p -> properties.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, p));
+        Optional.ofNullable(properties.getSessionTimeoutMs()).ifPresent(p -> properties.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, p));
+        properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
+        properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
+        if (CollUtil.isNotEmpty(properties.getProperties())) {
+            properties.putAll(properties.getProperties());
+        }
+        return properties;
+    }
+
+    private void doConsume(IMqMessageHandler mqConsumer, MqMessage mqMessage) {
+        try {
+            mqConsumer.consume(mqMessage);
+        } catch (Exception e) {
+            Throwable unwrap = ExceptionUtil.unwrap(e);
+            log.error("mq消费错误：{}", unwrap.getMessage(), unwrap);
+
+            FailStrategy failStrategy = mqConsumer.getFailStrategy();
+            switch (failStrategy) {
+                case IGNORE:
+                    log.info("忽略消费异常");
+                    return;
+                case RETRY:
+                    // todo 实现重试
+                    return;
+                case RETRY_IMMEDIATELY:
+                    for (int i = 0; i < mqConsumer.getImmediatelyRetryCount(); i++) {
+                        log.info("正在开始第{}次重试消费。重试最大次数为{}", i + 1, mqConsumer.getImmediatelyRetryCount());
+                        try {
+                            mqConsumer.consume(mqMessage);
+                            return;
+                        } catch (Exception e1) {
+                            log.error("重试消费错误: {}", e1.getMessage(), e1);
+                        }
+                    }
+                    log.info("超过最大立即重试次数，将视为正常消费");
+                    return;
+                default:
+                    log.error("未实现[{}]的失败重试策略逻辑，将视为正常消费", failStrategy);
+            }
+        }
+    }
+
+    private String parseTopic(IMqMessageHandler mqConsumer, InstanceConfiguration instanceConfiguration) {
+        if (StrUtil.isNotBlank(mqConsumer.getTopic())) {
+            return mqConsumer.getTopic();
+        }
+        return switch (mqConsumer.getMessageType()) {
+            case MessageType.COMMON_MESSAGE -> instanceConfiguration.getCommonMessageTopic();
+            case MessageType.TIMING_MESSAGE, MessageType.DELAY_MESSAGE -> instanceConfiguration.getTimingMessageTopic();
+            case MessageType.TRANSACTION_MESSAGE -> throw new UnsupportedOperationException("未支持事务消息");
+            case MessageType.SHARDING_SEQUENTIAL_MESSAGE -> instanceConfiguration.getShardingSequentialMessageTopic();
+            case MessageType.GLOBAL_SEQUENTIAL_MESSAGE -> instanceConfiguration.getGlobalSequentialMessageTopic();
+            default -> throw new UnsupportedOperationException("未支持消息类型:" + mqConsumer.getMessageType());
+        };
+    }
+
+    @SneakyThrows
+    private Object getPayload(IMqMessageHandler mqConsumer, ConsumerRecord<String, String> record) {
+        if (mqConsumer.getTypeReference() != null) {
+            return JsonUtil.DEFAULT_INSTANCE.readValue(record.value(), mqConsumer.getTypeReference());
+        }
+        return record.value();
+    }
+
+    public void destroy() {
+        if (consumers != null) {
+            consumers.forEach(Consumer::close);
+        }
+        if (executorService != null) {
+            executorService.shutdown();
+        }
+    }
 
 }

@@ -166,33 +166,19 @@
  * Library.
  */
 
-package vip.isass.framework.mq.core;
+package vip.isass.framework.mq.core.producer;
 
-import lombok.Getter;
-import lombok.Setter;
-
-import java.util.List;
+import vip.isass.framework.mq.core.MqMessage;
 
 /**
  * @author Rain
  */
-@Getter
-@Setter
-public class MqProperties {
+public interface IMqProducer {
 
-    /**
-     * 总开关
-     */
-    // @Value("${isass.framework.mq.enable:false}")
-    private Boolean enabled;
+    IMqProducer init();
 
-    /**
-     * 主 mq 源
-     */
-    // @Value("${isass.framework.mq.primary:master}")
-    private String primary;
+    void destroy();
 
-    // @Value("${isass.framework.mq.disable.disableConsumerIds:}")
-    private List<String> disableConsumerIds;
+    void send(MqMessage mqMessage);
 
 }

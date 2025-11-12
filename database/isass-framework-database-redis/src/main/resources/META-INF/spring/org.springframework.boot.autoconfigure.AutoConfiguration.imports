@@ -1,1 +1,2 @@
-vip.isass.framework.database.redis.RedisConfig 
+vip.isass.framework.database.redis.RedisTemplateBeanPostProcessor
+vip.isass.framework.database.redis.RedisConfig

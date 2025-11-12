@@ -13,6 +13,7 @@ module vip.isass.framework.database.redis {
     requires static lombok;
     requires spring.beans;
     requires spring.context;
+    requires spring.boot.autoconfigure;
 
     // 导出包
     exports vip.isass.framework.database.redis;

@@ -172,16 +172,15 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
 import com.google.auto.service.AutoService;
-import jakarta.annotation.Resource;
 import vip.isass.framework.mq.core.MessageType;
-import vip.isass.framework.mq.core.MqMessageContext;
-import vip.isass.framework.mq.core.producer.MqProducer;
+import vip.isass.framework.mq.core.MqMessage;
+import vip.isass.framework.mq.core.producer.IMqProducer;
 import vip.isass.framework.mq.core.producer.ProducerManager;
 import vip.isass.framework.mq.kafka011.Kafka011Const;
 import vip.isass.framework.mq.kafka011.config.InstanceConfiguration;
 import vip.isass.framework.mq.kafka011.config.Kafka011ConfigUtil;
-import vip.isass.framework.mq.kafka011.config.Kafka011Configuration;
-import vip.isass.framework.mq.kafka011.config.ProducerConfiguration;
+import vip.isass.framework.mq.kafka011.config.Kafka011Properties;
+import vip.isass.framework.mq.kafka011.config.ProducerProperties;
 
 import java.util.Collections;
 import java.util.Map;
@@ -194,25 +193,25 @@ import java.util.stream.Collectors;
 @AutoService(ProducerManager.class)
 public class Kafka011ProducerManager implements ProducerManager {
 
-    private Kafka011Configuration kafka011Configuration;
+    private Kafka011Properties kafka011Properties;
 
     private Kafka011ProducerAutoConfiguration kafka011ProducerAutoConfiguration;
 
-    private Map<String, Kafka011Producer> producerGroupByProducerId = Collections.emptyMap();
+    private Map<String, Kafka011MqProducer> producerGroupByProducerId = Collections.emptyMap();
 
-    private MqProducer selectProducer(final MqMessageContext mqMessageContext) {
+    private IMqProducer selectProducer(final MqMessage mqMessage) {
         final InstanceConfiguration instanceConfiguration = Kafka011ConfigUtil.selectInstance(
-                kafka011Configuration, mqMessageContext.getStringProperty(Kafka011Const.INSTANCE));
-        mqMessageContext.setProperty(Kafka011Const.INSTANCE, instanceConfiguration.getInstanceName());
+                kafka011Properties, mqMessage.getStringProperty(Kafka011Const.INSTANCE));
+        mqMessage.setProperty(Kafka011Const.INSTANCE, instanceConfiguration.getInstanceName());
 
-        ProducerConfiguration producerConfiguration = Kafka011ConfigUtil.selectProducer(
-                kafka011Configuration, instanceConfiguration, mqMessageContext.getStringProperty(Kafka011Const.PRODUCER_ID));
+        ProducerProperties producerProperties = Kafka011ConfigUtil.selectProducer(
+                kafka011Properties, instanceConfiguration, mqMessage.getStringProperty(Kafka011Const.PRODUCER_ID));
 
         // 设置topic
-        if (StrUtil.isBlank(mqMessageContext.getTopic())) {
-            switch (mqMessageContext.getMessageType()) {
+        if (StrUtil.isBlank(mqMessage.getTopic())) {
+            switch (mqMessage.getMessageType()) {
                 case MessageType.COMMON_MESSAGE:
-                    mqMessageContext.setTopic(instanceConfiguration.getCommonMessageTopic());
+                    mqMessage.setTopic(instanceConfiguration.getCommonMessageTopic());
                     break;
                 case MessageType.TIMING_MESSAGE:
                     throw new UnsupportedOperationException("未支持TIMING_MESSAGE");
@@ -221,39 +220,39 @@ public class Kafka011ProducerManager implements ProducerManager {
                 case MessageType.TRANSACTION_MESSAGE:
                     throw new UnsupportedOperationException("未支持TRANSACTION_MESSAGE");
                 case MessageType.SHARDING_SEQUENTIAL_MESSAGE:
-                    mqMessageContext.setTopic(instanceConfiguration.getShardingSequentialMessageTopic());
+                    mqMessage.setTopic(instanceConfiguration.getShardingSequentialMessageTopic());
                     break;
                 case MessageType.GLOBAL_SEQUENTIAL_MESSAGE:
-                    mqMessageContext.setTopic(instanceConfiguration.getGlobalSequentialMessageTopic());
+                    mqMessage.setTopic(instanceConfiguration.getGlobalSequentialMessageTopic());
                     break;
                 default:
-                    throw new UnsupportedOperationException("未支持" + mqMessageContext.getMessageType());
+                    throw new UnsupportedOperationException("未支持" + mqMessage.getMessageType());
             }
         }
 
-        return producerGroupByProducerId.get(producerConfiguration.getProducerId());
+        return producerGroupByProducerId.get(producerProperties.getProducerId());
     }
 
     @Override
     public String name() {
-        return Kafka011Const.MANUFACTURER;
+        return Kafka011Const.TYPE;
     }
 
     @Override
     public void destroy() {
-        producerGroupByProducerId.values().forEach(Kafka011Producer::destroy);
+        producerGroupByProducerId.values().forEach(Kafka011MqProducer::destroy);
     }
 
     @Override
     public boolean isEnable() {
-        return kafka011Configuration.isEnable();
+        return kafka011Properties.isEnable();
     }
 
     @Override
-    public void send(MqMessageContext mqMessageContext) {
-        MqProducer mqProducer = selectProducer(mqMessageContext);
-        Assert.notNull(mqProducer, "未找到mq生产者，mq发送失败");
-        mqProducer.send(mqMessageContext);
+    public void send(MqMessage mqMessage) {
+        IMqProducer IMqProducer = selectProducer(mqMessage);
+        Assert.notNull(IMqProducer, "未找到mq生产者，mq发送失败");
+        IMqProducer.send(mqMessage);
     }
 
     @Override
@@ -264,7 +263,7 @@ public class Kafka011ProducerManager implements ProducerManager {
 
         producerGroupByProducerId = kafka011ProducerAutoConfiguration.getProducers()
                 .stream()
-                .collect(Collectors.toMap((o) -> o.getProducerConfiguration().getProducerId(), Function.identity()));
+                .collect(Collectors.toMap((o) -> o.getProducerProperties().getProducerId(), Function.identity()));
     }
 
 }

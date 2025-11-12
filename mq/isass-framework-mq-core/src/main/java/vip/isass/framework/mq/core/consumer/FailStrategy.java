@@ -168,66 +168,18 @@
 
 package vip.isass.framework.mq.core.consumer;
 
-import cn.hutool.core.collection.CollUtil;
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
-import jakarta.annotation.Resource;
-import lombok.extern.slf4j.Slf4j;
-import vip.isass.framework.mq.core.MqProperties;
-
-import java.util.List;
-import java.util.ServiceLoader;
-
 /**
- * 查找所有订阅者，进行订阅
- *
- * @author Rain
+ * 消费业务抛出异常时的处理策略
  */
-@Slf4j
-public class MqConsumerAutoConfiguration {
+public enum FailStrategy {
 
-    private static List<MqConsumerManager> MQ_CONSUMER_MANAGERS;
+    // 忽略错误，视为消费成功。消费管理器实现方应该向消息中间件响应消费成功的命令
+    IGNORE,
 
-    private MqProperties mqProperties;
+    // 重试（默认策略）。重试的具体逻辑与策略，应由消息中间件响实现
+    RETRY,
 
-    private static boolean IS_RUNNING = false;
-
-    public static void loadComponents() {
-        log.info("loading mq consumer managers...");
-        MQ_CONSUMER_MANAGERS = ServiceLoader.load(MqConsumerManager.class)
-                .stream()
-                .map(ServiceLoader.Provider::get)
-                .peek(c -> log.info("loaded mq consumer manager: {}", c.getClass().getName()))
-                .toList();
-    }
-
-    @PostConstruct
-    public void start() {
-        IS_RUNNING = true;
-        log.info("isass.framework.mq.enable:{}", mqProperties.getEnabled());
-
-        if (Boolean.FALSE.equals(mqProperties.getEnabled())) {
-            log.info("skip to load mq consumer module");
-            return;
-        }
-
-        loadComponents();
-
-        if (CollUtil.isEmpty(MQ_CONSUMER_MANAGERS)) {
-            return;
-        }
-        MQ_CONSUMER_MANAGERS
-                .stream()
-                .filter(MqConsumerManager::isEnable)
-                .forEach(MqConsumerManager::subscribe);
-    }
-
-    @PreDestroy
-    public void stop() {
-        if (CollUtil.isNotEmpty(MQ_CONSUMER_MANAGERS)) {
-            MQ_CONSUMER_MANAGERS.forEach(MqConsumerManager::destroy);
-        }
-        IS_RUNNING = false;
-    }
+    // 立即重试，消费管理器实现方直接在本地重试消费，不经过消息中间件的干预。在某些不支持重试消费的消息中间件中，可用此策略实现重试功能
+    RETRY_IMMEDIATELY;
 
 }

@@ -171,12 +171,10 @@ package vip.isass.framework.mq.kafka011.producer;
 import cn.hutool.core.collection.CollUtil;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
-import jakarta.annotation.Resource;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import vip.isass.framework.mq.kafka011.config.InstanceConfiguration;
-import vip.isass.framework.mq.kafka011.config.Kafka011Configuration;
-import vip.isass.framework.mq.kafka011.config.ProducerConfiguration;
+import vip.isass.framework.mq.kafka011.config.Kafka011Properties;
+import vip.isass.framework.mq.kafka011.config.ProducerProperties;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -188,22 +186,22 @@ import java.util.Objects;
 @Slf4j
 public class Kafka011ProducerAutoConfiguration {
 
-    private Kafka011Configuration kafka011Configuration;
+    private Kafka011Properties kafka011Properties;
 
     @Getter
-    private List<Kafka011Producer> producers;
+    private List<Kafka011MqProducer> producers;
 
     @PostConstruct
     public void init() {
-        if (!kafka011Configuration.isEnable()) {
+        if (!kafka011Properties.isEnable()) {
             return;
         }
         producers = new ArrayList<>();
-        for (InstanceConfiguration instanceConfiguration : kafka011Configuration.getInstances()) {
-            for (ProducerConfiguration producerConfiguration : instanceConfiguration.getProducers()) {
-                producers.add(new Kafka011Producer()
+        for (InstanceConfiguration instanceConfiguration : kafka011Properties.getInstances()) {
+            for (ProducerProperties producerProperties : instanceConfiguration.getProducers()) {
+                producers.add(new Kafka011MqProducer()
                         .setInstanceConfiguration(instanceConfiguration)
-                        .setProducerConfiguration(producerConfiguration)
+                        .setProducerProperties(producerProperties)
                         .init());
             }
         }
@@ -216,7 +214,7 @@ public class Kafka011ProducerAutoConfiguration {
         }
         producers.stream()
                 .filter(Objects::nonNull)
-                .forEach(Kafka011Producer::destroy);
+                .forEach(Kafka011MqProducer::destroy);
     }
 
 }

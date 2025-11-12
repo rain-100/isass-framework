@@ -169,11 +169,11 @@
 package vip.isass.framework.mq.springevent;
 
 import org.springframework.context.ApplicationEvent;
-import vip.isass.framework.mq.core.MqMessageContext;
+import vip.isass.framework.mq.core.MqMessage;
 
 public class IsassMqEvent extends ApplicationEvent {
 
-    public IsassMqEvent(MqMessageContext source) {
+    public IsassMqEvent(MqMessage source) {
         super(source);
     }
 

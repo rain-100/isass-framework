@@ -166,59 +166,114 @@
  * Library.
  */
 
-package vip.isass.framework.mq.springevent.producer;
+package vip.isass.framework.mq.kafka011.producer;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.SneakyThrows;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
-import vip.isass.framework.mq.core.MqMessageContext;
-import vip.isass.framework.mq.core.producer.MqProducer;
-import vip.isass.framework.mq.springevent.IsassMqEvent;
-import vip.isass.framework.mq.springevent.SpringEventConfiguration;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.producer.RecordMetadata;
+import vip.isass.framework.mq.core.MessageType;
+import vip.isass.framework.mq.core.MqMessage;
+import vip.isass.framework.mq.core.producer.IMqProducer;
+import vip.isass.framework.mq.kafka011.config.InstanceConfiguration;
+import vip.isass.framework.mq.kafka011.config.ProducerProperties;
+import vip.isass.framework.serialization.jackson.JsonUtil;
+
+import java.util.Properties;
+import java.util.concurrent.Future;
 
 /**
  * @author Rain
  */
 @Slf4j
 @Accessors(chain = true)
-public class SpringEventProducer implements MqProducer {
+public class Kafka011MqProducer implements IMqProducer {
 
-    private final ApplicationEventPublisher applicationEventPublisher;
+    @Getter
+    @Setter
+    private ProducerProperties producerProperties;
 
-    private final SpringEventConfiguration springEventConfiguration;
+    private Producer<String, String> producer;
 
-    public SpringEventProducer(ApplicationEventPublisher applicationEventPublisher, SpringEventConfiguration springEventConfiguration) {
-        this.applicationEventPublisher = applicationEventPublisher;
-        this.springEventConfiguration = springEventConfiguration;
-    }
+    //    private OrderProducer orderProducer;
 
     @Override
-    public void send(MqMessageContext mqMessageContext) {
-        Assert.notNull(mqMessageContext);
-        Assert.notNull(mqMessageContext.getTag(), "tag");
-        Assert.notNull(mqMessageContext.getPayload(), "payload");
-        if (StrUtil.isBlank(mqMessageContext.getTopic())) {
-            mqMessageContext.setTopic(springEventConfiguration.getDefaultTopic());
-        }
+    public void send(MqMessage mqMessage) {
+        Assert.notNull(mqMessage);
+        Assert.notBlank(mqMessage.getTopic());
+        //        Assert.notBlank(mqMessageContext.getTag());
+        Assert.notNull(mqMessage.getPayload());
+        //
+        ProducerRecord<String, String> record = new ProducerRecord<>(
+                getTopic(mqMessage), "", getBody(mqMessage));
 
         try {
-            applicationEventPublisher.publishEvent(new IsassMqEvent(mqMessageContext));
+            Future<RecordMetadata> send = producer.send(record);
         } catch (Exception e) {
-            log.error("mq发送失败。tag[{}], messageKey[{}]", mqMessageContext.getTag(), mqMessageContext.getKey());
+            log.error("mq发送失败,topic[{}], messageKey[{}]", mqMessage.getTopic(), mqMessage.getKey());
             throw e;
         }
     }
 
+    @SneakyThrows
+    private String getBody(MqMessage mqMessage) {
+        String body;
+        Object payload = mqMessage.getPayload();
+        if (payload == null) {
+            body = null;
+        } else {
+            body = JsonUtil.NOT_NULL_INSTANCE.writeValueAsString(payload);
+        }
+        return body;
+    }
+
+    private String getTopic(MqMessage mqMessage) {
+        if (StrUtil.isNotBlank(mqMessage.getTopic())) {
+            return mqMessage.getTopic();
+        }
+        int messageType = mqMessage.getMessageType();
+        return switch (messageType) {
+            case MessageType.COMMON_MESSAGE -> instanceConfiguration.getCommonMessageTopic();
+            case MessageType.TIMING_MESSAGE, MessageType.DELAY_MESSAGE -> instanceConfiguration.getTimingMessageTopic();
+            case MessageType.TRANSACTION_MESSAGE -> throw new UnsupportedOperationException("未支持事务消息");
+            case MessageType.SHARDING_SEQUENTIAL_MESSAGE -> instanceConfiguration.getShardingSequentialMessageTopic();
+            case MessageType.GLOBAL_SEQUENTIAL_MESSAGE -> instanceConfiguration.getGlobalSequentialMessageTopic();
+            default -> throw new UnsupportedOperationException("未支持消息类型:" + messageType);
+        };
+    }
+
     @Override
-    public SpringEventProducer init() {
+    public Kafka011MqProducer init() {
+        Assert.notNull(instanceConfiguration);
+        Assert.notBlank(instanceConfiguration.getServers());
+        Assert.notNull(producerProperties);
+        Assert.notBlank(producerProperties.getProducerId());
+
+        Properties kafkaProps = new Properties();
+        kafkaProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, instanceConfiguration.getServers());
+        kafkaProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer");
+        kafkaProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer");
+        if (CollUtil.isNotEmpty(producerProperties.getProperties())) {
+            kafkaProps.putAll(producerProperties.getProperties());
+        }
+        producer = new KafkaProducer<>(kafkaProps);
         return this;
     }
 
     @Override
     public void destroy() {
-
+        if (producer != null) {
+            producer.close();
+        }
     }
 
 }

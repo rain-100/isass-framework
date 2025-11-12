@@ -166,132 +166,82 @@
  * Library.
  */
 
-package vip.isass.framework.mq.springevent.consumer;
+package vip.isass.framework.mq.core.consumer;
 
-import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.exceptions.ExceptionUtil;
-import cn.hutool.core.util.StrUtil;
-import com.google.auto.service.AutoService;
-import jakarta.annotation.Resource;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationListener;
-import org.springframework.stereotype.Component;
-import vip.isass.framework.mq.core.FailStrategy;
-import vip.isass.framework.mq.core.MqMessageContext;
-import vip.isass.framework.mq.core.consumer.IMqConsumer;
-import vip.isass.framework.mq.core.consumer.MqConsumerManager;
-import vip.isass.framework.mq.springevent.IsassMqEvent;
-import vip.isass.framework.mq.springevent.SpringEventConfiguration;
-import vip.isass.framework.mq.springevent.SpringEventConst;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import com.fasterxml.jackson.core.type.TypeReference;
+import vip.isass.framework.mq.core.MessageType;
+import vip.isass.framework.mq.core.MqMessage;
 
-@Slf4j
-@Component
-@AutoService(MqConsumerManager.class)
-public class SpringEventMqConsumerManager implements ApplicationListener<IsassMqEvent>, MqConsumerManager {
+import java.util.Collections;
+import java.util.Map;
 
-    private List<IMqConsumer> mqConsumers;
+/**
+ * 消费者
+ * 用户需要实现此接口，复写 consume，执行消费逻辑，并注册为 spring bean
+ *
+ * @author Rain
+ */
+public interface IMqMessageHandler {
 
-    private SpringEventConfiguration springEventConfiguration;
-
-    @Override
-    public void onApplicationEvent(IsassMqEvent event) {
-        if (CollUtil.isEmpty(mqConsumers)) {
-            return;
-        }
-
-        MqMessageContext mqMessageContext = (MqMessageContext) event.getSource();
-        mqConsumers.stream()
-                // 判断厂商
-                .filter(mc -> StrUtil.isBlank(mqMessageContext.getManufacturer())
-                        || StrUtil.isBlank(mc.getManufacturer())
-                        || mc.getManufacturer().equals(mqMessageContext.getManufacturer()))
-
-                // 判断 topic
-                .filter(mc -> mc.getTopic().equals(mqMessageContext.getTopic()))
-
-                // 判断 tag
-                .filter(mc -> "*".equals(mc.getTag()) || mc.getTag().equals(mqMessageContext.getTag()))
-
-                .forEach(mc -> {
-                    try {
-                        doConsume(mc, mqMessageContext);
-                    } catch (Exception e) {
-                        log.error("springEvent消费异常，请业务视情况处理异常");
-                        throw e;
-                    }
-                });
+    default SubscribeModel getSubscribeModel() {
+        return SubscribeModel.CLUSTERING;
     }
 
-    private void doConsume(IMqConsumer mqConsumer, MqMessageContext mqMessageContext) {
-        try {
-            mqConsumer.consume(mqMessageContext);
-        } catch (Exception e) {
-            Throwable unwrap = ExceptionUtil.unwrap(e);
-            log.error("mq消费错误：{}", unwrap.getMessage(), unwrap);
+    String getConsumerId();
 
-            FailStrategy failStrategy = mqConsumer.getFailStrategy();
-            switch (failStrategy) {
-                case IGNORE:
-                    log.info("忽略消费异常");
-                    return;
-                case RETRY:
-                    int maxRetryCount = 3;
-                    for (int i = 0; i < maxRetryCount; i++) {
-                        log.info("正在开始第{}次重试消费。重试最大次数为{}", i + 1, maxRetryCount);
-                        try {
-                            mqConsumer.consume(mqMessageContext);
-                            return;
-                        } catch (Exception e1) {
-                            log.error("重试消费错误: {}", e1.getMessage(), e1);
-                        }
-                    }
-                    log.info("超过最大重试次数，将视为正常消费");
-                    return;
-                case RETRY_IMMEDIATELY:
-                    for (int i = 0; i < mqConsumer.getImmediatelyRetryCount(); i++) {
-                        log.info("正在开始第{}次重试消费。重试最大次数为{}", i + 1, mqConsumer.getImmediatelyRetryCount());
-                        try {
-                            mqConsumer.consume(mqMessageContext);
-                        } catch (Exception e1) {
-                            log.error("重试消费错误: {}", e1.getMessage(), e1);
-                        }
-                    }
-                    log.info("超过最大立即重试次数，将视为正常消费");
-                    return;
-                default:
-                    log.error("未实现[{}]的失败重试策略逻辑，将视为正常消费", failStrategy);
-            }
-        }
+    String getTopic();
+
+    String getTag();
+
+    void subscribe();
+
+    void destroy();
+
+    default Integer getConsumeThreadNumber() {
+        // 返回 null, 则采用厂商默认配置
+        return null;
     }
 
-    @Override
-    public String getManufacturer() {
-        return SpringEventConst.MANUFACTURER;
+    void consume(MqMessage mqMessage);
+
+    default Map<String, ?> getProperties() {
+        return Collections.emptyMap();
     }
 
-    @Override
-    public void subscribe() {
-        if (CollUtil.isEmpty(mqConsumers)) {
-            return;
-        }
-        mqConsumers = mqConsumers.stream()
-                // 判断厂商
-                .filter(mc -> StrUtil.isBlank(mc.getManufacturer()) || mc.getManufacturer().equals(getManufacturer()))
-                .collect(Collectors.toList());
+    default int getMessageType() {
+        return MessageType.COMMON_MESSAGE;
     }
 
-    @Override
-    public void destroy() {
-
+    default FailStrategy getFailStrategy() {
+        return FailStrategy.RETRY;
     }
 
-    @Override
-    public boolean isEnable() {
-        return springEventConfiguration.isEnable();
+    /**
+     * 立即重试次数，当 失败策略是 FailStrategy.RETRY_IMMEDIATELY 时生效
+     * 负数无效，若需要无限重试，请设置为 Integer.MAX_VALUE
+     *
+     * @return 立即重试次数
+     */
+    default int getImmediatelyRetryCount() {
+        return 1;
     }
 
+    /**
+     * 获取消息中间件的原始消息，通常是消息中间件封装的对象。消息管理器在消费消息时，将会赋值
+     *
+     * @return 原始消息
+     */
+    default Object getOriginalMqMessage() {
+        return null;
+    }
+
+    /**
+     * 如果需要框架自动转换消息类型，则复写此方法
+     *
+     * @return TypeReference
+     */
+    default TypeReference<?> getTypeReference() {
+        return null;
+    }
 }

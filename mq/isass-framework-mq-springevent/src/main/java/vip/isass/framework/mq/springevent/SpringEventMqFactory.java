@@ -166,29 +166,23 @@
  * Library.
  */
 
-package vip.isass.framework.mq.kafka011.config;
+package vip.isass.framework.mq.springevent;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
-import lombok.experimental.Accessors;
+import cn.hutool.extra.spring.SpringUtil;
+import vip.isass.framework.mq.core.config.MqSourceProperties;
+import vip.isass.framework.mq.core.consumer.IMqMessageHandler;
+import vip.isass.framework.mq.core.producer.IMqProducer;
+import vip.isass.framework.mq.springevent.consumer.SpringEventMqMessageHandler;
+import vip.isass.framework.mq.springevent.producer.SpringEventMqProducer;
 
-import java.util.List;
+public class SpringEventMqFactory {
 
-/**
- * @author Rain
- */
-@Getter
-@Setter
-@ToString
-@Accessors(chain = true)
-// @ConfigurationProperties("mq.kafka011")
-public class Kafka011Configuration {
+    public static IMqMessageHandler createMqConsumer(MqSourceProperties mqSourceProperties) {
+        return SpringUtil.getBean(SpringEventMqMessageHandler.class);
+    }
 
-    private boolean enable;
-
-    private String defaultInstance;
-
-    private List<InstanceConfiguration> instances;
+    public static IMqProducer createMqProducer(MqSourceProperties mqSourceProperties) {
+        return SpringUtil.getBean(SpringEventMqProducer.class);
+    }
 
 }

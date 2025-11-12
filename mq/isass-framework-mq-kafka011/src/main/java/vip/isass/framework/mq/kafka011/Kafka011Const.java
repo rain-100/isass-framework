@@ -173,7 +173,7 @@ package vip.isass.framework.mq.kafka011;
  */
 public interface Kafka011Const {
 
-    String MANUFACTURER = "kafka011";
+    String TYPE = "kafka011";
 
     String INSTANCE = "instance";
 

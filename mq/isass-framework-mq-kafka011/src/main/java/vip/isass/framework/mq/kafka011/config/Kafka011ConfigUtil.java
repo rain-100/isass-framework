@@ -181,16 +181,16 @@ public class Kafka011ConfigUtil {
      * 2：配置默认的实例
      * 3：配置排第一的实例
      *
-     * @param kafka011Configuration region configuration
+     * @param kafka011Properties region configuration
      * @param instance              用户传参的实例
      * @return instance configuration
      */
-    public static InstanceConfiguration selectInstance(Kafka011Configuration kafka011Configuration, String instance) {
+    public static InstanceConfiguration selectInstance(Kafka011Properties kafka011Properties, String instance) {
         InstanceConfiguration instanceConfiguration = null;
 
         // 用户传参的实例
         if (StrUtil.isNotBlank(instance)) {
-            instanceConfiguration = kafka011Configuration.getInstances().stream()
+            instanceConfiguration = kafka011Properties.getInstances().stream()
                 .filter(i -> i.getInstanceName().equals(instance))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException(StrUtil.format(
@@ -199,18 +199,18 @@ public class Kafka011ConfigUtil {
         }
 
         // 配置默认的实例
-        if (instanceConfiguration == null && StrUtil.isNotBlank(kafka011Configuration.getDefaultInstance())) {
-            kafka011Configuration.getInstances().stream()
-                .filter(i -> i.getInstanceName().equals(kafka011Configuration.getDefaultInstance()))
+        if (instanceConfiguration == null && StrUtil.isNotBlank(kafka011Properties.getDefaultInstance())) {
+            kafka011Properties.getInstances().stream()
+                .filter(i -> i.getInstanceName().equals(kafka011Properties.getDefaultInstance()))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException(StrUtil.format(
                     "kafka011默认实例配置错误",
-                    kafka011Configuration)));
+                        kafka011Properties)));
         }
 
         // 配置排第一的实例
         if (instanceConfiguration == null) {
-            instanceConfiguration = kafka011Configuration.getInstances().iterator().next();
+            instanceConfiguration = kafka011Properties.getInstances().iterator().next();
         }
 
         if (instanceConfiguration == null) {
@@ -220,14 +220,14 @@ public class Kafka011ConfigUtil {
         return instanceConfiguration;
     }
 
-    public static ProducerConfiguration selectProducer(Kafka011Configuration kafka011Configuration,
-                                                       InstanceConfiguration instanceConfiguration,
-                                                       String producer) {
-        ProducerConfiguration producerConfiguration = null;
+    public static ProducerProperties selectProducer(Kafka011Properties kafka011Properties,
+                                                    InstanceConfiguration instanceConfiguration,
+                                                    String producer) {
+        ProducerProperties producerProperties = null;
 
         // 用户传参的producer
         if (StrUtil.isNotBlank(producer)) {
-            producerConfiguration = instanceConfiguration.getProducers().stream()
+            producerProperties = instanceConfiguration.getProducers().stream()
                 .filter(i -> i.getProducerId().equals(producer))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException(StrUtil.format(
@@ -237,8 +237,8 @@ public class Kafka011ConfigUtil {
         }
 
         // 配置默认的producer
-        if (producerConfiguration == null && StrUtil.isNotBlank(instanceConfiguration.getDefaultProducer())) {
-            producerConfiguration = instanceConfiguration.getProducers().stream()
+        if (producerProperties == null && StrUtil.isNotBlank(instanceConfiguration.getDefaultProducer())) {
+            producerProperties = instanceConfiguration.getProducers().stream()
                 .filter(p -> p.getProducerId().equals(instanceConfiguration.getDefaultProducer()))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException(StrUtil.format(
@@ -247,15 +247,15 @@ public class Kafka011ConfigUtil {
         }
 
         // 配置排第一的producer
-        if (producerConfiguration == null) {
-            producerConfiguration = instanceConfiguration.getProducers().iterator().next();
+        if (producerProperties == null) {
+            producerProperties = instanceConfiguration.getProducers().iterator().next();
         }
 
-        if (producerConfiguration == null) {
+        if (producerProperties == null) {
             throw new IllegalArgumentException(StrUtil.format(
                 "kafka011 instance[{}]没有配置producer",
                 instanceConfiguration.getInstanceName()));
         }
-        return producerConfiguration;
+        return producerProperties;
     }
 }

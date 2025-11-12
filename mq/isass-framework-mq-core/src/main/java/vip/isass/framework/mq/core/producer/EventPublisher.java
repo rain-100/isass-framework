@@ -175,8 +175,8 @@ import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import vip.isass.framework.mq.core.MqMessageContext;
-import vip.isass.framework.mq.core.MqProperties;
+import vip.isass.framework.mq.core.MqMessage;
+import vip.isass.framework.mq.core.config.DynamicMqSourceProperties;
 
 import java.util.Map;
 import java.util.ServiceLoader;
@@ -189,7 +189,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class EventPublisher {
 
-    private MqProperties mqProperties;
+    private DynamicMqSourceProperties dynamicMqSourceProperties;
 
     private static String SOURCE;
 
@@ -212,30 +212,33 @@ public class EventPublisher {
     /**
      * 发布事件
      *
-     * @param mqMessageContext the mq message context
+     * @param mqMessage the mq message context
      */
-    public static void send(@NonNull MqMessageContext mqMessageContext) {
+    public static void send(@NonNull MqMessage mqMessage) {
         Assert.notNull(MQ_PRODUCER_MANAGER_MAP, "生产者管理器未初始化，或者没有启用mq，mq发送失败");
 
-        // 找实现厂商
-        if (StrUtil.isBlank(mqMessageContext.getManufacturer())) {
-            mqMessageContext.setManufacturer(SOURCE);
-        }
-        if (StrUtil.isBlank(mqMessageContext.getManufacturer())) {
-            mqMessageContext.setManufacturer(MQ_PRODUCER_MANAGER_MAP.entrySet().iterator().next().getKey());
+        // 找 mq 源
+        String mqSource = StrUtil.isBlank(mqMessage.getMqSource())
+                ? SOURCE
+                : mqMessage.getMqSource();
+
+        ProducerManager producerManager = MQ_PRODUCER_MANAGER_MAP.get(mqSource);
+
+        // 如果找不到 mq 源，且不是主 mq 源，则使用主 mq 源头
+        if (producerManager == null && !SOURCE.equals(mqSource)) {
+            producerManager = MQ_PRODUCER_MANAGER_MAP.get(SOURCE);
         }
 
-        ProducerManager producerManager = MQ_PRODUCER_MANAGER_MAP.get(mqMessageContext.getManufacturer());
-        Assert.notNull(producerManager, "厂商[{}]未启用或未配置 producerManager, mq 发送失败", mqMessageContext.getManufacturer());
-        producerManager.send(mqMessageContext);
+        Assert.notNull(producerManager, "mq 源[{}]未启用或未配置 producerManager, mq 发送失败", mqSource);
+        producerManager.send(mqMessage);
     }
 
     @PostConstruct
     public void start() {
         IS_RUNNING = true;
-        log.info("isass.framework.mq.enable:{}", mqProperties.getEnabled());
+        log.info("isass.framework.mq.enable:{}", dynamicMqSourceProperties.getEnabled());
 
-        if (Boolean.FALSE.equals(mqProperties.getEnabled())) {
+        if (Boolean.FALSE.equals(dynamicMqSourceProperties.getEnabled())) {
             log.info("skip to load mq produce module");
         }
 
@@ -250,7 +253,7 @@ public class EventPublisher {
                 .filter(ProducerManager::isEnable)
                 .forEach(ProducerManager::init);
 
-        SOURCE = mqProperties.getPrimary();
+        SOURCE = dynamicMqSourceProperties.getPrimary();
     }
 
     @PreDestroy

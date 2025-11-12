@@ -166,136 +166,62 @@
  * Library.
  */
 
-package vip.isass.framework.mq.kafka011.consumer;
+package vip.isass.framework.mq.springevent.consumer;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.exceptions.ExceptionUtil;
-import cn.hutool.core.lang.Assert;
-import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.StrUtil;
-import com.google.auto.service.AutoService;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.SneakyThrows;
-import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.clients.consumer.Consumer;
-import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
-import vip.isass.framework.mq.core.FailStrategy;
-import vip.isass.framework.mq.core.MessageType;
+import org.springframework.context.ApplicationListener;
+import org.springframework.stereotype.Component;
 import vip.isass.framework.mq.core.MqMessage;
-import vip.isass.framework.mq.core.MqMessageContext;
-import vip.isass.framework.mq.core.consumer.IMqConsumer;
-import vip.isass.framework.mq.core.consumer.MqConsumerManager;
-import vip.isass.framework.mq.kafka011.Kafka011Const;
-import vip.isass.framework.mq.kafka011.config.InstanceConfiguration;
-import vip.isass.framework.mq.kafka011.config.Kafka011ConfigUtil;
-import vip.isass.framework.mq.kafka011.config.Kafka011Configuration;
-import vip.isass.framework.serialization.jackson.JsonUtil;
+import vip.isass.framework.mq.core.consumer.FailStrategy;
+import vip.isass.framework.mq.core.consumer.IMqMessageHandler;
+import vip.isass.framework.mq.springevent.IsassMqEvent;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
-import java.util.Properties;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
-/**
- * @author Rain
- */
 @Slf4j
-@Getter
-@Setter
-@Accessors(chain = true)
-@AutoService(MqConsumerManager.class)
-public class Kafka011ConsumerManager implements MqConsumerManager {
+@Component
+public class SpringEventMqMessageHandler implements ApplicationListener<IsassMqEvent>, IMqMessageHandler {
 
-    private ExecutorService executorService;
+    private List<IMqMessageHandler> mqConsumers;
 
-    private Kafka011Configuration kafka011Configuration;
-
-    private List<IMqConsumer> mqConsumers;
-
-    private List<Consumer<String, String>> consumers;
+    private SpringEventConfiguration springEventConfiguration;
 
     @Override
-    public String getManufacturer() {
-        return Kafka011Const.MANUFACTURER;
-    }
-
-    @Override
-    public void subscribe() {
+    public void onApplicationEvent(IsassMqEvent event) {
         if (CollUtil.isEmpty(mqConsumers)) {
             return;
         }
-        consumers = new ArrayList<>(mqConsumers.size());
-        List<Runnable> tasks = mqConsumers.stream()
-                .filter(mc -> StrUtil.isBlank(mc.getManufacturer()) || Kafka011Const.MANUFACTURER.equals(mc.getManufacturer()))
-                .map(mc -> (Runnable) () -> {
-                    Assert.notBlank(mc.getConsumerId());
-                    log.info("开始订阅事件,consumerId[{}]", mc.getConsumerId());
 
-                    String instance = MapUtil.getStr(mc.getProperties(), Kafka011Const.INSTANCE);
-                    InstanceConfiguration instanceConfiguration = Kafka011ConfigUtil.selectInstance(kafka011Configuration, instance);
+        MqMessage mqMessage = (MqMessage) event.getSource();
+        mqConsumers.stream()
+                // 判断厂商
+                .filter(mc -> StrUtil.isBlank(mqMessage.getMqSource())
+                        || StrUtil.isBlank(mc.getManufacturer())
+                        || mc.getManufacturer().equals(mqMessage.getMqSource()))
 
-                    Properties properties = createProperties(mc, instanceConfiguration);
-                    KafkaConsumer<String, String> consumer = new KafkaConsumer<>(properties);
-                    consumer.subscribe(Collections.singletonList(parseTopic(mc, instanceConfiguration)));
-                    consumers.add(consumer);
+                // 判断 topic
+                .filter(mc -> mc.getTopic().equals(mqMessage.getTopic()))
 
-                    //noinspection InfiniteLoopStatement
-                    while (true) {
-                        ConsumerRecords<String, String> records = consumer.poll(100);
-                        for (ConsumerRecord<String, String> record : records) {
-                            log.debug("收到mq消息：{}", record);
-                            Object payload;
-                            try {
-                                payload = getPayload(mc, record);
-                            } catch (Exception e) {
-                                log.error("反序列化mq消息错误，此消息将标记为消费成功：{}，", e.getMessage(), e);
-                                continue;
-                            }
-                            MqMessageContext mqMessageContext = new MqMessage()
-                                    .setTopic(record.topic())
-                                    .setKey(record.key())
-                                    .setMessageType(mc.getMessageType())
-                                    .setPayload(payload);
-                            doConsume(mc, mqMessageContext);
-                        }
+                // 判断 tag
+                .filter(mc -> "*".equals(mc.getTag()) || mc.getTag().equals(mqMessage.getTag()))
+
+                .forEach(mc -> {
+                    try {
+                        doConsume(mc, mqMessage);
+                    } catch (Exception e) {
+                        log.error("springEvent消费异常，请业务视情况处理异常");
+                        throw e;
                     }
-                })
-                .collect(Collectors.toList());
-        if (tasks.isEmpty()) {
-            return;
-        }
-        executorService = Executors.newFixedThreadPool(tasks.size());
-        tasks.forEach(executorService::execute);
+                });
     }
 
-    private Properties createProperties(IMqConsumer mqConsumer, InstanceConfiguration instanceConfiguration) {
-        Properties properties = new Properties();
-        properties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, instanceConfiguration.getServers());
-        properties.put(ConsumerConfig.GROUP_ID_CONFIG, mqConsumer.getConsumerId());
-        Optional.ofNullable(instanceConfiguration.getEnableAutoCommit()).ifPresent(p -> properties.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, p));
-        Optional.ofNullable(instanceConfiguration.getAutoCommitIntervalMs()).ifPresent(p -> properties.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, p));
-        Optional.ofNullable(instanceConfiguration.getAutoOffsetReset()).ifPresent(p -> properties.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, p));
-        Optional.ofNullable(instanceConfiguration.getSessionTimeoutMs()).ifPresent(p -> properties.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, p));
-        properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
-        properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
-        if (CollUtil.isNotEmpty(instanceConfiguration.getProperties())) {
-            properties.putAll(instanceConfiguration.getProperties());
-        }
-        return properties;
-    }
-
-    private void doConsume(IMqConsumer mqConsumer, MqMessageContext mqMessageContext) {
+    private void doConsume(IMqMessageHandler mqConsumer, MqMessage mqMessage) {
         try {
-            mqConsumer.consume(mqMessageContext);
+            mqConsumer.consume(mqMessage);
         } catch (Exception e) {
             Throwable unwrap = ExceptionUtil.unwrap(e);
             log.error("mq消费错误：{}", unwrap.getMessage(), unwrap);
@@ -306,14 +232,23 @@ public class Kafka011ConsumerManager implements MqConsumerManager {
                     log.info("忽略消费异常");
                     return;
                 case RETRY:
-                    // todo 实现重试
+                    int maxRetryCount = 3;
+                    for (int i = 0; i < maxRetryCount; i++) {
+                        log.info("正在开始第{}次重试消费。重试最大次数为{}", i + 1, maxRetryCount);
+                        try {
+                            mqConsumer.consume(mqMessage);
+                            return;
+                        } catch (Exception e1) {
+                            log.error("重试消费错误: {}", e1.getMessage(), e1);
+                        }
+                    }
+                    log.info("超过最大重试次数，将视为正常消费");
                     return;
                 case RETRY_IMMEDIATELY:
                     for (int i = 0; i < mqConsumer.getImmediatelyRetryCount(); i++) {
                         log.info("正在开始第{}次重试消费。重试最大次数为{}", i + 1, mqConsumer.getImmediatelyRetryCount());
                         try {
-                            mqConsumer.consume(mqMessageContext);
-                            return;
+                            mqConsumer.consume(mqMessage);
                         } catch (Exception e1) {
                             log.error("重试消费错误: {}", e1.getMessage(), e1);
                         }
@@ -326,40 +261,40 @@ public class Kafka011ConsumerManager implements MqConsumerManager {
         }
     }
 
-    private String parseTopic(IMqConsumer mqConsumer, InstanceConfiguration instanceConfiguration) {
-        if (StrUtil.isNotBlank(mqConsumer.getTopic())) {
-            return mqConsumer.getTopic();
-        }
-        return switch (mqConsumer.getMessageType()) {
-            case MessageType.COMMON_MESSAGE -> instanceConfiguration.getCommonMessageTopic();
-            case MessageType.TIMING_MESSAGE, MessageType.DELAY_MESSAGE -> instanceConfiguration.getTimingMessageTopic();
-            case MessageType.TRANSACTION_MESSAGE -> throw new UnsupportedOperationException("未支持事务消息");
-            case MessageType.SHARDING_SEQUENTIAL_MESSAGE -> instanceConfiguration.getShardingSequentialMessageTopic();
-            case MessageType.GLOBAL_SEQUENTIAL_MESSAGE -> instanceConfiguration.getGlobalSequentialMessageTopic();
-            default -> throw new UnsupportedOperationException("未支持消息类型:" + mqConsumer.getMessageType());
-        };
-    }
-
-    @SneakyThrows
-    private Object getPayload(IMqConsumer mqConsumer, ConsumerRecord<String, String> record) {
-        if (mqConsumer.getTypeReference() != null) {
-            return JsonUtil.DEFAULT_INSTANCE.readValue(record.value(), mqConsumer.getTypeReference());
-        }
-        return record.value();
-    }
-
-    public void destroy() {
-        if (consumers != null) {
-            consumers.forEach(Consumer::close);
-        }
-        if (executorService != null) {
-            executorService.shutdown();
-        }
+    @Override
+    public String getConsumerId() {
+        return "";
     }
 
     @Override
-    public boolean isEnable() {
-        return kafka011Configuration.isEnable();
+    public String getTopic() {
+        return "";
+    }
+
+    @Override
+    public String getTag() {
+        return "";
+    }
+
+    @Override
+    public void subscribe() {
+        if (CollUtil.isEmpty(mqConsumers)) {
+            return;
+        }
+        mqConsumers = mqConsumers.stream()
+                // 判断厂商
+                .filter(mc -> StrUtil.isBlank(mc.getManufacturer()) || mc.getManufacturer().equals(getManufacturer()))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public void destroy() {
+
+    }
+
+    @Override
+    public void consume(MqMessage mqMessage) {
+
     }
 
 }

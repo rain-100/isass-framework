@@ -170,22 +170,9 @@ package vip.isass.framework.mq.springevent;
 
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
-import lombok.experimental.Accessors;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Configuration;
+import vip.isass.framework.mq.core.MqSourceProperty;
 
 @Getter
 @Setter
-@ToString
-@Accessors(chain = true)
-@Configuration
-public class SpringEventConfiguration {
-
-    @Value("${mq.spring-event.enable}")
-    private boolean enable;
-
-    @Value("${mq.spring-event.defaultTopic}")
-    private String defaultTopic = "";
-
+public class SpringEventMqSourceProperties extends MqSourceProperty {
 }

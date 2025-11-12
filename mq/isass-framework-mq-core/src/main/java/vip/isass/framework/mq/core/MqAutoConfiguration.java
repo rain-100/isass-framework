@@ -166,85 +166,32 @@
  * Library.
  */
 
-package vip.isass.framework.mq.core.consumer;
+package vip.isass.framework.mq.core;
 
+import lombok.extern.slf4j.Slf4j;
+import vip.isass.framework.mq.core.config.DynamicMqSourceProperties;
+import vip.isass.framework.mq.core.consumer.MqConsumerManager;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import vip.isass.framework.mq.core.MessageType;
-import vip.isass.framework.mq.core.FailStrategy;
-import vip.isass.framework.mq.core.MqMessageContext;
-import vip.isass.framework.mq.core.SubscribeModel;
+@Slf4j
+public class MqAutoConfiguration {
 
-import java.util.Collections;
-import java.util.Map;
+    private final DynamicMqSourceProperties dynamicMqSourceProperties;
 
-/**
- * 消费者
- * 用户需要实现此接口，复写 consume，执行消费逻辑，并注册为 spring bean
- *
- * @author Rain
- */
-public interface IMqConsumer {
-
-    // 如果设置了，则此消费者只能消费此厂商生产的消息
-    default String getManufacturer() {
-        return "";
+    public MqAutoConfiguration(DynamicMqSourceProperties dynamicMqSourceProperties) {
+        this.dynamicMqSourceProperties = dynamicMqSourceProperties;
     }
 
-    default SubscribeModel getSubscribeModel() {
-        return SubscribeModel.CLUSTERING;
-    }
+    public void init() {
+        log.info("isass.framework.mq.enable:{}", dynamicMqSourceProperties.getEnabled());
 
-    String getConsumerId();
+        if (Boolean.FALSE.equals(dynamicMqSourceProperties.getEnabled())) {
+            log.info("skip to load mq consumer module");
+            return;
+        }
 
-    String getTopic();
+        MqConsumerManager mqConsumerManagerAutoConfiguration = new MqConsumerManager(dynamicMqSourceProperties);
+        mqConsumerManagerAutoConfiguration.start();
 
-    String getTag();
 
-    default Integer getConsumeThreadNumber() {
-        // 返回 null, 则采用厂商默认配置
-        return null;
-    }
-
-    void consume(MqMessageContext mqMessageContext);
-
-    default Map<String, ?> getProperties() {
-        return Collections.emptyMap();
-    }
-
-    default int getMessageType() {
-        return MessageType.COMMON_MESSAGE;
-    }
-
-    default FailStrategy getFailStrategy() {
-        return FailStrategy.RETRY;
-    }
-
-    /**
-     * 立即重试次数，当 失败策略是 FailStrategy.RETRY_IMMEDIATELY 时生效
-     * 负数无效，若需要无限重试，请设置为 Integer.MAX_VALUE
-     *
-     * @return 立即重试次数
-     */
-    default int getImmediatelyRetryCount() {
-        return 1;
-    }
-
-    /**
-     * 获取消息中间件的原始消息，通常是消息中间件封装的对象。消息管理器在消费消息时，将会赋值
-     *
-     * @return 原始消息
-     */
-    default Object getOriginalMqMessage() {
-        return null;
-    }
-
-    /**
-     * 如果需要框架自动转换消息类型，则复写此方法
-     *
-     * @return TypeReference
-     */
-    default TypeReference<?> getTypeReference() {
-        return null;
     }
 }

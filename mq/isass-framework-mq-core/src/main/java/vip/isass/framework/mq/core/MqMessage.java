@@ -169,57 +169,113 @@
 package vip.isass.framework.mq.core;
 
 import cn.hutool.core.date.SystemClock;
+import cn.hutool.core.map.MapUtil;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.experimental.Accessors;
+import lombok.ToString;
+import lombok.experimental.SuperBuilder;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
+ *
+ * 业务端创建此消息实体类来发送事件
+ *
  * @author Rain
  */
 @Getter
 @Setter
-@Accessors(chain = true)
-public class MqMessage implements MqMessageContext {
+@ToString
+@SuperBuilder
+@NoArgsConstructor
+@AllArgsConstructor
+public class MqMessage {
 
-    private String manufacturer;
+    /**
+     * mq 源，不填则使用主 mq 源
+     */
+    private String mqSource;
 
+    /**
+     * 消息类型
+     */
     private int messageType = MessageType.COMMON_MESSAGE;
 
+    /**
+     * 消息主题
+     * 为空则获取配置的默认主题
+     */
     private String topic;
 
-    private String tag;
-
-    private String key;
-
+    /**
+     * 消息分区键
+     * Sharding key 是顺序消息中用来区分不同分区的关键字段
+     * 对于指定的一个 Topic，所有消息根据 sharding key 进行分区。
+     * 同一个分区内的消息按照严格的 FIFO 顺序进行发布和消费。
+     * 需要 mq 厂商支持
+     */
     private String shardingKey;
 
-    private Long consumeAtMills;
+    /**
+     * 消息标签，二级消息类型，用来进一步区分某个 Topic 下的消息分类。
+     * 需要 mq 厂商支持
+     */
+    private String tag;
 
-    private Long delayMills;
+    /**
+     * 消息的业务标识，由消息生产者（Producer）设置，唯一标识某个业务逻辑。
+     * 请尽可能全局唯一，以方便您在无法正常收到消息情况下，可通过 mq 厂商提供的方法快速查询消息
+     * 需要 mq 厂商支持
+     * 例如阿里云服务器管理控制台查询消息并补发
+     */
+    private String key;
 
+    /**
+     * 消息内容
+     */
     private Object payload;
 
+    /**
+     * 定时消费时间（毫秒）
+     * Producer 将消息发送到 MQ 服务端，但并不期望这条消息立马投递，而是推迟到在当前时间点之后的某一个时间投递到 Consumer 进行消费，该消息即定时消息。
+     * consumeAtMills 与 DelayMills 都有值时，以 consumeAtMills 为准
+     * 需要 mq 厂商支持
+     */
+    private Long consumeAtMills;
+
+    /**
+     * 延时消费时间（毫秒）
+     * Producer 将消息发送到 MQ 服务端，但并不期望这条消息立马投递，而是延迟一定时间后才投递到 Consumer 进行消费，该消息即延时消息。
+     * consumeAtMills 与 DelayMills 都有值时，以 consumeAtMills 为准
+     * 需要 mq 厂商支持
+     */
+    private Long delayMills;
+
+    /**
+     * 扩展消息
+     */
     private Map<String, Object> properties;
 
+    /**
+     * 消息创建时间
+     */
     private long createTime = SystemClock.now();
 
-    @Override
-    public String toString() {
-        return "MqMessage{" +
-                "manufacturer='" + manufacturer + '\'' +
-                ", messageType=" + messageType +
-                ", topic='" + topic + '\'' +
-                ", tag='" + tag + '\'' +
-                ", key='" + key + '\'' +
-                ", shardingKey='" + shardingKey + '\'' +
-                ", consumeAtMills=" + consumeAtMills +
-                ", delayMills=" + delayMills +
-                ", payload=" + payload +
-                ", properties=" + properties +
-                ", createTime=" + createTime +
-                '}';
+    public String getStringProperty(String key) {
+        return properties == null
+                ? null
+                : MapUtil.getStr(properties, key);
+    }
+
+    public MqMessage setProperty(String key, Object value) {
+        if (properties == null) {
+            properties = new HashMap<>();
+        }
+        properties.put(key, value);
+        return this;
     }
 
 }

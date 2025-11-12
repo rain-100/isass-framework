@@ -168,18 +168,39 @@
 
 package vip.isass.framework.mq.core.consumer;
 
+import cn.hutool.core.collection.CollUtil;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
+import lombok.extern.slf4j.Slf4j;
+import vip.isass.framework.mq.core.config.DynamicMqSourceProperties;
 
 /**
+ * 查找所有订阅者，进行订阅
+ *
  * @author Rain
  */
-public interface MqConsumerManager {
+@Slf4j
+public class MqConsumerManager {
 
-    String getManufacturer();
+    private final DynamicMqSourceProperties dynamicMqSourceProperties;
 
-    void subscribe();
+    public MqConsumerManager(DynamicMqSourceProperties dynamicMqSourceProperties) {
+        this.dynamicMqSourceProperties = dynamicMqSourceProperties;
+    }
 
-    void destroy();
+    @PostConstruct
+    public void start() {
+        if (CollUtil.isEmpty(dynamicMqSourceProperties)) {
+            return;
+        }
+        dynamicMqSourceProperties.forEach(IMqMessageHandler::subscribe);
+    }
 
-    boolean isEnable();
+    @PreDestroy
+    public void stop() {
+        if (CollUtil.isNotEmpty(dynamicMqSourceProperties)) {
+            dynamicMqSourceProperties.forEach(IMqMessageHandler::destroy);
+        }
+    }
 
 }

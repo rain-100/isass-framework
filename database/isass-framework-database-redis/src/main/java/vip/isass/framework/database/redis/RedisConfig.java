@@ -168,15 +168,12 @@
 
 package vip.isass.framework.database.redis;
 
-import cn.hutool.core.util.ReflectUtil;
-import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CachingConfigurer;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -186,12 +183,9 @@ import org.springframework.data.redis.hash.Jackson2HashMapper;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
-import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
-import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-import vip.isass.framework.serialization.jackson.JsonUtil;
 
 import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -199,9 +193,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 /**
  * @author rain
  */
-@Configuration
 @EnableCaching
-@ComponentScan
 public class RedisConfig implements CachingConfigurer {
 
     public static final HashMapper<Object, String, Object> HASH_MAPPER = new Jackson2HashMapper(false);
@@ -231,22 +223,10 @@ public class RedisConfig implements CachingConfigurer {
     }
 
     @Bean
-    @SneakyThrows
+    @ConditionalOnMissingBean(name = "redisTemplate")
     public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory factory) {
         RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setConnectionFactory(factory);
-        template.setDefaultSerializer(RedisSerializer.string());
-
-        Jackson2JsonRedisSerializer<Object> jackson2JsonRedisSerializer =
-                new Jackson2JsonRedisSerializer<>(JsonUtil.NOT_NULL_INSTANCE, Object.class);
-
-        template.setValueSerializer(jackson2JsonRedisSerializer);
-        template.setHashValueSerializer(jackson2JsonRedisSerializer);
-        template.afterPropertiesSet();
-
-        // 修改 stream 类型的 hashMapper
-        Object o = ReflectUtil.newInstance(Class.forName("org.springframework.data.redis.core.DefaultStreamOperations"), template, HASH_MAPPER);
-        ReflectUtil.setFieldValue(template, "streamOps", o);
         return template;
     }
 

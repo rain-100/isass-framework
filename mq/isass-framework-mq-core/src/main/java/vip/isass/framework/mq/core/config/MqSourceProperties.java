@@ -166,19 +166,31 @@
  * Library.
  */
 
-package vip.isass.framework.mq.core.producer;
+package vip.isass.framework.mq.core.config;
 
-import vip.isass.framework.mq.core.MqMessageContext;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author Rain
  */
-public interface MqProducer {
+@Getter
+@Setter
+public abstract class MqSourceProperties {
 
-    MqProducer init();
+    /**
+     * 开关
+     */
+    private Boolean enabled = Boolean.FALSE;
 
-    void destroy();
+    /**
+     * mq 源名称，根据业务作用起名
+     */
+    private String name;
 
-    void send(MqMessageContext mqMessageContext);
+    /**
+     * eventbus实现的工厂类名
+     */
+    private String factoryClassName;
 
 }
