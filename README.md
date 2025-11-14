@@ -64,10 +64,10 @@ isass 全称为 Intelligent System Architecture Service Solution 中文名为 �
 ├── 📦 isass-framework-net-proxy-server
 └── 📦 isass-framework-net-proxy-upstream
 
-📁 mq/                                # 消息队列模块
-├── 📦 isass-framework-mq-core
-├── 📦 isass-framework-mq-kafka011
-└── 📦 isass-framework-mq-spring-event
+📁 mda/                                # 消息驱动架构模块
+├── 📦 isass-framework-mda-core
+├── 📦 isass-framework-mda-kafka011
+└── 📦 isass-framework-mda-springevent
 
 📁 rpc/                               # 远程调用模块
 └── 📦 isass-framework-rpc-okhttp
@@ -135,10 +135,10 @@ isass-framework/
 │   ├── 📦 isass-framework-net-proxy-server
 │   └── 📦 isass-framework-net-proxy-upstream
 │
-├── 📁 mq/                            # 专业服务层
-│   ├── 📦 isass-framework-mq-core
-│   ├── 📦 isass-framework-mq-kafka011
-│   └── 📦 isass-framework-mq-spring-event
+├── 📁 mda/                            # 专业服务层
+│   ├── 📦 isass-framework-mda-core
+│   ├── 📦 isass-framework-mda-kafka011
+│   └── 📦 isass-framework-mda-springevent
 │
 ├── 📁 rpc/                           # 专业服务层
 │   └── 📦 isass-framework-rpc-okhttp
