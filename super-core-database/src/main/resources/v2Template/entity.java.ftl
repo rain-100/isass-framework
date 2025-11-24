@@ -51,7 +51,6 @@ import vip.isass.core.structure.entity.IV2TraceEntity;
 import vip.isass.core.structure.entity.IV2VersionEntity;
 </#if>
 <#list table.fields as field>
-    ${field.propertyType}
 <#if (field.propertyType == "LocalDate"
 || field.propertyType == "LocalTime"
 || field.propertyType == "LocalDateTime")
