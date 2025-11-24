@@ -180,22 +180,26 @@
     </parent>
 
     <!-- 本项目信息 -->
-    <artifactId>super-core-database-mybatisplus-postgresql</artifactId>
+    <artifactId>super-core-database-highgo</artifactId>
     <version>super.3.4.0-SNAPSHOT</version>
 
     <dependencies>
         <dependency>
             <groupId>vip.isass</groupId>
-            <artifactId>super-core-database-mybatisplus</artifactId>
+            <artifactId>super-core-database</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>vip.isass</groupId>
-            <artifactId>super-core-database-postgresql</artifactId>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
         </dependency>
         <dependency>
-            <groupId>vip.isass</groupId>
-            <artifactId>super-core-database-highgo</artifactId>
+            <groupId>com.highgo</groupId>
+            <artifactId>HgdbJdbc</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>p6spy</groupId>
+            <artifactId>p6spy</artifactId>
         </dependency>
     </dependencies>
 </project>

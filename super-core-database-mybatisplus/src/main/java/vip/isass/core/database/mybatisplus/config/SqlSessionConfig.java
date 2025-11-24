@@ -234,6 +234,7 @@ public class SqlSessionConfig implements TransactionManagementConfigurer {
         properties.put("DM DBMS", "dm");
         properties.put("KingbaseES", "kingBase");
         properties.put("PostgreSQL", "postgresql");
+        properties.put("Highgo", "Highgo");
         databaseIdProvider.setProperties(properties);
         return databaseIdProvider;
     }
