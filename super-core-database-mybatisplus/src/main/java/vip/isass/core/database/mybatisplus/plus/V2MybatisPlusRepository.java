@@ -206,6 +206,7 @@ import vip.isass.core.structure.entity.V2DbEntityConvert;
 import vip.isass.core.structure.repository.IV2Repository;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -362,12 +363,44 @@ public abstract class V2MybatisPlusRepository<
 
     @Override
     public boolean deleteById(Serializable id) {
-        return super.removeById(id);
+        Class<EDB> edbClass = currentModelClass();
+        Serializable realId = id;
+        TableInfo tableInfo = TableInfoHelper.getTableInfo(edbClass);
+        if (tableInfo != null && Number.class.isAssignableFrom(tableInfo.getKeyType())) {
+            try {
+                realId = Long.parseLong(id.toString());
+            } catch (NumberFormatException e) {
+                log.error(e.getMessage(), e);
+                return false;
+            }
+        }
+
+        return super.removeById(realId);
     }
 
     @Override
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public boolean deleteByIds(Collection<? extends Serializable> ids) {
-        return super.removeByIds(ids);
+        Class<EDB> edbClass = currentModelClass();
+        Collection realId = ids;
+        TableInfo tableInfo = TableInfoHelper.getTableInfo(edbClass);
+        if (tableInfo != null && Number.class.isAssignableFrom(tableInfo.getKeyType())) {
+            try {
+                if (!(CollUtil.getFirst(ids) instanceof Number)) {
+                    realId = new ArrayList<>(ids.size());
+                    for (Serializable id : ids) {
+                        Long l = Long.parseLong(id.toString());
+                        realId.add(l);
+                    }
+                }
+
+            } catch (NumberFormatException e) {
+                log.error(e.getMessage(), e);
+                return false;
+            }
+        }
+
+        return super.removeByIds(realId);
     }
 
     public boolean deleteByWrapper(Wrapper<EDB> wrapper) {
