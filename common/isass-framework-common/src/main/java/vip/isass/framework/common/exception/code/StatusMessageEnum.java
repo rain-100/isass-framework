@@ -180,7 +180,7 @@ public enum StatusMessageEnum implements IStatusMessage {
     FAIL(-1, "操作失败"),
     SUCCESS(200, "操作成功"),
     ACCESS_DENIED_403(403, "权限不足"),
-    NOT_FOUND_404(404, "链接不存在"),
+    NOT_FOUND_404(404, "资源不存在"),
     METHOD_NOT_ALLOWED_405(405, "不支持的HTTP方法"),
     INTERNAL_SERVER_ERROR_500(500, "服务器内部错误"),
 
