@@ -170,6 +170,7 @@ package vip.isass.framework.mda.core.config;
 
 import lombok.Getter;
 import lombok.Setter;
+import vip.isass.framework.mda.core.IMqFactory;
 
 /**
  * @author Rain
@@ -191,8 +192,6 @@ public abstract class MqSourceProperties {
     /**
      * eventbus实现的工厂类名
      */
-    private String factoryClassName;
-
-    private FunctionTopicProperties functionTopicProperties;
+    private Class<IMqFactory> factoryClass;
 
 }

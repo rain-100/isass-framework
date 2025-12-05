@@ -175,9 +175,19 @@ import vip.isass.framework.mda.core.producer.IMdaProducer;
 import java.util.List;
 
 public interface IMqFactory {
+    /**
+     * 获取支持的属性类型
+     */
+    Class<? extends MqSourceProperties> getPropertiesType();
 
     void createMqConsumer(MqSourceProperties messageDrivenSourceProperties, List<IMdaMessageHandler> mdaMessageHandlers);
 
     IMdaProducer createMqProducer(MqSourceProperties messageDrivenSourceProperties);
 
+    /**
+     * 验证配置
+     */
+    default boolean validate(MqSourceProperties properties) {
+        return properties != null && Boolean.TRUE.equals(properties.getEnabled());
+    }
 }

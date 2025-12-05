@@ -200,12 +200,7 @@ public class SpringEventMdaProducer implements IMdaProducer {
         Assert.notNull(mqMessage);
         Assert.notNull(mqMessage.getPayload(), "payload");
 
-        try {
-            applicationEventPublisher.publishEvent(new IsassMdaEvent(mqMessage));
-        } catch (Exception e) {
-            log.error("mq发送失败。tag[{}], messageKey[{}]", mqMessage.getTag(), mqMessage.getKey());
-            throw e;
-        }
+        applicationEventPublisher.publishEvent(new IsassMdaEvent(mqMessage));
     }
 
     @Override

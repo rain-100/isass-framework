@@ -14,4 +14,5 @@ module vip.isass.framework.mda.kafka011 {
 
     // 导出包
     exports vip.isass.framework.mda.kafka011;
+    exports vip.isass.framework.mda.kafka011.config;
 } 

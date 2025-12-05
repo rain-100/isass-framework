@@ -171,10 +171,7 @@ package vip.isass.framework.mda.kafka011.config;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import lombok.experimental.Accessors;
 import vip.isass.framework.mda.core.config.MqSourceProperties;
-
-import java.util.Map;
 
 /**
  * @author Rain
@@ -182,7 +179,6 @@ import java.util.Map;
 @Getter
 @Setter
 @ToString
-@Accessors(chain = true)
 public class Kafka011Properties extends MqSourceProperties {
 
     private String servers;

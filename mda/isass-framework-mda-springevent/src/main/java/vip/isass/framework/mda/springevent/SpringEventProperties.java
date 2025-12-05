@@ -166,34 +166,19 @@
  * Library.
  */
 
-package vip.isass.framework.mda.core.config;
+package vip.isass.framework.mda.springevent;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import lombok.experimental.SuperBuilder;
+import vip.isass.framework.mda.core.config.MqSourceProperties;
 
 /**
- * 特定功能的主题
- *
  * @author Rain
  */
 @Getter
 @Setter
 @ToString
-@SuperBuilder
-@NoArgsConstructor
-@AllArgsConstructor
-public class FunctionTopicProperties {
-
-    private String commonMessageTopic;
-
-    private String shardingSequentialMessageTopic;
-
-    private String globalSequentialMessageTopic;
-
-    private String timingMessageTopic;
+public class SpringEventProperties extends MqSourceProperties {
 
 }

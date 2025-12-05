@@ -186,21 +186,18 @@ public class DynamicMqProperties {
     /**
      * 总开关
      */
-    // @Value("${isass.framework.mq.enable:false}")
     private Boolean enabled = Boolean.FALSE;
 
     /**
      * 主 MQ 源
      */
-    // @Value("${isass.framework.mq.primary:master}")
     private String primary = "master";
 
-    // @Value("${isass.framework.mq.disable.disableConsumerIds:}")
     private List<String> disableConsumerIds = new ArrayList<>();
 
     /**
      * key: mqSourceName
      */
-    private Map<String, MqSourceProperties> mqSource = new HashMap<>();
+    private Map<String, MqSourceProperties> mqSourceProperties = new HashMap<>();
 
 }

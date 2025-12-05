@@ -180,6 +180,11 @@ import java.util.List;
 
 public class Kafka011MdaFactory implements IMqFactory {
 
+    @Override
+    public Class<? extends MqSourceProperties> getPropertiesType() {
+        return Kafka011Properties.class;
+    }
+
     public void createMqConsumer(MqSourceProperties mqSourceProperties, List<IMdaMessageHandler> mdaMessageHandlers) {
         Kafka011MdaConsumer kafka011MdaConsumer = new Kafka011MdaConsumer((Kafka011Properties) mdaMessageHandlers, mdaMessageHandlers);
     }

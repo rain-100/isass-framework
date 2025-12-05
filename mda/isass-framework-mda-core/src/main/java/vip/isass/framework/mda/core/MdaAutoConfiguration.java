@@ -188,7 +188,7 @@ public class MdaAutoConfiguration {
     /**
      * key: factory class name
      */
-    private static final Map<String, IMqFactory> mqFactoryMap = new HashMap<>();
+    private static final Map<Class<IMqFactory>, IMqFactory> mqFactoryMap = new HashMap<>();
 
     /**
      * key: mq source name
@@ -196,10 +196,6 @@ public class MdaAutoConfiguration {
     private static final Map<String, IMdaProducer> mqProducerMap = new HashMap<>();
 
     private static DynamicMqProperties DYNAMIC_MQ_PROPERTIES;
-
-    public static IMqFactory getMqFactory(String factoryClassName) {
-        return mqFactoryMap.get(factoryClassName);
-    }
 
     public static IMdaProducer getMqProducer(String mqSourceName) {
         return mqProducerMap.get(mqSourceName);
@@ -210,6 +206,10 @@ public class MdaAutoConfiguration {
     }
 
     public static boolean isEnabled() {
+        if (DYNAMIC_MQ_PROPERTIES == null) {
+            log.warn("mda 未初始化");
+            return false;
+        }
         return DYNAMIC_MQ_PROPERTIES.getEnabled();
     }
 
@@ -220,11 +220,7 @@ public class MdaAutoConfiguration {
     }
 
     private void loadMqFactory() {
-        if (CollUtil.isEmpty(DYNAMIC_MQ_PROPERTIES.getMqSource())) {
-            return;
-        }
-
-        DYNAMIC_MQ_PROPERTIES.getMqSource().forEach(new BiConsumer<String, MqSourceProperties>() {
+        DYNAMIC_MQ_PROPERTIES.getMqSourceProperties().forEach(new BiConsumer<String, MqSourceProperties>() {
             @Override
             public void accept(String mqSourceName, MqSourceProperties mqSourceProperties) {
                 Assert.notBlank(mqSourceName, "mqSourceName can not be blank");
@@ -234,16 +230,7 @@ public class MdaAutoConfiguration {
                     return;
                 }
 
-                Assert.notBlank(mqSourceProperties.getFactoryClassName(), "mq source[{}] factoryClassName is null", mqSourceName);
 
-                try {
-                    Class<?> factoryClass = Class.forName(mqSourceProperties.getFactoryClassName());
-                    Assert.isAssignable(IMqFactory.class, factoryClass, "factoryClassName[{}] must implement from IMqFactory", mqSourceName);
-                    IMqFactory mqFactory = (IMqFactory) factoryClass.getDeclaredConstructor().newInstance();
-                    mqFactoryMap.put(mqSourceProperties.getFactoryClassName(), mqFactory);
-                } catch (Exception e) {
-                    throw new RuntimeException("loading mq factory error, factory class: " + mqSourceProperties.getFactoryClassName(), e);
-                }
             }
         });
     }
@@ -256,18 +243,29 @@ public class MdaAutoConfiguration {
             return;
         }
 
-        loadMqFactory();
-
-        if (CollUtil.isEmpty(DYNAMIC_MQ_PROPERTIES.getMqSource())) {
+        if (CollUtil.isEmpty(DYNAMIC_MQ_PROPERTIES.getMqSourceProperties())) {
             return;
         }
-        DYNAMIC_MQ_PROPERTIES.getMqSource().forEach((mqSourceName, mqSourceProperties) -> {
-            String factoryClassName = mqSourceProperties.getFactoryClassName();
-            Assert.notBlank(factoryClassName, "mq source[{}] factoryClassName can not be null", mqSourceName);
-            IMqFactory mqFactory = MdaAutoConfiguration.getMqFactory(factoryClassName);
-            Assert.notNull(mqFactory, "can not found mq factory class[{}]", factoryClassName);
 
+        // 遍历mq源,执行初始化
+        DYNAMIC_MQ_PROPERTIES.getMqSourceProperties().forEach((mqSourceName, mqSourceProperties) -> {
+            if (!Boolean.TRUE.equals(mqSourceProperties.getEnabled())) {
+                return;
+            }
+
+            IMqFactory mqFactory = mqFactoryMap.computeIfAbsent(mqSourceProperties.getFactoryClass(),
+                    fc -> {
+                        try {
+                            return fc.getDeclaredConstructor().newInstance();
+                        } catch (Exception e) {
+                            throw new RuntimeException("loading mq factory error, factory class: " + mqSourceProperties.getFactoryClass(), e);
+                        }
+                    });
+
+            // 创建消费者
             mqFactory.createMqConsumer(mqSourceProperties, MessageHandlerHolder.getAllMessageHandlers());
+
+            // 创建生产者
             IMdaProducer mqProducer = mqFactory.createMqProducer(mqSourceProperties);
             mqProducerMap.put(mqSourceName, mqProducer);
         });

@@ -180,6 +180,11 @@ import java.util.List;
 
 public class SpringEventMdaFactory implements IMqFactory {
 
+    @Override
+    public Class<? extends MqSourceProperties> getPropertiesType() {
+        return SpringEventProperties.class;
+    }
+
     public void createMqConsumer(MqSourceProperties mqSourceProperties, List<IMdaMessageHandler> mdaMessageHandlers) {
         SpringEventMdaConsumer springEventMdaConsumer = SpringUtil.getBean(SpringEventMdaConsumer.class);
         springEventMdaConsumer.setMessageHandlers(mdaMessageHandlers);

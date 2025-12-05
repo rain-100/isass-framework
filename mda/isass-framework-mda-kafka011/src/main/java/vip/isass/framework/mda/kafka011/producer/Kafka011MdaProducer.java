@@ -170,7 +170,6 @@ package vip.isass.framework.mda.kafka011.producer;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Assert;
-import cn.hutool.core.util.StrUtil;
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.Setter;
@@ -182,7 +181,6 @@ import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
-import vip.isass.framework.mda.core.message.MessageType;
 import vip.isass.framework.mda.core.message.MqMessage;
 import vip.isass.framework.mda.core.producer.IMdaProducer;
 import vip.isass.framework.mda.kafka011.config.Kafka011Properties;
@@ -218,12 +216,7 @@ public class Kafka011MdaProducer implements IMdaProducer {
         ProducerRecord<String, String> record = new ProducerRecord<>(
                 getTopic(mqMessage), mqMessage.getKey(), getBody(mqMessage));
 
-        try {
-            Future<RecordMetadata> send = producer.send(record);
-        } catch (Exception e) {
-            log.error("mq发送失败,topic[{}], messageKey[{}]", mqMessage.getTopic(), mqMessage.getKey());
-            throw e;
-        }
+        Future<RecordMetadata> send = producer.send(record);
     }
 
     @SneakyThrows
@@ -239,21 +232,8 @@ public class Kafka011MdaProducer implements IMdaProducer {
     }
 
     private String getTopic(MqMessage mqMessage) {
-        if (StrUtil.isNotBlank(mqMessage.getTopic())) {
-            return mqMessage.getTopic();
-        }
-        int messageType = mqMessage.getMessageType();
-        return switch (messageType) {
-            case MessageType.COMMON_MESSAGE -> kafka011Properties.getFunctionTopicProperties().getCommonMessageTopic();
-            case MessageType.TIMING_MESSAGE, MessageType.DELAY_MESSAGE ->
-                    kafka011Properties.getFunctionTopicProperties().getTimingMessageTopic();
-            case MessageType.TRANSACTION_MESSAGE -> throw new UnsupportedOperationException("未支持事务消息");
-            case MessageType.SHARDING_SEQUENTIAL_MESSAGE ->
-                    kafka011Properties.getFunctionTopicProperties().getShardingSequentialMessageTopic();
-            case MessageType.GLOBAL_SEQUENTIAL_MESSAGE ->
-                    kafka011Properties.getFunctionTopicProperties().getGlobalSequentialMessageTopic();
-            default -> throw new UnsupportedOperationException("未支持消息类型:" + messageType);
-        };
+        Assert.notBlank(mqMessage.getTopic(), "topic 必填");
+        return mqMessage.getTopic();
     }
 
     @Override

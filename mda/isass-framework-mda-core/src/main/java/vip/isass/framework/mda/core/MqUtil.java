@@ -201,7 +201,12 @@ public class MqUtil {
             return;
         }
 
-        mqProducer.send(mqMessage);
+        try {
+            mqProducer.send(mqMessage);
+        } catch (Exception e) {
+            log.error("mq发送失败。tag[{}], messageKey[{}]", mqMessage.getTag(), mqMessage.getKey());
+            throw e;
+        }
     }
 
 }
