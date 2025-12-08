@@ -488,19 +488,19 @@
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>isass-framework-mda-core</artifactId>
+                <artifactId>isass-framework-mq-core</artifactId>
                 <version>${isass-framework.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>isass-framework-mda-springevent</artifactId>
+                <artifactId>isass-framework-mq-springevent</artifactId>
                 <version>${isass-framework.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>isass-framework-mda-kafka011</artifactId>
+                <artifactId>isass-framework-mq-kafka011</artifactId>
                 <version>${isass-framework.version}</version>
             </dependency>
 
