@@ -273,7 +273,7 @@ public class ExceptionAdvice {
             return new Resp<>()
                     .setSuccess(false)
                     .setStatus(statusMessage.getStatus())
-                    .setMessage(exceptionMapping.parseMessage(e, statusMessage));
+                    .setMessage(processErrorMessage(exceptionMapping.parseMessage(e, statusMessage)));
         }
         return null;
     }
