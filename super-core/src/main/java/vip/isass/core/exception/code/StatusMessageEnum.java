@@ -198,7 +198,7 @@ public enum StatusMessageEnum implements IStatusMessage {
     DATASOURCE_CONNECT_FAIL(24, "数据源连接失败"),
 
     ACCESS_DENIED_403(403, "权限不足"),
-    NOT_FOUND_404(404, "链接不存在"),
+    NOT_FOUND_404(404, "资源不存在"),
     METHOD_NOT_ALLOWED_405(405, "不支持的HTTP方法"),
     INTERNAL_SERVER_ERROR_500(500, "服务器内部错误"),
 
