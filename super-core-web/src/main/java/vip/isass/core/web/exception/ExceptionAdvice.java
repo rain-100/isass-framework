@@ -180,6 +180,7 @@ import vip.isass.core.exception.IExceptionMapping;
 import vip.isass.core.exception.UnifiedException;
 import vip.isass.core.exception.code.IStatusMessage;
 import vip.isass.core.exception.code.StatusMessageEnum;
+import vip.isass.core.sequence.impl.LongSequence;
 import vip.isass.core.web.Resp;
 
 import javax.annotation.Resource;
@@ -286,7 +287,7 @@ public class ExceptionAdvice {
      * @return 处理后的消息（包含traceId和控制后的错误信息）
      */
     public String processErrorMessage(String message) {
-        String traceId = generateTraceId();
+        String traceId = LongSequence.get().toString();
 
         if (showDetailError) {
             // 显示详细错误信息，包含traceId
@@ -302,10 +303,4 @@ public class ExceptionAdvice {
         }
     }
 
-    /**
-     * 生成错误追踪ID
-     */
-    private String generateTraceId() {
-        return UUID.randomUUID().toString().replace("-", "").substring(0, 16);
-    }
 }
