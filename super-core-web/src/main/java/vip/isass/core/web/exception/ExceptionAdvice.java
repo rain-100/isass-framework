@@ -173,6 +173,7 @@ import cn.hutool.core.exceptions.ExceptionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.catalina.connector.ClientAbortException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import vip.isass.core.exception.IExceptionMapping;
@@ -183,7 +184,7 @@ import vip.isass.core.web.Resp;
 
 import javax.annotation.Resource;
 import java.util.List;
-
+import java.util.UUID;
 
 /**
  * 所有异常转换成 Resp
@@ -196,6 +197,18 @@ public class ExceptionAdvice {
 
     @Resource
     private List<IExceptionMapping> exceptionMappings;
+
+    /**
+     * 配置项：是否显示详细错误信息（生产环境建议关闭，开发环境建议开启）
+     */
+    @Value("${app.exception.show-detail-error:false}")
+    private boolean showDetailError;
+
+    /**
+     * 配置项：生产环境统一错误提示语
+     */
+    @Value("${app.exception.prod-unified-message:系统繁忙，请稍后重试}")
+    private String prodUnifiedMessage;
 
     /**
      * 处理 controller 抛出的异常
@@ -237,7 +250,7 @@ public class ExceptionAdvice {
                     ? new Resp<>()
                     .setSuccess(false)
                     .setStatus(ObjectUtil.defaultIfNull(exception.getStatus(), StatusMessageEnum.UNDEFINED.getStatus()))
-                    .setMessage(exception.getMsg())
+                    .setMessage(processErrorMessage(ObjectUtil.defaultIfNull(exception.getMsg(), defaultMessage(exception))))
                     : resp;
         }
 
@@ -246,7 +259,7 @@ public class ExceptionAdvice {
                 ? new Resp<>()
                 .setSuccess(Boolean.FALSE)
                 .setStatus(StatusMessageEnum.UNDEFINED.getStatus())
-                .setMessage(defaultMessage(ExceptionUtil.unwrap(e)))
+                .setMessage(processErrorMessage(defaultMessage(ExceptionUtil.unwrap(e))))
                 : resp;
     }
 
@@ -265,4 +278,34 @@ public class ExceptionAdvice {
         return null;
     }
 
+    /**
+     * 处理错误消息的返回策略 - 根据开关配置控制错误信息返回
+     * 包含traceId用于日志排查，生产环境可屏蔽详细堆栈信息
+     *
+     * @param message 原始消息
+     * @return 处理后的消息（包含traceId和控制后的错误信息）
+     */
+    public String processErrorMessage(String message) {
+        String traceId = generateTraceId();
+
+        if (showDetailError) {
+            // 显示详细错误信息，包含traceId
+            String resultMessage = "[" + traceId + "] " + message;
+            log.info("[ERROR_TRACE] 返回详细错误信息 - traceId: {}, message: {}", traceId, message);
+            return resultMessage;
+        } else {
+            // 不显示详情，返回统一错误提示，但仍包含traceId
+            String resultMessage = "[" + traceId + "] " + prodUnifiedMessage;
+            log.info("[ERROR_TRACE] 返回统一错误信息 - traceId: {}, originalMessage: {}, unifiedMessage: {}",
+                    traceId, message, prodUnifiedMessage);
+            return resultMessage;
+        }
+    }
+
+    /**
+     * 生成错误追踪ID
+     */
+    private String generateTraceId() {
+        return UUID.randomUUID().toString().replace("-", "").substring(0, 16);
+    }
 }
