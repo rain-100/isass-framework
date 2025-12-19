@@ -185,7 +185,6 @@ import vip.isass.core.web.Resp;
 
 import javax.annotation.Resource;
 import java.util.List;
-import java.util.UUID;
 
 /**
  * 所有异常转换成 Resp
@@ -202,7 +201,7 @@ public class ExceptionAdvice {
     /**
      * 配置项：是否显示详细错误信息（生产环境建议关闭，开发环境建议开启）
      */
-    @Value("${app.exception.show-detail-error:false}")
+    @Value("${app.exception.show-detail-error:true}")
     private boolean showDetailError;
 
     /**
@@ -251,17 +250,21 @@ public class ExceptionAdvice {
                     ? new Resp<>()
                     .setSuccess(false)
                     .setStatus(ObjectUtil.defaultIfNull(exception.getStatus(), StatusMessageEnum.UNDEFINED.getStatus()))
-                    .setMessage(processErrorMessage(ObjectUtil.defaultIfNull(exception.getMsg(), defaultMessage(exception))))
+                    .setMessage(ObjectUtil.defaultIfNull(exception.getMsg(), defaultMessage(exception)))
                     : resp;
         }
 
         resp = createRespByExceptionFromExceptionMappings(e);
-        return resp == null
+        resp = resp == null
                 ? new Resp<>()
                 .setSuccess(Boolean.FALSE)
                 .setStatus(StatusMessageEnum.UNDEFINED.getStatus())
                 .setMessage(processErrorMessage(defaultMessage(ExceptionUtil.unwrap(e))))
                 : resp;
+        if (resp.getMessage() != null && resp.getMessage().length() > 40) {
+            resp.setMessage(processErrorMessage(resp.getMessage()));
+        }
+        return resp;
     }
 
     private Resp<?> createRespByExceptionFromExceptionMappings(Exception e) {
@@ -274,7 +277,7 @@ public class ExceptionAdvice {
             return new Resp<>()
                     .setSuccess(false)
                     .setStatus(statusMessage.getStatus())
-                    .setMessage(processErrorMessage(exceptionMapping.parseMessage(e, statusMessage)));
+                    .setMessage(exceptionMapping.parseMessage(e, statusMessage));
         }
         return null;
     }
