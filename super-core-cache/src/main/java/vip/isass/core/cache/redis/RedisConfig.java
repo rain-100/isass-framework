@@ -292,9 +292,7 @@ public class RedisConfig extends CachingConfigurerSupport {
         }
 
         for (IRedisSubscriber<?> redisSubscriber : redisSubscribers) {
-            MessageListenerAdapter messageListenerAdapter = new MessageListenerAdapter(redisSubscriber);
-            messageListenerAdapter.afterPropertiesSet();
-            listenerContainer.addMessageListener(messageListenerAdapter, redisSubscriber.topic());
+            listenerContainer.addMessageListener(redisSubscriber, redisSubscriber.topic());
         }
         return listenerContainer;
     }

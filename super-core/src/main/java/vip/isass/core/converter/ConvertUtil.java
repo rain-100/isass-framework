@@ -207,6 +207,10 @@ public class ConvertUtil {
             return (T) value;
         }
 
+        if (clazz.isAssignableFrom(value.getClass())) {
+            return (T) value;
+        }
+
         if (ClassUtil.isBasicType(clazz)) {
             return Convert.convert(clazz, value);
         } else if (clazz == String.class) {

@@ -179,7 +179,11 @@ import org.springframework.stereotype.Component;
 import vip.isass.core.support.IsassConfig;
 
 import javax.annotation.Resource;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -244,27 +248,46 @@ public class V2DbEntityConvert {
 
     public static <E extends IV2Entity<E>, EDB extends IV2DbEntity<E, EDB>> List<E> convertToEntities(Collection<EDB> entities) {
         return entities == null
-            ? null
-            : entities.stream()
-            .map(V2DbEntityConvert::convertToEntity)
-            .collect(Collectors.toList());
+                ? null
+                : entities.stream()
+                .map(V2DbEntityConvert::convertToEntity)
+                .collect(Collectors.toList());
     }
 
     public static Class<?> getDbEntityClass(Class<?> entityClass) {
-        return DB_ENTITY_MAP.computeIfAbsent(entityClass, (k) -> {
-            Set<Class<?>> classes = ClassUtil.scanPackageBySuper(IsassConfig.PACKAGE_NAME, entityClass);
-            if (classes.isEmpty()) {
-                if (StrUtil.isNotBlank(packageName) && !IsassConfig.PACKAGE_NAME.equals(packageName)) {
-                    classes = ClassUtil.scanPackageBySuper(packageName, entityClass);
-                } else {
-                    log.warn("没有配置info.package，db 实体映射可能失败");
-                }
+        return DB_ENTITY_MAP.computeIfAbsent(entityClass, (clazz) -> {
+            // 从 isass 微服务的包路径上查找
+            Class<?> dbClass = findDbEntityClasses(IsassConfig.PACKAGE_NAME, clazz);
+            if (dbClass != null) {
+                return dbClass;
             }
-            return classes.stream()
-                .filter(IV2DbEntity.class::isAssignableFrom)
-                .findFirst()
-                .orElse(null);
+
+            // 从业务微服务的包路径上查找
+            if (StrUtil.isBlank(packageName)) {
+                log.warn("没有配置 info.package，db 实体映射失败");
+            } else if (!IsassConfig.PACKAGE_NAME.equals(packageName)) {
+                dbClass = findDbEntityClasses(packageName, clazz);
+            }
+
+            if (dbClass == null) {
+                log.error("找不到[{}]对应的dbEntityClass", clazz.getName());
+            }
+            return dbClass;
         });
     }
 
+    static Class<?> findDbEntityClasses(String scanPackageName, Class<?> entityClass) {
+        if (entityClass == null || !IV2Entity.class.isAssignableFrom(entityClass)) {
+            return null;
+        }
+
+        Set<Class<?>> classes = ClassUtil.scanPackageBySuper(scanPackageName, entityClass);
+        if (classes.isEmpty()) {
+            return findDbEntityClasses(scanPackageName, entityClass.getSuperclass());
+        }
+        return classes.stream()
+                .filter(IV2DbEntity.class::isAssignableFrom)
+                .findFirst()
+                .orElse(findDbEntityClasses(scanPackageName, entityClass.getSuperclass()));
+    }
 }

@@ -191,16 +191,26 @@ public interface IV2PkEntity<PK extends Serializable, E extends IV2PkEntity<PK, 
 
     @SuppressWarnings("unchecked")
     default Class<PK> findPkClass() {
-        Class<?> thisClass = this.getClass();
-        return (Class<PK>) PK_CLASS_CACHE.computeIfAbsent(thisClass, c -> {
-            Type[] types = thisClass.getGenericInterfaces();
-            String typeName = types[0].getTypeName();
-            System.out.println(typeName);
+        return (Class<PK>) PK_CLASS_CACHE.computeIfAbsent(this.getClass(), c -> {
+            // 如果 thisClass 是继承了 IV2Entity的类，即不是代码自动生成的实体类，则他本身没有定义泛型，需要往其父类上找到泛型
+            Type[] types = getTypes(c);
             ParameterizedType parameterizedType = (ParameterizedType) types[0];
             Type type = parameterizedType.getActualTypeArguments()[0];
             return (Class<?>) type;
         });
     }
+
+    static Type[] getTypes(Class<?> thisClass) {
+        if (thisClass == null) {
+            return new Type[0];
+        }
+        Type[] types = thisClass.getGenericInterfaces();
+        if (types.length > 0) {
+            return types;
+        }
+        return getTypes(thisClass.getSuperclass());
+    }
+
     //
     //    @SuppressWarnings("unchecked")
     //    default Class<PK> findPkClass() {
@@ -223,7 +233,7 @@ public interface IV2PkEntity<PK extends Serializable, E extends IV2PkEntity<PK, 
             return (PK) Integer.valueOf(RandomUtil.randomInt());
         } else {
             throw new UnsupportedOperationException(StrUtil.format(
-                "未支持自动生成类型为[{}]的主键", pkClass
+                    "未支持自动生成类型为[{}]的主键", pkClass
             ));
         }
     }
