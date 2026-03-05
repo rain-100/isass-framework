@@ -191,7 +191,7 @@ public class ResponseAdvice implements ResponseBodyAdvice<Object> {
     @Override
     public boolean supports(MethodParameter returnType, Class<? extends HttpMessageConverter<?>> converterType) {
         if (returnType.getParameterType() == Resp.class
-            || returnType.getParameterType() == ResponseEntity.class) {
+                || returnType.getParameterType() == ResponseEntity.class) {
             return false;
         }
         return IV2Controller.class.isAssignableFrom(returnType.getContainingClass());
@@ -206,9 +206,12 @@ public class ResponseAdvice implements ResponseBodyAdvice<Object> {
                                   ServerHttpRequest request,
                                   ServerHttpResponse response) {
         Resp<Object> resp = Resp.bizSuccess(body);
+        if (selectedContentType == MediaType.TEXT_PLAIN) {
+            response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
+        }
         return CharSequence.class.isAssignableFrom(returnType.getParameterType())
-            ? JsonUtil.NOT_NULL_INSTANCE.writeValueAsString(resp)
-            : resp;
+                ? JsonUtil.NOT_NULL_INSTANCE.writeValueAsString(resp)
+                : resp;
     }
 
 }
