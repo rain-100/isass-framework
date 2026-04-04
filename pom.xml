@@ -168,8 +168,9 @@
   ~
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <!-- 父项目信息 -->
@@ -247,8 +248,21 @@
         <!-- endregion -->
 
         <!-- spring -->
+
+        <!-- spring cloud 和 spring boot 版本关系 -->
+        <!-- https://spring.io/projects/spring-cloud#overview -->
+
+        <!-- https://spring.io/projects/spring-boot#learn -->
         <spring-boot.version>2.2.5.RELEASE</spring-boot.version>
-        <spring.cloud.version>Hoxton.SR3</spring.cloud.version>
+
+        <!-- wx-java-spring-boot-starters 用到这个属性 -->
+        <spring.boot.version>${spring-boot.version}</spring.boot.version>
+
+        <!-- spring cloud 版本号-->
+        <!-- https://spring.io/projects/spring-cloud#learn -->
+        <!-- spring cloud 子项目版本号 -->
+        <!--https://docs.spring.io/spring-cloud-release/reference/index.html-->
+        <spring-cloud.version>Hoxton.SR3</spring-cloud.version>
 
         <alibaba-nacos.version>2.2.1.RELEASE</alibaba-nacos.version>
 
@@ -356,7 +370,7 @@
             <dependency>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-dependencies</artifactId>
-                <version>${spring.cloud.version}</version>
+                <version>${spring-cloud.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -1092,7 +1106,8 @@
             <id>isass-deploy</id>
             <build>
                 <plugins>
-                    <!--生成 Source jar 文件-->
+                    <!--生成
+                    Source jar 文件-->
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-source-plugin</artifactId>
@@ -1121,7 +1136,8 @@
                         </executions>
                     </plugin>
 
-                    <!--Maven GPG插件用于使用以下配置对组件进行签名-->
+                    <!--Maven
+                    GPG插件用于使用以下配置对组件进行签名-->
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
@@ -1146,7 +1162,8 @@
                         </executions>
                     </plugin>
 
-                    <!--Nexus Staging Maven插件是将组件部署到OSSRH并将其发布到Central Repository的推荐方法-->
+                    <!--Nexus
+                    Staging Maven插件是将组件部署到OSSRH并将其发布到Central Repository的推荐方法-->
                     <plugin>
                         <groupId>org.sonatype.plugins</groupId>
                         <artifactId>nexus-staging-maven-plugin</artifactId>
