@@ -188,38 +188,13 @@
     <version>super.3.4.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
+    <!-- Maven 4 Feature: Modules are discovered recursively. 
+         Explicit declaration is optional but recommended for build order.
+         Temporarily commented out as requested.
     <modules>
-        <module>super-core</module>
-        <module>super-core-cache</module>
-        <module>super-core-database</module>
-        <module>super-core-database-mybatisplus</module>
-        <module>super-core-database-querydsl</module>
-        <module>super-core-database-mysql</module>
-        <module>super-core-database-postgresql</module>
-        <module>super-core-database-mybatisplus-postgresql</module>
-        <module>super-core-database-mybatisplus-mysql</module>
-        <module>super-core-database-sharding-jdbc</module>
-        <module>super-core-mq</module>
-        <module>super-core-mq-ons</module>
-        <module>super-core-mq-kafka011</module>
-        <module>super-core-mq-spring-event</module>
-        <module>super-core-deploy</module>
-        <module>super-core-web</module>
-        <module>super-core-web-security</module>
-        <module>super-core-web-swagger</module>
-        <!-- Removed: super-core-web-rpc-feign (Deprecated in SB4) -->
-        <module>kernel-net-admin</module>
-        <module>kernel-net-core</module>
-        <module>kernel-net-netty</module>
-        <module>kernel-net-proxy-core</module>
-        <module>kernel-net-proxy-upstream</module>
-        <module>kernel-net-proxy-service</module>
-        <module>kernel-net-websocket</module>
-        <module>kernel-net-socketio</module>
-        <module>super-core-protobuf</module>
-        <module>super-core-elasticsearch</module>
-        <module>super-core-encryption</module>
+        ... 
     </modules>
+    -->
 
     <!-- 配置属性 -->
     <properties>
