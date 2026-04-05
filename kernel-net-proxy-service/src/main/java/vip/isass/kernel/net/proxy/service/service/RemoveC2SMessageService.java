@@ -228,7 +228,7 @@ public class RemoveC2SMessageService {
         return redisTemplate.execute((RedisCallback<Set<String>>) connection -> {
             Set<String> keys = new HashSet<>();
             try (Cursor<byte[]> cursor = connection.scan(
-                    new ScanOptions.ScanOptionsBuilder()
+                    ScanOptions.scanOptions()
                             .match(NetRedisKey.REDIS_STREAM_PREFIX_KEY.concat("*"))
                             .count(1000)
                             .build())) {

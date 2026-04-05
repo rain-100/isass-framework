@@ -225,6 +225,12 @@ public class OnSocketIoErrorListener implements ExceptionListener {
     }
 
     @Override
+    public void onAuthException(Throwable t, SocketIOClient client) {
+        Session<?> session = sessionService.getSessionById(client.getSessionId().toString());
+        eventManager.onError(session, t);
+    }
+
+    @Override
     public void onPongException(Exception e, SocketIOClient client) {
         Session<?> session = sessionService.getSessionById(client.getSessionId().toString());
         eventManager.onError(session, e);

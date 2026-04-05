@@ -279,8 +279,8 @@ public class DefaultHttpRequestHandler implements RequestHandler {
                 javaProtobufClassC2S = httpFrame.getJavaProtobufClassC2S();
                 javaProtobufClassS2C = httpFrame.getJavaProtobufClassS2C();
                 GeneratedMessage bodyPb = (GeneratedMessage) ProtobufMethodCache.PARSE_METHOD_CACHE.get(javaProtobufClassC2S).invoke(null, httpFrame.getBody());
-                String bodyStr = JsonFormat.printToString(bodyPb);
-                httpContent.setBody(bodyStr);
+                String bodyStr = new JsonFormat().printToString(bodyPb);
+                httpContent.setBody(bodyStr); // String is acceptable for JSON body
                 break;
             case PROTOBUF3:
             default:
@@ -321,13 +321,13 @@ public class DefaultHttpRequestHandler implements RequestHandler {
             } else if (serializeMode == SerializeMode.PROTOBUF2) {
                 Method method = ProtobufMethodCache.BUILDER_METHOD_CACHE.get(javaProtobufClassS2C);
                 GeneratedMessage.Builder builder = (GeneratedMessage.Builder) method.invoke(method.getDeclaringClass());
-                JsonFormat.merge(body, builder);
+                new JsonFormat().merge(new java.io.ByteArrayInputStream(body.getBytes(java.nio.charset.StandardCharsets.UTF_8)), builder);
                 httpContent.setBody(builder.build().toByteString());
 
                 Base.HttpFrame.Builder contentBuilder = Base.HttpFrame.newBuilder()
                     .setUrl(httpContent.getUrl())
                     .setHttpMethod(httpContent.getHttpMethod())
-                    .setBody((ByteString) httpContent.getBody());
+                    .setBody((com.google.protobuf.ByteString) httpContent.getBody());
                 if (MapUtil.isNotEmpty(httpContent.getHttpHeaders())) {
                     httpContent.getHttpHeaders().forEach(
                         (k, v) -> contentBuilder.addHttpHeaders(Base.StringEntry.newBuilder().setKey(k).setValue(v))
@@ -346,10 +346,10 @@ public class DefaultHttpRequestHandler implements RequestHandler {
         request.sendResponse(packet);
     }
 
-    public static void main(String[] args) throws JsonFormat.ParseException {
+    public static void main(String[] args) throws Exception {
         String json = "{\"success\":true,\"errorCode\":0,\"errorMsg\":null,\"errorDetail\":null,\"data\":{\"toUserId\":111,\"message\":\"test内容\"}}";
         IM.SendTextToUserS2C.Builder builder = IM.SendTextToUserS2C.newBuilder();
-        JsonFormat.merge(json, builder);
+        new JsonFormat().merge(new java.io.ByteArrayInputStream(json.getBytes(java.nio.charset.StandardCharsets.UTF_8)), builder);
     }
 
     private ResponseEntity<String> httpForward(RestTemplate restTemplate, HttpContent httpContent) {

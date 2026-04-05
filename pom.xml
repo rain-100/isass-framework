@@ -207,7 +207,7 @@
         <module>super-core-web</module>
         <module>super-core-web-security</module>
         <module>super-core-web-swagger</module>
-        <module>super-core-web-rpc-feign</module>
+        <!-- Removed: super-core-web-rpc-feign (Deprecated in SB4) -->
         <module>kernel-net-admin</module>
         <module>kernel-net-core</module>
         <module>kernel-net-netty</module>
@@ -234,8 +234,6 @@
         <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
 
         <!-- end build properties -->
-
-        <tomcat.version>9.0.48</tomcat.version>
 
         <!-- region isass-core -->
 
@@ -288,19 +286,19 @@
         <highgo.version>6.2.4</highgo.version>
 
         <!-- net -->
-        <netty.version>4.2.0.RC3</netty.version>
+        <netty.version>4.2.0.Final</netty.version>
         <netty-socketio.version>2.0.12</netty-socketio.version>
         <protobuf-java.version>3.25.5</protobuf-java.version>
         <protobuf-java-format.version>1.4</protobuf-java-format.version>
 
         <canal.client.version>1.0.25</canal.client.version>
-        <hutool.version>5.8.27</hutool.version>
+        <hutool.version>5.8.38</hutool.version>
         <rocketmq.version>4.1.0-incubating</rocketmq.version>
         <ons.version>1.8.0.Final</ons.version>
 
         <disruptor.version>3.4.2</disruptor.version>
 
-        <guava.version>26.0-jre</guava.version>
+        <guava.version>33.5.0-jre</guava.version>
 
         <knife4j.version>2.0.9</knife4j.version>
 
@@ -321,7 +319,7 @@
 
         <klock.version>1.7-RELEASE</klock.version>
         <lock4j-redisson.version>2.2.2</lock4j-redisson.version>
-        <redisson.version>3.13.1</redisson.version>
+        <redisson.version>3.52.0</redisson.version>
 
         <alipay.version>4.7.12.ALL</alipay.version>
 
@@ -340,7 +338,7 @@
         <jts.version>1.18.1</jts.version>
         <coordtransform4j.version>1.0.2</coordtransform4j.version>
         <sqlite-jdbc.version>3.34.0</sqlite-jdbc.version>
-        <fastjson.version>1.2.83</fastjson.version>
+        <fastjson.version>2.0.61</fastjson.version>
         <commons-compress.version>1.26.1</commons-compress.version>
         <javassist.version>3.25.0-GA</javassist.version>
         <xFileStorage.version>2.2.1</xFileStorage.version>
@@ -434,11 +432,7 @@
                 <version>${super-core.version}</version>
             </dependency>
 
-            <dependency>
-                <groupId>vip.isass</groupId>
-                <artifactId>super-core-web-rpc-feign</artifactId>
-                <version>${super-core.version}</version>
-            </dependency>
+
 
             <dependency>
                 <groupId>vip.isass</groupId>
@@ -902,8 +896,8 @@
             </dependency>
 
             <dependency>
-                <groupId>com.alibaba</groupId>
-                <artifactId>fastjson</artifactId>
+                <groupId>com.alibaba.fastjson2</groupId>
+                <artifactId>fastjson2</artifactId>
                 <version>${fastjson.version}</version>
             </dependency>
 
