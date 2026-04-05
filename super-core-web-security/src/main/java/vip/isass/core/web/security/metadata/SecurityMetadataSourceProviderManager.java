@@ -174,7 +174,7 @@ import vip.isass.core.support.FunctionUtil;
 import vip.isass.core.web.security.config.UrlAccessSecurityStrategy;
 import vip.isass.core.web.security.config.WebSecurityConfig;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;

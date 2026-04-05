@@ -183,7 +183,7 @@ import vip.isass.core.mq.kafka011.config.Kafka011ConfigUtil;
 import vip.isass.core.mq.kafka011.config.Kafka011Configuration;
 import vip.isass.core.mq.kafka011.config.ProducerConfiguration;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.util.Collections;
 import java.util.Map;
 import java.util.function.Function;

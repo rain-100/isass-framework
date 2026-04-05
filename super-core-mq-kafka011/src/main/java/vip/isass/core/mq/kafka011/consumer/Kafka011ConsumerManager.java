@@ -195,7 +195,7 @@ import vip.isass.core.mq.kafka011.config.Kafka011Configuration;
 import vip.isass.core.support.FunctionUtil;
 import vip.isass.core.support.JsonUtil;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;

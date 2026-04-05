@@ -201,8 +201,8 @@ import vip.isass.kernel.net.core.session.Session;
 import vip.isass.kernel.net.core.session.SessionBindingInfoChangeReq;
 import vip.isass.kernel.net.core.session.SessionInfoCollection;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Resource;
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Resource;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;

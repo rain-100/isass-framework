@@ -185,7 +185,7 @@ import vip.isass.kernel.net.core.session.ISessionService;
 import vip.isass.kernel.net.proxy.service.service.GatewayToRedisMessageService;
 import vip.isass.kernel.net.proxy.service.service.RemoveC2SMessageService;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 
 /**
  * @author rain

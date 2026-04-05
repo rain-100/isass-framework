@@ -180,7 +180,7 @@ import vip.isass.kernel.net.admin.model.vo.OnlineEquipmentVo;
 import vip.isass.kernel.net.core.session.ISessionService;
 import vip.isass.kernel.net.core.session.SessionInfoCollection;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;

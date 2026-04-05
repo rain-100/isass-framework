@@ -186,7 +186,7 @@ import vip.isass.kernel.net.core.message.Message;
 import vip.isass.kernel.net.core.session.ISessionService;
 import vip.isass.kernel.net.core.session.SessionBindingInfoChangeReq;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.util.Collection;
 import java.util.Map;
 

@@ -187,13 +187,13 @@ public class JwtAuthenticationToken extends AbstractAuthenticationToken {
     private JwtInfo jwtClaim;
 
     public JwtAuthenticationToken(String token) {
-        super(null);
+        super(java.util.Collections.emptyList());
         this.token = token;
-        setAuthenticated(false);
+        super.setAuthenticated(false);
     }
 
     public JwtAuthenticationToken(String token, JwtInfo jwtClaim, Collection<? extends GrantedAuthority> authorities) {
-        super(authorities);
+        super((Collection<GrantedAuthority>) authorities);
         this.token = token;
         this.jwtClaim = jwtClaim;
         super.setAuthenticated(true);

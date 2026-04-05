@@ -180,7 +180,7 @@ import vip.isass.kernel.net.netty.request.Request;
 import vip.isass.kernel.net.netty.request.worker.event.WorkExceptionEvent;
 import vip.isass.kernel.net.netty.request.worker.event.WorkStartEvent;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 
 @Slf4j
 public abstract class Worker extends Thread {

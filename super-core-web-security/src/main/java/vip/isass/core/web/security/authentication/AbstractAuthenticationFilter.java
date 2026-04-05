@@ -169,7 +169,7 @@
 
 package vip.isass.core.web.security.authentication;
 
-import cn.hutool.extra.servlet.ServletUtil;
+import cn.hutool.extra.servlet.JakartaServletUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
@@ -177,6 +177,9 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import vip.isass.core.login.DefaultLoginUser;
 import vip.isass.core.login.LoginUser;
 import vip.isass.core.web.security.authentication.jwt.JwtAuthenticationFilter;
@@ -184,8 +187,8 @@ import vip.isass.core.web.security.authentication.jwt.JwtConst;
 import vip.isass.core.web.security.authentication.ms.MsAuthenticationFilter;
 import vip.isass.core.web.security.authentication.ms.MsAuthenticationHeaderProvider;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -240,7 +243,7 @@ public abstract class AbstractAuthenticationFilter extends BasicAuthenticationFi
                 loginUserAuthenticationToken.getAllUserId(),
                 loginUserAuthenticationToken.getAllNickName(),
                 authentication.getAuthorities(),
-                ServletUtil.getClientIP(request));
+                JakartaServletUtil.getClientIP(request));
         }
     }
 
@@ -257,7 +260,7 @@ public abstract class AbstractAuthenticationFilter extends BasicAuthenticationFi
             token,
             request.getMethod(),
             request.getRequestURL(),
-            ServletUtil.getClientIP(request));
+            JakartaServletUtil.getClientIP(request));
     }
 
 }

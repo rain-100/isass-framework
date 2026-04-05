@@ -189,12 +189,12 @@ public class MsAuthenticationToken extends AbstractAuthenticationToken {
     private String secret;
 
     public MsAuthenticationToken(String tokenValue) {
-        super(null);
+        super(java.util.Collections.emptyList());
         this.tokenValue = tokenValue;
     }
 
     public MsAuthenticationToken(String appName, String secret, Collection<? extends GrantedAuthority> authorities) {
-        super(authorities);
+        super((Collection<GrantedAuthority>) authorities);
         this.appName = appName;
         this.secret = secret;
         super.setAuthenticated(true);

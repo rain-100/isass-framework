@@ -191,13 +191,13 @@ public class LoginUserTokenWrapper extends AbstractAuthenticationToken implement
     private List<LoginUser> loginUsers;
 
     public LoginUserTokenWrapper(LoginUser loginUser) {
-        super(null);
+        super(java.util.Collections.emptyList());
         this.loginUsers = CollUtil.newArrayList(loginUser);
-        setAuthenticated(false);
+        super.setAuthenticated(false);
     }
 
     public LoginUserTokenWrapper(LoginUser loginUser, Collection<? extends GrantedAuthority> authorities) {
-        super(authorities);
+        super((Collection<GrantedAuthority>) authorities);
         this.loginUsers = CollUtil.newArrayList(loginUser);
         super.setAuthenticated(true);
     }

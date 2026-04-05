@@ -205,7 +205,7 @@ import org.springframework.data.redis.stream.StreamMessageListenerContainer;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import vip.isass.core.support.JsonUtil;
 
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PreDestroy;
 import java.lang.reflect.Field;
 import java.time.Duration;
 import java.util.List;

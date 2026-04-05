@@ -184,7 +184,7 @@ import vip.isass.core.mq.spring.event.IsassMqEvent;
 import vip.isass.core.mq.spring.event.SpringEventConfiguration;
 import vip.isass.core.mq.spring.event.SpringEventConst;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.util.List;
 import java.util.stream.Collectors;
 

@@ -184,10 +184,15 @@
     <version>super.3.4.0-SNAPSHOT</version>
 
     <properties>
-        <spring-security.version>5.5.8</spring-security.version>
+        <!-- <spring-security.version>5.5.8</spring-security.version> -->
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>jakarta.annotation</groupId>
+            <artifactId>jakarta.annotation-api</artifactId>
+            <version>3.0.0</version>
+        </dependency>
         <dependency>
             <groupId>vip.isass</groupId>
             <artifactId>super-core</artifactId>
@@ -227,13 +232,24 @@
                     <artifactId>spring-security-core</artifactId>
                 </exclusion>
             </exclusions>
-            <version>${spring-security.version}</version>
+            <!-- <version>${spring-security.version}</version> -->
         </dependency>
 
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-core</artifactId>
-            <version>${spring-security.version}</version>
+            <!-- <version>${spring-security.version}</version> -->
+        </dependency>
+        <dependency>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
+            <version>6.1.0</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+            <version>${spring-boot.version}</version>
         </dependency>
     </dependencies>
 </project>

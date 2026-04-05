@@ -194,6 +194,16 @@ public enum WebStatusCode implements IStatusMessage {
         this.exception = exception;
     }
 
+    @Override
+    public Integer getStatus() {
+        return status;
+    }
+
+    @Override
+    public String getMsg() {
+        return msg;
+    }
+
     public static WebStatusCode getByStatus(Integer status) {
         for (WebStatusCode statusCode : values()) {
             if (statusCode.getStatus().equals(status)) {
@@ -201,11 +211,5 @@ public enum WebStatusCode implements IStatusMessage {
             }
         }
         return null;
-    }
-
-
-    @Override
-    public String getMsg() {
-        return msg;
     }
 }

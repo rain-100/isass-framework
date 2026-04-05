@@ -180,7 +180,7 @@ import vip.isass.core.mq.core.producer.ProducerManager;
 import vip.isass.core.mq.ons.OnsConst;
 import vip.isass.core.mq.ons.config.*;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.util.Collections;
 import java.util.Map;
 import java.util.function.Function;

@@ -201,7 +201,7 @@ public class RestTemplateInterceptor implements ClientHttpRequestInterceptor {
 
         HttpHeaders headers = request.getHeaders();
         additionalHeaderProviders.forEach(h -> {
-            if (!h.support(request.getMethodValue(), request.getURI().getHost())) {
+            if (!h.support(request.getMethod().name(), request.getURI().getHost())) {
                 return;
             }
             if (h.override()) {

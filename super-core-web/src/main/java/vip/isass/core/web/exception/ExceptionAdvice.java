@@ -172,6 +172,8 @@ package vip.isass.core.web.exception;
 import cn.hutool.core.exceptions.ExceptionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.catalina.connector.ClientAbortException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -183,7 +185,7 @@ import vip.isass.core.exception.code.StatusMessageEnum;
 import vip.isass.core.sequence.impl.LongSequence;
 import vip.isass.core.web.Resp;
 
-import javax.annotation.Resource;
+// import javax.annotation.Resource;
 import java.util.List;
 
 /**
@@ -191,11 +193,12 @@ import java.util.List;
  *
  * @author Rain
  */
-@Slf4j
+
 @RestControllerAdvice
 public class ExceptionAdvice {
+    private static final Logger log = LoggerFactory.getLogger(ExceptionAdvice.class);
 
-    @Resource
+    
     private List<IExceptionMapping> exceptionMappings;
 
     /**

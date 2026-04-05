@@ -200,7 +200,7 @@ import vip.isass.core.database.mybatisplus.plus.handler.MybatisPlusMetaObjectHan
 import vip.isass.core.database.mybatisplus.typehandler.enums.ExtendedCompositeEnumTypeHandler;
 import vip.isass.core.page.PageConst;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import javax.sql.DataSource;
 import java.util.List;
 import java.util.Properties;

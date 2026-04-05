@@ -182,7 +182,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import vip.isass.kernel.net.netty.channel.ChannelEventHandler;
 import vip.isass.kernel.net.netty.channel.ChannelInitializerHandler;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.util.concurrent.TimeUnit;
 
 /**

@@ -182,7 +182,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.DefaultResourceLoader;
 import vip.isass.kernel.net.socketio.handler.OnSocketIoErrorListener;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 
 /**
  * @author Rain

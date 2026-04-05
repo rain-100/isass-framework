@@ -172,14 +172,15 @@ package vip.isass.core.web;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.http.client.ClientHttpRequestFactory;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.http.converter.BufferedImageHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
 import vip.isass.core.web.interceptor.RestTemplateInterceptor;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.awt.image.BufferedImage;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
@@ -199,9 +200,11 @@ public class WebAutoConfiguration {
 
     @Bean
     public RestTemplate noBalancedRestTemplate() {
-        HttpComponentsClientHttpRequestFactory httpRequestFactory = new HttpComponentsClientHttpRequestFactory();
-        httpRequestFactory.setConnectionRequestTimeout(CONN_TIMEOUT_IN_MILLIS);
-        httpRequestFactory.setConnectTimeout(CONN_TIMEOUT_IN_MILLIS);
+        SimpleClientHttpRequestFactory httpRequestFactory = new SimpleClientHttpRequestFactory();
+        httpRequestFactory.setReadTimeout(CONN_TIMEOUT_IN_MILLIS);
+        httpRequestFactory.setReadTimeout(CONN_TIMEOUT_IN_MILLIS);
+        httpRequestFactory.setReadTimeout(CONN_TIMEOUT_IN_MILLIS);
+        httpRequestFactory.setReadTimeout(CONN_TIMEOUT_IN_MILLIS);
         httpRequestFactory.setReadTimeout(READ_TIMEOUT_IN_MILLIS);
 
         RestTemplate restTemplate = new RestTemplate(httpRequestFactory);

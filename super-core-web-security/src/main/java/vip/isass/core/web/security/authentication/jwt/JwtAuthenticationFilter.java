@@ -178,10 +178,10 @@ import vip.isass.core.security.jwt.JwtInfo;
 import vip.isass.core.web.security.authentication.AbstractAuthenticationFilter;
 import vip.isass.core.web.security.authentication.multilogin.ShouldOfflineChecker;
 
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**

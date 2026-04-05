@@ -190,6 +190,12 @@
         </dependency>
 
         <dependency>
+            <groupId>jakarta.annotation</groupId>
+            <artifactId>jakarta.annotation-api</artifactId>
+            <version>3.0.0</version>
+        </dependency>
+
+        <dependency>
             <groupId>vip.isass</groupId>
             <artifactId>super-core-database</artifactId>
         </dependency>

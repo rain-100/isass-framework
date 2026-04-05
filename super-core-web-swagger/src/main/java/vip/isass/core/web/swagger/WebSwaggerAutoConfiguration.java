@@ -176,8 +176,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.xiaoymin.knife4j.spring.annotations.EnableKnife4j;
 import com.github.xiaoymin.knife4j.spring.extension.OpenApiExtensionResolver;
 import com.google.common.collect.Lists;
-import org.geotools.data.simple.SimpleFeatureCollection;
-import org.geotools.feature.FeatureCollection;
+// import org.geotools.data.simple.SimpleFeatureCollection; // GeoTools disabled
+// import org.geotools.feature.FeatureCollection; // GeoTools disabled
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.logging.LogLevel;
 import org.springframework.boot.logging.LoggingSystem;
@@ -201,7 +201,7 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2WebMvc;
 import vip.isass.core.support.ExceptionCatcher;
 import vip.isass.core.web.security.authentication.jwt.JwtConst;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -260,8 +260,8 @@ public class WebSwaggerAutoConfiguration {
         ExceptionCatcher.consume(
                 docket,
                 d -> {
-                    d.directModelSubstitute(FeatureCollection.class, Map.class);
-                    d.directModelSubstitute(SimpleFeatureCollection.class, Map.class);
+                    // d.directModelSubstitute(FeatureCollection.class, Map.class); // GeoTools disabled
+                    // d.directModelSubstitute(SimpleFeatureCollection.class, Map.class); // GeoTools disabled
                 }
 
         );

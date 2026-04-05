@@ -180,7 +180,7 @@ import vip.isass.kernel.net.core.server.NetServerInfo;
 import vip.isass.kernel.net.core.server.allocator.INodeAllocatorService;
 import vip.isass.kernel.net.websocket.WebsocketProperties;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.util.Collection;
 import java.util.Collections;
 

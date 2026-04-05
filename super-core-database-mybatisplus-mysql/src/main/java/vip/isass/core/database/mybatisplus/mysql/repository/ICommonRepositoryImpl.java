@@ -180,7 +180,7 @@ import vip.isass.core.entity.DbEntityConvert;
 import vip.isass.core.entity.IdEntity;
 import vip.isass.core.repository.ICommonRepository;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;

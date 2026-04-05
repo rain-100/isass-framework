@@ -172,14 +172,17 @@ package vip.isass.core.web.security.config;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
+import org.springframework.boot.security.autoconfigure.actuate.web.servlet.EndpointRequest;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -192,7 +195,7 @@ import vip.isass.core.web.security.processor.AffirmativeBasedPostProcessor;
 import vip.isass.core.web.security.processor.FilterSecurityInterceptorSourcePostProcessor;
 import vip.isass.core.web.uri.UriPrefixProvider;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.util.Collection;
 import java.util.List;
 
@@ -202,7 +205,7 @@ import java.util.List;
 @Slf4j
 @Configuration
 @EnableWebSecurity
-public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+public class WebSecurityConfig {
 
     @Resource
     private PasswordEncoder passwordEncoder;
@@ -228,97 +231,59 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Resource
     private ShouldOfflineChecker shouldOfflineChecker;
 
+    @Resource
+    private AuthenticationManager authenticationManager;
+
     @Getter
     @Value("${security.urlAccessSecurityStrategy:NONE}")
     private UrlAccessSecurityStrategy urlAccessSecurityStrategy;
 
-    @Override
-    public void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(userDetailsService)
-                .passwordEncoder(passwordEncoder);
-
-        // 使用自定义身份验证组件
-        authenticationProvider.forEach(auth::authenticationProvider);
-        auth.eraseCredentials(false);
-    }
-
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         log.info("urlAccessSecurityStrategy: {}", urlAccessSecurityStrategy);
 
         Collection<String> permitUrls = permitUrlConfiguration.getPermitUrls();
 
-        FilterSecurityInterceptorSourcePostProcessor filterSecurityInterceptorSourcePostProcessor =
-                new FilterSecurityInterceptorSourcePostProcessor(
-                        requestMappingHandlerMapping,
-                        securityMetadataSourceProviderManager,
-                        uriPrefixProvider,
-                        permitUrls);
-
-        AffirmativeBasedPostProcessor affirmativeBasedPostProcessor = new AffirmativeBasedPostProcessor();
-
         http
                 // 允许跨域
-                .cors()
-
-                .and()
+                .cors(cors -> {})
 
                 // 基于jwt，无需预防CSRF攻击
-                .csrf().disable()
+                .csrf(csrf -> csrf.disable())
 
                 // 基于jwt，无需session
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-
-                .and()
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
                 // 禁用缓存
-                .headers().cacheControl().disable()
+                .headers(headers -> headers.cacheControl(cache -> cache.disable()).frameOptions(frame -> frame.disable()))
 
-                // 允许加载iframe
-                .frameOptions().disable()
-
-                // 禁用只能通过 HTTPS 访问当前资源
-                .httpStrictTransportSecurity().disable()
-
-                .and()
+                // HSTS is now handled via ServerHttpSecurity or configuration properties in SB4
 
                 // jwt 校验过滤器
-                .addFilter(new JwtAuthenticationFilter(authenticationManager(), shouldOfflineChecker))
+                .addFilter(new JwtAuthenticationFilter(authenticationManager, shouldOfflineChecker))
 
                 // 微服务之间调用权限校验过滤器
-                .addFilter(new MsAuthenticationFilter(authenticationManager()))
+                .addFilter(new MsAuthenticationFilter(authenticationManager))
 
-                // 允许匿名用户机制
-                .anonymous();
+                // 允许匿名机制
+                .anonymous(anonymous -> {});
 
-        ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry registry =
-                http.authorizeRequests();
         if (urlAccessSecurityStrategy == UrlAccessSecurityStrategy.NONE) {
-            registry
-                    .anyRequest()
-                    .permitAll();
+            http.authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
         } else {
-            registry
-                    // 允许 actuator 的请求
-                    .requestMatchers(EndpointRequest.toAnyEndpoint())
-                    .permitAll()
-
-                    .and()
-
+            http.authorizeHttpRequests(auth -> auth
                     // 允许自定义配置的 url 的请求
-                    .authorizeRequests()
-                    .antMatchers(permitUrls.toArray(new String[]{}))
-                    .permitAll();
-
-            if (urlAccessSecurityStrategy == UrlAccessSecurityStrategy.AUTHENTICATED) {
-                registry.anyRequest()
-                        .authenticated();
-            }
+                    .requestMatchers(permitUrls.toArray(new String[0])).permitAll()
+                    .anyRequest().authenticated()
+            );
         }
 
-        // 添加自定义角色获取器
-        registry.withObjectPostProcessor(filterSecurityInterceptorSourcePostProcessor)
-                .withObjectPostProcessor(affirmativeBasedPostProcessor);
+        return http.build();
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
     }
 
 }

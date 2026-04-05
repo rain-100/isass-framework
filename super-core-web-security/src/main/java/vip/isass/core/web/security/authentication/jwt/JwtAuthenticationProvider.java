@@ -187,7 +187,7 @@ import vip.isass.core.security.jwt.JwtUtil;
 import vip.isass.core.web.security.IsassGrantedAuthority;
 import vip.isass.core.web.security.metadata.SecurityMetadataSourceProviderManager;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.stream.Collectors;

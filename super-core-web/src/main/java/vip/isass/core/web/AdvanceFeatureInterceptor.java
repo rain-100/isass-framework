@@ -9,8 +9,8 @@ import vip.isass.core.structure.entity.IAnyJsonEntity;
 import vip.isass.core.support.JsonUtil;
 import vip.isass.core.web.interceptor.IsassHandlerInterceptor;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;

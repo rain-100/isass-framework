@@ -369,10 +369,10 @@ public class V2FeignDecoder implements Decoder {
             return HttpStatus.valueOf(this.response.status());
         }
 
-        @Override
-        public int getRawStatusCode() {
-            return this.response.status();
-        }
+        // SB4: getRawStatusCode removed from interface or changed.
+        // public int getRawStatusCode() {
+        //     return this.response.status();
+        // }
 
         @Override
         public String getStatusText() {

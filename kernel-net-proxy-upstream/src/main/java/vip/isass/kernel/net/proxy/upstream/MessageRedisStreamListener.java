@@ -195,8 +195,8 @@ import vip.isass.kernel.net.core.NetRedisKey;
 import vip.isass.kernel.net.core.handler.manager.IEventManager;
 import vip.isass.kernel.net.core.message.Message;
 
-import javax.annotation.PreDestroy;
-import javax.annotation.Resource;
+import jakarta.annotation.PreDestroy;
+import jakarta.annotation.Resource;
 import java.lang.reflect.Field;
 import java.time.Duration;
 import java.util.concurrent.ThreadPoolExecutor;

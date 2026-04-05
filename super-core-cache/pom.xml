@@ -189,6 +189,12 @@
             <artifactId>super-core</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>jakarta.annotation</groupId>
+            <artifactId>jakarta.annotation-api</artifactId>
+            <version>3.0.0</version>
+        </dependency>
+
         <!-- 缓存 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

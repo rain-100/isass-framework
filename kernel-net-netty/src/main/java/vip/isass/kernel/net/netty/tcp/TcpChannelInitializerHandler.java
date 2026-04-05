@@ -182,7 +182,7 @@ import vip.isass.kernel.net.netty.packet.Encoder;
 import vip.isass.kernel.net.netty.packet.impl.coder.IsassBinaryPacketDecoder;
 import vip.isass.core.support.SpringContextUtil;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.util.concurrent.TimeUnit;
 
 /**

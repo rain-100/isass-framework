@@ -176,7 +176,7 @@ import org.springframework.stereotype.Service;
 import vip.isass.kernel.net.core.NetRedisKey;
 import vip.isass.kernel.net.core.message.Message;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.util.Map;
 
 /**

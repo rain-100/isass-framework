@@ -170,8 +170,7 @@
 package vip.isass.core.web.security;
 
 import cn.hutool.core.collection.CollUtil;
-import org.springframework.security.access.ConfigAttribute;
-import org.springframework.security.access.SecurityConfig;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import java.util.Collection;
 
@@ -196,8 +195,8 @@ public interface SecurityConst {
     String ROLE_ANONYMOUS = "ROLE_ANONYMOUS";
 
     // 所有uri资源都添加的角色
-    Collection<ConfigAttribute> CONFIG_ATTRIBUTES = CollUtil.newArrayList(
-        new SecurityConfig(ROLE_SUPER_DEV),
-        new SecurityConfig(ROLE_MS));
+    Collection<SimpleGrantedAuthority> AUTHORITIES = CollUtil.newArrayList(
+        new SimpleGrantedAuthority(ROLE_SUPER_DEV),
+        new SimpleGrantedAuthority(ROLE_MS));
 
 }

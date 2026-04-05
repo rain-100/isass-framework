@@ -172,8 +172,8 @@ package vip.isass.core.web.exception;
 import cn.hutool.core.util.StrUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfigureOrder;
-import org.springframework.boot.web.servlet.error.ErrorAttributes;
-import org.springframework.boot.web.servlet.error.ErrorController;
+import org.springframework.boot.webmvc.error.ErrorAttributes;
+import org.springframework.boot.webmvc.error.ErrorController;
 import org.springframework.core.Ordered;
 import org.springframework.http.MediaType;
 import org.springframework.util.Assert;
@@ -188,10 +188,10 @@ import vip.isass.core.login.LoginUserUtil;
 import vip.isass.core.web.Resp;
 import vip.isass.core.web.security.authentication.jwt.JwtConst;
 
-import javax.annotation.Resource;
-import javax.servlet.RequestDispatcher;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+// import javax.annotation.Resource;
+import jakarta.servlet.RequestDispatcher;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
 import java.util.Map;
 
@@ -206,7 +206,7 @@ public class IsassErrorController implements ErrorController {
 
     private final ErrorAttributes errorAttributes;
 
-    @Resource
+    
     private List<IStatusMapping> statusMappings;
 
     @Autowired
@@ -215,7 +215,7 @@ public class IsassErrorController implements ErrorController {
         this.errorAttributes = errorAttributes;
     }
 
-    @Override
+    // @Override
     public String getErrorPath() {
         return PATH;
     }
@@ -227,7 +227,7 @@ public class IsassErrorController implements ErrorController {
      * @param response response
      * @return resp
      */
-    @RequestMapping(value = PATH, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @RequestMapping(value = PATH, produces = MediaType.APPLICATION_JSON_VALUE)
     public Resp<?> errorJson(HttpServletRequest request, HttpServletResponse response) {
         Map<String, Object> errorAttributes = getErrorAttributes(request, true);
         Object exception = errorAttributes.get(RequestDispatcher.ERROR_EXCEPTION);
@@ -270,7 +270,7 @@ public class IsassErrorController implements ErrorController {
 
     protected Map<String, Object> getErrorAttributes(HttpServletRequest request, boolean includeStackTrace) {
         ServletWebRequest servletWebRequest = new ServletWebRequest(request);
-        Map<String, Object> errorAttributes = this.errorAttributes.getErrorAttributes(servletWebRequest, includeStackTrace);
+        Map<String, Object> errorAttributes = this.errorAttributes.getErrorAttributes(servletWebRequest, org.springframework.boot.web.error.ErrorAttributeOptions.defaults());
         Throwable error = this.errorAttributes.getError(servletWebRequest);
         if (error != null) {
             errorAttributes.put(RequestDispatcher.ERROR_EXCEPTION, error);

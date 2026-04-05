@@ -177,7 +177,7 @@ import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.listener.Topic;
 import vip.isass.core.converter.ConvertUtil;
 
-import javax.annotation.Nonnull;
+import jakarta.annotation.Nonnull;
 import java.lang.reflect.Type;
 
 /**

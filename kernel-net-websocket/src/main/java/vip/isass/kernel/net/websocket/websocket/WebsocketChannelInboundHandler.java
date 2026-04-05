@@ -208,7 +208,7 @@ import vip.isass.kernel.net.websocket.WebsocketProperties;
 import vip.isass.kernel.net.websocket.packet.WebsocketPacket;
 import vip.isass.kernel.net.websocket.session.WebsocketClientSession;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 

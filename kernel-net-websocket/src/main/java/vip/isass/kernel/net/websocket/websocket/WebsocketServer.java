@@ -183,7 +183,7 @@ import vip.isass.kernel.net.core.server.NetProtocol;
 import vip.isass.kernel.net.core.server.Server;
 import vip.isass.kernel.net.websocket.WebsocketProperties;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 

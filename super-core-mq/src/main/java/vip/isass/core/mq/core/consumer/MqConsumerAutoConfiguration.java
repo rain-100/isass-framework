@@ -176,7 +176,7 @@ import org.springframework.context.SmartLifecycle;
 import org.springframework.stereotype.Component;
 import vip.isass.core.mq.MqAutoConfiguration;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.util.List;
 
 /**

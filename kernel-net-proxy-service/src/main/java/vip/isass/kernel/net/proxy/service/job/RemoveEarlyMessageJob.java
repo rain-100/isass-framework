@@ -172,7 +172,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import vip.isass.kernel.net.proxy.service.service.RemoveC2SMessageService;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 
 /**
  * 定时删除 redis 旧的中转消息

@@ -172,10 +172,11 @@ package vip.isass.core.support;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
 import lombok.extern.slf4j.Slf4j;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import vip.isass.core.exception.UnifiedException;
 import vip.isass.core.exception.code.StatusMessageEnum;
 
-import javax.activation.MimetypesFileTypeMap;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
@@ -201,7 +202,21 @@ public class FileUtil {
         }
         //若失败则调用另一个方法进行判断
         if (contentType == null) {
-            contentType = new MimetypesFileTypeMap().getContentType(file);
+            try {
+                contentType = Files.probeContentType(file.toPath());
+            } catch (IOException ignored) {
+                // ignore
+            }
+            if (contentType == null) {
+                String fileName = file.getName();
+                if (fileName.endsWith(".jpg") || fileName.endsWith(".jpeg")) {
+                    contentType = "image/jpeg";
+                } else if (fileName.endsWith(".png")) {
+                    contentType = "image/png";
+                } else {
+                    contentType = "application/octet-stream";
+                }
+            }
         }
         return contentType;
     }

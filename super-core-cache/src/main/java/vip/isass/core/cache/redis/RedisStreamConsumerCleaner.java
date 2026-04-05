@@ -174,8 +174,8 @@ import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PreDestroy;
-import javax.annotation.Resource;
+import jakarta.annotation.PreDestroy;
+import jakarta.annotation.Resource;
 import java.util.List;
 
 @Slf4j

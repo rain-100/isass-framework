@@ -178,7 +178,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import vip.isass.core.web.header.AdditionalRequestHeaderProvider;
 import vip.isass.core.web.security.authentication.jwt.JwtConst;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest; // SB4 Jakarta
 import java.util.Enumeration;
 import java.util.List;
 

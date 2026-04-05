@@ -173,7 +173,7 @@ import org.springframework.stereotype.Component;
 import vip.isass.core.web.security.metadata.rolecode.IRoleCodeService;
 import vip.isass.core.web.security.metadata.rolecode.UriRoleCodesReq;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.util.Collection;
 
 /**

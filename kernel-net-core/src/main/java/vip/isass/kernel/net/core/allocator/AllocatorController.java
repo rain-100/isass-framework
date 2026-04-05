@@ -168,7 +168,7 @@
 
 package vip.isass.kernel.net.core.allocator;
 
-import cn.hutool.extra.servlet.ServletUtil;
+import cn.hutool.extra.servlet.JakartaServletUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -177,8 +177,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import vip.isass.core.web.Resp;
 
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
 @Api(tags = "节点分配器")
@@ -192,7 +192,7 @@ public class AllocatorController {
     @GetMapping("/{serverName}/allocator/node")
     public Resp<String> allocate(HttpServletRequest request,
                                  @PathVariable("serverName") String serverName) {
-        String clientIp = ServletUtil.getClientIP(request);
+        String clientIp = JakartaServletUtil.getClientIP(request);
         return Resp.bizSuccess(allocatorService.allocateAccessUrl(serverName, clientIp));
     }
 

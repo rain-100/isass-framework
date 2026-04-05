@@ -204,7 +204,7 @@ import vip.isass.kernel.net.netty.request.RequestManager;
 import vip.isass.kernel.net.core.session.ISessionService;
 import vip.isass.core.support.JsonUtil;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 

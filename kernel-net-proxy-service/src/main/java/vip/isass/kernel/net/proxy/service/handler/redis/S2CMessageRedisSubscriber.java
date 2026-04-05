@@ -177,7 +177,7 @@ import vip.isass.core.cache.redis.IRedisSubscriber;
 import vip.isass.kernel.net.core.NetRedisKey;
 import vip.isass.kernel.net.core.session.ISessionService;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 
 /**
  * 服务端推送消息给客户端时，使用 redis 的 pubsub 功能中转消息

@@ -185,6 +185,11 @@
 
     <dependencies>
         <dependency>
+            <groupId>jakarta.annotation</groupId>
+            <artifactId>jakarta.annotation-api</artifactId>
+            <version>3.0.0</version>
+        </dependency>
+        <dependency>
             <groupId>vip.isass</groupId>
             <artifactId>super-core-web</artifactId>
         </dependency>
@@ -194,12 +199,13 @@
             <artifactId>knife4j-spring-boot-starter</artifactId>
         </dependency>
 
+        <!-- Temporarily commented out due to Maven Central resolution error. Requires GeoTools repository.
         <dependency>
             <groupId>org.geotools</groupId>
             <artifactId>gt-main</artifactId>
             <version>${geotools.version}</version>
-            <optional>true</optional>
             <scope>provided</scope>
         </dependency>
+        -->
     </dependencies>
 </project>

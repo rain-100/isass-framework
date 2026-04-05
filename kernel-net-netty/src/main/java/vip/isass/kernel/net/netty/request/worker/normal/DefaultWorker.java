@@ -177,7 +177,7 @@ import vip.isass.kernel.net.netty.request.Request;
 import vip.isass.kernel.net.netty.request.handler.RequestHandler;
 import vip.isass.kernel.net.netty.request.worker.Worker;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 

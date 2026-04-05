@@ -177,9 +177,9 @@ import vip.isass.core.mq.kafka011.config.InstanceConfiguration;
 import vip.isass.core.mq.kafka011.config.Kafka011Configuration;
 import vip.isass.core.mq.kafka011.config.ProducerConfiguration;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import javax.annotation.Resource;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
+import jakarta.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;

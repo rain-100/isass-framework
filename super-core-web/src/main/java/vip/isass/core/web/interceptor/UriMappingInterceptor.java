@@ -174,9 +174,9 @@ import org.springframework.web.servlet.HandlerMapping;
 import vip.isass.core.support.UriRequestMapping;
 import vip.isass.core.web.uri.UriPrefixProvider;
 
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 /**
  * @author Rain

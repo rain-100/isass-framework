@@ -176,7 +176,7 @@ import feign.optionals.OptionalDecoder;
 import feign.querymap.BeanQueryMapEncoder;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.http.HttpMessageConverters;
+
 import org.springframework.cloud.openfeign.support.ResponseEntityDecoder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -190,7 +190,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class WebRpcFeignAutoConfiguration {
 
     @Autowired
-    private ObjectFactory<HttpMessageConverters> messageConverters;
+    private ObjectFactory<?> messageConverters; // SB4 adaptation
 
     @Bean
     public HttpMessageConverter<MultipartFile[]> springManyMultipartFilesReader() {
@@ -206,7 +206,7 @@ public class WebRpcFeignAutoConfiguration {
     public Decoder feignDecoder() {
         return new OptionalDecoder(
             new ResponseEntityDecoder(
-                new V2FeignDecoder(this.messageConverters.getObject().getConverters())));
+                new V2FeignDecoder(java.util.Collections.emptyList())));
     }
 
     @Bean

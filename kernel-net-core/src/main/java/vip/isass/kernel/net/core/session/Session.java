@@ -172,7 +172,7 @@ package vip.isass.kernel.net.core.session;
 
 import com.fasterxml.jackson.annotation.JsonRawValue;
 import com.fasterxml.jackson.annotation.JsonValue;
-import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
+import java.lang.reflect.ParameterizedType;
 import vip.isass.kernel.net.core.server.Server;
 
 import java.lang.reflect.Type;
@@ -238,7 +238,7 @@ public interface Session<svr extends Server> {
 
     default Class<svr> getServerType() {
         Type genericInterface = this.getClass().getGenericInterfaces()[0];
-        Type actualTypeArgument = ((ParameterizedTypeImpl) genericInterface).getActualTypeArguments()[0];
+        Type actualTypeArgument = ((ParameterizedType) genericInterface).getActualTypeArguments()[0];
         return ((Class<svr>) actualTypeArgument);
     }
 

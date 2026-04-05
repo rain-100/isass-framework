@@ -181,7 +181,7 @@ import vip.isass.core.map.MultiKeyMultiValueBiMap;
 import vip.isass.core.map.MultiValueBiMap;
 import vip.isass.kernel.net.core.message.Message;
 
-import javax.annotation.Nonnull;
+import jakarta.annotation.Nonnull;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;

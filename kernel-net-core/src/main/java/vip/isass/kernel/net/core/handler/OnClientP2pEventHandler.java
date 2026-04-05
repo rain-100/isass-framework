@@ -177,7 +177,7 @@ import vip.isass.kernel.net.core.message.MessageCmd;
 import vip.isass.kernel.net.core.server.Server;
 import vip.isass.kernel.net.core.session.ISessionService;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 
 /**
  * 客户端发起p2p消息

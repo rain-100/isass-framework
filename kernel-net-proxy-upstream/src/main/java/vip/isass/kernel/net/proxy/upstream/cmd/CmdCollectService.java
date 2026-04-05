@@ -181,7 +181,7 @@ import vip.isass.kernel.net.core.handler.OnMessageEventHandler;
 import vip.isass.kernel.net.core.message.CmdCollectDto;
 import vip.isass.kernel.net.proxy.core.CmdRedisService;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;

@@ -169,19 +169,19 @@
 
 package vip.isass.core.web.security.processor;
 
-import org.springframework.security.access.vote.AffirmativeBased;
-import org.springframework.security.access.vote.RoleVoter;
-import org.springframework.security.config.annotation.ObjectPostProcessor;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.config.BeanPostProcessor;
+
 
 /**
  * @author Rain
  */
-public class AffirmativeBasedPostProcessor implements ObjectPostProcessor<AffirmativeBased> {
+public class AffirmativeBasedPostProcessor implements BeanPostProcessor {
 
     @Override
-    public <O extends AffirmativeBased> O postProcess(O object) {
-        object.getDecisionVoters().add(new RoleVoter());
-        return object;
+    public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+        // AffirmativeBased is no longer used in Spring Security 7 native model.
+        // This processor is now a placeholder.
+        return bean;
     }
-
 }

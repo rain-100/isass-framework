@@ -191,7 +191,7 @@ import vip.isass.core.mq.ons.config.OnsConfiguration;
 import vip.isass.core.mq.ons.config.RegionConfiguration;
 import vip.isass.core.support.JsonUtil;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;

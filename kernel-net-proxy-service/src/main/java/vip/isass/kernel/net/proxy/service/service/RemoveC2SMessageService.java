@@ -180,7 +180,7 @@ import vip.isass.core.support.LocalDateTimeUtil;
 import vip.isass.kernel.net.core.NetRedisKey;
 import vip.isass.kernel.net.core.message.Message;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;

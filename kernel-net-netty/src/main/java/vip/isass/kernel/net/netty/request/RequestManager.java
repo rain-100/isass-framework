@@ -172,7 +172,7 @@ package vip.isass.kernel.net.netty.request;
 import vip.isass.kernel.net.netty.request.worker.WorkerPool;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 
 /**
  * 请求管理器

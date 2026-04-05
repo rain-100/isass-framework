@@ -180,7 +180,7 @@ import vip.isass.kernel.net.core.message.CmdCollectDto;
 import vip.isass.kernel.net.core.message.MessageCmd;
 import vip.isass.kernel.net.proxy.core.CmdRedisService;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;

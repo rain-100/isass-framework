@@ -177,7 +177,7 @@
 // import vip.isass.kernel.net.core.server.Server;
 // import vip.isass.kernel.net.core.session.LocalSessionService;
 //
-// import javax.annotation.Resource;
+// import jakarta.annotation.Resource;
 // import java.util.concurrent.ThreadLocalRandom;
 // import java.util.concurrent.TimeUnit;
 //

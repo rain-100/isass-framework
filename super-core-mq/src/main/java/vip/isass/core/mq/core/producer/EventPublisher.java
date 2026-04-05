@@ -180,7 +180,7 @@ import org.springframework.stereotype.Component;
 import vip.isass.core.mq.MqAutoConfiguration;
 import vip.isass.core.mq.core.MqMessageContext;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;

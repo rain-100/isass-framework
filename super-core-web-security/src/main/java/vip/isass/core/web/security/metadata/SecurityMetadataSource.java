@@ -172,10 +172,8 @@ package vip.isass.core.web.security.metadata;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.access.ConfigAttribute;
-import org.springframework.security.access.SecurityConfig;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.FilterInvocation;
-import org.springframework.security.web.access.intercept.FilterInvocationSecurityMetadataSource;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerExecutionChain;
@@ -186,7 +184,7 @@ import vip.isass.core.exception.code.StatusMessageEnum;
 import vip.isass.core.web.security.SecurityConst;
 import vip.isass.core.web.uri.UriPrefixProvider;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -195,56 +193,41 @@ import java.util.stream.Collectors;
  * @author Rain
  */
 @Slf4j
-public class SecurityMetadataSource implements FilterInvocationSecurityMetadataSource {
+public class SecurityMetadataSource {
 
     private final RequestMappingHandlerMapping requestMappingHandlerMapping;
-
-    private final FilterInvocationSecurityMetadataSource filterInvocationSecurityMetadataSource;
-
     private final SecurityMetadataSourceProviderManager securityMetadataSourceProviderManager;
-
     private final Collection<String> permitUrls;
-
     private final UriPrefixProvider uriPrefixProvider;
 
     private static final List<String> IGNORE_LOGGING_URI = CollUtil.newArrayList("/error");
 
     /**
-     * Sets the internal request map from the supplied map. The key elements should be of
-     * type {@link RequestMatcher}, which. The contextPath stored in the key will depend on the
-     * type of the supplied UrlMatcher.
+     * Constructor for SecurityMetadataSource
      *
-     * @param requestMappingHandlerMapping           request mapping handler mapping
-     * @param filterInvocationSecurityMetadataSource filter invocation security meta datasource
-     * @param securityMetadataSourceProviderManager  security meta datasource provider manager
-     * @param uriPrefixProvider                      uri prefix provider
-     * @param permitUrls                             permit urls
+     * @param requestMappingHandlerMapping          request mapping handler mapping
+     * @param securityMetadataSourceProviderManager security meta datasource provider manager
+     * @param uriPrefixProvider                     uri prefix provider
+     * @param permitUrls                            permit urls
      */
     public SecurityMetadataSource(RequestMappingHandlerMapping requestMappingHandlerMapping,
-                                  FilterInvocationSecurityMetadataSource filterInvocationSecurityMetadataSource,
                                   SecurityMetadataSourceProviderManager securityMetadataSourceProviderManager,
                                   UriPrefixProvider uriPrefixProvider,
                                   Collection<String> permitUrls) {
         this.requestMappingHandlerMapping = requestMappingHandlerMapping;
-        this.filterInvocationSecurityMetadataSource = filterInvocationSecurityMetadataSource;
         this.securityMetadataSourceProviderManager = securityMetadataSourceProviderManager;
         this.uriPrefixProvider = uriPrefixProvider;
         this.permitUrls = permitUrls;
     }
 
-    @Override
-    public Collection<ConfigAttribute> getAllConfigAttributes() {
-        return filterInvocationSecurityMetadataSource.getAllConfigAttributes();
-    }
-
-    /**
-     * 获取访问该资源所需要的权限
-     */
-    @Override
-    public Collection<ConfigAttribute> getAttributes(Object object) {
+    public Collection<org.springframework.security.core.GrantedAuthority> getAttributes(Object object) {
         HttpServletRequest request = getRequest(object);
-        Map.Entry<RequestMappingInfo, HandlerMethod> requestMappingInfoAndHandlerMethodEntry = getRequestMappingInfoAndHandlerMethodEntry(request);
-        if (requestMappingInfoAndHandlerMethodEntry == null) {
+        if (request == null) {
+            return Collections.emptyList();
+        }
+
+        Map.Entry<RequestMappingInfo, HandlerMethod> entry = getRequestMappingInfoAndHandlerMethodEntry(request);
+        if (entry == null) {
             if (!permitUrls.contains(request.getRequestURI())) {
                 log.trace("解析不到uri对应的方法：{}", request.getRequestURI());
             }
@@ -252,30 +235,18 @@ public class SecurityMetadataSource implements FilterInvocationSecurityMetadataS
         }
 
         String httpMethod = request.getMethod();
-
-        Collection<ConfigAttribute> attributes = null;
-        String mappingUri = getMappingUri(requestMappingInfoAndHandlerMethodEntry, object);
-
-        HandlerMethod handlerMethod = requestMappingInfoAndHandlerMethodEntry.getValue();
+        String mappingUri = getMappingUri(entry, object);
 
         Collection<String> roleCodes = securityMetadataSourceProviderManager.findRoleCodesByUri(
-            httpMethod.toUpperCase() + " " + mappingUri);
+                httpMethod.toUpperCase() + " " + mappingUri);
 
+        Collection<org.springframework.security.core.GrantedAuthority> attributes = new HashSet<>(16);
         if (CollUtil.isNotEmpty(roleCodes)) {
             attributes = roleCodes.stream()
                 .filter(StrUtil::isNotBlank)
-                .map(SecurityConfig::new)
+                .map(org.springframework.security.core.authority.SimpleGrantedAuthority::new)
                 .collect(Collectors.toList());
         }
-
-        if (attributes == null) {
-            attributes = new HashSet<>(16);
-        }
-
-        attributes.addAll(SecurityConst.CONFIG_ATTRIBUTES);
-
-        Collection<ConfigAttribute> originalAttributes = filterInvocationSecurityMetadataSource.getAttributes(object);
-        CollUtil.addAll(attributes, originalAttributes == null ? Collections.emptyList() : originalAttributes);
 
         if (!IGNORE_LOGGING_URI.contains(request.getRequestURI())) {
             log.debug("访问 {} {} 所需权限：{}", httpMethod, request.getRequestURI(), attributes);
@@ -283,7 +254,6 @@ public class SecurityMetadataSource implements FilterInvocationSecurityMetadataS
         return attributes;
     }
 
-    @Override
     public boolean supports(Class<?> clazz) {
         return FilterInvocation.class.isAssignableFrom(clazz);
     }

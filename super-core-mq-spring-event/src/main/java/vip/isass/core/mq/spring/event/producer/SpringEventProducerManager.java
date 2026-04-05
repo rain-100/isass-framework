@@ -176,7 +176,7 @@ import vip.isass.core.mq.core.producer.ProducerManager;
 import vip.isass.core.mq.spring.event.SpringEventConfiguration;
 import vip.isass.core.mq.spring.event.SpringEventConst;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 
 /**
  * @author Rain

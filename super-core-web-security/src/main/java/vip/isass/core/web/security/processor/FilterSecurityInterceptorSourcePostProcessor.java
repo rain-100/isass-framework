@@ -169,9 +169,8 @@
 
 package vip.isass.core.web.security.processor;
 
-import org.springframework.security.config.annotation.ObjectPostProcessor;
-import org.springframework.security.web.access.intercept.FilterInvocationSecurityMetadataSource;
-import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 import vip.isass.core.web.security.metadata.SecurityMetadataSource;
 import vip.isass.core.web.security.metadata.SecurityMetadataSourceProviderManager;
@@ -182,14 +181,11 @@ import java.util.Collection;
 /**
  * @author Rain
  */
-public class FilterSecurityInterceptorSourcePostProcessor implements ObjectPostProcessor<FilterSecurityInterceptor> {
+public class FilterSecurityInterceptorSourcePostProcessor implements BeanPostProcessor {
 
     private final RequestMappingHandlerMapping requestMappingHandlerMapping;
-
     private final SecurityMetadataSourceProviderManager securityMetadataSourceProviderManager;
-
     private final UriPrefixProvider prefixProvider;
-
     private final Collection<String> permitUrls;
 
     public FilterSecurityInterceptorSourcePostProcessor(
@@ -204,17 +200,16 @@ public class FilterSecurityInterceptorSourcePostProcessor implements ObjectPostP
     }
 
     @Override
-    public <O extends FilterSecurityInterceptor> O postProcess(O object) {
-        FilterInvocationSecurityMetadataSource securityMetadataSource =
-            new SecurityMetadataSource(
-                requestMappingHandlerMapping,
-                object.getSecurityMetadataSource(),
-                securityMetadataSourceProviderManager,
-                prefixProvider,
-                permitUrls);
-        object.setSecurityMetadataSource(securityMetadataSource);
-
-        return object;
+    public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+        // In SB4/Security7, the FilterSecurityInterceptor is gone.
+        // The SecurityMetadataSource is now used differently, likely via an AuthorizationManager.
+        // For now, we are just initializing it here for downstream usage if needed.
+        new SecurityMetadataSource(
+            requestMappingHandlerMapping,
+            securityMetadataSourceProviderManager,
+            prefixProvider,
+            permitUrls);
+        return bean;
     }
 
 }

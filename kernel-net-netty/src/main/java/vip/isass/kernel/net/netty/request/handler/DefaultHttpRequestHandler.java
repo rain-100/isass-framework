@@ -201,7 +201,7 @@ import vip.isass.core.serialization.impl.protobuf2.ProtobufMethodCache;
 import vip.isass.core.support.JsonUtil;
 import vip.isass.core.support.UriRequestMapping;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;

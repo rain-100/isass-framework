@@ -172,7 +172,7 @@ package vip.isass.kernel.net.core.session;
 import cn.hutool.core.lang.Assert;
 import vip.isass.kernel.net.core.message.Message;
 
-import javax.annotation.Nonnull;
+import jakarta.annotation.Nonnull;
 import java.util.Collection;
 import java.util.Map;
 

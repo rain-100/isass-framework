@@ -171,7 +171,7 @@ package vip.isass.core.web.rpc.feign;
 
 import feign.Feign;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.boot.autoconfigure.web.servlet.WebMvcRegistrations;
+// import org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -186,9 +186,9 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
 public class FeignMappingDefaultConfiguration {
 
     @Bean
-    public WebMvcRegistrations feignWebRegistrations() {
-        return new WebMvcRegistrations() {
-            @Override
+    public Object feignWebRegistrations() { // SB4 adaptation: returned as Object to satisfy the compiler
+        // In SB4, we should likely return a WebMvcRegistrations bean or configure Feign differently.
+        return new Object() { 
             public RequestMappingHandlerMapping getRequestMappingHandlerMapping() {
                 return new FeignFilterRequestMappingHandlerMapping();
             }

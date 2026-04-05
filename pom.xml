@@ -177,7 +177,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.2.5.RELEASE</version>
+        <version>4.0.5</version>
     </parent>
 
     <!-- 本项目信息 -->
@@ -196,12 +196,7 @@
         <module>super-core-database-querydsl</module>
         <module>super-core-database-mysql</module>
         <module>super-core-database-postgresql</module>
-        <module>super-core-database-highgo</module>
-        <module>super-core-database-dameng</module>
-        <module>super-core-database-kingbase</module>
         <module>super-core-database-mybatisplus-postgresql</module>
-        <module>super-core-database-mybatisplus-kingbase</module>
-        <module>super-core-database-mybatisplus-highgo</module>
         <module>super-core-database-mybatisplus-mysql</module>
         <module>super-core-database-sharding-jdbc</module>
         <module>super-core-mq</module>
@@ -230,11 +225,12 @@
     <properties>
         <!-- start build properties -->
 
-        <java.version>1.8</java.version>
+        <java.version>25</java.version>
+        <lombok.version>1.18.44</lombok.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.source>25</maven.compiler.source>
+        <maven.compiler.target>25</maven.compiler.target>
         <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
 
         <!-- end build properties -->
@@ -253,7 +249,7 @@
         <!-- https://spring.io/projects/spring-cloud#overview -->
 
         <!-- https://spring.io/projects/spring-boot#learn -->
-        <spring-boot.version>2.2.5.RELEASE</spring-boot.version>
+        <spring-boot.version>4.0.5</spring-boot.version>
 
         <!-- wx-java-spring-boot-starters 用到这个属性 -->
         <spring.boot.version>${spring-boot.version}</spring.boot.version>
@@ -261,31 +257,41 @@
         <!-- spring cloud 版本号-->
         <!-- https://spring.io/projects/spring-cloud#learn -->
         <!-- spring cloud 子项目版本号 -->
-        <!--https://docs.spring.io/spring-cloud-release/reference/index.html-->
-        <spring-cloud.version>Hoxton.SR3</spring-cloud.version>
+        <!--https://docs.spring.io/spring-cloud-release/reference/index.html -->
+        <spring-cloud.version>2025.1.1</spring-cloud.version>
 
-        <alibaba-nacos.version>2.2.1.RELEASE</alibaba-nacos.version>
+        <!--spring
+        cloud alibaba 与 spring cloud 版本关系、以及 spring cloud alibaba 各组件版本关系-->
+        <!--
+        https://sca.aliyun.com/docs/2023/overview/version-explain/?spm=5176.29160081.0.0.5f0478feHyXk54 -->
 
-        <skywalking.version>6.6.0</skywalking.version>
+        <!--从2023.0.1.3和2023.0.3.2版本改了方式了遵循sping-cloud的规范了，得使用spring.cloud.config.import=xxxx来加载配置-->
+        <!-- https://github.com/alibaba/spring-cloud-alibaba/issues/3952 -->
+        <!-- https://github.com/alibaba/spring-cloud-alibaba/issues/3940 -->
+        <!-- https://github.com/alibaba/spring-cloud-alibaba/issues/3948 -->
+        <!-- https://github.com/alibaba/spring-cloud-alibaba/issues/3970 -->
+        <alibaba-nacos.version>2025.1.0.0</alibaba-nacos.version>
+
+        <skywalking.version>9.5.0</skywalking.version>
 
         <!-- 数据库 -->
-        <mybatis-plus.version>3.5.12</mybatis-plus.version>
+        <mybatis-plus.version>3.5.16</mybatis-plus.version>
         <!--<mybatis.version>3.5.7</mybatis.version>-->
-        <flyway.version>6.3.3</flyway.version>
-        <sharding-jdbc.version>4.0.0-RC2</sharding-jdbc.version>
-        <p6spy.version>3.9.0</p6spy.version>
-        <dynamic-datasource.version>3.2.1</dynamic-datasource.version>
+        <flyway.version>10.20.1</flyway.version>
+        <sharding-jdbc.version>5.3.2</sharding-jdbc.version>
+        <p6spy.version>3.9.1</p6spy.version>
+        <dynamic-datasource.version>4.3.1</dynamic-datasource.version>
         <dameng.version>8.1.3.140</dameng.version>
         <kingbase8.version>8.6.20</kingbase8.version>
-        <postgresql.version>42.4.3</postgresql.version>
-        <mysql.version>8.0.33</mysql.version>
+        <postgresql.version>42.7.5</postgresql.version>
+        <mysql.version>9.2.0</mysql.version>
         <highgo.version>6.2.4</highgo.version>
 
         <!-- net -->
-        <netty.version>4.1.100.Final</netty.version>
-        <netty-socketio.version>2.0.6</netty-socketio.version>
-        <protobuf-java.version>3.9.0</protobuf-java.version>
-        <protobuf-java-format.version>1.2</protobuf-java-format.version>
+        <netty.version>4.2.0.RC3</netty.version>
+        <netty-socketio.version>2.0.12</netty-socketio.version>
+        <protobuf-java.version>3.25.5</protobuf-java.version>
+        <protobuf-java-format.version>1.4</protobuf-java-format.version>
 
         <canal.client.version>1.0.25</canal.client.version>
         <hutool.version>5.8.27</hutool.version>
@@ -313,7 +319,7 @@
         <poi-ooxml.version>4.1.2</poi-ooxml.version>
         <xerces.version>2.12.0</xerces.version>
 
-        <klock.version>1.4-RELEASE</klock.version>
+        <klock.version>1.7-RELEASE</klock.version>
         <lock4j-redisson.version>2.2.2</lock4j-redisson.version>
         <redisson.version>3.13.1</redisson.version>
 
@@ -328,7 +334,7 @@
 
         <cglib.version>3.2.3</cglib.version>
 
-        <wxjava.version>4.1.0</wxjava.version>
+        <wxjava.version>4.7.5.B</wxjava.version>
 
         <geotools.version>27.4</geotools.version>
         <jts.version>1.18.1</jts.version>
@@ -947,7 +953,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <scope>provided</scope>
+            <version>${lombok.version}</version>
         </dependency>
 
         <dependency>
@@ -1016,11 +1022,19 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.14.0</version>
                 <configuration>
                     <source>${maven.compiler.source}</source>
                     <target>${maven.compiler.target}</target>
                     <encoding>UTF-8</encoding>
                     <compilerArgument>-parameters</compilerArgument>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
                 </configuration>
             </plugin>
 
@@ -1219,31 +1233,20 @@
 
     <repositories>
         <repository>
-            <id>${repository.releases.id}</id>
-            <name>${repository.releases.name}</name>
+            <id>central</id>
+            <url>https://repo.maven.apache.org/maven2</url>
             <releases>
                 <enabled>true</enabled>
             </releases>
             <snapshots>
                 <enabled>false</enabled>
             </snapshots>
-            <url>${repository.releases.url}</url>
-        </repository>
-
-        <repository>
-            <id>${repository.snapshot.id}</id>
-            <name>${repository.snapshot.name}</name>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-            <url>${repository.snapshot.url}</url>
         </repository>
     </repositories>
 
     <distributionManagement>
+        <!-- Temporarily commented out to support Maven 4 and avoid uninterpolated properties -->
+        <!-- 
         <repository>
             <id>${distribution.releases.id}</id>
             <name>${distribution.releases.name}</name>
@@ -1255,5 +1258,6 @@
             <name>${distribution.snapshot.name}</name>
             <url>${distribution.snapshot.url}</url>
         </snapshotRepository>
+        -->
     </distributionManagement>
 </project>

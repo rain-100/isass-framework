@@ -219,6 +219,16 @@ public class WebStatusMapping implements IStatusMapping {
             this.status = status;
             this.msg = msg;
         }
+
+        @Override
+        public String getMsg() {
+            return this.msg;
+        }
+
+        @Override
+        public Integer getStatus() {
+            return this.status;
+        }
     }
 
 }
