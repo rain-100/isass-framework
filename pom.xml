@@ -185,7 +185,7 @@
     <!-- 快照版格式：super.x.y.z-SNAPSHOT-->
     <groupId>vip.isass</groupId>
     <artifactId>super</artifactId>
-    <version>super.3.4.0-SNAPSHOT</version>
+    <version>4.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <!-- Maven 4 Feature: Modules are discovered recursively. 
@@ -212,7 +212,7 @@
 
         <!-- region isass-core -->
 
-        <super-core.version>super.3.4.0-SNAPSHOT</super-core.version>
+        <super-core.version>4.0.0-SNAPSHOT</super-core.version>
 
         <!-- endregion -->
 
