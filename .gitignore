@@ -191,3 +191,5 @@ target/
 release.properties
 pom.xml.releaseBackup
 application.pid
+
+.DS_Store

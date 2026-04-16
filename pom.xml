@@ -921,8 +921,7 @@
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
                 <version>${lombok.version}</version>
-                <type>processor</type> <!-- 新语法 -->
-                <scope>provided</scope> <!-- 推荐加上 provided scope -->
+                <scope>provided</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -954,8 +953,7 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>${lombok.version}</version>
-            <type>processor</type> <!-- 新语法 -->
-            <scope>provided</scope> <!-- 推荐加上 provided scope -->
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
