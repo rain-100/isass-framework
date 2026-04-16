@@ -168,10 +168,11 @@
   ~
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+<project xmlns="http://maven.apache.org/POM/4.1.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.1.0 http://maven.apache.org/xsd/maven-4.1.0.xsd"
+         root="true">
+    <modelVersion>4.1.0</modelVersion>
 
     <!-- 父项目信息 -->
     <parent>
@@ -185,16 +186,39 @@
     <!-- 快照版格式：super.x.y.z-SNAPSHOT-->
     <groupId>vip.isass</groupId>
     <artifactId>super</artifactId>
-    <version>super.3.4.0-SNAPSHOT</version>
+    <version>4.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
-    <!-- Maven 4 Feature: Modules are discovered recursively. 
-         Explicit declaration is optional but recommended for build order.
-         Temporarily commented out as requested.
-    <modules>
-        ... 
-    </modules>
-    -->
+    <subprojects>
+        <subproject>kernel-net-admin</subproject>
+        <subproject>kernel-net-core</subproject>
+        <subproject>kernel-net-netty</subproject>
+        <subproject>kernel-net-proxy-core</subproject>
+        <subproject>kernel-net-proxy-service</subproject>
+        <subproject>kernel-net-proxy-upstream</subproject>
+        <subproject>kernel-net-socketio</subproject>
+        <subproject>kernel-net-websocket</subproject>
+        <subproject>super-core-cache</subproject>
+        <subproject>super-core-database-mybatisplus-mysql</subproject>
+        <subproject>super-core-database-mybatisplus-postgresql</subproject>
+        <subproject>super-core-database-mybatisplus</subproject>
+        <subproject>super-core-database-mysql</subproject>
+        <subproject>super-core-database-postgresql</subproject>
+        <subproject>super-core-database-querydsl</subproject>
+        <subproject>super-core-database</subproject>
+        <subproject>super-core-deploy</subproject>
+        <subproject>super-core-elasticsearch</subproject>
+        <subproject>super-core-encryption</subproject>
+        <subproject>super-core-mq-kafka011</subproject>
+        <subproject>super-core-mq-ons</subproject>
+        <subproject>super-core-mq-spring-event</subproject>
+        <subproject>super-core-mq</subproject>
+        <subproject>super-core-protobuf</subproject>
+        <subproject>super-core-web-security</subproject>
+        <subproject>super-core-web-swagger</subproject>
+        <subproject>super-core-web</subproject>
+        <subproject>super-core</subproject>
+    </subprojects>
 
     <!-- 配置属性 -->
     <properties>
@@ -204,15 +228,15 @@
         <lombok.version>1.18.44</lombok.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <maven.compiler.source>25</maven.compiler.source>
-        <maven.compiler.target>25</maven.compiler.target>
+
+        <maven.compiler.release>25</maven.compiler.release>
         <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
 
         <!-- end build properties -->
 
         <!-- region isass-core -->
 
-        <super-core.version>super.3.4.0-SNAPSHOT</super-core.version>
+        <super-core.version>4.0.0-SNAPSHOT</super-core.version>
 
         <!-- endregion -->
 
@@ -406,7 +430,6 @@
                 <artifactId>super-core-web-security</artifactId>
                 <version>${super-core.version}</version>
             </dependency>
-
 
 
             <dependency>
@@ -893,6 +916,14 @@
                 <artifactId>aws-java-sdk-s3</artifactId>
                 <version>${amazonaws-s3.version}</version>
             </dependency>
+
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${lombok.version}</version>
+                <type>processor</type> <!-- 新语法 -->
+                <scope>provided</scope> <!-- 推荐加上 provided scope -->
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -923,6 +954,8 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>${lombok.version}</version>
+            <type>processor</type> <!-- 新语法 -->
+            <scope>provided</scope> <!-- 推荐加上 provided scope -->
         </dependency>
 
         <dependency>
@@ -974,6 +1007,11 @@
         </resources>
 
         <plugins>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>versions-maven-plugin</artifactId>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
@@ -991,12 +1029,14 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.14.0</version>
+                <version>4.0.0-beta-4</version>
                 <configuration>
-                    <source>${maven.compiler.source}</source>
-                    <target>${maven.compiler.target}</target>
+                    <release>${maven.compiler.release}</release>
                     <encoding>UTF-8</encoding>
-                    <compilerArgument>-parameters</compilerArgument>
+                    <fork>true</fork>
+                    <compilerArgs>
+                        <arg>-parameters</arg>
+                    </compilerArgs>
                     <annotationProcessorPaths>
                         <path>
                             <groupId>org.projectlombok</groupId>
@@ -1018,6 +1058,7 @@
             <plugin>
                 <groupId>pl.project13.maven</groupId>
                 <artifactId>git-commit-id-plugin</artifactId>
+                <version>4.9.10</version>
                 <executions>
                     <execution>
                         <goals>
@@ -1026,6 +1067,7 @@
                     </execution>
                 </executions>
                 <configuration>
+                    <useNativeGit>true</useNativeGit>
                     <prefix>git</prefix>
                     <verbose>true</verbose>
                     <dateFormat>yyyyMMddHHmmss</dateFormat>
@@ -1045,7 +1087,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-release-plugin</artifactId>
-                <version>2.5.3</version>
+                <version>3.3.1</version>
                 <configuration>
                     <tagNameFormat>@{project.version}</tagNameFormat>
                     <autoVersionSubmodules>true</autoVersionSubmodules>
@@ -1079,6 +1121,12 @@
                             </configuration>
                         </execution>
                     </executions>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>versions-maven-plugin</artifactId>
+                    <version>2.21.0</version>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -1124,7 +1172,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
-                        <version>1.6</version>
+                        <version>3.2.8</version>
                         <configuration>
                             <skip>false</skip>
                         </configuration>
@@ -1150,7 +1198,7 @@
                     <plugin>
                         <groupId>org.sonatype.plugins</groupId>
                         <artifactId>nexus-staging-maven-plugin</artifactId>
-                        <version>1.6.8</version>
+                        <version>1.7.0</version>
                         <extensions>true</extensions>
                         <configuration>
                             <serverId>ossrh</serverId>
