@@ -190,34 +190,34 @@
     <packaging>pom</packaging>
 
     <subprojects>
-        <subproject>kernel-net-admin</subproject>
-        <subproject>kernel-net-core</subproject>
-        <subproject>kernel-net-netty</subproject>
-        <subproject>kernel-net-proxy-core</subproject>
-        <subproject>kernel-net-proxy-service</subproject>
-        <subproject>kernel-net-proxy-upstream</subproject>
-        <subproject>kernel-net-socketio</subproject>
-        <subproject>kernel-net-websocket</subproject>
-        <subproject>super-core-cache</subproject>
-        <subproject>super-core-database-mybatisplus-mysql</subproject>
-        <subproject>super-core-database-mybatisplus-postgresql</subproject>
-        <subproject>super-core-database-mybatisplus</subproject>
-        <subproject>super-core-database-mysql</subproject>
-        <subproject>super-core-database-postgresql</subproject>
-        <subproject>super-core-database-querydsl</subproject>
-        <subproject>super-core-database</subproject>
-        <subproject>super-core-deploy</subproject>
-        <subproject>super-core-elasticsearch</subproject>
-        <subproject>super-core-encryption</subproject>
-        <subproject>super-core-mq-kafka011</subproject>
-        <subproject>super-core-mq-ons</subproject>
-        <subproject>super-core-mq-spring-event</subproject>
-        <subproject>super-core-mq</subproject>
-        <subproject>super-core-protobuf</subproject>
-        <subproject>super-core-web-security</subproject>
-        <subproject>super-core-web-swagger</subproject>
-        <subproject>super-core-web</subproject>
-        <subproject>super-core</subproject>
+        <subproject>isass-framework-net-admin</subproject>
+        <subproject>isass-framework-net-core</subproject>
+        <subproject>isass-framework-net-netty</subproject>
+        <subproject>isass-framework-net-proxy-core</subproject>
+        <subproject>isass-framework-net-proxy-server</subproject>
+        <subproject>isass-framework-net-proxy-upstream</subproject>
+        <subproject>isass-framework-net-socketio</subproject>
+        <subproject>isass-framework-net-websocket</subproject>
+        <subproject>isass-framework-database-redis</subproject>
+        <subproject>isass-framework-database-mybatisplus-mysql</subproject>
+        <subproject>isass-framework-database-mybatisplus-postgresql</subproject>
+        <subproject>isass-framework-database-mybatisplus</subproject>
+        <subproject>isass-framework-database-mysql</subproject>
+        <subproject>isass-framework-database-postgresql</subproject>
+        <subproject>isass-framework-database-querydsl</subproject>
+        <subproject>isass-framework-database-core</subproject>
+        <subproject>isass-framework-deploy</subproject>
+        <subproject>isass-framework-database-elasticsearch</subproject>
+        <subproject>isass-framework-encryption</subproject>
+        <subproject>isass-framework-mq-kafka011</subproject>
+        <subproject>isass-framework-mq-ons</subproject>
+        <subproject>isass-framework-mq-springevent</subproject>
+        <subproject>isass-framework-mq-core</subproject>
+        <subproject>isass-framework-serialization-protobuf</subproject>
+        <subproject>isass-framework-security-springsecurity</subproject>
+        <subproject>isass-framework-web-swagger</subproject>
+        <subproject>isass-framework-web-springmvc</subproject>
+        <subproject>isass-framework-common</subproject>
     </subprojects>
 
     <!-- 配置属性 -->
