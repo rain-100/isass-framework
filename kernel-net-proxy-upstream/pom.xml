@@ -177,11 +177,11 @@
     <!-- 父项目信息 -->
     <parent>
         <groupId>vip.isass</groupId>
-        <artifactId>super</artifactId>
+        <artifactId>isass-framework</artifactId>
     </parent>
 
     <!-- 本项目信息 -->
-    <artifactId>kernel-net-proxy-upstream</artifactId>
+    <artifactId>isass-framework-net-proxy-upstream</artifactId>
 
     <dependencies>
         <dependency>
@@ -191,7 +191,7 @@
         </dependency>
         <dependency>
             <groupId>vip.isass</groupId>
-            <artifactId>kernel-net-proxy-core</artifactId>
+            <artifactId>isass-framework-net-proxy-core</artifactId>
         </dependency>
 
         <dependency>

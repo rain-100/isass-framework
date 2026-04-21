@@ -177,11 +177,11 @@
     <!-- 父项目信息 -->
     <parent>
         <groupId>vip.isass</groupId>
-        <artifactId>super</artifactId>
+        <artifactId>isass-framework</artifactId>
     </parent>
 
     <!-- 本项目信息 -->
-    <artifactId>kernel-net-core</artifactId>
+    <artifactId>isass-framework-net-core</artifactId>
 
     <dependencies>
         <dependency>
