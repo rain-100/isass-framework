@@ -236,7 +236,7 @@
 
         <!-- region isass-core -->
 
-        <super-core.version>4.0.0-SNAPSHOT</super-core.version>
+        <isass-framework.version>4.0.0-SNAPSHOT</super-core.version>
 
         <!-- endregion -->
 
@@ -410,206 +410,206 @@
             <dependency>
                 <groupId>vip.isass</groupId>
                 <artifactId>isass-framework-common</artifactId>
-                <version>${super-core.version}</version>
+                <version>${isass-framework.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
                 <artifactId>isass-framework-deploy</artifactId>
-                <version>${super-core.version}</version>
+                <version>${isass-framework.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
                 <artifactId>isass-framework-web-springmvc</artifactId>
-                <version>${super-core.version}</version>
+                <version>${isass-framework.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
                 <artifactId>isass-framework-security-springsecurity</artifactId>
-                <version>${super-core.version}</version>
+                <version>${isass-framework.version}</version>
             </dependency>
 
 
             <dependency>
                 <groupId>vip.isass</groupId>
                 <artifactId>isass-framework-web-swagger</artifactId>
-                <version>${super-core.version}</version>
+                <version>${isass-framework.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
                 <artifactId>isass-framework-encryption</artifactId>
-                <version>${super-core.version}</version>
+                <version>${isass-framework.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
                 <artifactId>isass-framework-serialization-protobuf</artifactId>
-                <version>${super-core.version}</version>
+                <version>${isass-framework.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
                 <artifactId>isass-framework-database-redis</artifactId>
-                <version>${super-core.version}</version>
+                <version>${isass-framework.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
                 <artifactId>isass-framework-database-core</artifactId>
-                <version>${super-core.version}</version>
+                <version>${isass-framework.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
                 <artifactId>isass-framework-database-mysql</artifactId>
-                <version>${super-core.version}</version>
+                <version>${isass-framework.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
                 <artifactId>isass-framework-database-postgresql</artifactId>
-                <version>${super-core.version}</version>
+                <version>${isass-framework.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
                 <artifactId>super-core-database-highgo</artifactId>
-                <version>${super-core.version}</version>
+                <version>${isass-framework.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
                 <artifactId>super-core-database-dameng</artifactId>
-                <version>${super-core.version}</version>
+                <version>${isass-framework.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
                 <artifactId>super-core-database-kingbase</artifactId>
-                <version>${super-core.version}</version>
+                <version>${isass-framework.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
                 <artifactId>isass-framework-database-mybatisplus</artifactId>
-                <version>${super-core.version}</version>
+                <version>${isass-framework.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
                 <artifactId>isass-framework-database-querydsl</artifactId>
-                <version>${super-core.version}</version>
+                <version>${isass-framework.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
                 <artifactId>isass-framework-database-mybatisplus-postgresql</artifactId>
-                <version>${super-core.version}</version>
+                <version>${isass-framework.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
                 <artifactId>super-core-database-mybatisplus-kingbase</artifactId>
-                <version>${super-core.version}</version>
+                <version>${isass-framework.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
                 <artifactId>super-core-database-mybatisplus-highgo</artifactId>
-                <version>${super-core.version}</version>
+                <version>${isass-framework.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
                 <artifactId>isass-framework-database-mybatisplus-mysql</artifactId>
-                <version>${super-core.version}</version>
+                <version>${isass-framework.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
                 <artifactId>super-core-database-sharding-jdbc</artifactId>
-                <version>${super-core.version}</version>
+                <version>${isass-framework.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
                 <artifactId>isass-framework-mq-core</artifactId>
-                <version>${super-core.version}</version>
+                <version>${isass-framework.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
                 <artifactId>isass-framework-mq-ons</artifactId>
-                <version>${super-core.version}</version>
+                <version>${isass-framework.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
                 <artifactId>isass-framework-mq-springevent</artifactId>
-                <version>${super-core.version}</version>
+                <version>${isass-framework.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
                 <artifactId>isass-framework-mq-kafka011</artifactId>
-                <version>${super-core.version}</version>
+                <version>${isass-framework.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
                 <artifactId>isass-framework-net-admin</artifactId>
-                <version>${super-core.version}</version>
+                <version>${isass-framework.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
                 <artifactId>isass-framework-net-core</artifactId>
-                <version>${super-core.version}</version>
+                <version>${isass-framework.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
                 <artifactId>isass-framework-net-netty</artifactId>
-                <version>${super-core.version}</version>
+                <version>${isass-framework.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
                 <artifactId>isass-framework-net-websocket</artifactId>
-                <version>${super-core.version}</version>
+                <version>${isass-framework.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
                 <artifactId>isass-framework-net-socketio</artifactId>
-                <version>${super-core.version}</version>
+                <version>${isass-framework.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
                 <artifactId>isass-framework-net-proxy-core</artifactId>
-                <version>${super-core.version}</version>
+                <version>${isass-framework.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
                 <artifactId>isass-framework-net-proxy-upstream</artifactId>
-                <version>${super-core.version}</version>
+                <version>${isass-framework.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
                 <artifactId>isass-framework-net-proxy-server</artifactId>
-                <version>${super-core.version}</version>
+                <version>${isass-framework.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
                 <artifactId>isass-framework-database-elasticsearch</artifactId>
-                <version>${super-core.version}</version>
+                <version>${isass-framework.version}</version>
             </dependency>
 
             <!-- rocketmq -->
