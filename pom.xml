@@ -236,7 +236,7 @@
 
         <!-- region isass-core -->
 
-        <isass-framework.version>4.0.0-SNAPSHOT</super-core.version>
+        <isass-framework.version>4.0.0-SNAPSHOT</isass-framework.version>
 
         <!-- endregion -->
 
