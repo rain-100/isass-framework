@@ -185,7 +185,7 @@
     <!-- 正式版格式：super.x.y.z-release-->
     <!-- 快照版格式：super.x.y.z-SNAPSHOT-->
     <groupId>vip.isass</groupId>
-    <artifactId>super</artifactId>
+    <artifactId>isass-framework</artifactId>
     <version>4.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
@@ -409,68 +409,68 @@
             <!-- vip.isass 系列 -->
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>super-core</artifactId>
+                <artifactId>isass-framework-common</artifactId>
                 <version>${super-core.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>super-core-deploy</artifactId>
+                <artifactId>isass-framework-deploy</artifactId>
                 <version>${super-core.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>super-core-web</artifactId>
+                <artifactId>isass-framework-web-springmvc</artifactId>
                 <version>${super-core.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>super-core-web-security</artifactId>
+                <artifactId>isass-framework-security-springsecurity</artifactId>
                 <version>${super-core.version}</version>
             </dependency>
 
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>super-core-web-swagger</artifactId>
+                <artifactId>isass-framework-web-swagger</artifactId>
                 <version>${super-core.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>super-core-encryption</artifactId>
+                <artifactId>isass-framework-encryption</artifactId>
                 <version>${super-core.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>super-core-protobuf</artifactId>
+                <artifactId>isass-framework-serialization-protobuf</artifactId>
                 <version>${super-core.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>super-core-cache</artifactId>
+                <artifactId>isass-framework-database-redis</artifactId>
                 <version>${super-core.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>super-core-database</artifactId>
+                <artifactId>isass-framework-database-core</artifactId>
                 <version>${super-core.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>super-core-database-mysql</artifactId>
+                <artifactId>isass-framework-database-mysql</artifactId>
                 <version>${super-core.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>super-core-database-postgresql</artifactId>
+                <artifactId>isass-framework-database-postgresql</artifactId>
                 <version>${super-core.version}</version>
             </dependency>
 
@@ -494,19 +494,19 @@
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>super-core-database-mybatisplus</artifactId>
+                <artifactId>isass-framework-database-mybatisplus</artifactId>
                 <version>${super-core.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>super-core-database-querydsl</artifactId>
+                <artifactId>isass-framework-database-querydsl</artifactId>
                 <version>${super-core.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>super-core-database-mybatisplus-postgresql</artifactId>
+                <artifactId>isass-framework-database-mybatisplus-postgresql</artifactId>
                 <version>${super-core.version}</version>
             </dependency>
 
@@ -524,7 +524,7 @@
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>super-core-database-mybatisplus-mysql</artifactId>
+                <artifactId>isass-framework-database-mybatisplus-mysql</artifactId>
                 <version>${super-core.version}</version>
             </dependency>
 
@@ -536,79 +536,79 @@
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>super-core-mq</artifactId>
+                <artifactId>isass-framework-mq-core</artifactId>
                 <version>${super-core.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>super-core-mq-ons</artifactId>
+                <artifactId>isass-framework-mq-ons</artifactId>
                 <version>${super-core.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>super-core-mq-spring-event</artifactId>
+                <artifactId>isass-framework-mq-springevent</artifactId>
                 <version>${super-core.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>super-core-mq-kafka011</artifactId>
+                <artifactId>isass-framework-mq-kafka011</artifactId>
                 <version>${super-core.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>kernel-net-admin</artifactId>
+                <artifactId>isass-framework-net-admin</artifactId>
                 <version>${super-core.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>kernel-net-core</artifactId>
+                <artifactId>isass-framework-net-core</artifactId>
                 <version>${super-core.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>kernel-net-netty</artifactId>
+                <artifactId>isass-framework-net-netty</artifactId>
                 <version>${super-core.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>kernel-net-websocket</artifactId>
+                <artifactId>isass-framework-net-websocket</artifactId>
                 <version>${super-core.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>kernel-net-socketio</artifactId>
+                <artifactId>isass-framework-net-socketio</artifactId>
                 <version>${super-core.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>kernel-net-proxy-core</artifactId>
+                <artifactId>isass-framework-net-proxy-core</artifactId>
                 <version>${super-core.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>kernel-net-proxy-upstream</artifactId>
+                <artifactId>isass-framework-net-proxy-upstream</artifactId>
                 <version>${super-core.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>kernel-net-proxy-service</artifactId>
+                <artifactId>isass-framework-net-proxy-server</artifactId>
                 <version>${super-core.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>super-core-elasticsearch</artifactId>
+                <artifactId>isass-framework-database-elasticsearch</artifactId>
                 <version>${super-core.version}</version>
             </dependency>
 
