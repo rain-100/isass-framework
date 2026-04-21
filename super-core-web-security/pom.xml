@@ -177,11 +177,11 @@
     <!-- 父项目信息 -->
     <parent>
         <groupId>vip.isass</groupId>
-        <artifactId>super</artifactId>
+        <artifactId>isass-framework</artifactId>
     </parent>
 
     <!-- 本项目信息 -->
-    <artifactId>super-core-web-security</artifactId>
+    <artifactId>isass-framework-security-springsecurity</artifactId>
 
     <properties>
         <!-- <spring-security.version>5.5.8</spring-security.version> -->
@@ -195,17 +195,17 @@
         </dependency>
         <dependency>
             <groupId>vip.isass</groupId>
-            <artifactId>super-core</artifactId>
+            <artifactId>isass-framework-common</artifactId>
         </dependency>
 
         <dependency>
             <groupId>vip.isass</groupId>
-            <artifactId>super-core-web</artifactId>
+            <artifactId>isass-framework-web-springmvc</artifactId>
         </dependency>
 
         <dependency>
             <groupId>vip.isass</groupId>
-            <artifactId>super-core-cache</artifactId>
+            <artifactId>isass-framework-database-redis</artifactId>
         </dependency>
 
         <dependency>

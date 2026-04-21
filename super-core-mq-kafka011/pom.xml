@@ -177,11 +177,11 @@
     <!-- 父项目信息 -->
     <parent>
         <groupId>vip.isass</groupId>
-        <artifactId>super</artifactId>
+        <artifactId>isass-framework</artifactId>
     </parent>
 
     <!-- 本项目信息 -->
-    <artifactId>super-core-mq-kafka011</artifactId>
+    <artifactId>isass-framework-mq-kafka011</artifactId>
 
     <properties>
         <kafka.version>0.11.0.3</kafka.version>
@@ -195,12 +195,12 @@
         </dependency>
         <dependency>
             <groupId>vip.isass</groupId>
-            <artifactId>super-core</artifactId>
+            <artifactId>isass-framework-common</artifactId>
         </dependency>
 
         <dependency>
             <groupId>vip.isass</groupId>
-            <artifactId>super-core-mq</artifactId>
+            <artifactId>isass-framework-mq-core</artifactId>
         </dependency>
 
         <dependency>
