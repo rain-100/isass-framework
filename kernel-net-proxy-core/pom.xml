@@ -196,7 +196,7 @@
 
         <dependency>
             <groupId>vip.isass</groupId>
-            <artifactId>super-core-cache</artifactId>
+            <artifactId>isass-framework-database-redis</artifactId>
         </dependency>
 
         <dependency>

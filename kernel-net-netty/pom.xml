@@ -206,7 +206,7 @@
 
         <dependency>
             <groupId>vip.isass</groupId>
-            <artifactId>super-core-protobuf</artifactId>
+            <artifactId>isass-framework-serialization-protobuf</artifactId>
         </dependency>
 
         <dependency>
