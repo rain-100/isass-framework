@@ -177,11 +177,11 @@
     <!-- 父项目信息 -->
     <parent>
         <groupId>vip.isass</groupId>
-        <artifactId>super</artifactId>
+        <artifactId>isass-framework</artifactId>
     </parent>
 
     <!-- 本项目信息 -->
-    <artifactId>super-core-database-mybatisplus-mysql</artifactId>
+    <artifactId>isass-framework-database-mybatisplus-mysql</artifactId>
 
     <dependencies>
         <dependency>
@@ -191,12 +191,12 @@
         </dependency>
         <dependency>
             <groupId>vip.isass</groupId>
-            <artifactId>super-core-database-mybatisplus</artifactId>
+            <artifactId>isass-framework-database-mybatisplus</artifactId>
         </dependency>
 
         <dependency>
             <groupId>vip.isass</groupId>
-            <artifactId>super-core-database-mysql</artifactId>
+            <artifactId>isass-framework-database-mysql</artifactId>
         </dependency>
     </dependencies>
 </project>

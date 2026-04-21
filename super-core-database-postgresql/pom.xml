@@ -177,11 +177,11 @@
     <!-- 父项目信息 -->
     <parent>
         <groupId>vip.isass</groupId>
-        <artifactId>super</artifactId>
+        <artifactId>isass-framework</artifactId>
     </parent>
 
     <!-- 本项目信息 -->
-    <artifactId>super-core-database-postgresql</artifactId>
+    <artifactId>isass-framework-database-postgresql</artifactId>
 
     <dependencies>
         <dependency>
@@ -191,7 +191,7 @@
         </dependency>
         <dependency>
             <groupId>vip.isass</groupId>
-            <artifactId>super-core-database</artifactId>
+            <artifactId>isass-framework-database-core</artifactId>
         </dependency>
 
         <dependency>
