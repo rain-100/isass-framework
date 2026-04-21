@@ -280,47 +280,47 @@
         <dynamic-datasource.version>4.3.1</dynamic-datasource.version>
         <dameng.version>8.1.3.140</dameng.version>
         <kingbase8.version>8.6.20</kingbase8.version>
-        <postgresql.version>42.7.5</postgresql.version>
-        <mysql.version>9.2.0</mysql.version>
+        <postgresql.version>42.7.7</postgresql.version>
+        <mysql.version>9.4.0</mysql.version>
         <highgo.version>6.2.4</highgo.version>
 
         <!-- net -->
-        <netty.version>4.2.0.Final</netty.version>
-        <netty-socketio.version>2.0.12</netty-socketio.version>
-        <protobuf-java.version>3.25.5</protobuf-java.version>
+        <netty.version>4.2.7.Final</netty.version>
+        <netty-socketio.version>2.0.13</netty-socketio.version>
+        <protobuf-java.version>4.33.0</protobuf-java.version>
         <protobuf-java-format.version>1.4</protobuf-java-format.version>
 
         <canal.client.version>1.0.25</canal.client.version>
-        <hutool.version>5.8.38</hutool.version>
+        <hutool.version>5.8.44</hutool.version>
         <rocketmq.version>4.1.0-incubating</rocketmq.version>
         <ons.version>1.8.0.Final</ons.version>
 
-        <disruptor.version>3.4.2</disruptor.version>
+        <disruptor.version>4.0.0</disruptor.version>
 
         <guava.version>33.5.0-jre</guava.version>
 
-        <knife4j.version>2.0.9</knife4j.version>
+        <knife4j.version>4.5.0</knife4j.version>
 
-        <jjwt.version>0.9.1</jjwt.version>
+        <jjwt.version>0.13.0</jjwt.version>
         <activiti.version>6.0.0</activiti.version>
 
         <hystrix-javanica.version>1.5.18</hystrix-javanica.version>
-        <freemarker.version>2.3.28</freemarker.version>
+        <freemarker.version>2.3.34</freemarker.version>
 
         <xxl-job.version>2.2.0</xxl-job.version>
 
-        <jasypt.version>2.1.1</jasypt.version>
+        <jasypt.version>3.0.5</jasypt.version>
 
         <!--<elasticsearch.version>7.2.0</elasticsearch.version>-->
 
-        <poi-ooxml.version>4.1.2</poi-ooxml.version>
-        <xerces.version>2.12.0</xerces.version>
+        <poi-ooxml.version>5.4.1</poi-ooxml.version>
+        <xerces.version>2.12.2</xerces.version>
 
         <klock.version>1.7-RELEASE</klock.version>
-        <lock4j-redisson.version>2.2.2</lock4j-redisson.version>
+        <lock4j-redisson.version>2.2.7</lock4j-redisson.version>
         <redisson.version>3.52.0</redisson.version>
 
-        <alipay.version>4.7.12.ALL</alipay.version>
+        <alipay.version>4.40.476.ALL</alipay.version>
 
         <feign.form.version>3.8.0</feign.form.version>
 
@@ -329,19 +329,19 @@
 
         <findbugs.version>3.0.1</findbugs.version>
 
-        <cglib.version>3.2.3</cglib.version>
+        <cglib.version>3.3.0</cglib.version>
 
-        <wxjava.version>4.7.5.B</wxjava.version>
+        <wxjava.version>4.7.8-20251023.110018</wxjava.version>
 
-        <geotools.version>27.4</geotools.version>
-        <jts.version>1.18.1</jts.version>
+        <geotools.version>33.2</geotools.version>
+        <jts.version>1.20.0</jts.version>
         <coordtransform4j.version>1.0.2</coordtransform4j.version>
-        <sqlite-jdbc.version>3.34.0</sqlite-jdbc.version>
+        <sqlite-jdbc.version>3.50.2.0</sqlite-jdbc.version>
         <fastjson.version>2.0.61</fastjson.version>
-        <commons-compress.version>1.26.1</commons-compress.version>
-        <javassist.version>3.25.0-GA</javassist.version>
-        <xFileStorage.version>2.2.1</xFileStorage.version>
-        <amazonaws-s3.version>1.11.415</amazonaws-s3.version>
+        <commons-compress.version>1.28.0</commons-compress.version>
+        <javassist.version>3.30.2-GA</javassist.version>
+        <xFileStorage.version>2.3.0</xFileStorage.version>
+        <amazonaws-s3.version>1.12.792</amazonaws-s3.version>
     </properties>
 
     <!-- maven功能说明 -->
