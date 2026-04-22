@@ -174,7 +174,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import vip.isass.kernel.net.netty.request.Request;
 import vip.isass.kernel.net.netty.request.worker.WorkerPool;
-import vip.isass.core.support.SpringContextUtil;
+import vip.isass.framework.support.SpringContextUtil;
 
 /**
  * 管理业务逻辑工人线程线程池

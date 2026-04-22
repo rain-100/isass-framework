@@ -174,8 +174,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
-import vip.isass.core.map.MultiKeyMultiValueBiMap;
-import vip.isass.core.map.MultiValueBiMap;
+import vip.isass.framework.map.MultiKeyMultiValueBiMap;
+import vip.isass.framework.map.MultiValueBiMap;
 
 import java.util.Collection;
 

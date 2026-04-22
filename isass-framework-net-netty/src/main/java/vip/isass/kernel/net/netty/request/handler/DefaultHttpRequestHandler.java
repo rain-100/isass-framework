@@ -194,12 +194,12 @@ import vip.isass.kernel.net.netty.packet.IPacket;
 import vip.isass.kernel.net.netty.packet.TcpPacket;
 import vip.isass.kernel.net.netty.packet.impl.HttpContent;
 import vip.isass.kernel.net.netty.request.Request;
-import vip.isass.core.protobuf.Base;
-import vip.isass.core.protobuf.im.IM;
-import vip.isass.core.serialization.SerializeMode;
-import vip.isass.core.serialization.impl.protobuf2.ProtobufMethodCache;
-import vip.isass.core.support.JsonUtil;
-import vip.isass.core.support.UriRequestMapping;
+import vip.isass.framework.protobuf.Base;
+import vip.isass.framework.protobuf.im.IM;
+import vip.isass.framework.serialization.SerializeMode;
+import vip.isass.framework.serialization.impl.protobuf2.ProtobufMethodCache;
+import vip.isass.framework.support.JsonUtil;
+import vip.isass.framework.support.UriRequestMapping;
 
 import jakarta.annotation.Resource;
 import java.lang.reflect.Method;

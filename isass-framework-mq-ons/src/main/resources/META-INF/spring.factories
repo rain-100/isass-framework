@@ -1,3 +1,3 @@
 # Auto Configure
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-vip.isass.core.mq.ons.OnsAutoConfiguration
+vip.isass.framework.mq.ons.OnsAutoConfiguration

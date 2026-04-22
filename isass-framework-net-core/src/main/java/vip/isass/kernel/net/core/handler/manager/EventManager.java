@@ -176,7 +176,7 @@ import cn.hutool.core.util.TypeUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import vip.isass.core.converter.ConvertUtil;
+import vip.isass.framework.converter.ConvertUtil;
 import vip.isass.kernel.net.core.handler.OnAnyMessageEventHandler;
 import vip.isass.kernel.net.core.handler.OnConnectEventHandler;
 import vip.isass.kernel.net.core.handler.OnDisconnectEventHandler;

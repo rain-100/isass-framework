@@ -180,7 +180,7 @@ public interface IPacket {
      * body 的序列化方式
      *
      * @return serialize mode
-     * @see vip.isass.core.serialization.SerializeMode
+     * @see vip.isass.framework.serialization.SerializeMode
      */
     Integer getSerializeMode();
 

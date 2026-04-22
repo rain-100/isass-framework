@@ -177,8 +177,8 @@ import cn.hutool.extra.cglib.CglibUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Configuration;
-import vip.isass.core.map.MultiKeyMultiValueBiMap;
-import vip.isass.core.map.MultiValueBiMap;
+import vip.isass.framework.map.MultiKeyMultiValueBiMap;
+import vip.isass.framework.map.MultiValueBiMap;
 import vip.isass.kernel.net.core.message.Message;
 
 import jakarta.annotation.Nonnull;

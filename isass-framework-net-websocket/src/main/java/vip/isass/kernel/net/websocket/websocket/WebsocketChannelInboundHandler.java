@@ -199,7 +199,7 @@ import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import vip.isass.core.support.JsonUtil;
+import vip.isass.framework.support.JsonUtil;
 import vip.isass.kernel.net.core.handler.manager.EventManager;
 import vip.isass.kernel.net.core.message.Message;
 import vip.isass.kernel.net.core.message.MessageCmd;

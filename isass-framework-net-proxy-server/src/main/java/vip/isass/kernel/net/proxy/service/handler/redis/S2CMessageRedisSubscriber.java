@@ -173,7 +173,7 @@ import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.Topic;
 import org.springframework.stereotype.Component;
-import vip.isass.core.cache.redis.IRedisSubscriber;
+import vip.isass.framework.cache.redis.IRedisSubscriber;
 import vip.isass.kernel.net.core.NetRedisKey;
 import vip.isass.kernel.net.core.session.ISessionService;
 

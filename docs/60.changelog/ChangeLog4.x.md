@@ -8,7 +8,7 @@
 
 - **架构升级**：支持 Maven 4 风格构建，引入 `root="true"` 属性和 `modelVersion 4.1.0`。
 - **模块重构**：新增 `isass-framework-dependencies` (BOM) 和 `isass-framework-parent` (Parent POM)，提供更加灵活的项目继承与依赖管理方式。
-- **包名重构**：全量迁移包名，从 `vip.isass.framework` 统一变更为 `vip.isass.core`，结构更加清晰。
+- **包名重构**：全量迁移包名，从 `vip.isass.core` 统一变更为 `vip.isass.framework`，保持与框架命名的统一。
 - **Jakarta EE 适配**：全面适配 Jakarta EE 10，切换相关注解包名。
 - **Spring Boot 升级**：深度适配自定义 Spring Boot 4.0.5 版本。
 - **MQ 系统重构**：

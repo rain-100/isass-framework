@@ -175,7 +175,7 @@ import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import vip.isass.kernel.net.netty.packet.IPacket;
 import vip.isass.kernel.net.core.session.Session;
-import vip.isass.core.support.JsonUtil;
+import vip.isass.framework.support.JsonUtil;
 
 /**
  * 一个网络包请求就是一个系统的事件.类似一个task任务

@@ -175,7 +175,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import vip.isass.core.web.Resp;
+import vip.isass.framework.web.Resp;
 
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;

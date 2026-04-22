@@ -172,7 +172,7 @@ package vip.isass.kernel.net.socketio;
 import cn.hutool.core.lang.Assert;
 import com.corundumstudio.socketio.SocketIOClient;
 import lombok.extern.slf4j.Slf4j;
-import vip.isass.core.support.SystemClock;
+import vip.isass.framework.support.SystemClock;
 import vip.isass.kernel.net.core.session.ClientSession;
 
 import java.net.InetSocketAddress;

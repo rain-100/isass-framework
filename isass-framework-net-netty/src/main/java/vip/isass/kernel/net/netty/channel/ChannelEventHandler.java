@@ -176,7 +176,7 @@ import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 import lombok.SneakyThrows;
 import org.slf4j.Logger;
-import vip.isass.core.support.JsonUtil;
+import vip.isass.framework.support.JsonUtil;
 import vip.isass.kernel.net.core.message.MessageCmd;
 import vip.isass.kernel.net.core.session.ISessionService;
 import vip.isass.kernel.net.core.session.Session;

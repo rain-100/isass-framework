@@ -172,7 +172,7 @@ package vip.isass.kernel.net.core.handler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.annotation.Configuration;
-import vip.isass.core.web.Resp;
+import vip.isass.framework.web.Resp;
 import vip.isass.kernel.net.core.message.Message;
 import vip.isass.kernel.net.core.message.MessageCmd;
 import vip.isass.kernel.net.core.server.Server;

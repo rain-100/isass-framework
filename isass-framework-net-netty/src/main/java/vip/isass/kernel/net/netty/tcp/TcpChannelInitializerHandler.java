@@ -180,7 +180,7 @@ import vip.isass.kernel.net.netty.channel.ChannelInitializerHandler;
 import vip.isass.kernel.net.netty.packet.Decoder;
 import vip.isass.kernel.net.netty.packet.Encoder;
 import vip.isass.kernel.net.netty.packet.impl.coder.IsassBinaryPacketDecoder;
-import vip.isass.core.support.SpringContextUtil;
+import vip.isass.framework.support.SpringContextUtil;
 
 import jakarta.annotation.Resource;
 import java.util.concurrent.TimeUnit;

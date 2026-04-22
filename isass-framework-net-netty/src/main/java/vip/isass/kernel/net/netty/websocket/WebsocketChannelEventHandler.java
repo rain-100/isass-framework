@@ -202,7 +202,7 @@ import vip.isass.kernel.net.netty.packet.TcpPacket;
 import vip.isass.kernel.net.netty.request.Request;
 import vip.isass.kernel.net.netty.request.RequestManager;
 import vip.isass.kernel.net.core.session.ISessionService;
-import vip.isass.core.support.JsonUtil;
+import vip.isass.framework.support.JsonUtil;
 
 import jakarta.annotation.Resource;
 import java.util.Map;

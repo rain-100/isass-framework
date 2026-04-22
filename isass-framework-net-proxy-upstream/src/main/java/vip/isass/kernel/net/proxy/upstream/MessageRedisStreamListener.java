@@ -190,7 +190,7 @@ import org.springframework.data.redis.stream.StreamListener;
 import org.springframework.data.redis.stream.StreamMessageListenerContainer;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
-import vip.isass.core.cache.redis.RedisConfig;
+import vip.isass.framework.cache.redis.RedisConfig;
 import vip.isass.kernel.net.core.NetRedisKey;
 import vip.isass.kernel.net.core.handler.manager.IEventManager;
 import vip.isass.kernel.net.core.message.Message;

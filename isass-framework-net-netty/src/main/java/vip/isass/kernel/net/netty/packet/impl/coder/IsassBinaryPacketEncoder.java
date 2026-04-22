@@ -180,8 +180,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import vip.isass.kernel.net.netty.packet.Encoder;
 import vip.isass.kernel.net.netty.packet.TcpPacket;
-import vip.isass.core.serialization.SerializeMode;
-import vip.isass.core.support.JsonUtil;
+import vip.isass.framework.serialization.SerializeMode;
+import vip.isass.framework.support.JsonUtil;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
