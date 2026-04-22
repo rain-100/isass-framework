@@ -228,14 +228,14 @@
         </dependency>
 
         <dependency>
-            <groupId>vip.isass</groupId>
-            <artifactId>isass-framework-database-mysql</artifactId>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
             <optional>true</optional>
         </dependency>
 
         <dependency>
-            <groupId>vip.isass</groupId>
-            <artifactId>isass-framework-database-postgresql</artifactId>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
             <optional>true</optional>
         </dependency>
 

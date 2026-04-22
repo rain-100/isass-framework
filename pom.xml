@@ -196,8 +196,7 @@
         <subproject>isass-framework-database-redis</subproject>
 
         <subproject>isass-framework-database-mybatisplus</subproject>
-        <subproject>isass-framework-database-mysql</subproject>
-        <subproject>isass-framework-database-postgresql</subproject>
+
         <subproject>isass-framework-database-querydsl</subproject>
         <subproject>isass-framework-database-core</subproject>
         <subproject>isass-framework-build</subproject>
