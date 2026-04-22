@@ -215,7 +215,7 @@
         <subproject>isass-framework-mq-core</subproject>
         <subproject>isass-framework-serialization-protobuf</subproject>
         <subproject>isass-framework-security-springsecurity</subproject>
-        <subproject>isass-framework-web-swagger</subproject>
+        <!-- <subproject>isass-framework-web-swagger</subproject> -->
         <subproject>isass-framework-web-springmvc</subproject>
         <subproject>isass-framework-common</subproject>
     </subprojects>

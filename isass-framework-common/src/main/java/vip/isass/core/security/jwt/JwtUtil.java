@@ -176,12 +176,14 @@ import cn.hutool.core.util.StrUtil;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
 import vip.isass.core.exception.UnifiedException;
 import vip.isass.core.exception.code.StatusMessageEnum;
 import vip.isass.core.login.LoginUser;
 import vip.isass.core.support.LocalDateTimeUtil;
 
+import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.Map;
@@ -207,23 +209,29 @@ public class JwtUtil {
                 .put(JwtInfo.TERMINAL_TYPE, loginUser.getTerminalType())
                 .put(JwtInfo.LOGIN_LOG_ID, loginUser.getLoginLogId())
                 .build();
+
+        secret = StrUtil.blankToDefault(secret, DEFAULT_SECRET);
+        SecretKey key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+
         return Jwts.builder()
-                .setClaims(map)
-                .setExpiration(new Date(loginUser.getExpireAt() == null
+                .claims(map)
+                .expiration(new Date(loginUser.getExpireAt() == null
                         ? SystemClock.now() + TOKEN_EFFECTIVE_MILLS
                         : loginUser.getExpireAt()))
-                .signWith(SignatureAlgorithm.HS256, secret)
+                .signWith(key)
                 .compact();
     }
 
     public static JwtInfo parse(String token, String secret) {
         secret = StrUtil.blankToDefault(secret, DEFAULT_SECRET);
+        SecretKey key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         Claims claims;
         try {
             claims = Jwts.parser()
-                    .setSigningKey(secret)
-                    .parseClaimsJws(token)
-                    .getBody();
+                    .verifyWith(key)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
         } catch (ExpiredJwtException e) {
             throw new UnifiedException(StatusMessageEnum.TOKEN_EXPIRED);
         } catch (Exception e) {

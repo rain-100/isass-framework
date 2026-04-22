@@ -260,7 +260,17 @@ public class SecurityMetadataSource {
 
     private String getMappingUri(Map.Entry<RequestMappingInfo, HandlerMethod> entry, Object object) {
         if (entry != null) {
-            return entry.getKey().getPatternsCondition().getPatterns().iterator().next().trim();
+            RequestMappingInfo info = entry.getKey();
+            Set<String> patterns = null;
+            if (info.getPathPatternsCondition() != null) {
+                patterns = info.getPathPatternsCondition().getPatternValues();
+            } else if (info.getPatternsCondition() != null) {
+                patterns = info.getPatternsCondition().getPatterns();
+            }
+
+            if (patterns != null && !patterns.isEmpty()) {
+                return patterns.iterator().next().trim();
+            }
         }
 
         if (object instanceof FilterInvocation) {
