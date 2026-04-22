@@ -1,0 +1,3 @@
+vip.isass.framework.database.mybatisplus.DatabaseMybatisPlusAutoConfiguration
+vip.isass.framework.database.mybatisplus.mysql.DatabaseMybatisPlusMysqlAutoConfiguration
+vip.isass.framework.database.mybatisplus.postgresql.DatabaseMybatisplusPostgresqlAutoConfiguration

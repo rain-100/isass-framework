@@ -10,7 +10,7 @@
 - **模块重构**：新增 `isass-framework-dependencies` (BOM) 和 `isass-framework-parent` (Parent POM)，提供更加灵活的项目继承与依赖管理方式。
 - **包名重构**：全量迁移包名，从 `vip.isass.core` 和 `vip.isass.kernel` 统一变更为 `vip.isass.framework`，保持与框架命名的统一。
 - **Jakarta EE 适配**：全面适配 Jakarta EE 10，切换相关注解包名。
-- **Spring Boot 升级**：深度适配自定义 Spring Boot 4.0.5 版本。
+- **Spring Boot 升级**：深度适配自定义 Spring Boot 4.0.5 版本，将所有自动配置从 `spring.factories` 迁移至新的 `AutoConfiguration.imports` 机制。
 - **MQ 系统重构**：
     - 引入新的 `IMqConsumer` 接口和 `MqMessageContext`。
     - 实现 MQ 消费者生命周期的全自动托管，移除冗余的初始化模板代码。
