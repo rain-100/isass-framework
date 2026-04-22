@@ -89,7 +89,7 @@
  *    the Library is used in it and that the Library and its use are
  *    covered by this License.
  *
- *    b) Accompany the Combined Work with a copy of the GNU GPL and this license
+ *    b) Accompany the combined library with a copy of the GNU GPL and this license
  *    document.
  *
  *    c) For a Combined Work that displays copyright notices during
@@ -169,24 +169,23 @@
 
 package vip.isass.framework.database.init;
 
+import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.util.ServiceLoaderUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.db.Db;
 import cn.hutool.db.DbUtil;
 import cn.hutool.db.StatementUtil;
 import cn.hutool.db.ds.simple.SimpleDataSource;
-import cn.hutool.db.handler.NumberHandler;
 import cn.hutool.db.sql.SqlExecutor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 
-import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 数据库初始化管理器
@@ -197,15 +196,15 @@ import java.util.List;
 @Slf4j
 public class DatabaseInitializerManager implements ApplicationContextInitializer<ConfigurableApplicationContext> {
 
+    /**
+     * 定义可能的 schema 参数名
+     */
+    public static final String[] SCHEMA_PARAM_NAMES = {"schema", "SCHEMA", "currentSchema", "searchpath"};
+
     private static volatile boolean RUN = false;
 
     /**
      * 主数据源数据库名
-     * -- GETTER --
-     *  获取主数据源数据库名
-     *
-     * @return 主数据源数据库名
-
      */
     @Getter
     private static String masterDatasourceDatabaseName = "";
@@ -236,19 +235,22 @@ public class DatabaseInitializerManager implements ApplicationContextInitializer
             return;
         }
         try {
-            log.info("开始创建数据库: 数据库不存在则自动创建数据库");
+            log.info("Start creating database if the database does not exist");
             initDatabase(jdbcUrl, username, password);
         } catch (Exception e) {
-            log.info("数据库初始化失败");
+            log.info("database initialization fail");
             log.error(e.getMessage(), e);
         }
         RUN = true;
     }
 
-    private void initDatabase(String jdbcUrl, String username, String password) {
-        String jdbcUrlOriginal = jdbcUrl.trim();
+    public void initDatabase(String jdbcUrl, String username, String password) {
+        if (tryConnect(jdbcUrl, username, password)) {
+            return;
+        }
+
         List<DatabaseInitializer> databaseInitializers = ServiceLoaderUtil.loadList(DatabaseInitializer.class);
-        if (databaseInitializers == null) {
+        if (databaseInitializers == null || databaseInitializers.isEmpty()) {
             log.error("cannot found DatabaseInitializer implements");
             return;
         }
@@ -266,80 +268,139 @@ public class DatabaseInitializerManager implements ApplicationContextInitializer
             return;
         }
 
-        log.info("found master datasource jdbcUrl: {}", jdbcUrl);
-
+        // 解析数据库名和schema名
         masterDatasourceDatabaseName = databaseInitializer.parseDatabaseName(jdbcUrl);
         masterDatasourceSchemaName = databaseInitializer.parseSchemaName(jdbcUrl);
         log.info("database name: {}", masterDatasourceDatabaseName);
         log.info("schema name: {}", masterDatasourceSchemaName);
-        jdbcUrl = databaseInitializer.removeDatabaseName(jdbcUrl, masterDatasourceDatabaseName);
-        log.info("remove database name jdbcUrl: {}", jdbcUrl);
-        String checkDatabaseNameExistSql = databaseInitializer.checkDatabaseNameExistSql(masterDatasourceDatabaseName);
-        String createDatabaseSql = databaseInitializer.createDatabaseSql(masterDatasourceDatabaseName);
 
-        DataSource ds = new SimpleDataSource(jdbcUrl, username, password);
-        Db db = DbUtil.use(ds);
-        Connection conn = null;
-
-        try {
-            conn = ds.getConnection();
-            boolean databaseExist = false;
-            if (checkDatabaseNameExistSql != null) {
-                log.info("running check database exist sql: {}", checkDatabaseNameExistSql);
-                Number query = SqlExecutor.query(conn, checkDatabaseNameExistSql, new NumberHandler(), Collections.emptyMap());
-                int databaseCount = query.intValue();
-                databaseExist = databaseCount > 0;
+        // 如果有 schemaName，则尝试创建，创建成功，代表数据库已存在，则数据库初始化逻辑完成
+        if (StrUtil.isNotBlank(masterDatasourceSchemaName)) {
+            // jdbcUrl 去除 schema,否则 jdbc 连接不上
+            String tempJdbcUrl = removeJdbcUrlSchemaName(jdbcUrl);
+            if (execSql(tempJdbcUrl, username, password, databaseInitializer.createSchemaSql(masterDatasourceSchemaName))) {
+                return;
             }
-
-            if (!databaseExist) {
-                log.info("running create database sql: {}", createDatabaseSql);
-                PreparedStatement preparedStatement = StatementUtil.prepareStatement(conn, createDatabaseSql);
-                SqlExecutor.execute(preparedStatement);
-            }
-        } catch (Exception e) {
-            log.error("database init fail :{}", e.getMessage(), e);
-        } finally {
-            db.closeConnection(conn);
         }
 
-        // 初始化 schema
-        if(masterDatasourceSchemaName == null){
-            log.info("jdbcUrl:{} does not contain currentSchema or searchpath, use default schemaName", jdbcUrl);
+        if (StrUtil.isBlank(masterDatasourceDatabaseName)) {
             return;
         }
-        //原jdbc 经过因为需要新建数据库改成默认数据库，现在要创建schema 需要连已经创建的数据库后再创建schema
-        jdbcUrl = jdbcUrlOriginal;
-        log.info("jdbcUrl:{} need to create schemaName:{}, reconnect database", jdbcUrl, masterDatasourceSchemaName);
-        String checkSchemaExistSql = databaseInitializer.checkSchemaExistSql(masterDatasourceSchemaName);
-        String createSchemaSql = databaseInitializer.createSchemaSql(masterDatasourceSchemaName);
-        ds = new SimpleDataSource(jdbcUrl , username, password);
-        db = DbUtil.use(ds);
-        conn = null;
 
-        try {
-            conn = ds.getConnection();
-            boolean databaseExist = false;
-            if (checkSchemaExistSql != null) {
-                log.info("running check schema exist sql: {}", checkSchemaExistSql);
-                Number query = SqlExecutor.query(conn, checkSchemaExistSql, new NumberHandler(), Collections.emptyMap());
-                if (query != null) {
-                    int databaseCount = query.intValue();
-                    databaseExist = databaseCount > 0;
-                }
+        // 处理 jdbcUrl 的 databaseName(去除或替换成默认数据库名) 和 schema(去除),否则 jdbc 连接不上
+        String tempJdbcUrl = replaceDatabaseName(jdbcUrl, databaseInitializer, masterDatasourceDatabaseName);
+        tempJdbcUrl = removeJdbcUrlSchemaName(tempJdbcUrl);
+        if (execSql(tempJdbcUrl, username, password, databaseInitializer.createDatabaseSql(masterDatasourceDatabaseName))) {
+            // 数据库创建成功，如果 schemaName 不存在，则完成初始化
+            if (StrUtil.isBlank(masterDatasourceSchemaName)) {
+                return;
             }
 
-            if (!databaseExist) {
-                log.info("running create schema sql: {}", createSchemaSql);
-                PreparedStatement preparedStatement = StatementUtil.prepareStatement(conn, createSchemaSql);
-                SqlExecutor.execute(preparedStatement);
+            // 尝试连接，因为 schemaName 可能是数据库会默认创建的，不用手工创建
+            if (tryConnect(jdbcUrl, username, password)) {
+                return;
             }
-        } catch (Exception e) {
-            log.error("schema init fail :{}", e.getMessage(), e);
-        } finally {
-            db.closeConnection(conn);
+
+            // 数据库创建成功了，但是连接不成功，代表 schema 需要手工创建
+            // jdbcUrl 去除 schema,否则 jdbc 连接不上
+            tempJdbcUrl = removeJdbcUrlSchemaName(jdbcUrl);
+            execSql(tempJdbcUrl, username, password, databaseInitializer.createSchemaSql(masterDatasourceSchemaName));
         }
-
-
     }
 
+    private static boolean tryConnect(String jdbcUrl, String username, String password) {
+        log.info("try connecting datasource using jdbcUrl: {}", jdbcUrl);
+        // 尝试连接
+        try (SimpleDataSource ds = new SimpleDataSource(jdbcUrl, username, password);
+             Connection conn = ds.getConnection()) {
+            log.info("datasource connect success, skip database initialization");
+            return true;
+        } catch (Exception e) {
+            log.info("try connecting database fail: {}", e.getMessage());
+            return false;
+        }
+    }
+
+    private static boolean execSql(String jdbcUrl, String username, String password, String sql) {
+        Db db = null;
+        Connection conn = null;
+        PreparedStatement preparedStatement = null;
+        try (SimpleDataSource ds = new SimpleDataSource(jdbcUrl, username, password)) {
+            db = DbUtil.use(ds);
+            conn = ds.getConnection();
+            log.info("exec sql: {}", sql);
+            preparedStatement = StatementUtil.prepareStatement(conn, sql);
+            SqlExecutor.execute(preparedStatement);
+            log.info("sql exec success");
+            return true;
+        } catch (Exception e) {
+            log.info("sql exec fail: {}", e.getMessage());
+            return false;
+        } finally {
+            if (db != null) {
+                db.closeConnection(conn);
+            } else {
+                IoUtil.close(conn);
+            }
+            IoUtil.close(preparedStatement);
+        }
+    }
+
+    /**
+     * 删除 jdbcUrl 的数据库名
+     */
+    private static String replaceDatabaseName(String jdbcUrl, DatabaseInitializer initializer, String databaseName) {
+        if (jdbcUrl.contains(":postgresql:")) {
+            return jdbcUrl.replace("/" + databaseName, "/postgres");
+        }
+        if (jdbcUrl.contains(":kingbase")) {
+            return jdbcUrl.replace("/" + databaseName, "/kingbase");
+        }
+        if (jdbcUrl.contains(":highgo:")) {
+            return jdbcUrl.replace("/" + databaseName, "/highgo");
+        }
+        return initializer.removeDatabaseName(jdbcUrl, databaseName);
+    }
+
+    private static String removeJdbcUrlSchemaName(String jdbcUrl) {
+        // 分割 URL 为基本部分和查询字符串
+        String[] parts = jdbcUrl.split("\\?", 2);
+        if (parts.length < 2) {
+            return jdbcUrl;
+        }
+
+        String baseUrl = parts[0];
+        try {
+            // 解析查询字符串为参数映射
+            DatabaseInitializer dummy = new DatabaseInitializer() {
+                @Override public String database() { return null; }
+                @Override public boolean match(String url) { return false; }
+                @Override public String checkDatabaseNameExistSql(String name) { return null; }
+                @Override public String createDatabaseSql(String name) { return null; }
+                @Override public String checkSchemaExistSql(String name) { return null; }
+                @Override public String createSchemaSql(String name) { return null; }
+            };
+            Map<String, String> queryParams = dummy.parseQueryString(parts[1]);
+
+            // 移除所有可能的schema参数
+            for (String schemaParam : SCHEMA_PARAM_NAMES) {
+                queryParams.remove(schemaParam);
+            }
+
+            // 重新构建查询字符串
+            StringBuilder newQueryString = new StringBuilder();
+            for (Map.Entry<String, String> entry : queryParams.entrySet()) {
+                if (newQueryString.length() > 0) {
+                    newQueryString.append("&");
+                }
+                newQueryString.append(entry.getKey()).append("=").append(entry.getValue());
+            }
+
+            // 重新构建URL
+            return newQueryString.length() == 0 ? baseUrl : baseUrl + "?" + newQueryString;
+        } catch (Exception e) {
+            log.warn("Failed to replace schema name in jdbcUrl: {}", jdbcUrl, e);
+            return jdbcUrl;
+        }
+    }
 }
