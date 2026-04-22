@@ -359,7 +359,7 @@
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>isass-framework-deploy</artifactId>
+                <artifactId>isass-framework-build</artifactId>
                 <version>${isass-framework.version}</version>
             </dependency>
 

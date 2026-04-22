@@ -183,7 +183,7 @@
     </parent>
 
     <!-- 本项目信息 -->
-    <artifactId>isass-framework-deploy</artifactId>
+    <artifactId>isass-framework-build</artifactId>
 
     <build>
         <resources>

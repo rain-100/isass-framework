@@ -19,7 +19,7 @@
 - **模块合并**：
     - `isass-framework-nocode-*` 核心功能合并至 `isass-framework-common` 的 `core.structure` 目录下。
     - `isass-framework-mq-redisstream` 和 `redispubsub` 合并至 `isass-framework-database-redis`。
-    - `isass-framework-build` 升级并更名为 `isass-framework-deploy`。
+    - `isass-framework-build` 模块保留并持续优化（曾短暂更名为 `isass-framework-deploy`）。
 
 #### optimize
 
