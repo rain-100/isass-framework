@@ -1,3 +1,3 @@
-vip.isass.framework.database.DatabaseAutoConfiguration
+vip.isass.framework.database.core.DatabaseAutoConfiguration
 org.springframework.context.ApplicationContextInitializer=
-vip.isass.framework.database.init.DatabaseInitializerManager
+vip.isass.framework.database.core.init.DatabaseInitializerManager

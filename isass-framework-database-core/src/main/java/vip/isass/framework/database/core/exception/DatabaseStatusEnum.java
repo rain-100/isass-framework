@@ -167,40 +167,27 @@
  *
  */
 
-package vip.isass.framework.database.flyway;
+package vip.isass.framework.database.core.exception;
 
-import org.flywaydb.core.Flyway;
-import org.springframework.boot.flyway.autoconfigure.FlywayMigrationInitializer;
-import org.springframework.boot.flyway.autoconfigure.FlywayMigrationStrategy;
+import lombok.Getter;
+import vip.isass.framework.exception.code.IStatusMessage;
 
-import java.util.List;
+/**
+ * @author Rain
+ */
+@Getter
+public enum DatabaseStatusEnum implements IStatusMessage {
 
-public class IsassFlywayMigrationInitializer extends FlywayMigrationInitializer {
+    SQL_EXCEPTION(10001_00000, "数据库错误"),
+    ;
 
-    private final List<Flyway> flyways;
+    private final Integer status;
 
-    private FlywayMigrationStrategy migrationStrategy;
+    private final String msg;
 
-    public IsassFlywayMigrationInitializer(List<Flyway> flyways) {
-        super(flyways.get(0));
-        this.flyways = flyways;
-    }
-
-    public IsassFlywayMigrationInitializer(List<Flyway> flyways, FlywayMigrationStrategy migrationStrategy) {
-        super(flyways.get(0), migrationStrategy);
-        this.flyways = flyways;
-        this.migrationStrategy = migrationStrategy;
-    }
-
-    @Override
-    public void afterPropertiesSet() {
-        flyways.forEach(flyway -> {
-            if (this.migrationStrategy != null) {
-                this.migrationStrategy.migrate(flyway);
-            } else {
-                flyway.migrate();
-            }
-        });
+    DatabaseStatusEnum(Integer status, String msg) {
+        this.status = status;
+        this.msg = msg;
     }
 
 }

@@ -167,7 +167,7 @@
  *
  */
 
-package vip.isass.framework.database.generator;
+package vip.isass.framework.database.core.generator;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.map.MapUtil;

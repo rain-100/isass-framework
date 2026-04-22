@@ -166,7 +166,7 @@
  * Library.
  */
 
-package vip.isass.framework.database.typehandler;
+package vip.isass.framework.database.core.typehandler;
 
 import com.fasterxml.jackson.databind.JsonNode;
 

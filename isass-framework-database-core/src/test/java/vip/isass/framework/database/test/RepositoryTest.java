@@ -173,7 +173,7 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Assert;
 import vip.isass.framework.criteria.ICriteria;
 import vip.isass.framework.criteria.IdCriteria;
-import vip.isass.framework.database.criteria.TimeTracedCriteria;
+import vip.isass.framework.database.core.criteria.TimeTracedCriteria;
 import vip.isass.framework.entity.IEntity;
 import vip.isass.framework.entity.IdEntity;
 import vip.isass.framework.entity.LogicDeleteEntity;

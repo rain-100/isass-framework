@@ -171,7 +171,7 @@ package vip.isass.framework.database.mybatisplus.mysql;
 import cn.hutool.core.util.StrUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.SneakyThrows;
-import vip.isass.framework.database.typehandler.IJsonNodeTypeHandler;
+import vip.isass.framework.database.core.typehandler.IJsonNodeTypeHandler;
 import vip.isass.framework.support.JsonUtil;
 
 import java.sql.PreparedStatement;

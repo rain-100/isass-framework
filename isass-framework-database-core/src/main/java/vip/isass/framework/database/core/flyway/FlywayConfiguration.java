@@ -1,4 +1,4 @@
-package vip.isass.framework.database.flyway;
+package vip.isass.framework.database.core.flyway;
 
 import org.flywaydb.core.Flyway;
 import org.springframework.boot.flyway.autoconfigure.FlywayProperties;

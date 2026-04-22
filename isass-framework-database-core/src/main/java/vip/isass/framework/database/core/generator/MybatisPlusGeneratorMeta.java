@@ -167,13 +167,44 @@
  *
  */
 
-package vip.isass.framework.database;
+package vip.isass.framework.database.core.generator;
 
-import org.springframework.context.annotation.ComponentScan;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+
+import com.baomidou.mybatisplus.annotation.DbType;
 
 /**
  * @author Rain
  */
-@ComponentScan
-public class DatabaseAutoConfiguration {
+@Getter
+@Setter
+@Accessors(chain = true)
+public class MybatisPlusGeneratorMeta {
+
+    private DbType dbType;
+
+    private String dataSourceUserName;
+
+    private String dataSourcePassword;
+
+    private String dataSourceUrl;
+
+    private String schemaName;
+
+    private String outputDir;
+
+    private String moduleName;
+
+    private String packageName;
+
+    private String[] tablePrefix;
+
+    private String[] includeTables;
+
+    private String[] excludeTables;
+
+    private String controllerPrefix;
+
 }

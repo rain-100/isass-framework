@@ -167,36 +167,48 @@
  *
  */
 
-package vip.isass.framework.database.generator;
+package vip.isass.framework.database.core.generator;
 
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
+import com.baomidou.mybatisplus.generator.config.rules.IColumnType;
+import lombok.Getter;
 
-import java.util.regex.Pattern;
+/**
+ * @author Rain
+ */
+public enum ExtDbColumnType implements IColumnType {
 
-@Slf4j
-public class MybatisPlusGenerator {
-
-    private static final String PREFIX = "v1";
+    SHORT_ARRAY("Short[]", null),
+    INTEGER_ARRAY("Integer[]", null),
+    LONG_ARRAY("Long[]", null),
+    BIG_DECIMAL_ARRAY("BigDecimal[]", null),
+    BOOLEAN_ARRAY("Boolean[]", null),
+    STRING_ARRAY("String[]", null),
+    STRING_COLLECTION("Collection<String>", null),
+    DATE_ARRAY("Date[]", null),
+    DATE_SQL_ARRAY("Date[]", "java.sql.Date"),
+    LOCAL_DATE_ARRAY("LocalDate[]", "java.time.LocalDate"),
+    TIMESTAMP_ARRAY("Timestamp[]", "java.sql.Timestamp"),
+    LOCAL_DATE_TIME_ARRAY("LocalDateTime[]", "java.time.LocalDateTime"),
+    TIME_ARRAY("Time[]", "java.sql.Time"),
+    LOCAL_TIME_ARRAY("LocalTime[]", "java.time.LocalTime"),
+    JSON("JsonNode", "com.fasterxml.jackson.databind.JsonNode"),
+    JSON_ARRAY("JsonNode[]", "com.fasterxml.jackson.databind.JsonNode");
 
     /**
-     * 需要覆盖的文件
+     * 类型
      */
-    public static final Pattern[] FILE_OVERRIDE_PATTERNS = new Pattern[]{
-            Pattern.compile(".*V1\\w*Controller.java$"),
-            Pattern.compile(".*V1\\w*Service.java$"),
-            Pattern.compile(".*V1\\w*Repository.java$"),
-            Pattern.compile(".*V1\\w*Mapper.java$"),
-            Pattern.compile(".*V1\\w*Mapper.xml$"),
-            Pattern.compile(".*/api\\wentity\\w.*"),
-            Pattern.compile(".*/api/criteria.*"),
-            Pattern.compile(".*V1\\w*ServiceTest.java$"),
-            Pattern.compile(".*V1\\w*TestSuite.java$"),
-            Pattern.compile(".*/initDb.sql$")
-    };
+    @Getter
+    private final String type;
 
-    @SneakyThrows
-    public static void generate(MybatisPlusGeneratorMeta meta) {
-        throw new UnsupportedOperationException("v1代码生成器已废弃");
+    /**
+     * 包路径
+     */
+    @Getter
+    private final String pkg;
+
+    ExtDbColumnType(final String type, final String pkg) {
+        this.type = type;
+        this.pkg = pkg;
     }
+
 }

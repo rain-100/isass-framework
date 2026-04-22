@@ -167,44 +167,39 @@
  *
  */
 
-package vip.isass.framework.database.generator;
+package vip.isass.framework.database.core.exception;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
+import cn.hutool.core.exceptions.ExceptionUtil;
+import cn.hutool.core.map.MapUtil;
+import org.springframework.stereotype.Component;
+import vip.isass.framework.exception.IExceptionMapping;
+import vip.isass.framework.exception.code.IStatusMessage;
 
-import com.baomidou.mybatisplus.annotation.DbType;
+import java.sql.SQLException;
+import java.util.Map;
 
 /**
  * @author Rain
  */
-@Getter
-@Setter
-@Accessors(chain = true)
-public class MybatisPlusGeneratorMeta {
+@Component
+public class DatabaseExceptionMapping implements IExceptionMapping {
 
-    private DbType dbType;
+    private static final Map<Class<? extends Exception>, IStatusMessage> EXCEPTION_MAPPING = MapUtil.<Class<? extends Exception>, IStatusMessage>builder()
+            .put(SQLException.class, DatabaseStatusEnum.SQL_EXCEPTION)
+            .build();
 
-    private String dataSourceUserName;
+    @Override
+    public IStatusMessage getStatusCode(Exception exception) {
+        Throwable unwrap = ExceptionUtil.unwrap(exception);
+        return EXCEPTION_MAPPING.get(unwrap.getClass());
+    }
 
-    private String dataSourcePassword;
-
-    private String dataSourceUrl;
-
-    private String schemaName;
-
-    private String outputDir;
-
-    private String moduleName;
-
-    private String packageName;
-
-    private String[] tablePrefix;
-
-    private String[] includeTables;
-
-    private String[] excludeTables;
-
-    private String controllerPrefix;
+    @Override
+    public String parseExceptionMessage(Throwable e) {
+        String message;
+        Throwable unwrap = ExceptionUtil.unwrap(e);
+        message = unwrap.getMessage();
+        return message;
+    }
 
 }

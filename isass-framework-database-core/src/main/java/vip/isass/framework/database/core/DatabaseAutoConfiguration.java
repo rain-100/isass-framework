@@ -167,38 +167,13 @@
  *
  */
 
-package vip.isass.framework.database.flyway;
+package vip.isass.framework.database.core;
 
-import org.flywaydb.core.Flyway;
-import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.boot.autoconfigure.AutoConfigureAfter;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.flyway.autoconfigure.FlywayMigrationStrategy;
-import org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration;
-import org.springframework.boot.jdbc.autoconfigure.JdbcTemplateAutoConfiguration;
-// import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration; // Removed in SB 4
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-
-import java.util.List;
+import org.springframework.context.annotation.ComponentScan;
 
 /**
- * 为了支持单体打包后，各微服务的flyway能独立管理，需修改源码
+ * @author Rain
  */
-@Configuration
-@ConditionalOnClass(Flyway.class)
-@ConditionalOnProperty(prefix = "spring.flyway", name = "enabled", matchIfMissing = true)
-@AutoConfigureAfter({
-    DataSourceAutoConfiguration.class,
-    JdbcTemplateAutoConfiguration.class
-})
-public class IsassFlywayAutoConfiguration {
-
-    @Bean
-    public IsassFlywayMigrationInitializer flywayInitializer(List<Flyway> flyways,
-                                                             ObjectProvider<FlywayMigrationStrategy> migrationStrategy) {
-        return new IsassFlywayMigrationInitializer(flyways, migrationStrategy.getIfAvailable());
-    }
-
+@ComponentScan
+public class DatabaseAutoConfiguration {
 }

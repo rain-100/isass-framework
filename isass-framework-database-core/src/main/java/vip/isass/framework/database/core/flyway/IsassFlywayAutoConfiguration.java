@@ -75,7 +75,7 @@
  *    covered by this License.
  *
  *    b) Accompany the object code with a copy of the GNU GPL and this license
- *    documentypeName.
+ *    document.
  *
  *   4. Combined Works.
  *
@@ -90,12 +90,12 @@
  *    covered by this License.
  *
  *    b) Accompany the Combined Work with a copy of the GNU GPL and this license
- *    documentypeName.
+ *    document.
  *
  *    c) For a Combined Work that displays copyright notices during
  *    execution, include the copyright notice for the Library among
  *    these notices, as well as a reference directing the user to the
- *    copies of the GNU GPL and this license documentypeName.
+ *    copies of the GNU GPL and this license document.
  *
  *    d) Do one of the following:
  *
@@ -164,83 +164,41 @@
  * apply, that proxy's public statement of acceptance of any version is
  * permanent authorization for you to choose that version for the
  * Library.
+ *
  */
 
-package vip.isass.framework.database.generator;
+package vip.isass.framework.database.core.flyway;
 
-import com.baomidou.mybatisplus.generator.config.GlobalConfig;
-import com.baomidou.mybatisplus.generator.config.po.TableField;
-import com.baomidou.mybatisplus.generator.config.rules.DbColumnType;
-import com.baomidou.mybatisplus.generator.config.rules.IColumnType;
-import com.baomidou.mybatisplus.generator.type.ITypeConvertHandler;
-import com.baomidou.mybatisplus.generator.type.TypeRegistry;
+import org.flywaydb.core.Flyway;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.flyway.autoconfigure.FlywayMigrationStrategy;
+import org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration;
+import org.springframework.boot.jdbc.autoconfigure.JdbcTemplateAutoConfiguration;
+// import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration; // Removed in SB 4
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-public class TypeConvertHandler implements ITypeConvertHandler {
-    @Override
-    public IColumnType convert(GlobalConfig globalConfig, TypeRegistry typeRegistry, TableField.MetaInfo metaInfo) {
-        String typeName = metaInfo.getTypeName().toLowerCase();
+import java.util.List;
 
-        // 数字类型
-        if (typeName.equals("smallint[]")) {
-            return ExtDbColumnType.SHORT_ARRAY;
-        } else if (typeName.equals("tinyint")) {
-            return DbColumnType.INTEGER;
-        } else if (typeName.equals("tinyint[]") || typeName.equals("integer[]")) {
-            return ExtDbColumnType.INTEGER_ARRAY;
-        } else if (typeName.equals("bigint[]")) {
-            return ExtDbColumnType.LONG_ARRAY;
-        } else if (typeName.startsWith("numeric") && typeName.endsWith("[]")) {
-            return ExtDbColumnType.BIG_DECIMAL_ARRAY;
-        }
+/**
+ * 为了支持单体打包后，各微服务的flyway能独立管理，需修改源码
+ */
+@Configuration
+@ConditionalOnClass(Flyway.class)
+@ConditionalOnProperty(prefix = "spring.flyway", name = "enabled", matchIfMissing = true)
+@AutoConfigureAfter({
+    DataSourceAutoConfiguration.class,
+    JdbcTemplateAutoConfiguration.class
+})
+public class IsassFlywayAutoConfiguration {
 
-        // 布尔
-        else if (typeName.equals("boolean[]")) {
-            return ExtDbColumnType.BOOLEAN_ARRAY;
-        }
-
-        // 字符串
-        else if (typeName.startsWith("character") && typeName.endsWith("[]")) {
-            return ExtDbColumnType.STRING_COLLECTION;
-        } else if (typeName.equals("text[]")) {
-            return ExtDbColumnType.STRING_COLLECTION;
-        }
-
-        // 日期时间类型
-        else if (typeName.equals("data[]")) {
-            switch (globalConfig.getDateType()) {
-                case ONLY_DATE:
-                    return ExtDbColumnType.DATE_ARRAY;
-                case SQL_PACK:
-                    return ExtDbColumnType.DATE_SQL_ARRAY;
-                case TIME_PACK:
-                    return ExtDbColumnType.LOCAL_DATE_ARRAY;
-            }
-        } else if (typeName.startsWith("timestamp") && typeName.endsWith("[]")) {
-            switch (globalConfig.getDateType()) {
-                case ONLY_DATE:
-                    return ExtDbColumnType.DATE_ARRAY;
-                case SQL_PACK:
-                    return ExtDbColumnType.TIMESTAMP_ARRAY;
-                case TIME_PACK:
-                    return ExtDbColumnType.LOCAL_DATE_TIME_ARRAY;
-            }
-        } else if (typeName.startsWith("time") && typeName.endsWith("[]")) {
-            switch (globalConfig.getDateType()) {
-                case ONLY_DATE:
-                    return ExtDbColumnType.DATE_ARRAY;
-                case SQL_PACK:
-                    return ExtDbColumnType.TIME_ARRAY;
-                case TIME_PACK:
-                    return ExtDbColumnType.LOCAL_TIME_ARRAY;
-            }
-        }
-
-        // json 类型
-        else if (typeName.equals("json") || typeName.equals("jsonb")) {
-            return ExtDbColumnType.JSON;
-        } else if (typeName.equals("json[]") || typeName.equals("jsonb[]")) {
-            return ExtDbColumnType.JSON_ARRAY;
-        }
-        return typeRegistry.getColumnType(metaInfo);
+    @Bean
+    public IsassFlywayMigrationInitializer flywayInitializer(List<Flyway> flyways,
+                                                             ObjectProvider<FlywayMigrationStrategy> migrationStrategy) {
+        return new IsassFlywayMigrationInitializer(flyways, migrationStrategy.getIfAvailable());
     }
+
 }

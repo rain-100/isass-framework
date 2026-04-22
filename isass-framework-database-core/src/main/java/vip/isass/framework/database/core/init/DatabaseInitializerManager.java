@@ -167,7 +167,7 @@
  *
  */
 
-package vip.isass.framework.database.init;
+package vip.isass.framework.database.core.init;
 
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.util.StrUtil;
