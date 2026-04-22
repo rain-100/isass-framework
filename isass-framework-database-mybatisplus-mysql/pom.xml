@@ -177,7 +177,9 @@
     <!-- 父项目信息 -->
     <parent>
         <groupId>vip.isass</groupId>
-        <artifactId>isass-framework</artifactId>
+        <artifactId>isass-framework-parent</artifactId>
+        <version>4.0.0-SNAPSHOT</version>
+        <relativePath>../isass-framework-parent/pom.xml</relativePath>
     </parent>
 
     <!-- 本项目信息 -->
