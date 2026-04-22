@@ -2,7 +2,7 @@
 
 ## 更新日志
 
- 更新日志请查看 docs/changelog
+ 更新日志请查看 [docs/60.changelog](docs/60.changelog)
 
 ## Git commit 规范
 
