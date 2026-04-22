@@ -86,8 +86,8 @@
   ~ engineering for debugging such modifications, if you also do each of
   ~ the following:
   ~
-  ~    a) Give prominent notice with each copy of the object code that the
-  ~    Library is used in it and that the Library and its use are
+  ~    a) Give prominent notice with each copy of the Combined Work that
+  ~    the Library is used in it and that the Library and its use are
   ~    covered by this License.
   ~
   ~    b) Accompany the combined library with a copy of the GNU GPL and this license
@@ -174,18 +174,12 @@
          root="true">
     <modelVersion>4.1.0</modelVersion>
 
-    <!-- 父项目信息 -->
-    <parent>
-        <groupId>vip.isass</groupId>
-        <artifactId>isass-framework-parent</artifactId>
-        <version>4.0.0-SNAPSHOT</version>
-        <relativePath>isass-framework-parent/pom.xml</relativePath>
-    </parent>
-
     <!-- 本项目信息 -->
     <!-- 正式版格式：isass-framework.x.y.z-release-->
     <!-- 快照版格式：isass-framework.x.y.z-SNAPSHOT-->
+    <groupId>vip.isass</groupId>
     <artifactId>isass-framework</artifactId>
+    <version>4.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <subprojects>
@@ -220,5 +214,45 @@
         <subproject>isass-framework-web-springmvc</subproject>
         <subproject>isass-framework-common</subproject>
     </subprojects>
+
+    <licenses>
+        <license>
+            <name>GNU Lesser General Public License Version 3</name>
+            <url>http://www.gnu.org/licenses/lgpl.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <scm>
+        <tag>master</tag>
+        <url>https://gitee.com/isass/super</url>
+        <connection>scm:git:git@gitee.com:isass/super.git</connection>
+        <developerConnection>scm:git:git@gitee.com:isass/isass-framework.git</developerConnection>
+    </scm>
+
+    <developers>
+        <developer>
+            <name>Rain Lee</name>
+            <email>lizhirong100@163.com</email>
+            <organization>isass</organization>
+        </developer>
+    </developers>
+
+    <distributionManagement>
+        <!-- Temporarily commented out to support Maven 4 and avoid uninterpolated properties -->
+        <!--
+        <repository>
+            <id>${distribution.releases.id}</id>
+            <name>${distribution.releases.name}</name>
+            <url>${distribution.releases.url}</url>
+        </repository>
+
+        <snapshotRepository>
+            <id>${distribution.snapshot.id}</id>
+            <name>${distribution.snapshot.name}</name>
+            <url>${distribution.snapshot.url}</url>
+        </snapshotRepository>
+        -->
+    </distributionManagement>
 
 </project>
