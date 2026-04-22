@@ -89,7 +89,7 @@
  *    the Library is used in it and that the Library and its use are
  *    covered by this License.
  *
- *    b) Accompany the Combined Work with a copy of the GNU GPL and this license
+ *    b) Accompany the combined library with a copy of the GNU GPL and this license
  *    document.
  *
  *    c) For a Combined Work that displays copyright notices during
@@ -172,13 +172,10 @@ package vip.isass.framework.database.core.init;
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.db.Db;
-import cn.hutool.db.DbUtil;
 import cn.hutool.db.StatementUtil;
 import cn.hutool.db.ds.simple.SimpleDataSource;
 import cn.hutool.db.sql.SqlExecutor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationContextInitializer;
-import org.springframework.context.ConfigurableApplicationContext;
 
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
@@ -194,53 +191,18 @@ import java.util.Map;
  * @author rain
  */
 @Slf4j
-public class DatabaseInitializerManager implements ApplicationContextInitializer<ConfigurableApplicationContext> {
+public class DatabaseInitializerManager {
 
     /**
      * 定义可能的 schema 参数名
      */
-    public static final String[] SCHEMA_PARAM_NAMES = {"schema", "SCHEMA", "currentSchema", "searchpath"};
+    public static final String[] SCHEMA_PARAM_NAMES = {"schema", "SCHEMA", "currentSchema"};
 
     public static String DATABASE_NAME = "";
 
     public static String SCHEMA_NAME = "";
 
-    private static volatile boolean RUN = false;
-
     public static volatile boolean INITIALIZED = false;
-
-    @Override
-    public void initialize(ConfigurableApplicationContext applicationContext) {
-        if (RUN) {
-            return;
-        }
-
-        String autoCreate = applicationContext.getEnvironment().getProperty(
-                "spring.datasource.autoCreate");
-        if ("false".equalsIgnoreCase(autoCreate)) {
-            RUN = true;
-            return;
-        }
-
-        String jdbcUrl = applicationContext.getEnvironment().getProperty(
-                "spring.datasource.dynamic.datasource.master.url");
-        String username = applicationContext.getEnvironment().getProperty(
-                "spring.datasource.dynamic.datasource.master.username");
-        String password = applicationContext.getEnvironment().getProperty(
-                "spring.datasource.dynamic.datasource.master.password");
-
-        if (StrUtil.hasBlank(jdbcUrl, username, password)) {
-            return;
-        }
-        try {
-            log.info("Start creating database if the database does not exist");
-            initDatabase(jdbcUrl, username, password);
-        } catch (Exception e) {
-            log.info("database initialization fail");
-            log.error(e.getMessage(), e);
-        }
-        RUN = true;
-    }
 
     public static void initDatabase(String jdbcUrl, String username, String password) {
         try {
@@ -298,7 +260,7 @@ public class DatabaseInitializerManager implements ApplicationContextInitializer
 
         // 尝试连接
         try (SimpleDataSource ds = new SimpleDataSource(jdbcUrl, username, password);
-             Connection conn = ds.getConnection()) {
+             Connection conn = ds.getConnection();) {
             log.info("datasource connect success, skip database initialization");
             return true;
         } catch (Exception e) {
@@ -310,6 +272,7 @@ public class DatabaseInitializerManager implements ApplicationContextInitializer
     /**
      * 根据 jdbcUrl 解析出数据库名
      * 示例: jdbc:mysql://127.0.0.1:3306/attachment?useUnicode
+     * 示例: jdbc:dm://172.25.23.66:5236?schema=test&stringtype=unspecified
      * 从提取到 attachment 作为数据库名，如果无法解析则返回null
      */
     private static String parseDatabaseName(String jdbcUrl) {
@@ -346,11 +309,15 @@ public class DatabaseInitializerManager implements ApplicationContextInitializer
     /**
      * 根据 jdbcUrl 解析出 schemaName
      * 检查jdbcUrl是否包含"schema="（忽略大小写），如果包含则提取schema值
+     * 示例: jdbc:postgresql://172.25.23.66:54321/test?currentSchema=auth&stringtype=unspecified
+     * 示例: jdbc:dm://172.25.23.66:5236?schema=test&stringtype=unspecified
+     * 从提取到 auth 或 test 作为 schemaName
      */
     private static String parseSchemaName(String jdbcUrl) {
-        // 分割 URL 为基本部分和查询字符串
+        // 分割 URL 为基本部分 and 查询字符串
         String[] parts = jdbcUrl.split("\\?", 2);
         if (parts.length < 2) {
+            // 问号后面没有参数，即 jdbcUrl 本身没写 schema 参数,直接返回即可
             return null;
         }
 
@@ -390,7 +357,7 @@ public class DatabaseInitializerManager implements ApplicationContextInitializer
         Connection conn = null;
         PreparedStatement preparedStatement = null;
         try (SimpleDataSource ds = new SimpleDataSource(jdbcUrl, username, password)) {
-            db = DbUtil.use(ds);
+            db = Db.use(ds);
             conn = ds.getConnection();
             log.info("exec sql: {}", sql);
             preparedStatement = StatementUtil.prepareStatement(conn, sql);
@@ -423,24 +390,35 @@ public class DatabaseInitializerManager implements ApplicationContextInitializer
      */
     private static String replaceDatabaseName(String jdbcUrl) {
         if (jdbcUrl.contains(":postgresql:")) {
+            // PostgreSQL 的 jdbcUrl 格式: jdbc:postgresql://host:port/database
+            // 需要将数据库名替换为默认的 postgres
             return jdbcUrl.replace("/" + DATABASE_NAME, "/postgres");
         }
 
         if (jdbcUrl.contains(":kingbase")) {
+            // Kingbase 的 jdbcUrl 格式: jdbc:kingbase8://host:port/database
+            // 需要将数据库名替换为默认的 kingbase
             return jdbcUrl.replace("/" + DATABASE_NAME, "/kingbase");
         }
 
         if (jdbcUrl.contains(":highgo:")) {
+            // 瀚高 的 jdbcUrl 格式: jdbc:highgo://localhost:5866/mydatabase?currentSchema=myschema
+            // 需要将数据库名替换为默认的 highgo
             return jdbcUrl.replace("/" + DATABASE_NAME, "/highgo");
         }
 
+        // 其他未特殊处理的数据库，直接删除数据库名
         return jdbcUrl.replace("/" + DATABASE_NAME, "");
     }
 
+    /**
+     * 示例: jdbc:postgresql://172.25.23.66:54321/test?currentSchema=auth&stringtype=unspecified
+     */
     private static String removeJdbcUrlSchemaName(String jdbcUrl) {
-        // 分割 URL 为基本部分和查询字符串
+        // 分割 URL 为基本部分 and 查询字符串
         String[] parts = jdbcUrl.split("\\?", 2);
         if (parts.length < 2) {
+            // 问号后面没有参数，即 jdbcUrl 本身没写 schema 参数,直接返回即可
             return jdbcUrl;
         }
 
