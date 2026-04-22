@@ -227,6 +227,18 @@
             <artifactId>dynamic-datasource-spring-boot-starter</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>vip.isass</groupId>
+            <artifactId>isass-framework-database-mysql</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>vip.isass</groupId>
+            <artifactId>isass-framework-database-postgresql</artifactId>
+            <optional>true</optional>
+        </dependency>
+
         <!--<dependency>-->
         <!--    <groupId>org.mybatis</groupId>-->
         <!--    <artifactId>mybatis</artifactId>-->

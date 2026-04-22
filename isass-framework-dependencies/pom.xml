@@ -448,11 +448,6 @@
                 <version>${isass-framework.version}</version>
             </dependency>
 
-            <dependency>
-                <groupId>vip.isass</groupId>
-                <artifactId>isass-framework-database-mybatisplus-postgresql</artifactId>
-                <version>${isass-framework.version}</version>
-            </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>
@@ -466,11 +461,6 @@
                 <version>${isass-framework.version}</version>
             </dependency>
 
-            <dependency>
-                <groupId>vip.isass</groupId>
-                <artifactId>isass-framework-database-mybatisplus-mysql</artifactId>
-                <version>${isass-framework.version}</version>
-            </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>

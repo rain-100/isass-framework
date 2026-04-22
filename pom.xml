@@ -194,8 +194,7 @@
         <subproject>isass-framework-net-socketio</subproject>
         <subproject>isass-framework-net-websocket</subproject>
         <subproject>isass-framework-database-redis</subproject>
-        <subproject>isass-framework-database-mybatisplus-mysql</subproject>
-        <subproject>isass-framework-database-mybatisplus-postgresql</subproject>
+
         <subproject>isass-framework-database-mybatisplus</subproject>
         <subproject>isass-framework-database-mysql</subproject>
         <subproject>isass-framework-database-postgresql</subproject>

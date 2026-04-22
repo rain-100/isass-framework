@@ -1,3 +1,0 @@
-# Auto Configure
-org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-vip.isass.framework.database.mybatisplus.postgresql.DatabaseMybatisplusPostgresqlAutoConfiguration
