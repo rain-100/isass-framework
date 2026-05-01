@@ -194,7 +194,6 @@
         <subproject>isass-database-elasticsearch</subproject>
         <subproject>isass-database-redis</subproject>
         <subproject>isass-database-mybatisplus</subproject>
-        <subproject>isass-database-querydsl</subproject>
 
         <!-- mq -->
         <subproject>isass-mq-kafka011</subproject>
