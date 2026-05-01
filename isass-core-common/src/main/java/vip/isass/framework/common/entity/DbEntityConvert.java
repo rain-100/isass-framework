@@ -184,6 +184,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
+ * 数据库实体转换工具类
+ *
  * @author Rain
  */
 @Slf4j

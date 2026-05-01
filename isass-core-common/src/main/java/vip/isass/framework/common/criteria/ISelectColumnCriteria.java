@@ -177,6 +177,10 @@ import java.util.Collections;
 import java.util.List;
 
 /**
+ * 查询列条件接口
+ *
+ * @param <E> 实体类型
+ * @param <C> 条件类型
  * @author Rain
  */
 public interface ISelectColumnCriteria<E, C extends ISelectColumnCriteria<E, C>>

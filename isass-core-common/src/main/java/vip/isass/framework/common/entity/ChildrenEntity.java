@@ -175,7 +175,8 @@ import java.util.List;
 /**
  * 有 children 属性的 entity
  *
- * @author rain
+ * @param <E> 实体类型
+ * @author Rain
  */
 public interface ChildrenEntity<E extends ChildrenEntity<E>> extends Serializable {
 

@@ -177,6 +177,8 @@ import org.springframework.stereotype.Component;
 import vip.isass.framework.common.web.header.AdditionalRequestHeaderProvider;
 
 /**
+ * 微服务认证请求头提供者
+ *
  * @author Rain
  */
 @Getter

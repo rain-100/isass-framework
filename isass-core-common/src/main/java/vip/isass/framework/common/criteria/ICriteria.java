@@ -170,8 +170,10 @@
 package vip.isass.framework.common.criteria;
 
 /**
- * 基于mysql的条件
+ * 条件查询接口
  *
+ * @param <E> 实体类型
+ * @param <C> 条件类型
  * @author Rain
  */
 public interface ICriteria<E, C extends ICriteria<E, C>> {

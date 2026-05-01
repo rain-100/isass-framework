@@ -10,8 +10,8 @@ import lombok.ToString;
 /**
  * 版本信息
  *
- * @author : rain
- * @date : 2022/12/14
+ * @author Rain
+ * @since 1.0
  */
 @Getter
 @Setter

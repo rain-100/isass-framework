@@ -175,8 +175,10 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * 基于mysql的条件
+ * 条件查询接口
  *
+ * @param <E> 实体类型
+ * @param <C> 条件类型
  * @author Rain
  */
 public interface IWhereConditionCriteria<E, C extends IWhereConditionCriteria<E, C>>

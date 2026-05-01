@@ -172,6 +172,10 @@ package vip.isass.framework.common.entity;
 import java.io.Serializable;
 
 /**
+ * 用户追踪实体接口
+ *
+ * @param <FK> 外键类型
+ * @param <E> 实体类型
  * @author Rain
  */
 public interface UserTracedEntity<FK extends Serializable, E extends UserTracedEntity<FK, E>> extends IEntity<E> {

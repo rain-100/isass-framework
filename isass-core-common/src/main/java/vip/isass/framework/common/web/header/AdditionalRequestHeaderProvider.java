@@ -170,6 +170,8 @@
 package vip.isass.framework.common.web.header;
 
 /**
+ * 附加请求头提供者接口
+ *
  * @author Rain
  */
 public interface AdditionalRequestHeaderProvider {

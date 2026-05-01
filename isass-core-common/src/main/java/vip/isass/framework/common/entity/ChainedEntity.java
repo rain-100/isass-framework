@@ -172,6 +172,10 @@ package vip.isass.framework.common.entity;
 import java.io.Serializable;
 
 /**
+ * 链式实体接口
+ *
+ * @param <PK> 主键类型
+ * @param <E> 实体类型
  * @author Rain
  */
 public interface ChainedEntity<PK extends Serializable, E extends ChainedEntity<PK, E>> extends IEntity<E> {

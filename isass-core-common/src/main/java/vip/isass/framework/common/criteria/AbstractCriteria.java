@@ -178,8 +178,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 基于mysql的条件
+ * 基础条件抽象类，实现了查询列、条件查询和分页功能
  *
+ * @param <E> 实体类型
+ * @param <C> 条件类型
  * @author Rain
  */
 @ToString

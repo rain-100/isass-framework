@@ -370,7 +370,7 @@ public class SpringContextUtil implements ApplicationContextAware {
     /**
      * 移除 bean
      *
-     * @param beanName bean name
+     * @param beanClass bean class
      */
     public static void unRegistryBean(Class<?> beanClass) {
         String[] beanNames = applicationContext.getBeanNamesForType(beanClass);

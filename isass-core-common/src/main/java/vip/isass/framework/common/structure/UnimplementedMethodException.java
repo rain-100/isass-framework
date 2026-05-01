@@ -172,7 +172,7 @@ package vip.isass.framework.common.structure;
 /**
  * 未实现方法异常
  *
- * @author rain
+ * @author Rain
  */
 public class UnimplementedMethodException extends RuntimeException {
 

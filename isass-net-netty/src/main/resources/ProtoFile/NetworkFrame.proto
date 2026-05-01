@@ -1,6 +1,6 @@
 package Platform.Model;
-option java_package = "vip.isass.core.protobuf";
-option java_outer_classname = "Base";
+option java_package = "vip.isass.framework.net.netty.protobuf.base";
+option java_outer_classname = "NetworkFrame";
 
 message HttpFrame {
     optional int64 c2sId = 1; // 客户端发送给服务端的消息id，可以用当前时间戳赋值。服务端响应时，会将此值原样返回。客户端可以根据此值来判断服务端是否响应客户端的本次请求

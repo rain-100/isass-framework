@@ -8,7 +8,7 @@ import java.util.List;
  * isass HandlerInterceptor
  *
  * @author : rain
- * @date : 2022/11/23
+ * @since : 2022/11/23
  */
 public interface IsassHandlerInterceptor extends HandlerInterceptor {
 

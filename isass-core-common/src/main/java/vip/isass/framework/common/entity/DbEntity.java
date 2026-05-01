@@ -170,6 +170,10 @@
 package vip.isass.framework.common.entity;
 
 /**
+ * 数据库实体接口
+ *
+ * @param <E> 实体类型
+ * @param <EDB> 数据库实体类型
  * @author Rain
  */
 public interface DbEntity<E extends IEntity<E>, EDB extends DbEntity<E, EDB>> extends IEntity<E> {

@@ -174,8 +174,10 @@ import vip.isass.framework.common.entity.TimeTracedEntity;
 import vip.isass.framework.common.page.PageConst;
 
 /**
- * 基于mysql的条件
+ * 分页条件接口
  *
+ * @param <E> 实体类型
+ * @param <C> 条件类型
  * @author Rain
  */
 public interface IPageCriteria<E, C extends IPageCriteria<E, C>> extends ICriteria<E, C> {

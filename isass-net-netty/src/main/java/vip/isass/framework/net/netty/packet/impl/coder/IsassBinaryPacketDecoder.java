@@ -198,16 +198,10 @@ public class IsassBinaryPacketDecoder extends Decoder {
     private static final int MAX_MESSAGE_BYTES = 100 * 1024 * 1024;
 
     /**
-     * tcp数据包的报文结构
-     * ┌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┬╌╌╌╌╌╌╌╌╌╌╌┐
-     * ╎                       header                 ╎  payload  ╎
-     * ├╌╌╌╌╌╌╌╌╌╌╌╌┬╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┬╌╌╌╌╌╌╌╌╌╌╌┬╌╌╌╌╌┼╌╌╌╌╌╌╌╌╌╌╌┤
-     * ╎ fullLength ╎ serializeMode ╎ cmdLength ╎ cmd ╎  payload  ╎
-     * ├╌╌╌╌╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌╌╌╌┼╌╌╌╌╌┴╌╌╌╌╌╌╌╌╌╌╌┤
-     * ╎     4B     ╎      4B       ╎     4B    ╎ < 100M - 3 * 4B ╎
-     * ├╌╌╌╌╌╌╌╌╌╌╌╌┴╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┴╌╌╌╌╌╌╌╌╌╌╌┴╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
-     * ╎                          100M                            ╎
-     * └╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┘
+     * tcp数据包的报文结构:
+     * header: fullLength(4B) + serializeMode(4B) + cmdLength(4B) + cmd
+     * payload: &lt; 100M - 3 * 4B
+     * total: 100M
      */
     @Override
     public void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) {

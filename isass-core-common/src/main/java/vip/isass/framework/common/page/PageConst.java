@@ -170,6 +170,8 @@
 package vip.isass.framework.common.page;
 
 /**
+ * 分页常量
+ *
  * @author Rain
  */
 public interface PageConst {

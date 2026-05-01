@@ -187,6 +187,7 @@ import java.util.List;
 /**
  * 方法、接口调用的返回结果
  *
+ * @param <T> 数据类型
  * @author Rain
  */
 @Slf4j

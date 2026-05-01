@@ -175,8 +175,9 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 
 /**
- * 最常用的 entity
+ * 实体基础接口
  *
+ * @param <E> 实体类型
  * @author rain
  */
 public interface IEntity<E> extends Serializable {

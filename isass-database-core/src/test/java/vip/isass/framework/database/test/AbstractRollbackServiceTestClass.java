@@ -169,13 +169,12 @@
 
 package vip.isass.framework.database.test;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.test.context.junit4.AbstractTransactionalJUnit4SpringContextTests;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-public abstract class AbstractRollbackServiceTestClass extends AbstractTransactionalJUnit4SpringContextTests implements RepositoryTest {
+@ExtendWith(SpringExtension.class)
+public abstract class AbstractRollbackServiceTestClass implements RepositoryTest {
 
     @Test
     @Override

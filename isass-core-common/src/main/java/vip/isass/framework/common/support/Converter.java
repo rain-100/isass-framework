@@ -173,6 +173,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * 转换器接口
+ *
+ * @param <S> 源类型
+ * @param <T> 目标类型
  * @author Rain
  */
 public interface Converter<S, T> extends

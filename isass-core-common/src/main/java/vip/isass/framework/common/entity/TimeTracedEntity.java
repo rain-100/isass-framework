@@ -174,6 +174,9 @@ import vip.isass.framework.common.support.LocalDateTimeUtil;
 import java.time.LocalDateTime;
 
 /**
+ * 时间追踪实体接口
+ *
+ * @param <E> 实体类型
  * @author Rain
  */
 public interface TimeTracedEntity<E extends TimeTracedEntity<E>> extends IEntity<E> {

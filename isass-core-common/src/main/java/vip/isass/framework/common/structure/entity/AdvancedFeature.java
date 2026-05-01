@@ -11,8 +11,10 @@ import lombok.Setter;
 import java.util.Map;
 
 /**
- * @author : rain
- * @date : 2022/11/24
+ * 高级特性配置
+ *
+ * @author Rain
+ * @since 1.0
  */
 @Getter
 @Setter

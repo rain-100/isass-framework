@@ -179,6 +179,10 @@ import java.beans.Transient;
 import java.io.Serializable;
 
 /**
+ * ID 实体接口
+ *
+ * @param <PK> 主键类型
+ * @param <E> 实体类型
  * @author Rain
  */
 public interface IdEntity<PK extends Serializable, E extends IdEntity<PK, E>> extends IEntity<E> {

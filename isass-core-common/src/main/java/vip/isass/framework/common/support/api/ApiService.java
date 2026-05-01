@@ -179,6 +179,8 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
+ * API 服务接口
+ *
  * @author isass
  */
 public interface ApiService {

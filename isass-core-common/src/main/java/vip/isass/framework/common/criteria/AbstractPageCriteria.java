@@ -174,8 +174,10 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 
 /**
- * 基于mysql的条件
+ * 分页条件抽象类
  *
+ * @param <E> 实体类型
+ * @param <C> 条件类型
  * @author Rain
  */
 @ToString

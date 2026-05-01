@@ -1,8 +1,10 @@
 package vip.isass.framework.common.structure;
 
 /**
- * @author : rain
- * @date : 2023/3/30
+ * 字典翻译提供者
+ *
+ * @author Rain
+ * @since 1.0
  */
 public interface IDictTranslationProvider {
 

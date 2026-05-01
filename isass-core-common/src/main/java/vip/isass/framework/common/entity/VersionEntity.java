@@ -170,6 +170,9 @@
 package vip.isass.framework.common.entity;
 
 /**
+ * 版本实体接口
+ *
+ * @param <E> 实体类型
  * @author Rain
  */
 public interface VersionEntity<E extends VersionEntity<E>> extends IEntity<E> {

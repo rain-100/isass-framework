@@ -183,6 +183,10 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
+ * Repository interface for data access operations.
+ *
+ * @param <E> the entity type
+ * @param <C> the criteria type extending ICriteria
  * @author Rain
  */
 public interface IRepository<E, C extends ICriteria<E, C>> {

@@ -170,6 +170,9 @@
 package vip.isass.framework.common.entity;
 
 /**
+ * 逻辑删除实体接口
+ *
+ * @param <E> 实体类型
  * @author Rain
  */
 public interface LogicDeleteEntity<E extends LogicDeleteEntity<E>> extends IEntity<E> {

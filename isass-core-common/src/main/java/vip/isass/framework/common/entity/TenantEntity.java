@@ -172,8 +172,10 @@ package vip.isass.framework.common.entity;
 import java.io.Serializable;
 
 /**
- * 租户实体
+ * 租户实体接口
  *
+ * @param <PK> 主键类型
+ * @param <E> 实体类型
  * @author Rain
  */
 public interface TenantEntity<PK extends Serializable, E extends TenantEntity<PK, E>> extends IEntity<E> {

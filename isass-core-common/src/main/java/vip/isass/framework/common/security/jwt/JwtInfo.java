@@ -178,6 +178,8 @@ import lombok.ToString;
 import vip.isass.framework.common.login.TerminalType;
 
 /**
+ * JWT 信息
+ *
  * @author Rain
  */
 @Getter

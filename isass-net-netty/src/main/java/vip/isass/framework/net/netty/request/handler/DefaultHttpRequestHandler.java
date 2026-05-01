@@ -197,6 +197,7 @@ import vip.isass.framework.common.serialization.SerializeMode;
 import vip.isass.framework.serialization.impl.protobuf2.ProtobufMethodCache;
 import vip.isass.framework.common.support.JsonUtil;
 import vip.isass.framework.common.support.UriRequestMapping;
+import vip.isass.framework.net.netty.protobuf.base.NetworkFrame;
 
 import jakarta.annotation.Resource;
 import java.lang.reflect.Method;
@@ -264,14 +265,14 @@ public class DefaultHttpRequestHandler implements RequestHandler {
                 }
                 break;
             case PROTOBUF2:
-                Base.HttpFrame httpFrame = Base.HttpFrame.parseFrom((byte[]) content);
+                NetworkFrame.HttpFrame httpFrame = NetworkFrame.HttpFrame.parseFrom((byte[]) content);
                 httpContent = new HttpContent()
                     .setUrl(httpFrame.getUrl())
                     .setHttpMethod(httpFrame.getHttpMethod())
                     .setHttpHeaders(httpFrame
                         .getHttpHeadersList()
                         .stream()
-                        .collect(Collectors.toMap(Base.StringEntry::getKey, Base.StringEntry::getValue)));
+                        .collect(Collectors.toMap(NetworkFrame.StringEntry::getKey, NetworkFrame.StringEntry::getValue)));
 
                 javaProtobufClassC2S = httpFrame.getJavaProtobufClassC2S();
                 javaProtobufClassS2C = httpFrame.getJavaProtobufClassS2C();
@@ -321,13 +322,13 @@ public class DefaultHttpRequestHandler implements RequestHandler {
                 new JsonFormat().merge(new java.io.ByteArrayInputStream(body.getBytes(java.nio.charset.StandardCharsets.UTF_8)), builder);
                 httpContent.setBody(builder.build().toByteString());
 
-                Base.HttpFrame.Builder contentBuilder = Base.HttpFrame.newBuilder()
+                NetworkFrame.HttpFrame.Builder contentBuilder = NetworkFrame.HttpFrame.newBuilder()
                     .setUrl(httpContent.getUrl())
                     .setHttpMethod(httpContent.getHttpMethod())
                     .setBody((com.google.protobuf.ByteString) httpContent.getBody());
                 if (MapUtil.isNotEmpty(httpContent.getHttpHeaders())) {
                     httpContent.getHttpHeaders().forEach(
-                        (k, v) -> contentBuilder.addHttpHeaders(Base.StringEntry.newBuilder().setKey(k).setValue(v))
+                        (k, v) -> contentBuilder.addHttpHeaders(NetworkFrame.StringEntry.newBuilder().setKey(k).setValue(v))
                     );
                 }
                 packet.setPayload(contentBuilder.build());
@@ -343,11 +344,11 @@ public class DefaultHttpRequestHandler implements RequestHandler {
         request.sendResponse(packet);
     }
 
-    public static void main(String[] args) throws Exception {
-        String json = "{\"success\":true,\"errorCode\":0,\"errorMsg\":null,\"errorDetail\":null,\"data\":{\"toUserId\":111,\"message\":\"test内容\"}}";
-        IM.SendTextToUserS2C.Builder builder = IM.SendTextToUserS2C.newBuilder();
-        new JsonFormat().merge(new java.io.ByteArrayInputStream(json.getBytes(java.nio.charset.StandardCharsets.UTF_8)), builder);
-    }
+//    public static void main(String[] args) throws Exception {
+//        String json = "{\"success\":true,\"errorCode\":0,\"errorMsg\":null,\"errorDetail\":null,\"data\":{\"toUserId\":111,\"message\":\"test内容\"}}";
+//        IM.SendTextToUserS2C.Builder builder = IM.SendTextToUserS2C.newBuilder();
+//        new JsonFormat().merge(new java.io.ByteArrayInputStream(json.getBytes(java.nio.charset.StandardCharsets.UTF_8)), builder);
+//    }
 
     private ResponseEntity<String> httpForward(RestTemplate restTemplate, HttpContent httpContent) {
         ResponseEntity<String> resp;

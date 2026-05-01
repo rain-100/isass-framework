@@ -189,6 +189,8 @@ import java.util.Date;
 import java.util.Map;
 
 /**
+ * JWT 工具类
+ *
  * @author Rain
  */
 public class JwtUtil {

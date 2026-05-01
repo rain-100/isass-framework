@@ -176,6 +176,8 @@ import lombok.SneakyThrows;
 import lombok.experimental.Accessors;
 
 /**
+ * URI 角色编码请求
+ *
  * @author Rain
  */
 @Getter

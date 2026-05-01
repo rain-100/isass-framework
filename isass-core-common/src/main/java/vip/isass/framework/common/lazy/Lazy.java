@@ -177,6 +177,9 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 /**
+ * 延迟加载工具类
+ *
+ * @param <T> 数据类型
  * @author Rain
  */
 public class Lazy<T> implements Supplier<T> {

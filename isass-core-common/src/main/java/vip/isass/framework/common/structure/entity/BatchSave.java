@@ -12,8 +12,11 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
- * @author : rain
- * @date : 2022/11/24
+ * 批量保存请求
+ *
+ * @author rain
+ * @since 1.0
+ * @param <T> 实体类型
  */
 @Getter
 @Setter
