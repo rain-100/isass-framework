@@ -86,11 +86,11 @@
   ~ engineering for debugging such modifications, if you also do each of
   ~ the following:
   ~
-  ~    a) Give prominent notice with each copy of the object code that the
-  ~    Library is used in it and that the Library and its use are
+  ~    a) Give prominent notice with each copy of the Combined Work that
+  ~    the Library is used in it and that the Library and its use are
   ~    covered by this License.
   ~
-  ~    b) Accompany the combined library with a copy of the GNU GPL and this license
+  ~    b) Accompany the Combined Work with a copy of the GNU GPL and this license
   ~    document.
   ~
   ~    c) For a Combined Work that displays copyright notices during
@@ -174,93 +174,31 @@
          root="true">
     <modelVersion>4.1.0</modelVersion>
 
+    <!-- 父项目信息 -->
+    <parent>
+        <groupId>vip.isass</groupId>
+        <artifactId>isass-core-parent</artifactId>
+        <version>4.0.0-SNAPSHOT</version>
+        <relativePath>../isass-core-parent/pom.xml</relativePath>
+    </parent>
+
     <!-- 本项目信息 -->
-    <!-- 正式版格式：isass-framework.x.y.z-release-->
-    <!-- 快照版格式：isass-framework.x.y.z-SNAPSHOT-->
-    <groupId>vip.isass</groupId>
-    <artifactId>isass-framework</artifactId>
-    <version>4.0.0-SNAPSHOT</version>
-    <packaging>pom</packaging>
+    <artifactId>isass-mq-springevent</artifactId>
 
-    <subprojects>
-        <!-- core -->
-        <subproject>isass-core-build</subproject>
-        <subproject>isass-core-common</subproject>
-        <subproject>isass-core-dependencies</subproject>
-        <subproject>isass-core-parent</subproject>
+    <dependencies>
+        <dependency>
+            <groupId>jakarta.annotation</groupId>
+            <artifactId>jakarta.annotation-api</artifactId>
+        </dependency>
 
-        <!-- database -->
-        <subproject>isass-database-core</subproject>
-        <subproject>isass-database-elasticsearch</subproject>
-        <subproject>isass-database-redis</subproject>
-        <subproject>isass-database-mybatisplus</subproject>
-        <subproject>isass-database-querydsl</subproject>
+        <dependency>
+            <groupId>vip.isass</groupId>
+            <artifactId>isass-core-common</artifactId>
+        </dependency>
 
-        <!-- mq -->
-        <subproject>isass-mq-kafka011</subproject>
-        <subproject>isass-mq-ons</subproject>
-        <subproject>isass-mq-springevent</subproject>
-        <subproject>isass-mq-core</subproject>
-
-        <!-- net -->
-        <subproject>isass-net-admin</subproject>
-        <subproject>isass-net-core</subproject>
-        <subproject>isass-net-netty</subproject>
-        <subproject>isass-net-proxy-core</subproject>
-        <subproject>isass-net-proxy-server</subproject>
-        <subproject>isass-net-proxy-upstream</subproject>
-        <subproject>isass-net-socketio</subproject>
-        <subproject>isass-net-websocket</subproject>
-
-        <!-- security -->
-        <subproject>isass-security-springsecurity</subproject>
-        <subproject>isass-encryption</subproject>
-
-        <!-- serialization -->
-        <subproject>isass-serialization-protobuf</subproject>
-
-        <!-- web -->
-        <subproject>isass-web-springmvc</subproject>
-        <!-- <subproject>isass-web-swagger</subproject> -->
-
-        <!-- adapter -->
-        <subproject>isass-adapter-springboot</subproject>
-    </subprojects>
-
-
-    <!-- 配置属性 -->
-    <properties>
-        <!-- region build properties -->
-
-        <java.version>25</java.version>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
-        <maven.compiler.release>${java.version}</maven.compiler.release>
-
-        <!-- endregion -->
-    </properties>
-
-    <licenses>
-        <license>
-            <name>GNU Lesser General Public License Version 3</name>
-            <url>http://www.gnu.org/licenses/lgpl.txt</url>
-            <distribution>repo</distribution>
-        </license>
-    </licenses>
-
-    <scm>
-        <tag>master</tag>
-        <url>https://gitee.com/isass/super</url>
-        <connection>scm:git:git@gitee.com:isass/isass-framework.git</connection>
-        <developerConnection>scm:git:git@gitee.com:isass/isass-framework.git</developerConnection>
-    </scm>
-
-    <developers>
-        <developer>
-            <name>Rain Lee</name>
-            <email>lizhirong100@163.com</email>
-            <organization>isass</organization>
-        </developer>
-    </developers>
+        <dependency>
+            <groupId>vip.isass</groupId>
+            <artifactId>isass-mq-core</artifactId>
+        </dependency>
+    </dependencies>
 </project>

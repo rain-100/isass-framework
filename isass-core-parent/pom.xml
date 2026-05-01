@@ -3,7 +3,7 @@
   ~                    GNU LESSER GENERAL PUBLIC LICENSE
   ~                        Version 3, 29 June 2007
   ~
-  ~  Copyright (C) 2007 Free Software Foundation, Inc. <http://fsf.org />
+  ~  Copyright (C) 2007 Free Software Foundation, Inc. <http://fsf.org/>
   ~  Everyone is permitted to copy and distribute verbatim copies
   ~  of this license document, but changing it is not allowed.
   ~
@@ -170,97 +170,102 @@
 
 <project xmlns="http://maven.apache.org/POM/4.1.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.1.0 http://maven.apache.org/xsd/maven-4.1.0.xsd"
-         root="true">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.1.0 http://maven.apache.org/xsd/maven-4.1.0.xsd">
     <modelVersion>4.1.0</modelVersion>
 
+    <!-- 父项目信息 -->
+    <parent>
+        <groupId>vip.isass</groupId>
+        <artifactId>isass-core-dependencies</artifactId>
+        <version>4.0.0-SNAPSHOT</version>
+        <relativePath>../isass-core-dependencies/pom.xml</relativePath>
+    </parent>
+
     <!-- 本项目信息 -->
-    <!-- 正式版格式：isass-framework.x.y.z-release-->
-    <!-- 快照版格式：isass-framework.x.y.z-SNAPSHOT-->
-    <groupId>vip.isass</groupId>
-    <artifactId>isass-framework</artifactId>
+    <artifactId>isass-core-parent</artifactId>
     <version>4.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
-    <subprojects>
-        <!-- core -->
-        <subproject>isass-core-build</subproject>
-        <subproject>isass-core-common</subproject>
-        <subproject>isass-core-dependencies</subproject>
-        <subproject>isass-core-parent</subproject>
+    <dependencies>
+        <!--
+            绝大部分的服务都需要依赖的jar包，可以配置这里，达到全局通用的效果
+            工具类、数据库连接等jar，不应该放到这里，因为有些服务不需要，例如服务注册与发现中心。
+            如果把这些不需要的jar也放到这里，则在服务打包时，会把这些不需要的jar也打包了，造成服务的jar包臃肿。
+         -->
+        <!--<dependency>-->
+        <!--<groupId>org.springframework.boot</groupId>-->
+        <!--<artifactId>spring-boot-devtools</artifactId>-->
+        <!--<optional>true</optional>-->
+        <!--</dependency>-->
 
-        <!-- database -->
-        <subproject>isass-database-core</subproject>
-        <subproject>isass-database-elasticsearch</subproject>
-        <subproject>isass-database-redis</subproject>
-        <subproject>isass-database-mybatisplus</subproject>
-        <subproject>isass-database-querydsl</subproject>
+        <!--<dependency>-->
+        <!--<groupId>org.springframework.boot</groupId>-->
+        <!--<artifactId>spring-boot-dependencies</artifactId>-->
+        <!--<version>1.5.6.RELEASE</version>-->
+        <!--<type>pom</type>-->
+        <!--<scope>import</scope>-->
+        <!--</dependency>-->
+        <!-- AOP -->
 
-        <!-- mq -->
-        <subproject>isass-mq-kafka011</subproject>
-        <subproject>isass-mq-ons</subproject>
-        <subproject>isass-mq-springevent</subproject>
-        <subproject>isass-mq-core</subproject>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
 
-        <!-- net -->
-        <subproject>isass-net-admin</subproject>
-        <subproject>isass-net-core</subproject>
-        <subproject>isass-net-netty</subproject>
-        <subproject>isass-net-proxy-core</subproject>
-        <subproject>isass-net-proxy-server</subproject>
-        <subproject>isass-net-proxy-upstream</subproject>
-        <subproject>isass-net-socketio</subproject>
-        <subproject>isass-net-websocket</subproject>
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/java</directory>
+                <includes>
+                    <include>**/*.xml</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <includes>
+                    <include>**/*.*</include>
+                </includes>
+            </resource>
+        </resources>
 
-        <!-- security -->
-        <subproject>isass-security-springsecurity</subproject>
-        <subproject>isass-encryption</subproject>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>versions-maven-plugin</artifactId>
+            </plugin>
 
-        <!-- serialization -->
-        <subproject>isass-serialization-protobuf</subproject>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+            </plugin>
 
-        <!-- web -->
-        <subproject>isass-web-springmvc</subproject>
-        <!-- <subproject>isass-web-swagger</subproject> -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+            </plugin>
 
-        <!-- adapter -->
-        <subproject>isass-adapter-springboot</subproject>
-    </subprojects>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+            </plugin>
 
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+            </plugin>
 
-    <!-- 配置属性 -->
-    <properties>
-        <!-- region build properties -->
+            <plugin>
+                <groupId>pl.project13.maven</groupId>
+                <artifactId>git-commit-id-plugin</artifactId>
+            </plugin>
 
-        <java.version>25</java.version>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
-        <maven.compiler.release>${java.version}</maven.compiler.release>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
 
-        <!-- endregion -->
-    </properties>
-
-    <licenses>
-        <license>
-            <name>GNU Lesser General Public License Version 3</name>
-            <url>http://www.gnu.org/licenses/lgpl.txt</url>
-            <distribution>repo</distribution>
-        </license>
-    </licenses>
-
-    <scm>
-        <tag>master</tag>
-        <url>https://gitee.com/isass/super</url>
-        <connection>scm:git:git@gitee.com:isass/isass-framework.git</connection>
-        <developerConnection>scm:git:git@gitee.com:isass/isass-framework.git</developerConnection>
-    </scm>
-
-    <developers>
-        <developer>
-            <name>Rain Lee</name>
-            <email>lizhirong100@163.com</email>
-            <organization>isass</organization>
-        </developer>
-    </developers>
 </project>

@@ -49,10 +49,10 @@
   ~   2. Conveying Modified Versions.
   ~
   ~   If you modify a copy of the Library, and, in your modifications, a
-  ~ facility refers to a function or data to be supplied by an Application
-  ~ that uses the facility (other than as an argument passed when the
-  ~ facility is invoked), then you may convey a copy of the modified
-  ~ version:
+  ~   facility refers to a function or data to be supplied by an Application
+  ~   that uses the facility (other than as an argument passed when the
+  ~   facility is invoked), then you may convey a copy of the modified
+  ~   version:
   ~
   ~    a) under this License, provided that you make a good faith effort to
   ~    ensure that, in the event an Application does not supply the
@@ -65,11 +65,11 @@
   ~   3. Object Code Incorporating Material from Library Header Files.
   ~
   ~   The object code form of an Application may incorporate material from
-  ~ a header file that is part of the Library.  You may convey such object
-  ~ code under terms of your choice, provided that, if the incorporated
-  ~ material is not limited to numerical parameters, data structure
-  ~ layouts and accessors, or small macros, inline functions and templates
-  ~ (ten or fewer lines in length), you do both of the following:
+  ~   a header file that is part of the Library.  You may convey such object
+  ~   code under terms of your choice, provided that, if the incorporated
+  ~   material is not limited to numerical parameters, data structure
+  ~   layouts and accessors, or small macros, inline functions and templates
+  ~   (ten or fewer lines in length), you do both of the following:
   ~
   ~    a) Give prominent notice with each copy of the object code that the
   ~    Library is used in it and that the Library and its use are
@@ -81,16 +81,16 @@
   ~   4. Combined Works.
   ~
   ~   You may convey a Combined Work under terms of your choice that,
-  ~ taken together, effectively do not restrict modification of the
-  ~ portions of the Library contained in the Combined Work and reverse
-  ~ engineering for debugging such modifications, if you also do each of
-  ~ the following:
+  ~   taken together, effectively do not restrict modification of the
+  ~   portions of the Library contained in the Combined Work and reverse
+  ~   engineering for debugging such modifications, if you also do each of
+  ~   the following:
   ~
-  ~    a) Give prominent notice with each copy of the object code that the
-  ~    Library is used in it and that the Library and its use are
+  ~    a) Give prominent notice with each copy of the Combined Work that
+  ~    the Library is used in it and that the Library and its use are
   ~    covered by this License.
   ~
-  ~    b) Accompany the combined library with a copy of the GNU GPL and this license
+  ~    b) Accompany the Combined Work with a copy of the GNU GPL and this license
   ~    document.
   ~
   ~    c) For a Combined Work that displays copyright notices during
@@ -116,24 +116,24 @@
   ~        Version.
   ~
   ~    e) Provide Installation Information, but only if you would otherwise
-  ~    be required to provide such information under section 6 of the
-  ~    GNU GPL, and only to the extent that such information is
+  ~    be required to provide such information under section 6 of the GNU
+  ~    GPL, and only to the extent that such information is
   ~    necessary to install and execute a modified version of the
   ~    Combined Work produced by recombining or relinking the
   ~    Application with a modified version of the Linked Version. (If
   ~    you use option 4d0, the Installation Information must accompany
   ~    the Minimal Corresponding Source and Corresponding Application
   ~    Code. If you use option 4d1, you must provide the Installation
-  ~    Information in the manner specified by section 6 of the GNU GPL
-  ~    for conveying Corresponding Source.)
+  ~    Information in the manner specified by section 6 of the GNU
+  ~    GPL for conveying Corresponding Source.)
   ~
   ~   5. Combined Libraries.
   ~
   ~   You may place library facilities that are a work based on the
-  ~ Library side by side in a single library together with other library
-  ~ facilities that are not Applications and are not covered by this
-  ~ License, and convey such a combined library under terms of your
-  ~ choice, if you do both of the following:
+  ~   Library side by side in a single library together with other library
+  ~   facilities that are not Applications and are not covered by this
+  ~   License, and convey such a combined library under terms of your
+  ~   choice, if you do both of the following:
   ~
   ~    a) Accompany the combined library with a copy of the same work based
   ~    on the Library, uncombined with any other library facilities,
@@ -146,25 +146,25 @@
   ~   6. Revised Versions of the GNU Lesser General Public License.
   ~
   ~   The Free Software Foundation may publish revised and/or new versions
-  ~ of the GNU Lesser General Public License from time to time. Such new
-  ~ versions will be similar in spirit to the present version, but may
-  ~ differ in detail to address new problems or concerns.
+  ~   of the GNU Lesser General Public License from time to time. Such new
+  ~   versions will be similar in spirit to the present version, but may
+  ~   differ in detail to address new problems or concerns.
   ~
   ~   Each version is given a distinguishing version number. If the
-  ~ Library as you received it specifies that a certain numbered version
-  ~ of the GNU Lesser General Public License "or any later version"
-  ~ applies to it, you have the option of following the terms and
-  ~ conditions either of that published version or of any later version
-  ~ published by the Free Software Foundation. If the Library as you
-  ~ received it does not specify a version number of the GNU Lesser
-  ~ General Public License, you may choose any version of the GNU Lesser
-  ~ General Public License ever published by the Free Software Foundation.
+  ~   Library as you received it specifies that a certain numbered version
+  ~   of the GNU Lesser General Public License "or any later version"
+  ~   applies to it, you have the option of following the terms and
+  ~   conditions either of that published version or of any later version
+  ~   published by the Free Software Foundation. If the Library as you
+  ~   received it does not specify a version number of the GNU Lesser
+  ~   General Public License, you may choose any version of the GNU Lesser
+  ~   General Public License ever published by the Free Software Foundation.
   ~
   ~   If the Library as you received it specifies that a proxy can decide
-  ~ whether future versions of the GNU Lesser General Public License shall
-  ~ apply, that proxy's public statement of acceptance of any version is
-  ~ permanent authorization for you to choose that version for the
-  ~ Library.
+  ~   whether future versions of the GNU Lesser General Public License shall
+  ~   apply, that proxy's public statement of acceptance of any version is
+  ~   permanent authorization for you to choose that version for the
+  ~   Library.
   ~
   -->
 
@@ -174,93 +174,23 @@
          root="true">
     <modelVersion>4.1.0</modelVersion>
 
+    <!-- 父项目信息 -->
+    <parent>
+        <groupId>vip.isass</groupId>
+        <artifactId>isass-core-parent</artifactId>
+        <version>4.0.0-SNAPSHOT</version>
+        <relativePath>../isass-core-parent/pom.xml</relativePath>
+    </parent>
+
     <!-- 本项目信息 -->
-    <!-- 正式版格式：isass-framework.x.y.z-release-->
-    <!-- 快照版格式：isass-framework.x.y.z-SNAPSHOT-->
-    <groupId>vip.isass</groupId>
-    <artifactId>isass-framework</artifactId>
-    <version>4.0.0-SNAPSHOT</version>
-    <packaging>pom</packaging>
+    <artifactId>isass-adapter-springboot</artifactId>
 
-    <subprojects>
-        <!-- core -->
-        <subproject>isass-core-build</subproject>
-        <subproject>isass-core-common</subproject>
-        <subproject>isass-core-dependencies</subproject>
-        <subproject>isass-core-parent</subproject>
-
-        <!-- database -->
-        <subproject>isass-database-core</subproject>
-        <subproject>isass-database-elasticsearch</subproject>
-        <subproject>isass-database-redis</subproject>
-        <subproject>isass-database-mybatisplus</subproject>
-        <subproject>isass-database-querydsl</subproject>
-
-        <!-- mq -->
-        <subproject>isass-mq-kafka011</subproject>
-        <subproject>isass-mq-ons</subproject>
-        <subproject>isass-mq-springevent</subproject>
-        <subproject>isass-mq-core</subproject>
-
-        <!-- net -->
-        <subproject>isass-net-admin</subproject>
-        <subproject>isass-net-core</subproject>
-        <subproject>isass-net-netty</subproject>
-        <subproject>isass-net-proxy-core</subproject>
-        <subproject>isass-net-proxy-server</subproject>
-        <subproject>isass-net-proxy-upstream</subproject>
-        <subproject>isass-net-socketio</subproject>
-        <subproject>isass-net-websocket</subproject>
-
-        <!-- security -->
-        <subproject>isass-security-springsecurity</subproject>
-        <subproject>isass-encryption</subproject>
-
-        <!-- serialization -->
-        <subproject>isass-serialization-protobuf</subproject>
-
-        <!-- web -->
-        <subproject>isass-web-springmvc</subproject>
-        <!-- <subproject>isass-web-swagger</subproject> -->
-
-        <!-- adapter -->
-        <subproject>isass-adapter-springboot</subproject>
-    </subprojects>
-
-
-    <!-- 配置属性 -->
-    <properties>
-        <!-- region build properties -->
-
-        <java.version>25</java.version>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
-        <maven.compiler.release>${java.version}</maven.compiler.release>
-
-        <!-- endregion -->
-    </properties>
-
-    <licenses>
-        <license>
-            <name>GNU Lesser General Public License Version 3</name>
-            <url>http://www.gnu.org/licenses/lgpl.txt</url>
-            <distribution>repo</distribution>
-        </license>
-    </licenses>
-
-    <scm>
-        <tag>master</tag>
-        <url>https://gitee.com/isass/super</url>
-        <connection>scm:git:git@gitee.com:isass/isass-framework.git</connection>
-        <developerConnection>scm:git:git@gitee.com:isass/isass-framework.git</developerConnection>
-    </scm>
-
-    <developers>
-        <developer>
-            <name>Rain Lee</name>
-            <email>lizhirong100@163.com</email>
-            <organization>isass</organization>
-        </developer>
-    </developers>
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>false</filtering>
+            </resource>
+        </resources>
+    </build>
 </project>
