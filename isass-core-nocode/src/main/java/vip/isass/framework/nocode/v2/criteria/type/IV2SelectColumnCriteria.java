@@ -164,30 +164,105 @@
  * apply, that proxy's public statement of acceptance of any version is
  * permanent authorization for you to choose that version for the
  * Library.
- *
  */
 
-package vip.isass.framework.database.mybatisplus;
+package vip.isass.framework.nocode.v2.criteria.type;
 
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.handlers.Jackson3TypeHandler;
-import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.annotation.ComponentScan;
-import vip.isass.framework.database.mybatisplus.json.IPageDeserializer;
-import vip.isass.framework.common.support.JsonUtil;
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.ArrayUtil;
+import cn.hutool.core.util.StrUtil;
+import vip.isass.framework.nocode.v2.criteria.IV2Criteria;
+import vip.isass.framework.nocode.v2.entity.IV2Entity;
+
+import java.util.Collection;
+import java.util.Collections;
 
 /**
+ * sql 的 select 字段条件接口
+ *
  * @author Rain
  */
-@ComponentScan
-public class DatabaseMybatisPlusAutoConfiguration implements InitializingBean {
+public interface IV2SelectColumnCriteria<E extends IV2Entity<E>, C extends IV2SelectColumnCriteria<E, C>>
+        extends IV2Criteria<E, C> {
 
-    @Override
-    public void afterPropertiesSet() {
-        JsonUtil.simpleModule.addDeserializer(IPage.class, new IPageDeserializer());
-        JacksonTypeHandler.setObjectMapper(JsonUtil.DEFAULT_INSTANCE);
-        // JsonUtil.DEFAULT_INSTANCE.registerModule(new PageModule());
-        // JsonUtil.NOT_NULL_INSTANCE.registerModule(new PageModule());
+    String DISTINCT = "DISTINCT ";
+
+    /**
+     * get select columns list
+     *
+     * @return select column list
+     */
+    Collection<String> getSelectColumns();
+
+    default C setSelectColumn(String selectColumn) {
+        getSelectColumns().clear();
+        return addSelectColumn(selectColumn);
     }
+
+    default C setSelectColumns(Collection<String> selectColumns) {
+        getSelectColumns().clear();
+        return addSelectColumns(selectColumns);
+    }
+
+    default C setSelectColumns(String... selectColumns) {
+        getSelectColumns().clear();
+        return addSelectColumns(selectColumns);
+    }
+
+    @SuppressWarnings("unchecked")
+    default C addSelectColumn(String selectColumn) {
+        if (StrUtil.isNotBlank(selectColumn)) {
+            if (!getSelectColumns().contains(selectColumn)) {
+                addSelectColumns(Collections.singleton(selectColumn));
+            }
+        }
+        return (C) this;
+    }
+
+    @SuppressWarnings("unchecked")
+    default C addSelectColumns(Collection<String> selectColumns) {
+        if (CollUtil.isNotEmpty(selectColumns)) {
+            Collection<String> targetColumns = getSelectColumns();
+            for (String selectColumn : selectColumns) {
+                if (StrUtil.containsAnyIgnoreCase(selectColumn, "select", "insert", "update")) {
+                    throw new IllegalArgumentException("selectColumns can not contains insert, update, select");
+                }
+                targetColumns.add(selectColumn);
+            }
+        }
+        return (C) this;
+    }
+
+    @SuppressWarnings("unchecked")
+    default C addSelectColumns(String... selectColumns) {
+        if (ArrayUtil.isNotEmpty(selectColumns)) {
+            addSelectColumns(CollUtil.toList(selectColumns));
+        }
+        return (C) this;
+    }
+
+    @SuppressWarnings("unchecked")
+    default C unSelectColumn(String selectColumn) {
+        if (StrUtil.isNotBlank(selectColumn)) {
+            getSelectColumns().remove(selectColumn);
+        }
+        return (C) this;
+    }
+
+    @SuppressWarnings("unchecked")
+    default C unSelectColumns(Collection<String> selectColumns) {
+        if (CollUtil.isNotEmpty(selectColumns)) {
+            getSelectColumns().removeAll(selectColumns);
+        }
+        return (C) this;
+    }
+
+    @SuppressWarnings("unchecked")
+    default C unSelectColumns(String... selectColumns) {
+        if (ArrayUtil.isNotEmpty(selectColumns)) {
+            getSelectColumns().removeAll(CollUtil.toList(selectColumns));
+        }
+        return (C) this;
+    }
+
 }

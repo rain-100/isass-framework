@@ -167,27 +167,58 @@
  *
  */
 
-package vip.isass.framework.database.mybatisplus;
+package vip.isass.framework.nocode.v2.entity;
 
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.handlers.Jackson3TypeHandler;
-import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.annotation.ComponentScan;
-import vip.isass.framework.database.mybatisplus.json.IPageDeserializer;
-import vip.isass.framework.common.support.JsonUtil;
+import java.beans.Transient;
 
 /**
+ * 乐观锁版本号
+ *
  * @author Rain
  */
-@ComponentScan
-public class DatabaseMybatisPlusAutoConfiguration implements InitializingBean {
+public interface IV2VersionEntity<E extends IV2VersionEntity<E>> extends IV2Entity<E> {
+
+    String VERSION_PROPERTY_NAME = "version";
+
+    String VERSION_COLUMN_NAME = "version";
+
+    Integer DEFAULT_VERSION = 1;
+
+    /**
+     * 获取版本号
+     *
+     * @return version
+     */
+    Integer getVersion();
+
+    /**
+     * 设置版本号
+     *
+     * @param version version
+     */
+    void setVersion(Integer version);
+
+    @Transient
+    default String getVersionColumnName() {
+        return VERSION_COLUMN_NAME;
+    }
+
+    /**
+     * @return 如果版本号为 null, 则设置版本号为1，并返回版本号
+     */
+    @SuppressWarnings("unchecked")
+    default E computeDefaultVersionIfAbsent() {
+        if (getVersion() == null) {
+            setVersion(DEFAULT_VERSION);
+        }
+        return (E) this;
+    }
 
     @Override
-    public void afterPropertiesSet() {
-        JsonUtil.simpleModule.addDeserializer(IPage.class, new IPageDeserializer());
-        JacksonTypeHandler.setObjectMapper(JsonUtil.DEFAULT_INSTANCE);
-        // JsonUtil.DEFAULT_INSTANCE.registerModule(new PageModule());
-        // JsonUtil.NOT_NULL_INSTANCE.registerModule(new PageModule());
+    @SuppressWarnings("unchecked")
+    default E randomEntity() {
+        setVersion(randomInteger());
+        return (E) this;
     }
+
 }

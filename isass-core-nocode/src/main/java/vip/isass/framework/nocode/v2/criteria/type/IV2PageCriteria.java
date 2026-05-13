@@ -164,30 +164,43 @@
  * apply, that proxy's public statement of acceptance of any version is
  * permanent authorization for you to choose that version for the
  * Library.
- *
  */
 
-package vip.isass.framework.database.mybatisplus;
+package vip.isass.framework.nocode.v2.criteria.type;
 
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.handlers.Jackson3TypeHandler;
-import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.annotation.ComponentScan;
-import vip.isass.framework.database.mybatisplus.json.IPageDeserializer;
-import vip.isass.framework.common.support.JsonUtil;
+import vip.isass.framework.nocode.v2.criteria.IV2Criteria;
+import vip.isass.framework.nocode.v2.entity.IV2Entity;
+import vip.isass.framework.common.page.PageConst;
 
 /**
+ * page 分页条件接口
+ *
  * @author Rain
  */
-@ComponentScan
-public class DatabaseMybatisPlusAutoConfiguration implements InitializingBean {
+public interface IV2PageCriteria<E extends IV2Entity<E>, C extends IV2PageCriteria<E, C>>
+    extends IV2Criteria<E, C> {
 
-    @Override
-    public void afterPropertiesSet() {
-        JsonUtil.simpleModule.addDeserializer(IPage.class, new IPageDeserializer());
-        JacksonTypeHandler.setObjectMapper(JsonUtil.DEFAULT_INSTANCE);
-        // JsonUtil.DEFAULT_INSTANCE.registerModule(new PageModule());
-        // JsonUtil.NOT_NULL_INSTANCE.registerModule(new PageModule());
+    Long DEFAULT_PAGE_NUM = 1L;
+
+    Long DEFAULT_PAGE_SIZE = 20L;
+
+    Boolean DEFAULT_SEARCH_COUNT_FLAG = Boolean.TRUE;
+
+    Long getPageNum();
+
+    C setPageNum(Long pageNum);
+
+    Long getPageSize();
+
+    C setPageSize(Long pageSize);
+
+    default C setMaxPageSize() {
+        return setPageSize(PageConst.MAX_PAGE_SIZE);
     }
+
+    Boolean getSearchCountFlag();
+
+    C setSearchCountFlag(Boolean searchCountFlag);
+
 }
+

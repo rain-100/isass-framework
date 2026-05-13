@@ -167,27 +167,80 @@
  *
  */
 
-package vip.isass.framework.database.mybatisplus;
+package vip.isass.framework.nocode.v2.entity;
 
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.handlers.Jackson3TypeHandler;
-import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.annotation.ComponentScan;
-import vip.isass.framework.database.mybatisplus.json.IPageDeserializer;
-import vip.isass.framework.common.support.JsonUtil;
+import cn.hutool.core.util.StrUtil;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
+
+import java.beans.Transient;
+import java.io.Serializable;
 
 /**
  * @author Rain
  */
-@ComponentScan
-public class DatabaseMybatisPlusAutoConfiguration implements InitializingBean {
+public interface IV2ParentIdEntity<PK extends Serializable, E extends IV2ParentIdEntity<PK, E>>
+    extends IV2PkEntity<PK, E> {
+
+    String PARENT_ID_PROPERTY_NAME = "parentId";
+
+    String PARENT_ID_COLUMN_NAME = "parent_id";
+
+    String TOP_ID_STRING_VALUE = "0";
+
+    Integer TOP_ID_INTEGER_VALUE = 0;
+
+    Long TOP_ID_LONG_VALUE = 0L;
+
+    /**
+     * @return 父 id
+     */
+    @JsonSerialize(using = ToStringSerializer.class)
+    PK getParentId();
+
+    /**
+     * 设置父 id
+     *
+     * @param parentId parent id
+     */
+    void setParentId(PK parentId);
+
+    @Transient
+    default String getParentIdColumnName() {
+        return PARENT_ID_COLUMN_NAME;
+    }
+
+    /**
+     * 标记为顶级实体
+     *
+     * @return this object
+     */
+    @SuppressWarnings("unchecked")
+    default E markAsTopEntity() {
+        Class<PK> pkClass = findPkClass();
+        if (pkClass == String.class) {
+            setParentId((PK) TOP_ID_STRING_VALUE);
+        } else if (pkClass == Long.class) {
+            setParentId((PK) TOP_ID_LONG_VALUE);
+        } else if (pkClass == Integer.class) {
+            setParentId((PK) TOP_ID_INTEGER_VALUE);
+        } else {
+            throw new UnsupportedOperationException(StrUtil.format(
+                "未支持自动生成类型为[{}]的 parent_id", pkClass
+            ));
+        }
+        return (E) this;
+    }
+
+    @SuppressWarnings("unchecked")
+    default E randomParentId() {
+        setParentId(randomPk());
+        return (E) this;
+    }
 
     @Override
-    public void afterPropertiesSet() {
-        JsonUtil.simpleModule.addDeserializer(IPage.class, new IPageDeserializer());
-        JacksonTypeHandler.setObjectMapper(JsonUtil.DEFAULT_INSTANCE);
-        // JsonUtil.DEFAULT_INSTANCE.registerModule(new PageModule());
-        // JsonUtil.NOT_NULL_INSTANCE.registerModule(new PageModule());
+    default E randomEntity() {
+        return randomParentId();
     }
+
 }

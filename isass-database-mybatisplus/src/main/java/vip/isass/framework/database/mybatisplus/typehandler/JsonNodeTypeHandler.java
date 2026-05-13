@@ -177,7 +177,6 @@ import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.MappedJdbcTypes;
 import org.apache.ibatis.type.MappedTypes;
 import org.springframework.stereotype.Component;
-import vip.isass.framework.database.core.typehandler.IJsonNodeTypeHandler;
 import vip.isass.framework.common.support.JsonUtil;
 
 import java.sql.CallableStatement;

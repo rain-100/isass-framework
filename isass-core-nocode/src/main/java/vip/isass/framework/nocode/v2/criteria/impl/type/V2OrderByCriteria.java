@@ -164,30 +164,30 @@
  * apply, that proxy's public statement of acceptance of any version is
  * permanent authorization for you to choose that version for the
  * Library.
- *
  */
 
-package vip.isass.framework.database.mybatisplus;
+package vip.isass.framework.nocode.v2.criteria.impl.type;
 
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.handlers.Jackson3TypeHandler;
-import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.annotation.ComponentScan;
-import vip.isass.framework.database.mybatisplus.json.IPageDeserializer;
-import vip.isass.framework.common.support.JsonUtil;
+import lombok.Getter;
+import lombok.ToString;
+import vip.isass.framework.nocode.v2.criteria.type.IV2OrderByCriteria;
+import vip.isass.framework.nocode.v2.entity.IV2Entity;
 
 /**
- * @author Rain
+ * 排序条件
  */
-@ComponentScan
-public class DatabaseMybatisPlusAutoConfiguration implements InitializingBean {
+@ToString
+public class V2OrderByCriteria<E extends IV2Entity<E>, C extends V2OrderByCriteria<E, C>>
+    implements IV2OrderByCriteria<E, C> {
+
+    @Getter
+    private String orderBy;
 
     @Override
-    public void afterPropertiesSet() {
-        JsonUtil.simpleModule.addDeserializer(IPage.class, new IPageDeserializer());
-        JacksonTypeHandler.setObjectMapper(JsonUtil.DEFAULT_INSTANCE);
-        // JsonUtil.DEFAULT_INSTANCE.registerModule(new PageModule());
-        // JsonUtil.NOT_NULL_INSTANCE.registerModule(new PageModule());
+    @SuppressWarnings("unchecked")
+    public C setOrderBy(String orderBy) {
+        this.orderBy = orderBy;
+        return (C) this;
     }
+
 }

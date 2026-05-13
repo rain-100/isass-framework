@@ -167,27 +167,47 @@
  *
  */
 
-package vip.isass.framework.database.mybatisplus;
+package vip.isass.framework.nocode.v2.entity;
 
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.handlers.Jackson3TypeHandler;
-import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.annotation.ComponentScan;
-import vip.isass.framework.database.mybatisplus.json.IPageDeserializer;
-import vip.isass.framework.common.support.JsonUtil;
+import java.beans.Transient;
+import java.io.Serializable;
 
 /**
+ * 租户实体
+ *
  * @author Rain
  */
-@ComponentScan
-public class DatabaseMybatisPlusAutoConfiguration implements InitializingBean {
+public interface IV2TenantEntity<TPK extends Serializable, E extends IV2TenantEntity<TPK, E>> extends IV2Entity<E> {
+
+    String TENANT_ID_COLUMN_NAME = "tenant_id";
+
+    String TENANT_ID_PROPERTY_NAME = "tenantId";
+
+    /**
+     * 获取 租户 id
+     *
+     * @return 租户 id
+     */
+    TPK getTenantId();
+
+    /**
+     * 设置租户 id
+     *
+     * @param tenantId 租户 id
+     */
+    void setTenantId(TPK tenantId);
+
+    @Transient
+    default String getTenantIdColumnName() {
+        return TENANT_ID_COLUMN_NAME;
+    }
 
     @Override
-    public void afterPropertiesSet() {
-        JsonUtil.simpleModule.addDeserializer(IPage.class, new IPageDeserializer());
-        JacksonTypeHandler.setObjectMapper(JsonUtil.DEFAULT_INSTANCE);
-        // JsonUtil.DEFAULT_INSTANCE.registerModule(new PageModule());
-        // JsonUtil.NOT_NULL_INSTANCE.registerModule(new PageModule());
+    @SuppressWarnings("unchecked")
+    default E randomEntity() {
+        // todo 如何获取到TPK类型
+        // setTenantId(randomPk());
+        return (E) this;
     }
+
 }

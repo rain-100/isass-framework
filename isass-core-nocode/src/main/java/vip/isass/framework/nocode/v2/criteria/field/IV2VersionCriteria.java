@@ -164,30 +164,75 @@
  * apply, that proxy's public statement of acceptance of any version is
  * permanent authorization for you to choose that version for the
  * Library.
- *
  */
 
-package vip.isass.framework.database.mybatisplus;
+package vip.isass.framework.nocode.v2.criteria.field;
 
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.handlers.Jackson3TypeHandler;
-import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.annotation.ComponentScan;
-import vip.isass.framework.database.mybatisplus.json.IPageDeserializer;
-import vip.isass.framework.common.support.JsonUtil;
+import vip.isass.framework.nocode.v2.criteria.IV2Criteria;
+import vip.isass.framework.nocode.v2.entity.IV2VersionEntity;
+import vip.isass.framework.nocode.v2.criteria.type.IV2SelectColumnCriteria;
+import vip.isass.framework.nocode.v2.criteria.type.IV2WhereConditionCriteria;
+
+import java.beans.Transient;
 
 /**
+ * 乐观锁版本号 类型条件接口
+ *
  * @author Rain
  */
-@ComponentScan
-public class DatabaseMybatisPlusAutoConfiguration implements InitializingBean {
+public interface IV2VersionCriteria<
+    E extends IV2VersionEntity<E>,
+    C extends IV2VersionCriteria<E, C>
+    > extends IV2Criteria<E, C> {
 
-    @Override
-    public void afterPropertiesSet() {
-        JsonUtil.simpleModule.addDeserializer(IPage.class, new IPageDeserializer());
-        JacksonTypeHandler.setObjectMapper(JsonUtil.DEFAULT_INSTANCE);
-        // JsonUtil.DEFAULT_INSTANCE.registerModule(new PageModule());
-        // JsonUtil.NOT_NULL_INSTANCE.registerModule(new PageModule());
+    @Transient
+    default String getVersionColumnName() {
+        return IV2VersionEntity.VERSION_COLUMN_NAME;
     }
+
+    @Transient
+    default String getVersionPropertyName() {
+        return IV2VersionEntity.VERSION_PROPERTY_NAME;
+    }
+
+    @Transient
+    @SuppressWarnings({"rawtypes"})
+    default Integer getVersion() {
+        return this instanceof IV2WhereConditionCriteria
+            ? (Integer) ((IV2WhereConditionCriteria) this).getEquals(getVersionColumnName())
+            : null;
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    default C setVersion(Integer id) {
+        return this instanceof IV2WhereConditionCriteria
+            ? (C) ((IV2WhereConditionCriteria) this).equals(getVersionPropertyName(), getVersionColumnName(), id)
+            : (C) this;
+    }
+
+    // region SelectColumnCriteria
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    default C selectVersion() {
+        return this instanceof IV2SelectColumnCriteria
+            ? (C) ((IV2SelectColumnCriteria) this).setSelectColumn(getVersionColumnName())
+            : (C) this;
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    default C addSelectVersion() {
+        return this instanceof IV2SelectColumnCriteria
+            ? (C) ((IV2SelectColumnCriteria) this).addSelectColumn(getVersionColumnName())
+            : (C) this;
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    default C unSelectVersion() {
+        return this instanceof IV2SelectColumnCriteria
+            ? (C) ((IV2SelectColumnCriteria) this).unSelectColumn(getVersionColumnName())
+            : (C) this;
+    }
+
+    // endregion
+
 }

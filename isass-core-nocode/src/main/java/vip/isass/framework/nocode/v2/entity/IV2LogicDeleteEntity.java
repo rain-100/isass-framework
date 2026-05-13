@@ -167,27 +167,60 @@
  *
  */
 
-package vip.isass.framework.database.mybatisplus;
+package vip.isass.framework.nocode.v2.entity;
 
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.handlers.Jackson3TypeHandler;
-import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.annotation.ComponentScan;
-import vip.isass.framework.database.mybatisplus.json.IPageDeserializer;
-import vip.isass.framework.common.support.JsonUtil;
+import java.beans.Transient;
 
 /**
+ * 逻辑删除
+ *
  * @author Rain
  */
-@ComponentScan
-public class DatabaseMybatisPlusAutoConfiguration implements InitializingBean {
+public interface IV2LogicDeleteEntity<E extends IV2LogicDeleteEntity<E>> extends IV2Entity<E> {
+
+    String DELETE_FLAG_PROPERTY_NAME = "deleteFlag";
+
+    String DELETE_FLAG_COLUMN_NAME = "delete_flag";
+
+    Boolean DEFAULT_DELETE_FLAG_VALUE = Boolean.FALSE;
+
+    /**
+     * 获取删除标识
+     *
+     * @return deleteFlag
+     */
+    Boolean getDeleteFlag();
+
+    /**
+     * 设置删除标识
+     *
+     * @param deleteFlag deleteFlag
+     */
+    void setDeleteFlag(Boolean deleteFlag);
+
+    @Transient
+    default String getDeleteFlagColumnName() {
+        return DELETE_FLAG_COLUMN_NAME;
+    }
+
+    /**
+     * 如果删除标识为 null, 则设置删除标识为 false，并返回删除标识
+     *
+     * @return this object
+     */
+    @SuppressWarnings("unchecked")
+    default E computeDefaultDeleteFlagIfAbsent() {
+        if (getDeleteFlag() == null) {
+            setDeleteFlag(Boolean.FALSE);
+        }
+        return (E) this;
+    }
 
     @Override
-    public void afterPropertiesSet() {
-        JsonUtil.simpleModule.addDeserializer(IPage.class, new IPageDeserializer());
-        JacksonTypeHandler.setObjectMapper(JsonUtil.DEFAULT_INSTANCE);
-        // JsonUtil.DEFAULT_INSTANCE.registerModule(new PageModule());
-        // JsonUtil.NOT_NULL_INSTANCE.registerModule(new PageModule());
+    @SuppressWarnings("unchecked")
+    default E randomEntity() {
+        setDeleteFlag(randomBoolean());
+        return (E) this;
     }
+
 }

@@ -164,30 +164,70 @@
  * apply, that proxy's public statement of acceptance of any version is
  * permanent authorization for you to choose that version for the
  * Library.
- *
  */
 
-package vip.isass.framework.database.mybatisplus;
+package vip.isass.framework.nocode;
 
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.handlers.Jackson3TypeHandler;
-import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.annotation.ComponentScan;
-import vip.isass.framework.database.mybatisplus.json.IPageDeserializer;
-import vip.isass.framework.common.support.JsonUtil;
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.transaction.annotation.Transactional;
 
-/**
- * @author Rain
- */
-@ComponentScan
-public class DatabaseMybatisPlusAutoConfiguration implements InitializingBean {
+@Transactional
+@SpringBootTest
+public abstract class AbstractRollbackServiceTestClass implements RepositoryTest {
 
+    @Test
     @Override
-    public void afterPropertiesSet() {
-        JsonUtil.simpleModule.addDeserializer(IPage.class, new IPageDeserializer());
-        JacksonTypeHandler.setObjectMapper(JsonUtil.DEFAULT_INSTANCE);
-        // JsonUtil.DEFAULT_INSTANCE.registerModule(new PageModule());
-        // JsonUtil.NOT_NULL_INSTANCE.registerModule(new PageModule());
+    public void testInsert() {
+        RepositoryTest.super.testInsert();
     }
+
+    @Test
+    @Override
+    public void testBatchInsert() {
+        RepositoryTest.super.testBatchInsert();
+    }
+
+    @Test
+    @Override
+    public void testDeleteById() {
+        RepositoryTest.super.testDeleteById();
+    }
+
+    @Test
+    @Override
+    public void testDeleteByIds() {
+        RepositoryTest.super.testDeleteByIds();
+    }
+
+    @Test
+    @Override
+    public void testUpdateById() {
+        RepositoryTest.super.testUpdateById();
+    }
+
+    @Test
+    @Override
+    public void testUpdateByCriteria() {
+        RepositoryTest.super.testUpdateByCriteria();
+    }
+
+    @Test
+    @Override
+    public void testGetById() {
+        RepositoryTest.super.testGetById();
+    }
+
+    @Test
+    @Override
+    public void testFindByCriteria() {
+        RepositoryTest.super.testFindByCriteria();
+    }
+
+    @Test
+    @Override
+    public void testGetAnyOneByCriteria() {
+        RepositoryTest.super.testGetAnyOneByCriteria();
+    }
+
 }

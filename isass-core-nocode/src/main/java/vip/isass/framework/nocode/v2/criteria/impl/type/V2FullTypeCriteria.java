@@ -164,30 +164,133 @@
  * apply, that proxy's public statement of acceptance of any version is
  * permanent authorization for you to choose that version for the
  * Library.
- *
  */
 
-package vip.isass.framework.database.mybatisplus;
+package vip.isass.framework.nocode.v2.criteria.impl.type;
 
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.handlers.Jackson3TypeHandler;
-import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.annotation.ComponentScan;
-import vip.isass.framework.database.mybatisplus.json.IPageDeserializer;
-import vip.isass.framework.common.support.JsonUtil;
+import lombok.Getter;
+import vip.isass.framework.nocode.v2.criteria.IV2Criteria;
+import vip.isass.framework.nocode.v2.criteria.V2WhereCondition;
+import vip.isass.framework.nocode.v2.criteria.type.IV2OrderByCriteria;
+import vip.isass.framework.nocode.v2.criteria.type.IV2PageCriteria;
+import vip.isass.framework.nocode.v2.criteria.type.IV2SelectColumnCriteria;
+import vip.isass.framework.nocode.v2.criteria.type.IV2WhereConditionCriteria;
+import vip.isass.framework.nocode.v2.entity.IV2Entity;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
- * @author Rain
+ * 聚合了 selectColumn、whereCondition、page、orderBy 查询条件
  */
-@ComponentScan
-public class DatabaseMybatisPlusAutoConfiguration implements InitializingBean {
+public class V2FullTypeCriteria<E extends IV2Entity<E>, C extends V2FullTypeCriteria<E, C>>
+        implements
+        IV2SelectColumnCriteria<E, C>,
+        IV2WhereConditionCriteria<E, C>,
+        IV2PageCriteria<E, C>,
+        IV2OrderByCriteria<E, C>,
+        IV2Criteria<E, C> {
+
+    // region selectColumn
+
+    private Collection<String> selectColumns;
 
     @Override
-    public void afterPropertiesSet() {
-        JsonUtil.simpleModule.addDeserializer(IPage.class, new IPageDeserializer());
-        JacksonTypeHandler.setObjectMapper(JsonUtil.DEFAULT_INSTANCE);
-        // JsonUtil.DEFAULT_INSTANCE.registerModule(new PageModule());
-        // JsonUtil.NOT_NULL_INSTANCE.registerModule(new PageModule());
+    public Collection<String> getSelectColumns() {
+        if (selectColumns == null) {
+            selectColumns = new ArrayList<>(16);
+        }
+        return selectColumns;
     }
+
+    public C setSelectColumns(Collection<String> selectColumns) {
+        return IV2SelectColumnCriteria.super.setSelectColumns(selectColumns);
+    }
+
+    // endregion
+
+    // region whereCondition
+
+    private List<V2WhereCondition> whereConditions;
+
+    public List<V2WhereCondition> getWhereConditions() {
+        if (whereConditions == null) {
+            whereConditions = new ArrayList<>();
+        }
+        return whereConditions;
+    }
+
+    public C setWhereConditions(List<V2WhereCondition> whereConditions) {
+        return IV2WhereConditionCriteria.super.setWhereConditions(whereConditions);
+    }
+
+    // endregion
+
+    // region page
+
+    /**
+     * 分页页码，从1开始，默认1
+     */
+    private Long pageNum;
+
+    /**
+     * 每页大小，默认20
+     */
+    private Long pageSize;
+
+    private Boolean searchCountFlag;
+
+    @Override
+    public Long getPageNum() {
+        return pageNum == null ? DEFAULT_PAGE_NUM : pageNum < 1L ? 1L : pageNum;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public C setPageNum(Long pageNum) {
+        this.pageNum = pageNum;
+        return (C) this;
+    }
+
+    @Override
+    public Long getPageSize() {
+        return pageSize == null ? DEFAULT_PAGE_SIZE : pageSize < 1L ? DEFAULT_PAGE_SIZE : pageSize;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public C setPageSize(Long pageSize) {
+        this.pageSize = pageSize;
+        return (C) this;
+    }
+
+    @Override
+    public Boolean getSearchCountFlag() {
+        return searchCountFlag == null ? DEFAULT_SEARCH_COUNT_FLAG : searchCountFlag;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public C setSearchCountFlag(Boolean searchCountFlag) {
+        this.searchCountFlag = searchCountFlag;
+        return (C) this;
+    }
+
+    // endregion
+
+    // region orderBy
+
+    @Getter
+    private String orderBy;
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public C setOrderBy(String orderBy) {
+        this.orderBy = orderBy;
+        return (C) this;
+    }
+
+    // endregion
+
 }

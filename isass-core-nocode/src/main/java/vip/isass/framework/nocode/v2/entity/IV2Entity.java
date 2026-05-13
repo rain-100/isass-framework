@@ -167,27 +167,78 @@
  *
  */
 
-package vip.isass.framework.database.mybatisplus;
+package vip.isass.framework.nocode.v2.entity;
 
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.handlers.Jackson3TypeHandler;
-import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.annotation.ComponentScan;
-import vip.isass.framework.database.mybatisplus.json.IPageDeserializer;
-import vip.isass.framework.common.support.JsonUtil;
+import cn.hutool.core.util.RandomUtil;
+import vip.isass.framework.common.support.LocalDateTimeUtil;
+import vip.isass.framework.common.support.SystemClock;
+
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * @author Rain
  */
-@ComponentScan
-public class DatabaseMybatisPlusAutoConfiguration implements InitializingBean {
+public interface IV2Entity<E extends IV2Entity<E>> extends Serializable, IAnyJsonEntity {
 
-    @Override
-    public void afterPropertiesSet() {
-        JsonUtil.simpleModule.addDeserializer(IPage.class, new IPageDeserializer());
-        JacksonTypeHandler.setObjectMapper(JsonUtil.DEFAULT_INSTANCE);
-        // JsonUtil.DEFAULT_INSTANCE.registerModule(new PageModule());
-        // JsonUtil.NOT_NULL_INSTANCE.registerModule(new PageModule());
+    long serialVersionUID = 1L;
+
+    default String randomString() {
+        return RandomUtil.randomString(6);
     }
+
+    default Byte randomByte() {
+        return (byte) RandomUtil.randomInt(Byte.MAX_VALUE);
+    }
+
+    default Boolean randomBoolean() {
+        return RandomUtil.randomBoolean();
+    }
+
+    default Integer randomInteger() {
+        return RandomUtil.randomInt();
+    }
+
+    default Long randomLong() {
+        return RandomUtil.randomLong();
+    }
+
+    default Float randomFloat() {
+        return ThreadLocalRandom.current().nextFloat();
+    }
+
+    default Double randomDouble() {
+        return RandomUtil.randomDouble();
+    }
+
+    default BigDecimal randomBigDecimal() {
+        return RandomUtil.randomBigDecimal(BigDecimal.TEN);
+    }
+
+    default LocalDateTime randomLocalDateTime() {
+        return LocalDateTimeUtil.now();
+    }
+
+    default LocalDate randomLocalDate() {
+        return LocalDateTimeUtil.nowLocalDate();
+    }
+
+    default LocalTime randomLocalTime() {
+        return LocalDateTimeUtil.nowLocalTime();
+    }
+
+    default Long randomLongTimestamp() {
+        return SystemClock.now() - randomInteger();
+    }
+
+    /**
+     * 生成随机的entity
+     * 所有字段都随机赋值
+     */
+    E randomEntity();
+
 }

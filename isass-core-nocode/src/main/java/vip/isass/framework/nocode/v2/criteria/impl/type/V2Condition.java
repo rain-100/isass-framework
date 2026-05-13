@@ -164,30 +164,59 @@
  * apply, that proxy's public statement of acceptance of any version is
  * permanent authorization for you to choose that version for the
  * Library.
- *
  */
 
-package vip.isass.framework.database.mybatisplus;
+package vip.isass.framework.nocode.v2.criteria.impl.type;
 
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.handlers.Jackson3TypeHandler;
-import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.annotation.ComponentScan;
-import vip.isass.framework.database.mybatisplus.json.IPageDeserializer;
-import vip.isass.framework.common.support.JsonUtil;
+import lombok.Getter;
 
 /**
  * @author Rain
  */
-@ComponentScan
-public class DatabaseMybatisPlusAutoConfiguration implements InitializingBean {
+@Getter
+public enum V2Condition {
 
-    @Override
-    public void afterPropertiesSet() {
-        JsonUtil.simpleModule.addDeserializer(IPage.class, new IPageDeserializer());
-        JacksonTypeHandler.setObjectMapper(JsonUtil.DEFAULT_INSTANCE);
-        // JsonUtil.DEFAULT_INSTANCE.registerModule(new PageModule());
-        // JsonUtil.NOT_NULL_INSTANCE.registerModule(new PageModule());
+    // 条件之间的关系
+    OR(""),
+
+    // 通用类型
+    EQUAL(""),
+    NOT_EQUAL("NotEqual"),
+
+    IN("In"),
+    NOT_IN("NotIn"),
+
+    IS_NULL("IsNull"),
+    IS_NOT_NULL("IsNotNull"),
+
+    // 数字类型
+    GREATER_THAN("GreaterThan"),
+    GREATER_THAN_EQUAL("GreaterThanEqual"),
+    LESS_THAN("LessThan"),
+    LESS_THAN_EQUAL("LessThanEqual"),
+
+    // 字符串类型
+    START_WITH("StartWith"),
+    LIKE("Like"),
+    NOT_LIKE("NotLike"),
+
+    // 数组类型
+    CONTAINS_ALL("ContainsAll"),
+    CONTAINS_ANY("ContainsAny"),
+
+    // json 数组
+    JSON_ARRAY_CONTAINS("JsonArrayContains"),
+    JSON_ARRAY_CONTAINS_ANY("JsonArrayContainsAny"),
+    JSON_ARRAY_CONTAINS_ALL("JsonArrayContainsAll"),
+    ;
+
+    /**
+     * 属性名后缀
+     */
+    private final String propertyNameSuffix;
+
+    V2Condition(String propertyNameSuffix) {
+        this.propertyNameSuffix = propertyNameSuffix;
     }
+
 }

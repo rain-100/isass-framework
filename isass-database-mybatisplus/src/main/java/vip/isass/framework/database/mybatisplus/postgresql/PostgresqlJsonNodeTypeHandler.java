@@ -172,8 +172,8 @@ package vip.isass.framework.database.mybatisplus.postgresql;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.SneakyThrows;
 import org.postgresql.util.PGobject;
-import vip.isass.framework.database.core.typehandler.IJsonNodeTypeHandler;
 import vip.isass.framework.common.support.JsonUtil;
+import vip.isass.framework.database.mybatisplus.typehandler.IJsonNodeTypeHandler;
 
 import java.sql.PreparedStatement;
 

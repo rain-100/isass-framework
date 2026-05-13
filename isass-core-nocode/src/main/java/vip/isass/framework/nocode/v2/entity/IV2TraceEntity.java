@@ -167,27 +167,190 @@
  *
  */
 
-package vip.isass.framework.database.mybatisplus;
+package vip.isass.framework.nocode.v2.entity;
 
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.handlers.Jackson3TypeHandler;
-import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.annotation.ComponentScan;
-import vip.isass.framework.database.mybatisplus.json.IPageDeserializer;
-import vip.isass.framework.common.support.JsonUtil;
+import vip.isass.framework.common.sequence.impl.LongSequence;
+
+import java.beans.Transient;
+import java.io.Serializable;
+import java.time.LocalDateTime;
 
 /**
+ * 审计追踪类型实体
+ * UPK: user 的主键类型
+ *
  * @author Rain
  */
-@ComponentScan
-public class DatabaseMybatisPlusAutoConfiguration implements InitializingBean {
+public interface IV2TraceEntity<UPK extends Serializable, E extends IV2TraceEntity<UPK, E>>
+    extends IV2Entity<E> {
+
+    String CREATE_USER_ID_PROPERTY_NAME = "createUserId";
+    String CREATE_USER_ID_COLUMN_NAME = "create_user_id";
+
+    @Transient
+    default String getCreateUserIdColumnName() {
+        return CREATE_USER_ID_COLUMN_NAME;
+    }
+
+    String CREATE_USER_NAME_PROPERTY_NAME = "createUserName";
+    String CREATE_USER_NAME_COLUMN_NAME = "create_user_name";
+
+    @Transient
+    default String getCreateUserNameColumnName() {
+        return CREATE_USER_NAME_COLUMN_NAME;
+    }
+
+    String CREATED_TIME_PROPERTY_NAME = "createTime";
+    String CREATED_TIME_COLUMN_NAME = "create_time";
+
+    @Transient
+    default String getCreatedTimeColumnName() {
+        return CREATED_TIME_COLUMN_NAME;
+    }
+
+    String MODIFY_USER_ID_PROPERTY_NAME = "modifyUserId";
+    String MODIFY_USER_ID_COLUMN_NAME = "modify_user_id";
+
+    @Transient
+    default String getModifyUserIdColumnName() {
+        return MODIFY_USER_ID_COLUMN_NAME;
+    }
+
+    String MODIFY_USER_NAME_PROPERTY_NAME = "modifyUserName";
+    String MODIFY_USER_NAME_COLUMN_NAME = "modify_user_name";
+
+    @Transient
+    default String getModifyUserNameColumnName() {
+        return MODIFY_USER_NAME_COLUMN_NAME;
+    }
+
+    String MODIFY_TIME_PROPERTY_NAME = "modifyTime";
+    String MODIFY_TIME_COLUMN_NAME = "modify_time";
+
+    @Transient
+    default String getModifyTimeColumnColumnName() {
+        return MODIFY_TIME_COLUMN_NAME;
+    }
+
+    // 允许数据库表只包含其中1个审计字段，所以 get set 方法均添加默认实现，避免实现类报错
+
+    /**
+     * 获取创建用户的 id
+     *
+     * @return create user id
+     */
+    default UPK getCreateUserId() {
+        return null;
+    }
+
+    /**
+     * 设置创建用户的 id
+     *
+     * @param createUserId create user id
+     */
+    default void setCreateUserId(UPK createUserId) {
+
+    }
+
+    /**
+     * @return 创建用户的用户名
+     */
+    default String getCreateUserName() {
+        return null;
+    }
+
+    /**
+     * 设置创建用户的用户名
+     *
+     * @param createUserName create user name
+     */
+    default void setCreateUserName(String createUserName) {
+
+    }
+
+    /**
+     * 获取创建记录的时间
+     *
+     * @return create time
+     */
+    default LocalDateTime getCreateTime() {
+        return null;
+    }
+
+    /**
+     * 设置创建记录的时间
+     *
+     * @param createTime create time
+     */
+    default void setCreateTime(LocalDateTime createTime) {
+
+    }
+
+    /**
+     * 获取修改用户的 id
+     *
+     * @return modify user id
+     */
+    default UPK getModifyUserId() {
+        return null;
+    }
+
+    /**
+     * 设置修改用户的 id
+     *
+     * @param modifyUserId modify user id
+     */
+    default void setModifyUserId(UPK modifyUserId) {
+
+    }
+
+    /**
+     * 获取修改用户的用户名
+     *
+     * @return modify user name
+     */
+    default String getModifyUserName() {
+        return null;
+    }
+
+    /**
+     * 设置修改用户的用户名
+     *
+     * @param modifyUserName modify user name
+     */
+    default void setModifyUserName(String modifyUserName) {
+
+    }
+
+    /**
+     * 获取修改记录的时间
+     *
+     * @return modify time
+     */
+    default LocalDateTime getModifyTime() {
+        return null;
+    }
+
+    /**
+     * 设置修改记录的时间
+     *
+     * @param modifyTime modify time
+     */
+    default void setModifyTime(LocalDateTime modifyTime) {
+
+    }
 
     @Override
-    public void afterPropertiesSet() {
-        JsonUtil.simpleModule.addDeserializer(IPage.class, new IPageDeserializer());
-        JacksonTypeHandler.setObjectMapper(JsonUtil.DEFAULT_INSTANCE);
-        // JsonUtil.DEFAULT_INSTANCE.registerModule(new PageModule());
-        // JsonUtil.NOT_NULL_INSTANCE.registerModule(new PageModule());
+    @SuppressWarnings("unchecked")
+    default E randomEntity() {
+        // 在 isass 3.x.x 版本，用户id是字符串，现在只能写死类型强转
+        setCreateUserId((UPK) LongSequence.get().toString());
+        setCreateUserName(randomString());
+        setCreateTime(randomLocalDateTime());
+        setModifyUserId((UPK) LongSequence.get().toString());
+        setModifyUserName(randomString());
+        setModifyTime(randomLocalDateTime());
+        return (E) this;
     }
+
 }

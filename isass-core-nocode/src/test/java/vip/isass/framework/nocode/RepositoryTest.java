@@ -164,30 +164,164 @@
  * apply, that proxy's public statement of acceptance of any version is
  * permanent authorization for you to choose that version for the
  * Library.
- *
  */
 
-package vip.isass.framework.database.mybatisplus;
+package vip.isass.framework.nocode;
 
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.handlers.Jackson3TypeHandler;
-import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.annotation.ComponentScan;
-import vip.isass.framework.database.mybatisplus.json.IPageDeserializer;
-import vip.isass.framework.common.support.JsonUtil;
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.lang.Assert;
+import vip.isass.framework.nocode.v2.criteria.IV2Criteria;
+import vip.isass.framework.nocode.v2.criteria.field.IV2IdCriteria;
+import vip.isass.framework.nocode.v2.criteria.field.IV2PkCriteria;
+import vip.isass.framework.nocode.v2.criteria.field.IV2TraceCriteria;
+import vip.isass.framework.nocode.v2.criteria.type.IV2SelectColumnCriteria;
+import vip.isass.framework.nocode.v2.entity.IV2Entity;
+import vip.isass.framework.nocode.v2.entity.IV2IdEntity;
+import vip.isass.framework.nocode.v2.entity.IV2LogicDeleteEntity;
+import vip.isass.framework.nocode.v2.entity.IV2TraceEntity;
+import vip.isass.framework.nocode.v2.repository.IV2Repository;
 
-/**
- * @author Rain
- */
-@ComponentScan
-public class DatabaseMybatisPlusAutoConfiguration implements InitializingBean {
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-    @Override
-    public void afterPropertiesSet() {
-        JsonUtil.simpleModule.addDeserializer(IPage.class, new IPageDeserializer());
-        JacksonTypeHandler.setObjectMapper(JsonUtil.DEFAULT_INSTANCE);
-        // JsonUtil.DEFAULT_INSTANCE.registerModule(new PageModule());
-        // JsonUtil.NOT_NULL_INSTANCE.registerModule(new PageModule());
+@SuppressWarnings({"rawtypes", "unchecked"})
+public interface RepositoryTest<C extends IV2Criteria<E, C>, E extends IV2Entity<E>, R extends IV2Repository<E, C>> {
+
+    C getCriteria();
+
+    E genEntity();
+
+    R getRepository();
+    // ****************************** 增 start ******************************
+
+    default void testInsert() {
+        E entity = genEntity();
+        Assert.isTrue(getRepository().add(entity));
     }
+
+    default void testBatchInsert() {
+        int testBatchCount = 10;
+        List<E> entitys = new ArrayList<>(testBatchCount);
+        for (int i = 0; i < testBatchCount; i++) {
+            entitys.add(genEntity());
+        }
+        Assert.isTrue(getRepository().addBatch(entitys));
+    }
+
+    // ****************************** 删 start ******************************
+
+    default void testDeleteById() {
+        E entity = genEntity();
+        getRepository().add(entity);
+        Assert.isTrue(getRepository().deleteById(((IV2IdEntity) entity).getId()));
+    }
+
+    default void testDeleteByIds() {
+        int testBatchCount = 10;
+        List<E> entitys = new ArrayList<>(testBatchCount);
+        for (int i = 0; i < testBatchCount; i++) {
+            entitys.add(genEntity());
+        }
+        Assert.isTrue(getRepository().addBatch(entitys));
+
+        Set<Serializable> ids = entitys.stream()
+                .filter(e -> e instanceof IV2Entity<?>)
+                .map(e -> ((IV2IdEntity) e).getId())
+                .collect(Collectors.toSet());
+        Assert.isTrue(getRepository().deleteByIds(ids));
+    }
+
+    //****************************** 改 start ******************************
+
+    default void testUpdateById() {
+        E entity = genEntity();
+        if (entity instanceof IV2LogicDeleteEntity) {
+            ((IV2LogicDeleteEntity) entity).setDeleteFlag(Boolean.FALSE);
+        }
+        getRepository().add(entity);
+
+        Serializable id = ((IV2IdEntity) entity).getId();
+        entity.randomEntity();
+        ((IV2IdEntity) entity).setId(id);
+        getRepository().updateById(entity);
+    }
+
+    default void testUpdateByCriteria() {
+        E entity = genEntity();
+        if (entity instanceof IV2LogicDeleteEntity) {
+            ((IV2LogicDeleteEntity) entity).setDeleteFlag(Boolean.FALSE);
+        }
+        Assert.isTrue(getRepository().add(entity));
+
+        E newEntity = genEntity();
+        if (newEntity instanceof IV2TraceEntity timeTracedEntity) {
+            timeTracedEntity.setCreateTime(null);
+        }
+
+        IV2Criteria<E, C> criteria = getCriteria();
+        if (criteria instanceof IV2PkCriteria<?, ?, ?>) {
+            IV2IdEntity idEntity = (IV2IdEntity) entity;
+            ((IV2IdCriteria) criteria).setId(idEntity.getId());
+        }
+        if (entity instanceof IV2TraceEntity<?, ?> && criteria instanceof IV2TraceCriteria<?, ?, ?>) {
+            IV2TraceEntity timeTracedEntity = (IV2TraceEntity) entity;
+            ((IV2TraceCriteria) criteria).setCreateTime(timeTracedEntity.getCreateTime());
+        }
+        Assert.isTrue(getRepository().updateByCriteria(entity, criteria));
+
+    }
+
+    // ****************************** 查 start ******************************
+
+    default void testGetById() {
+        E entity = genEntity();
+        if (!(entity instanceof IV2Entity<?>)) {
+            return;
+        }
+
+        if (entity instanceof IV2LogicDeleteEntity) {
+            ((IV2LogicDeleteEntity) entity).setDeleteFlag(Boolean.FALSE);
+        }
+        Assert.isTrue(getRepository().add(entity));
+
+        IV2IdEntity idEntity = (IV2IdEntity) entity;
+        IV2IdEntity e = (IV2IdEntity) getRepository().getEntityById(idEntity.getId());
+
+        Assert.notNull(getRepository().getEntityById(e.getId()));
+    }
+
+    default void testGetAnyOneByCriteria() {
+        E entity = genEntity();
+        Assert.isTrue(getRepository().add(entity));
+
+        C criteria = getCriteria();
+        if (entity instanceof IV2IdEntity idEntity && criteria instanceof IV2PkCriteria<?, ?, ?>) {
+            IV2IdCriteria idCriteria = (IV2IdCriteria) criteria;
+            idCriteria.setId(idEntity.getId());
+
+            ((IV2SelectColumnCriteria) idCriteria).setSelectColumns(CollUtil.newArrayList(idEntity.getIdColumnName()));
+        }
+        Assert.notNull(getRepository().getByCriteria(criteria));
+    }
+
+    default void testFindByCriteria() {
+        E entity = genEntity();
+        if (entity instanceof IV2LogicDeleteEntity) {
+            ((IV2LogicDeleteEntity) entity).setDeleteFlag(Boolean.FALSE);
+        }
+        Assert.isTrue(getRepository().add(entity));
+
+        C criteria = getCriteria();
+        if (entity instanceof IV2Entity<?> && criteria instanceof IV2PkCriteria<?, ?, ?>) {
+            IV2IdEntity idEntity = (IV2IdEntity) entity;
+            IV2IdCriteria idCriteria = (IV2IdCriteria) criteria;
+            idCriteria.setId(idEntity.getId());
+            ((IV2SelectColumnCriteria) idCriteria).setSelectColumns(CollUtil.newArrayList(idEntity.getIdColumnName()));
+        }
+        Assert.isTrue(getRepository().findByCriteria(criteria).size() == 1);
+    }
+
 }

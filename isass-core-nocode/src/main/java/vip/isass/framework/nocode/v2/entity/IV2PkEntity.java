@@ -167,27 +167,75 @@
  *
  */
 
-package vip.isass.framework.database.mybatisplus;
+package vip.isass.framework.nocode.v2.entity;
 
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.handlers.Jackson3TypeHandler;
-import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.annotation.ComponentScan;
-import vip.isass.framework.database.mybatisplus.json.IPageDeserializer;
-import vip.isass.framework.common.support.JsonUtil;
+import cn.hutool.core.util.RandomUtil;
+import cn.hutool.core.util.StrUtil;
+import vip.isass.framework.common.sequence.impl.LongSequence;
+
+import java.io.Serializable;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
+ * 含有主键类型的接口
+ * 主键类型泛型的定义始终放在第一位
+ *
  * @author Rain
  */
-@ComponentScan
-public class DatabaseMybatisPlusAutoConfiguration implements InitializingBean {
+public interface IV2PkEntity<PK extends Serializable, E extends IV2PkEntity<PK, E>> extends IV2Entity<E> {
 
-    @Override
-    public void afterPropertiesSet() {
-        JsonUtil.simpleModule.addDeserializer(IPage.class, new IPageDeserializer());
-        JacksonTypeHandler.setObjectMapper(JsonUtil.DEFAULT_INSTANCE);
-        // JsonUtil.DEFAULT_INSTANCE.registerModule(new PageModule());
-        // JsonUtil.NOT_NULL_INSTANCE.registerModule(new PageModule());
+    Map<Class<?>, Class<?>> PK_CLASS_CACHE = new ConcurrentHashMap<>(64);
+
+    @SuppressWarnings("unchecked")
+    default Class<PK> findPkClass() {
+        return (Class<PK>) PK_CLASS_CACHE.computeIfAbsent(this.getClass(), c -> {
+            // 如果 thisClass 是继承了 IV2Entity的类，即不是代码自动生成的实体类，则他本身没有定义泛型，需要往其父类上找到泛型
+            Type[] types = getTypes(c);
+            ParameterizedType parameterizedType = (ParameterizedType) types[0];
+            Type type = parameterizedType.getActualTypeArguments()[0];
+            return (Class<?>) type;
+        });
     }
+
+    static Type[] getTypes(Class<?> thisClass) {
+        if (thisClass == null) {
+            return new Type[0];
+        }
+        Type[] types = thisClass.getGenericInterfaces();
+        if (types.length > 0) {
+            return types;
+        }
+        return getTypes(thisClass.getSuperclass());
+    }
+
+    //
+    //    @SuppressWarnings("unchecked")
+    //    default Class<PK> findPkClass() {
+    //        Type[] types = this.getClass().getGenericInterfaces();
+    //        String typeName = types[0].getTypeName();
+    //        System.out.println(typeName);
+    //        ParameterizedType parameterizedType = (ParameterizedType) types[0];
+    //        Type type = parameterizedType.getActualTypeArguments()[0];
+    //        return (Class<PK>) type;
+    //    }
+
+    @SuppressWarnings("unchecked")
+    default PK randomPk() {
+        Class<PK> pkClass = findPkClass();
+        if (pkClass == String.class) {
+            return (PK) LongSequence.get().toString();
+        } else if (pkClass == Long.class) {
+            return (PK) LongSequence.get();
+        } else if (pkClass == Integer.class) {
+            return (PK) Integer.valueOf(RandomUtil.randomInt());
+        } else {
+            throw new UnsupportedOperationException(StrUtil.format(
+                    "未支持自动生成类型为[{}]的主键", pkClass
+            ));
+        }
+    }
+
 }

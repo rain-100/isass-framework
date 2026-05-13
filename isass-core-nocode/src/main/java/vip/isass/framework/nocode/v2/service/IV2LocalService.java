@@ -167,27 +167,273 @@
  *
  */
 
-package vip.isass.framework.database.mybatisplus;
+package vip.isass.framework.nocode.v2.service;
 
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.lang.Assert;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.handlers.Jackson3TypeHandler;
-import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.annotation.ComponentScan;
-import vip.isass.framework.database.mybatisplus.json.IPageDeserializer;
-import vip.isass.framework.common.support.JsonUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import vip.isass.framework.common.exception.AbsentException;
+import vip.isass.framework.common.structure.criteria.IV2Criteria;
+import vip.isass.framework.common.structure.criteria.type.IV2WhereConditionCriteria;
+import vip.isass.framework.common.structure.entity.BatchSave;
+import vip.isass.framework.common.structure.entity.IV2Entity;
+import vip.isass.framework.common.structure.entity.IV2IdEntity;
+import vip.isass.framework.common.structure.repository.IV2Repository;
+import vip.isass.framework.common.support.api.ApiOrder;
+
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.List;
 
 /**
- * @author Rain
+ * @author rain
  */
-@ComponentScan
-public class DatabaseMybatisPlusAutoConfiguration implements InitializingBean {
+public interface IV2LocalService<
+        E extends IV2Entity<E>,
+        C extends IV2Criteria<E, C>
+        > extends IV2Service<E, C> {
+
+    Logger LOGGER = LoggerFactory.getLogger(IV2LocalService.class);
+
+    IV2Repository<E, C> getRepository();
+
+    IV2Service<E, C> getService();
 
     @Override
-    public void afterPropertiesSet() {
-        JsonUtil.simpleModule.addDeserializer(IPage.class, new IPageDeserializer());
-        JacksonTypeHandler.setObjectMapper(JsonUtil.DEFAULT_INSTANCE);
-        // JsonUtil.DEFAULT_INSTANCE.registerModule(new PageModule());
-        // JsonUtil.NOT_NULL_INSTANCE.registerModule(new PageModule());
+    default int getOrder() {
+        return ApiOrder.LOCAL_SERVICE;
+    }
+
+    // region 增
+
+    default E add(E entity) {
+        getRepository().add(entity);
+        return entity;
+    }
+
+    default Collection<E> addBatch(Collection<E> entities) {
+        getRepository().addBatch(entities);
+        return entities;
+    }
+
+    @Override
+    default Collection<E> addBatchByBatchSize(Collection<E> entities, int batchSize) {
+        getRepository().addBatch(entities, batchSize);
+        return entities;
+    }
+
+    @Override
+    default E addIfAbsentByCriteria(E entity, C criteria) {
+        if (this.isAbsentByCriteria(criteria)) {
+            return this.add(entity);
+        }
+        return null;
+    }
+
+    @Override
+    default E addIfAbsentByColumns(E entity, List<String> uniqueColumns) {
+        if (getRepository().addIfAbsentByColumns(entity, uniqueColumns)) {
+            return entity;
+        }
+        return null;
+    }
+
+    @Override
+    default Integer addBatchIfAbsentByCriteria(List<E> entities, C criteria) {
+        int count = 0;
+        if (!(criteria instanceof IV2WhereConditionCriteria)) {
+            throw new UnsupportedOperationException("criteria不是WhereConditionCriteria，请检查代码");
+        }
+        if (!((IV2WhereConditionCriteria) criteria).hasConditions()) {
+            throw new IllegalArgumentException("请至少设置1个条件");
+        }
+
+        if (this.isPresentByCriteria(criteria)) {
+            return 0;
+        }
+
+        if (getRepository().addBatch(entities)) {
+            count++;
+        }
+        return count;
+    }
+
+    @Override
+    default Integer addBatchIfAbsentByColumns(List<E> entities, List<String> uniqueColumns) {
+        int count = 0;
+        for (E entity : entities) {
+            if (getRepository().addIfAbsentByColumns(entity, uniqueColumns)) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    @Override
+    default Boolean addOrUpdateByCriteria(E entity, C criteria) {
+        Boolean update = updateByCriteria(entity, criteria);
+        if (!update) {
+            add(entity);
+        }
+        return true;
+    }
+
+    @Override
+    default E addOrUpdateByColumns(E entity, List<String> uniqueColumns) {
+        return getRepository().addOrUpdate(entity, uniqueColumns);
+    }
+
+    @Override
+    default Integer addOrUpdateBatchByColumns(List<E> entities, List<String> uniqueColumns) {
+        for (E entity : entities) {
+            getRepository().addOrUpdate(entity, uniqueColumns);
+        }
+        return entities.size();
+    }
+
+    // endregion
+
+    //  region 删
+
+    default Boolean deleteById(Serializable id) {
+        return getRepository().deleteById(id);
+    }
+
+    default Boolean deleteByIds(Collection<Serializable> ids) {
+        return getRepository().deleteByIds(ids);
+    }
+
+    default Boolean deleteByCriteria(C criteria) {
+        exceptionIfHaveNoCondition(criteria);
+        return getRepository().deleteByCriteria(criteria);
+    }
+
+    // endregion
+
+    // region 改
+
+    default Boolean updateById(E entity) {
+        Assert.isTrue(entity instanceof IV2IdEntity, "不支持非id类型的对象执行'根据id更新'的操作");
+        return getRepository().updateById(entity);
+    }
+
+    default Boolean updateAllColumnsById(E entity) {
+        return getRepository().updateAllColumnsById(entity);
+    }
+
+    default void updateByIdOrException(E entity) {
+        if (!updateById(entity)) {
+            throw new AbsentException("更新失败，记录不存在");
+        }
+    }
+
+    default Boolean updateByCriteria(E entity, C criteria) {
+        exceptionIfHaveNoCondition(criteria);
+        return getRepository().updateByCriteria(entity, criteria);
+    }
+
+    default void updateByCriteriaOrException(E entity, C criteria) {
+        if (!getRepository().updateByCriteria(entity, criteria)) {
+            throw new AbsentException("更新失败，记录不存在");
+        }
+    }
+
+    @Override
+    default void batchSave(BatchSave<E> batchSave) {
+        if (batchSave == null) {
+            return;
+        }
+        addBatch(batchSave.getAddEntities());
+        if (CollUtil.isNotEmpty(batchSave.getUpdateEntities())) {
+            batchSave.getUpdateEntities().forEach(this::updateById);
+        }
+        deleteByIds(batchSave.getDeleteIds());
+    }
+
+    // endregion
+
+    //  region 查
+
+    default E getById(Serializable id) {
+        Assert.notNull(id, "id");
+        return getRepository().getEntityById(id);
+    }
+
+    default E getByIdOrException(Serializable id) {
+        Assert.notNull(id, "id");
+        return getRepository().getByIdOrException(id);
+    }
+
+    default E getByCriteria(C criteria) {
+        return getRepository().getByCriteria(criteria);
+    }
+
+    default E getByCriteriaOrWarn(C criteria) {
+        return getRepository().getByCriteriaOrWarn(criteria);
+    }
+
+    default E getByCriteriaOrException(C criteria) {
+        return getRepository().getByCriteriaOrException(criteria);
+    }
+
+    default List<E> findByCriteria(C criteria) {
+        return getRepository().findByCriteria(criteria);
+    }
+
+    default IPage<E> findPageByCriteria(C criteria) {
+        return getRepository().findPageByCriteria(criteria);
+    }
+
+    default List<E> findAll() {
+        return getRepository().findAll();
+    }
+
+    default Integer countByCriteria(C criteria) {
+        return getRepository().countByCriteria(criteria);
+    }
+
+    default Integer countAll() {
+        return getRepository().countAll();
+    }
+
+    default Boolean isPresentById(Serializable id) {
+        return getRepository().isPresentById(id);
+    }
+
+    default Boolean isPresentByColumn(String columnName, Object value) {
+        return getRepository().isPresentByColumn(columnName, value);
+    }
+
+    default Boolean isPresentByCriteria(C criteria) {
+        return getRepository().isPresentByCriteria(criteria);
+    }
+
+    default Boolean isAbsentByColumn(String columnName, Object value) {
+        return !isPresentByColumn(columnName, value);
+    }
+
+    default Boolean isAbsentByCriteria(C criteria) {
+        return !isPresentByCriteria(criteria);
+    }
+
+    default void exceptionIfPresentByCriteria(C criteria) {
+        getRepository().exceptionIfPresentByCriteria(criteria);
+    }
+
+    default void exceptionIfAbsentByCriteria(C criteria) {
+        getRepository().exceptionIfAbsentByCriteria(criteria);
+    }
+
+    // endregion
+
+    default void exceptionIfHaveNoCondition(C criteria) {
+        if (!(criteria instanceof IV2WhereConditionCriteria)) {
+            throw new UnsupportedOperationException("criteria不是WhereConditionCriteria，请检查代码");
+        }
+        if (!((IV2WhereConditionCriteria) criteria).hasConditions()) {
+            throw new IllegalArgumentException("请至少设置1个条件");
+        }
     }
 }

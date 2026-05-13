@@ -14,7 +14,7 @@ public class MybatisPlusMysqlMapperLocationProvider implements IMapperLocationPr
 
     @Override
     public List<String> getMapperLocations() {
-        return Collections.singletonList("classpath*:/vip.isass.framework/database/mybatisplus/mysql/mapper/xml/*Mapper.xml");
+        return Collections.singletonList("classpath*:/vip/isass/framework/database/mybatisplus/mysql/mapper/xml/*Mapper.xml");
     }
 
 }

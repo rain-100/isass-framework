@@ -167,27 +167,72 @@
  *
  */
 
-package vip.isass.framework.database.mybatisplus;
+package vip.isass.framework.nocode.v2.entity;
 
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.handlers.Jackson3TypeHandler;
-import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.annotation.ComponentScan;
-import vip.isass.framework.database.mybatisplus.json.IPageDeserializer;
-import vip.isass.framework.common.support.JsonUtil;
+import cn.hutool.core.util.StrUtil;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
+
+import java.beans.Transient;
+import java.io.Serializable;
 
 /**
  * @author Rain
  */
-@ComponentScan
-public class DatabaseMybatisPlusAutoConfiguration implements InitializingBean {
+public interface IV2IdEntity<PK extends Serializable, E extends IV2IdEntity<PK, E>>
+    extends IV2PkEntity<PK, E> {
+
+    //  默认的 id 成员变量名
+    String ID_PROPERTY_NAME = "id";
+
+    //  默认的 id 字段名
+    String ID_COLUMN_NAME = "id";
+
+    @Transient
+    default String getIdColumnName() {
+        return ID_COLUMN_NAME;
+    }
+
+    /**
+     * @return id
+     */
+    @JsonSerialize(using = ToStringSerializer.class)
+    PK getId();
+
+    /**
+     * 设置 id
+     *
+     * @param id id
+     */
+    void setId(PK id);
+
+    /**
+     * 生成一个随机 id
+     *
+     * @return this object
+     */
+    @SuppressWarnings("unchecked")
+    default E randomId() {
+        setId(randomPk());
+        return (E) this;
+    }
+
+    /**
+     * 如果 id 为 null, 则生成一个随机 id，并返回 id
+     *
+     * @return this object
+     */
+    @SuppressWarnings("unchecked")
+    default E randomIdIfAbsent() {
+        if (StrUtil.isEmptyIfStr(getId())) {
+            randomId();
+        }
+        return (E) this;
+    }
 
     @Override
-    public void afterPropertiesSet() {
-        JsonUtil.simpleModule.addDeserializer(IPage.class, new IPageDeserializer());
-        JacksonTypeHandler.setObjectMapper(JsonUtil.DEFAULT_INSTANCE);
-        // JsonUtil.DEFAULT_INSTANCE.registerModule(new PageModule());
-        // JsonUtil.NOT_NULL_INSTANCE.registerModule(new PageModule());
+    default E randomEntity() {
+        return randomId();
     }
+
 }

@@ -164,30 +164,28 @@
  * apply, that proxy's public statement of acceptance of any version is
  * permanent authorization for you to choose that version for the
  * Library.
- *
  */
 
-package vip.isass.framework.database.mybatisplus;
+package vip.isass.framework.nocode.v2.criteria.impl.field;
 
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.handlers.Jackson3TypeHandler;
-import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.annotation.ComponentScan;
-import vip.isass.framework.database.mybatisplus.json.IPageDeserializer;
-import vip.isass.framework.common.support.JsonUtil;
+import vip.isass.framework.nocode.v2.criteria.field.IV2IdCriteria;
+import vip.isass.framework.nocode.v2.criteria.impl.type.V2FullTypeCriteria;
+import vip.isass.framework.nocode.v2.entity.IV2IdEntity;
+
+import java.beans.Transient;
+import java.io.Serializable;
 
 /**
- * @author Rain
+ * id 字段查询条件内置实现
  */
-@ComponentScan
-public class DatabaseMybatisPlusAutoConfiguration implements InitializingBean {
+public class V2IdCriteria<PK extends Serializable, E extends IV2IdEntity<PK, E>, C extends V2IdCriteria<PK, E, C>>
+    extends V2FullTypeCriteria<E, C>
+    implements IV2IdCriteria<PK, E, C> {
 
     @Override
-    public void afterPropertiesSet() {
-        JsonUtil.simpleModule.addDeserializer(IPage.class, new IPageDeserializer());
-        JacksonTypeHandler.setObjectMapper(JsonUtil.DEFAULT_INSTANCE);
-        // JsonUtil.DEFAULT_INSTANCE.registerModule(new PageModule());
-        // JsonUtil.NOT_NULL_INSTANCE.registerModule(new PageModule());
+    @Transient
+    public String getIdColumnName() {
+        return IV2IdEntity.ID_COLUMN_NAME;
     }
+
 }

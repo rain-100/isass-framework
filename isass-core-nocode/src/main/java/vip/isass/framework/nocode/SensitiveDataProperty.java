@@ -164,30 +164,33 @@
  * apply, that proxy's public statement of acceptance of any version is
  * permanent authorization for you to choose that version for the
  * Library.
- *
  */
 
-package vip.isass.framework.database.mybatisplus;
+package vip.isass.framework.nocode;
 
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.handlers.Jackson3TypeHandler;
-import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.annotation.ComponentScan;
-import vip.isass.framework.database.mybatisplus.json.IPageDeserializer;
-import vip.isass.framework.common.support.JsonUtil;
+import cn.hutool.core.collection.CollUtil;
+import vip.isass.framework.nocode.v2.entity.IV2LogicDeleteEntity;
+import vip.isass.framework.nocode.v2.entity.IV2TraceEntity;
+
+import java.util.HashSet;
 
 /**
+ * 敏感数据属性名
+ * 查数据库时，默认不查询这些字段
+ *
  * @author Rain
  */
-@ComponentScan
-public class DatabaseMybatisPlusAutoConfiguration implements InitializingBean {
+public interface SensitiveDataProperty {
 
-    @Override
-    public void afterPropertiesSet() {
-        JsonUtil.simpleModule.addDeserializer(IPage.class, new IPageDeserializer());
-        JacksonTypeHandler.setObjectMapper(JsonUtil.DEFAULT_INSTANCE);
-        // JsonUtil.DEFAULT_INSTANCE.registerModule(new PageModule());
-        // JsonUtil.NOT_NULL_INSTANCE.registerModule(new PageModule());
-    }
+    HashSet<String> PROPERTIES = CollUtil.newHashSet(
+            IV2LogicDeleteEntity.DELETE_FLAG_COLUMN_NAME,
+            //        TimeTracedEntity.CREATED_TIME_PROPERTY,
+            //        TimeTracedEntity.MODIFY_TIME_PROPERTY,
+            IV2TraceEntity.CREATE_USER_ID_COLUMN_NAME,
+            IV2TraceEntity.CREATE_USER_NAME_COLUMN_NAME,
+            IV2TraceEntity.MODIFY_USER_ID_COLUMN_NAME,
+            IV2TraceEntity.MODIFY_USER_NAME_COLUMN_NAME,
+
+            "password");
+
 }

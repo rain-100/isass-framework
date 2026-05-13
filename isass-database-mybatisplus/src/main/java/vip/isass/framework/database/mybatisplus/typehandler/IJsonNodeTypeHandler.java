@@ -164,30 +164,27 @@
  * apply, that proxy's public statement of acceptance of any version is
  * permanent authorization for you to choose that version for the
  * Library.
- *
  */
 
-package vip.isass.framework.database.mybatisplus;
+package vip.isass.framework.database.mybatisplus.typehandler;
 
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.handlers.Jackson3TypeHandler;
-import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.annotation.ComponentScan;
-import vip.isass.framework.database.mybatisplus.json.IPageDeserializer;
-import vip.isass.framework.common.support.JsonUtil;
+import com.fasterxml.jackson.databind.JsonNode;
 
-/**
- * @author Rain
- */
-@ComponentScan
-public class DatabaseMybatisPlusAutoConfiguration implements InitializingBean {
+import java.sql.PreparedStatement;
 
-    @Override
-    public void afterPropertiesSet() {
-        JsonUtil.simpleModule.addDeserializer(IPage.class, new IPageDeserializer());
-        JacksonTypeHandler.setObjectMapper(JsonUtil.DEFAULT_INSTANCE);
-        // JsonUtil.DEFAULT_INSTANCE.registerModule(new PageModule());
-        // JsonUtil.NOT_NULL_INSTANCE.registerModule(new PageModule());
+public interface IJsonNodeTypeHandler {
+
+    String getSupportDatabaseProductName();
+
+    /**
+     * 支持的数据库名称
+     */
+    default boolean support(String databaseProductName) {
+        return getSupportDatabaseProductName().equalsIgnoreCase(databaseProductName);
     }
+
+    void setNonNullParameter(PreparedStatement ps, int i, JsonNode parameter);
+
+    JsonNode getJson(String value);
+
 }

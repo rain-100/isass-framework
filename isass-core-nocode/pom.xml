@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~                    GNU LESSER GENERAL PUBLIC LICENSE
+  ~                        Version 3, 29 June 2007
+  ~
+  ~  Copyright (C) 2007 Free Software Foundation, Inc. <http://fsf.org />
+  ~  Everyone is permitted to copy and distribute verbatim copies
+  ~  of this license document, but changing it is not allowed.
+  ~
+  -->
+<project xmlns="http://maven.apache.org/POM/4.1.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.1.0 http://maven.apache.org/xsd/maven-4.1.0.xsd"
+         root="true">
+    <modelVersion>4.1.0</modelVersion>
+
+    <!-- 父项目信息 -->
+    <parent>
+        <groupId>vip.isass</groupId>
+        <artifactId>isass-core-parent</artifactId>
+        <version>4.0.0-SNAPSHOT</version>
+        <relativePath>../isass-core-parent/pom.xml</relativePath>
+    </parent>
+
+    <!-- 本项目信息 -->
+    <artifactId>isass-core-nocode</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>vip.isass</groupId>
+            <artifactId>isass-core-common</artifactId>
+        </dependency>
+    </dependencies>
+</project>

@@ -169,11 +169,14 @@
 
 package vip.isass.framework.database.core;
 
+import jakarta.annotation.PostConstruct;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.data.web.config.SpringDataJackson3Modules;
 
 /**
  * @author Rain
  */
 @ComponentScan
 public class DatabaseAutoConfiguration {
+
 }
