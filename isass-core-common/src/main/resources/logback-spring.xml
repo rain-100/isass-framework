@@ -171,11 +171,11 @@
 <!--scanPeriod：默认时间间隔为1分钟，默认单位是毫秒，当scan为true时，此属性生效。作用：检测配置文件是否有修改时间间隔。-->
 <!--debug：默认为false。作用：当此属性为true时，将打印出logback内部日志信息，实时查看logback运行状态。-->
 <configuration scan="false" scanPeriod="1 minutes">
-    <conversionRule conversionWord="clr" converterClass="org.springframework.boot.logging.logback.ColorConverter"/>
+    <conversionRule conversionWord="clr" class="org.springframework.boot.logging.logback.ColorConverter"/>
     <conversionRule conversionWord="wex"
-                    converterClass="org.springframework.boot.logging.logback.WhitespaceThrowableProxyConverter"/>
+                    class="org.springframework.boot.logging.logback.WhitespaceThrowableProxyConverter"/>
     <conversionRule conversionWord="wEx"
-                    converterClass="org.springframework.boot.logging.logback.ExtendedWhitespaceThrowableProxyConverter"/>
+                    class="org.springframework.boot.logging.logback.ExtendedWhitespaceThrowableProxyConverter"/>
 
     <!-- 定义日志文件的存储地址 勿在 LogBack 的配置中使用相对路径 -->
     <property name="LOG_HOME" value="./logs"/>
@@ -184,20 +184,21 @@
     <!-- %d表示日期，%thread表示线程名，%-5level：级别从左显示5个字符宽度%msg：日志消息，%n是换行符；
     不要在日志级别加颜色，避免 docker 日志收集到文件时出现乱码-->
     <property name="LOG_PATTERN"
-              value="%d{MM-dd HH:mm:ss.SSS}[%thread][%tid]%-5level %-40.40logger{39} - %msg%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}"/>
+              value="%d{MM-dd HH:mm:ss.SSS}[%thread]%-5level %-40.40logger{39} - %msg%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}"/>
 
     <!-- 控制台输出 -->
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
-            <layout class="org.apache.skywalking.apm.toolkit.log.logback.v1.x.TraceIdPatternLogbackLayout">
-                <pattern>${LOG_PATTERN}</pattern>
-            </layout>
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
         </encoder>
     </appender>
 
-    <if condition='!property("WRITE_LOG_TO_FILE").equalsIgnoreCase("false")'>
+    <!-- 按照每天生成日志文件 -->
+    <condition class="ch.qos.logback.core.boolex.ExpressionPropertyCondition">
+        <expression>!propertyEquals("WRITE_LOG_TO_FILE", "false")</expression>
+    </condition>
+    <if>
         <then>
-            <!-- 按照每天生成日志文件 -->
             <appender name="FILE_ALL" class="ch.qos.logback.core.rolling.RollingFileAppender">
                 <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
                     <fileNamePattern>${LOG_HOME}/log.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
@@ -206,10 +207,8 @@
                     <totalSizeCap>10GB</totalSizeCap>
                 </rollingPolicy>
 
-                <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
-                    <layout class="org.apache.skywalking.apm.toolkit.log.logback.v1.x.TraceIdPatternLogbackLayout">
-                        <pattern>${LOG_PATTERN}</pattern>
-                    </layout>
+                <encoder>
+                    <pattern>${LOG_PATTERN}</pattern>
                 </encoder>
             </appender>
 
@@ -221,10 +220,8 @@
                     <totalSizeCap>10GB</totalSizeCap>
                 </rollingPolicy>
 
-                <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
-                    <layout class="org.apache.skywalking.apm.toolkit.log.logback.v1.x.TraceIdPatternLogbackLayout">
-                        <pattern>${LOG_PATTERN}</pattern>
-                    </layout>
+                <encoder>
+                    <pattern>${LOG_PATTERN}</pattern>
                 </encoder>
 
                 <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
@@ -234,20 +231,52 @@
         </then>
     </if>
 
-    <root level="INFO">
-        <!-- 如果没有配置 WRITE_LOG_TO_STDOUT=false，则把日志输出到控制台-->
-        <if condition='!property("WRITE_LOG_STDOUT").equalsIgnoreCase("false")'>
-            <then>
+    <!-- 如果没有配置 WRITE_LOG_STDOUT=false，则把日志输出到控制台 -->
+    <!-- 如果没有配置 WRITE_LOG_TO_FILE=false，则把日志输出到文件 -->
+    <condition class="ch.qos.logback.core.boolex.ExpressionPropertyCondition">
+        <expression>!propertyEquals("WRITE_LOG_STDOUT", "false") &amp;&amp; !propertyEquals("WRITE_LOG_TO_FILE", "false")</expression>
+    </condition>
+    <if>
+        <then>
+            <root level="INFO">
                 <appender-ref ref="STDOUT"/>
-            </then>
-        </if>
-
-        <!-- 如果没有配置 WRITE_LOG_TO_FILE=false，则把日志输出到文件-->
-        <if condition='!property("WRITE_LOG_TO_FILE").equalsIgnoreCase("false")'>
-            <then>
                 <appender-ref ref="FILE_ALL"/>
                 <appender-ref ref="FILE_WARN"/>
-            </then>
-        </if>
-    </root>
+            </root>
+        </then>
+    </if>
+
+    <!-- 仅输出到控制台 -->
+    <condition class="ch.qos.logback.core.boolex.ExpressionPropertyCondition">
+        <expression>!propertyEquals("WRITE_LOG_STDOUT", "false") &amp;&amp; propertyEquals("WRITE_LOG_TO_FILE", "false")</expression>
+    </condition>
+    <if>
+        <then>
+            <root level="INFO">
+                <appender-ref ref="STDOUT"/>
+            </root>
+        </then>
+    </if>
+
+    <!-- 仅输出到文件 -->
+    <condition class="ch.qos.logback.core.boolex.ExpressionPropertyCondition">
+        <expression>propertyEquals("WRITE_LOG_STDOUT", "false") &amp;&amp; !propertyEquals("WRITE_LOG_TO_FILE", "false")</expression>
+    </condition>
+    <if>
+        <then>
+            <root level="INFO">
+                <appender-ref ref="FILE_ALL"/>
+                <appender-ref ref="FILE_WARN"/>
+            </root>
+        </then>
+    </if>
+
+    <condition class="ch.qos.logback.core.boolex.ExpressionPropertyCondition">
+        <expression>propertyEquals("WRITE_LOG_STDOUT", "false") &amp;&amp; propertyEquals("WRITE_LOG_TO_FILE", "false")</expression>
+    </condition>
+    <if>
+        <then>
+            <root level="INFO"/>
+        </then>
+    </if>
 </configuration>
