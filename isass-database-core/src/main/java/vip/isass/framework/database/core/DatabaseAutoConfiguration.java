@@ -170,14 +170,14 @@
 package vip.isass.framework.database.core;
 
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.flyway.autoconfigure.FlywayProperties;
+import org.springframework.boot.liquibase.autoconfigure.LiquibaseProperties;
 import org.springframework.context.annotation.ComponentScan;
 
 /**
  * @author Rain
  */
 @ComponentScan
-@EnableConfigurationProperties(FlywayProperties.class)
+@EnableConfigurationProperties(LiquibaseProperties.class)
 public class DatabaseAutoConfiguration {
 
 }

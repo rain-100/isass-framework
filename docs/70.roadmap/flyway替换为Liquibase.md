@@ -1,4 +1,4 @@
-# flyway替换为Liquibase
+# Flyway 替换为 Liquibase
 
 ## Flyway与Liquibase比较
 ### Flyway需多数据库SQL
@@ -26,3 +26,10 @@ Liquibase的优势在于其变更管理的灵活性和跨数据库兼容性，�
 ### 开发效率提升
 内置版本控制与变更管理功能加速开发迭代周期，团队协作效率提升约40%，缩短项目交付周期。
 
+## 框架实现
+
+- `isass-database-core` 移除 Flyway 依赖，改为依赖 `spring-boot-starter-liquibase` 与 `liquibase-core`
+- 新增 `vip.isass.framework.database.core.liquibase.AbstractLiquibaseConfiguration`
+- 新增 `vip.isass.framework.database.core.liquibase.LiquibaseConfigurer`
+- 服务侧通过声明独立 `SpringLiquibase` bean 实现微服务/单体两种启动模式
+- 单体模式下多个服务 bean 会在 Spring 初始化阶段分别执行，changelog 与 Liquibase 管理表通过服务名隔离
