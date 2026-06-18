@@ -209,6 +209,7 @@
             <artifactId>jakarta.annotation-api</artifactId>
         </dependency>
 
+        <!-- 用到 IPage -->
         <dependency>
             <groupId>com.baomidou</groupId>
             <artifactId>mybatis-plus-core</artifactId>
