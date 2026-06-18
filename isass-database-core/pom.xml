@@ -247,6 +247,11 @@
         </dependency>
 
         <dependency>
+            <groupId>com.github.mengweijin</groupId>
+            <artifactId>db-migration-dameng-liquibase</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>org.freemarker</groupId>
             <artifactId>freemarker</artifactId>
         </dependency>
