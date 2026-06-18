@@ -4,6 +4,22 @@
 
  更新日志请查看 [docs/60.changelog](docs/60.changelog)
 
+## 模块命名规范
+
+模块目录和 Maven `artifactId` 统一使用 `isass-分类-模块名` 格式。
+
+- `isass`：固定项目前缀。
+- `分类`：模块所属能力域，例如 `core`、`database`、`mq`、`net`、`security`、`serialization`、`web`、`adapter`。
+- `模块名`：模块的具体能力名称，应简洁表达职责，例如 `common`、`redis`、`springsecurity`、`protobuf`。
+
+示例：
+
+- `isass-core-common`
+- `isass-database-redis`
+- `isass-security-springsecurity`
+
+新增或重命名模块时，应优先归入已有分类；只有现有分类无法准确表达能力域时，再新增分类。
+
 ## Git commit 规范
 
 ### commit message格式
