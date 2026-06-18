@@ -1,0 +1,2 @@
+org.springframework.context.ApplicationContextInitializer=\
+vip.isass.framework.springboot.starter.database.init.DatabaseInitializerSpringStarter

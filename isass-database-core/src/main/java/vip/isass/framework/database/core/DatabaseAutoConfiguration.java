@@ -169,14 +169,15 @@
 
 package vip.isass.framework.database.core;
 
-import jakarta.annotation.PostConstruct;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.flyway.autoconfigure.FlywayProperties;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.data.web.config.SpringDataJackson3Modules;
 
 /**
  * @author Rain
  */
 @ComponentScan
+@EnableConfigurationProperties(FlywayProperties.class)
 public class DatabaseAutoConfiguration {
 
 }
