@@ -71,4 +71,5 @@
 | grafana         | 30212                                                     |
 | nas             | http:30220 https:30221                                    |
 | zerotier-planet | http:30230 tcp/udp:30231                                  |
-| hgdb            | 30240                                                    |
+| hgdb            | 30240                                                     |
+| zyplayer-doc    | 30250                                                     |
