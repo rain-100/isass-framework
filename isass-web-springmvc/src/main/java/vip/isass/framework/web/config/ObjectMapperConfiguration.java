@@ -169,18 +169,14 @@
 
 package vip.isass.framework.web.config;
 
-import tools.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.boot.jackson.autoconfigure.JsonMapperBuilderCustomizer;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import vip.isass.framework.common.support.JsonUtil;
-
-/**
- * @author Rain
- */
 
 @Getter
 @Setter
@@ -196,9 +192,14 @@ public class ObjectMapperConfiguration {
     private boolean usingNotNullObjectMapper = true;
 
     @Bean
-    @Primary
-    public ObjectMapper objectMapper() {
-        return usingNotNullObjectMapper ? JsonUtil.NOT_NULL_INSTANCE : JsonUtil.DEFAULT_INSTANCE;
+    public JsonMapperBuilderCustomizer jsonMapperBuilderCustomizer() {
+        return builder -> {
+            JsonUtil.configure(builder);
+            if (usingNotNullObjectMapper) {
+                builder.changeDefaultPropertyInclusion(
+                        v -> v.withValueInclusion(JsonInclude.Include.NON_NULL));
+            }
+        };
     }
 
 }

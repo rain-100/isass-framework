@@ -177,8 +177,8 @@ import lombok.SneakyThrows;
 import tools.jackson.core.JacksonException;
 import tools.jackson.core.StreamWriteFeature;
 import tools.jackson.core.TreeNode;
-import tools.jackson.core.type.TypeReference;
 import tools.jackson.core.json.JsonReadFeature;
+import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.MapperFeature;
@@ -248,41 +248,60 @@ public class JsonUtil {
             .addDeserializer(MultiValueBiMap.class, new StdConvertingDeserializer<>(new MapToMultiValueBiMapConvert()))
             .addDeserializer(MultiKeyMultiValueBiMap.class, new StdConvertingDeserializer<>(new MapToMultiKeyMultiValueBiMapConvert()));
 
-    public static final ObjectMapper DEFAULT_INSTANCE = JsonMapper.builder()
-            // 当实体类中不含有 json 字符串的某些字段时，不抛出异常
-            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+    public static final ObjectMapper DEFAULT_INSTANCE;
 
-            // 非 bean 对象不抛异常
-            .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
+    public static final ObjectMapper NOT_NULL_INSTANCE;
 
-            // BigDecimal 精度
-            .enable(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS)
+    static {
+        JsonMapper.Builder builder = JsonMapper.builder();
+        configure(builder);
+        DEFAULT_INSTANCE = builder.build();
 
-            // 禁用科学计数法
-            .enable(StreamWriteFeature.WRITE_BIGDECIMAL_AS_PLAIN)
+        JsonMapper.Builder notNullJsonMapperBuilder = JsonMapper.builder();
+        configure(notNullJsonMapperBuilder);
 
-            // 允许使用注释
-            .enable(JsonReadFeature.ALLOW_JAVA_COMMENTS)
+        // 只输出非 null 字段
+        NOT_NULL_INSTANCE = notNullJsonMapperBuilder
+                .changeDefaultPropertyInclusion(v -> v.withValueInclusion(JsonInclude.Include.NON_NULL))
+                .build();
+    }
 
-            // 允许字段名没有引号
-            .enable(JsonReadFeature.ALLOW_UNQUOTED_PROPERTY_NAMES)
+    /**
+     * 对 JsonMapper.Builder 应用 JsonUtil 的所有配置（Features + Module）。
+     * 供 Spring Boot 的 JsonMapperBuilderCustomizer 调用，确保 SB4 创建的
+     * jacksonJsonMapper 实例包含与 DEFAULT_INSTANCE 一致的配置。
+     */
+    public static void configure(JsonMapper.Builder builder) {
+        builder
+                // 当实体类中不含有 json 字符串的某些字段时，不抛出异常
+                .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
 
-            // 允许单引号
-            .enable(JsonReadFeature.ALLOW_SINGLE_QUOTES)
+                // 非 bean 对象不抛异常
+                .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
 
-            // 忽略 transient 关键字的变量
-            .enable(MapperFeature.PROPAGATE_TRANSIENT_MARKER)
+                // BigDecimal 精度
+                .enable(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS)
 
-            .addModule(simpleModule)
-            .build();
+                // 禁用科学计数法
+                .enable(StreamWriteFeature.WRITE_BIGDECIMAL_AS_PLAIN)
 
-    public static final ObjectMapper NOT_NULL_INSTANCE = DEFAULT_INSTANCE.rebuild()
+                // 允许使用注释
+                .enable(JsonReadFeature.ALLOW_JAVA_COMMENTS)
 
-            // 只输出非 null 字段
-            .changeDefaultPropertyInclusion(v -> v.withValueInclusion(JsonInclude.Include.NON_NULL))
-            .build();
+                // 允许字段名没有引号
+                .enable(JsonReadFeature.ALLOW_UNQUOTED_PROPERTY_NAMES)
+
+                // 允许单引号
+                .enable(JsonReadFeature.ALLOW_SINGLE_QUOTES)
+
+                // 忽略 transient 关键字的变量
+                .enable(MapperFeature.PROPAGATE_TRANSIENT_MARKER)
+
+                .addModule(simpleModule);
+    }
 
     public static final com.fasterxml.jackson.databind.ObjectMapper LEGACY_MAPPER;
+
     static {
         // Jackson 2.x ObjectMapper for third-party libraries that haven't migrated to Jackson 3.x
         LEGACY_MAPPER = new com.fasterxml.jackson.databind.ObjectMapper()

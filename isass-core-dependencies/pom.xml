@@ -433,6 +433,12 @@
 
             <dependency>
                 <groupId>vip.isass</groupId>
+                <artifactId>isass-apidoc-zyplayer</artifactId>
+                <version>${isass.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>vip.isass</groupId>
                 <artifactId>isass-security-springsecurity</artifactId>
                 <version>${isass.version}</version>
             </dependency>
