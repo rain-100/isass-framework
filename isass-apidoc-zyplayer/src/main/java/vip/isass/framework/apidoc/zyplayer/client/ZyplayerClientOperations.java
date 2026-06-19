@@ -10,7 +10,19 @@ public interface ZyplayerClientOperations {
 
     List<ZyplayerSpace> listSpaces();
 
+    default List<ZyplayerSpaceGroup> listSpaceGroups() {
+        return List.of();
+    }
+
+    default ZyplayerSpaceGroup updateSpaceGroup(Map<String, Object> payload) {
+        return null;
+    }
+
     ZyplayerSpace updateSpace(Map<String, Object> payload);
+
+    default ZyplayerSpaceVersion createSpaceVersion(Map<String, Object> payload) {
+        return null;
+    }
 
     List<ZyplayerPage> listPages(Long spaceId);
 

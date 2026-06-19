@@ -14,12 +14,13 @@ class ZyplayerVersionTest {
     }
 
     @Test
-    void buildsVersionedSpaceNameAndStableUuid() {
+    void buildsSpaceNameWithoutVersionAndKeepsVersionForSpaceVersion() {
         ZyplayerServiceDescriptor descriptor = new ZyplayerServiceDescriptor(
                 "attachment-service", "附件微服务", "4.0.0-SNAPSHOT");
 
-        assertThat(descriptor.spaceName()).isEqualTo("附件微服务v4.0.0");
-        assertThat(descriptor.spaceUuid()).isEqualTo("attachment-service:4.0.0");
+        assertThat(descriptor.spaceName()).isEqualTo("附件微服务");
+        assertThat(descriptor.spaceUuid()).isEqualTo("attachment-service");
+        assertThat(descriptor.version()).isEqualTo("4.0.0");
     }
 
     @Test
@@ -27,7 +28,7 @@ class ZyplayerVersionTest {
         ZyplayerServiceDescriptor descriptor = new ZyplayerServiceDescriptor(
                 "attachment-service", " ", "4.0.0-SNAPSHOT");
 
-        assertThat(descriptor.spaceName()).isEqualTo("attachment-servicev4.0.0");
-        assertThat(descriptor.spaceUuid()).isEqualTo("attachment-service:4.0.0");
+        assertThat(descriptor.spaceName()).isEqualTo("attachment-service");
+        assertThat(descriptor.spaceUuid()).isEqualTo("attachment-service");
     }
 }

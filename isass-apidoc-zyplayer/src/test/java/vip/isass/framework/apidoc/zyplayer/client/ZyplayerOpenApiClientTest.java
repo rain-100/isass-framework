@@ -66,6 +66,88 @@ class ZyplayerOpenApiClientTest {
         assertThat(verifySignature(capturedRequest.content(), capturedRequest.signature(), keyPair)).isTrue();
     }
 
+    @Test
+    void readsPageListFromPagedDataObject() throws Exception {
+        KeyPair keyPair = createKeyPair();
+        server = HttpServer.create(new InetSocketAddress(0), 0);
+        server.createContext("/openApi/v1/space/page/list", exchange -> {
+            byte[] response = """
+                    {"errCode":200,"data":{"total":1,"records":[{"id":12,"spaceId":7,"name":"Token 使用说明","editorType":2,"editVersion":3}]}}
+                    """.getBytes(StandardCharsets.UTF_8);
+            exchange.getResponseHeaders().add("Content-Type", "application/json;charset=UTF-8");
+            exchange.sendResponseHeaders(200, response.length);
+            exchange.getResponseBody().write(response);
+            exchange.close();
+        });
+        server.start();
+
+        ZyplayerOpenApiClient client = new ZyplayerOpenApiClient(
+                "http://127.0.0.1:" + server.getAddress().getPort(),
+                "test-api-key",
+                Base64.getEncoder().encodeToString(keyPair.getPrivate().getEncoded()),
+                objectMapper);
+
+        List<ZyplayerPage> pages = client.listPages(7L);
+
+        assertThat(pages)
+                .extracting(ZyplayerPage::name)
+                .containsExactly("Token 使用说明");
+    }
+
+    @Test
+    void readsCollectionFromOnlyArrayFieldWhenDataObjectFieldNameDiffers() throws Exception {
+        KeyPair keyPair = createKeyPair();
+        server = HttpServer.create(new InetSocketAddress(0), 0);
+        server.createContext("/openApi/v1/space/page/list", exchange -> {
+            byte[] response = """
+                    {"errCode":200,"data":{"pageTree":[{"id":13,"spaceId":7,"name":"数据库文档","editorType":2,"editVersion":1}]}}
+                    """.getBytes(StandardCharsets.UTF_8);
+            exchange.getResponseHeaders().add("Content-Type", "application/json;charset=UTF-8");
+            exchange.sendResponseHeaders(200, response.length);
+            exchange.getResponseBody().write(response);
+            exchange.close();
+        });
+        server.start();
+
+        ZyplayerOpenApiClient client = new ZyplayerOpenApiClient(
+                "http://127.0.0.1:" + server.getAddress().getPort(),
+                "test-api-key",
+                Base64.getEncoder().encodeToString(keyPair.getPrivate().getEncoded()),
+                objectMapper);
+
+        List<ZyplayerPage> pages = client.listPages(7L);
+
+        assertThat(pages)
+                .extracting(ZyplayerPage::name)
+                .containsExactly("数据库文档");
+    }
+
+    @Test
+    void readsEmptyObjectDataAsEmptyPageList() throws Exception {
+        KeyPair keyPair = createKeyPair();
+        server = HttpServer.create(new InetSocketAddress(0), 0);
+        server.createContext("/openApi/v1/space/page/list", exchange -> {
+            byte[] response = """
+                    {"errCode":200,"data":{}}
+                    """.getBytes(StandardCharsets.UTF_8);
+            exchange.getResponseHeaders().add("Content-Type", "application/json;charset=UTF-8");
+            exchange.sendResponseHeaders(200, response.length);
+            exchange.getResponseBody().write(response);
+            exchange.close();
+        });
+        server.start();
+
+        ZyplayerOpenApiClient client = new ZyplayerOpenApiClient(
+                "http://127.0.0.1:" + server.getAddress().getPort(),
+                "test-api-key",
+                Base64.getEncoder().encodeToString(keyPair.getPrivate().getEncoded()),
+                objectMapper);
+
+        List<ZyplayerPage> pages = client.listPages(7L);
+
+        assertThat(pages).isEmpty();
+    }
+
     private KeyPair createKeyPair() throws Exception {
         KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
         generator.initialize(2048);

@@ -27,6 +27,8 @@ public class ZyplayerOpenApiClient implements ZyplayerClientOperations {
 
     private static final int SUCCESS_CODE = 200;
 
+    private static final List<String> COLLECTION_DATA_FIELDS = List.of("list", "records", "rows", "items", "children");
+
     private final RestClient restClient;
 
     private final String apiKey;
@@ -53,8 +55,24 @@ public class ZyplayerOpenApiClient implements ZyplayerClientOperations {
     }
 
     @Override
+    public List<ZyplayerSpaceGroup> listSpaceGroups() {
+        JavaType type = objectMapper.getTypeFactory().constructCollectionType(List.class, ZyplayerSpaceGroup.class);
+        return post("/openApi/v1/spaceGroup/list", Map.of(), type);
+    }
+
+    @Override
+    public ZyplayerSpaceGroup updateSpaceGroup(Map<String, Object> payload) {
+        return post("/openApi/v1/spaceGroup/update", payload, objectMapper.constructType(ZyplayerSpaceGroup.class));
+    }
+
+    @Override
     public ZyplayerSpace updateSpace(Map<String, Object> payload) {
         return post("/openApi/v1/space/update", payload, objectMapper.constructType(ZyplayerSpace.class));
+    }
+
+    @Override
+    public ZyplayerSpaceVersion createSpaceVersion(Map<String, Object> payload) {
+        return post("/openApi/v1/space/createVersion", payload, objectMapper.constructType(ZyplayerSpaceVersion.class));
     }
 
     @Override
@@ -109,12 +127,59 @@ public class ZyplayerOpenApiClient implements ZyplayerClientOperations {
             if (data == null || data.isNull()) {
                 data = objectMapper.createObjectNode();
             }
-            return objectMapper.convertValue(data, responseType);
+            JsonNode unwrappedData = unwrapData(data, responseType);
+            if (responseType.isCollectionLikeType() && !unwrappedData.isArray()) {
+                throw new ZyplayerOpenApiException("unsupported zyplayer collection data shape: " + summarizeDataShape(data));
+            }
+            return objectMapper.convertValue(unwrappedData, responseType);
         } catch (ZyplayerOpenApiException e) {
             throw e;
         } catch (Exception e) {
             throw new ZyplayerOpenApiException("zyplayer open-api request failed: " + path, e);
         }
+    }
+
+    private JsonNode unwrapData(JsonNode data, JavaType responseType) {
+        if (!responseType.isCollectionLikeType() || !data.isObject()) {
+            return data;
+        }
+        if (data.isEmpty()) {
+            return objectMapper.createArrayNode();
+        }
+        for (String field : COLLECTION_DATA_FIELDS) {
+            JsonNode value = data.get(field);
+            if (value != null && value.isArray()) {
+                return value;
+            }
+        }
+        JsonNode onlyArrayValue = null;
+        int arrayFieldCount = 0;
+        for (var iterator = data.properties().iterator(); iterator.hasNext(); ) {
+            JsonNode value = iterator.next().getValue();
+            if (value.isArray()) {
+                onlyArrayValue = value;
+                arrayFieldCount++;
+            }
+        }
+        if (arrayFieldCount == 1) {
+            return onlyArrayValue;
+        }
+        return data;
+    }
+
+    private String summarizeDataShape(JsonNode data) {
+        if (!data.isObject()) {
+            return data.getNodeType().name();
+        }
+        StringBuilder builder = new StringBuilder("{");
+        for (var iterator = data.properties().iterator(); iterator.hasNext(); ) {
+            var entry = iterator.next();
+            builder.append(entry.getKey()).append(':').append(entry.getValue().getNodeType().name());
+            if (iterator.hasNext()) {
+                builder.append(',');
+            }
+        }
+        return builder.append('}').toString();
     }
 
     private Map<String, Object> withSalt(Map<String, Object> payload) {

@@ -2,6 +2,9 @@ package vip.isass.framework.apidoc.zyplayer;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * @author Rain
  */
@@ -23,6 +26,20 @@ public class ZyplayerApidocProperties {
     private boolean failOnError;
 
     private String version = "4.0.0-SNAPSHOT";
+
+    private boolean openApiEnabled = true;
+
+    private String openApiDocsPath;
+
+    private String apiBaseUrl;
+
+    private String groupName = "isass";
+
+    private List<String> excludeControllers = new ArrayList<>();
+
+    private List<String> excludePaths = new ArrayList<>();
+
+    private List<String> excludePathPatterns = new ArrayList<>();
 
     public boolean isEnabled() {
         return enabled;
@@ -86,5 +103,61 @@ public class ZyplayerApidocProperties {
 
     public void setVersion(String version) {
         this.version = version;
+    }
+
+    public boolean isOpenApiEnabled() {
+        return openApiEnabled;
+    }
+
+    public void setOpenApiEnabled(boolean openApiEnabled) {
+        this.openApiEnabled = openApiEnabled;
+    }
+
+    public String getOpenApiDocsPath() {
+        return openApiDocsPath;
+    }
+
+    public void setOpenApiDocsPath(String openApiDocsPath) {
+        this.openApiDocsPath = openApiDocsPath;
+    }
+
+    public String getApiBaseUrl() {
+        return apiBaseUrl;
+    }
+
+    public void setApiBaseUrl(String apiBaseUrl) {
+        this.apiBaseUrl = apiBaseUrl;
+    }
+
+    public String getGroupName() {
+        return groupName;
+    }
+
+    public void setGroupName(String groupName) {
+        this.groupName = groupName;
+    }
+
+    public List<String> getExcludeControllers() {
+        return excludeControllers;
+    }
+
+    public void setExcludeControllers(List<String> excludeControllers) {
+        this.excludeControllers = excludeControllers;
+    }
+
+    public List<String> getExcludePaths() {
+        return excludePaths;
+    }
+
+    public void setExcludePaths(List<String> excludePaths) {
+        this.excludePaths = excludePaths;
+    }
+
+    public List<String> getExcludePathPatterns() {
+        return excludePathPatterns;
+    }
+
+    public void setExcludePathPatterns(List<String> excludePathPatterns) {
+        this.excludePathPatterns = excludePathPatterns;
     }
 }

@@ -8,20 +8,26 @@ import org.springframework.util.StringUtils;
 public record ZyplayerServiceDescriptor(
         String applicationName,
         String serviceNameCn,
-        String version
+        String version,
+        String groupName
 ) {
 
     public ZyplayerServiceDescriptor {
         applicationName = StringUtils.hasText(applicationName) ? applicationName.trim() : "application";
         serviceNameCn = StringUtils.hasText(serviceNameCn) ? serviceNameCn.trim() : applicationName;
         version = ZyplayerVersion.normalize(version);
+        groupName = StringUtils.hasText(groupName) ? groupName.trim() : "isass";
+    }
+
+    public ZyplayerServiceDescriptor(String applicationName, String serviceNameCn, String version) {
+        this(applicationName, serviceNameCn, version, "isass");
     }
 
     public String spaceName() {
-        return serviceNameCn + "v" + version;
+        return serviceNameCn;
     }
 
     public String spaceUuid() {
-        return applicationName + ":" + version;
+        return applicationName;
     }
 }

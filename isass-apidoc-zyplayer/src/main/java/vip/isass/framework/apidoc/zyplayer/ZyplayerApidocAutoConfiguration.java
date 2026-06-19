@@ -11,8 +11,14 @@ import org.springframework.core.env.Environment;
 import org.springframework.util.StringUtils;
 import vip.isass.framework.apidoc.zyplayer.client.ZyplayerClientOperations;
 import vip.isass.framework.apidoc.zyplayer.client.ZyplayerOpenApiClient;
+import vip.isass.framework.apidoc.zyplayer.openapi.ZyplayerOpenApiDocsCollector;
+import vip.isass.framework.apidoc.zyplayer.openapi.ZyplayerOpenApiDocumentConverter;
+import vip.isass.framework.apidoc.zyplayer.openapi.ZyplayerOpenApiExcludeRules;
 import vip.isass.framework.apidoc.zyplayer.sync.ZyplayerDocSyncService;
 import vip.isass.framework.web.servicedocs.ServiceDocsScanner;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Rain
@@ -33,7 +39,7 @@ public class ZyplayerApidocAutoConfiguration {
                 environment.getProperty("info.version"),
                 environment.getProperty("git.build.version"),
                 properties.getVersion());
-        return new ZyplayerServiceDescriptor(applicationName, serviceNameCn, version);
+        return new ZyplayerServiceDescriptor(applicationName, serviceNameCn, version, properties.getGroupName());
     }
 
     @Bean
@@ -59,10 +65,43 @@ public class ZyplayerApidocAutoConfiguration {
     }
 
     @Bean
+    @ConditionalOnMissingBean
+    public ZyplayerOpenApiExcludeRules zyplayerOpenApiExcludeRules(ZyplayerApidocProperties properties) {
+        List<String> paths = new ArrayList<>(List.of("/error"));
+        paths.addAll(properties.getExcludePaths());
+        List<String> patterns = new ArrayList<>(List.of("/actuator/**", "/*/actuator/**"));
+        patterns.addAll(properties.getExcludePathPatterns());
+        List<String> controllers = new ArrayList<>(List.of(
+                "vip.isass.framework.web.error.IsassErrorController",
+                "IsassErrorController"));
+        controllers.addAll(properties.getExcludeControllers());
+        return new ZyplayerOpenApiExcludeRules(paths, patterns, controllers);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public ZyplayerOpenApiDocumentConverter zyplayerOpenApiDocumentConverter(
+            ObjectMapper objectMapper,
+            ZyplayerOpenApiExcludeRules excludeRules) {
+        return new ZyplayerOpenApiDocumentConverter(objectMapper, excludeRules);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public ZyplayerOpenApiDocsCollector zyplayerOpenApiDocsCollector(
+            Environment environment,
+            ZyplayerApidocProperties properties,
+            ZyplayerOpenApiDocumentConverter converter) {
+        return new ZyplayerOpenApiDocsCollector(environment, properties, converter);
+    }
+
+    @Bean
     @ConditionalOnBean(ServiceDocsScanner.class)
     @ConditionalOnMissingBean
-    public ZyplayerServiceDocsCollector zyplayerServiceDocsCollector(ServiceDocsScanner serviceDocsScanner) {
-        return new ZyplayerServiceDocsCollector(serviceDocsScanner);
+    public ZyplayerServiceDocsCollector zyplayerServiceDocsCollector(
+            ServiceDocsScanner serviceDocsScanner,
+            ZyplayerOpenApiDocsCollector openApiDocsCollector) {
+        return new ZyplayerServiceDocsCollector(serviceDocsScanner, openApiDocsCollector);
     }
 
     @Bean

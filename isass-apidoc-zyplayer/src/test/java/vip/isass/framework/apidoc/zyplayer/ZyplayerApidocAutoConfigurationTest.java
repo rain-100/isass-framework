@@ -25,6 +25,7 @@ class ZyplayerApidocAutoConfigurationTest {
                         "isass.apidoc.zyplayer.base-url=http://127.0.0.1:8083",
                         "isass.apidoc.zyplayer.api-key=test",
                         "isass.apidoc.zyplayer.private-key=MIIB",
+                        "isass.apidoc.zyplayer.group-name=isass",
                         "spring.application.name=attachment-service",
                         "info.service-name-cn=附件微服务")
                 .withBean(ZyplayerClientOperations.class, FakeZyplayerClient::new)
@@ -32,7 +33,8 @@ class ZyplayerApidocAutoConfigurationTest {
                     assertThat(context).hasSingleBean(ZyplayerApidocProperties.class);
                     assertThat(context).hasSingleBean(ZyplayerDocSyncService.class);
                     assertThat(context).hasSingleBean(ZyplayerServiceDescriptor.class);
-                    assertThat(context.getBean(ZyplayerServiceDescriptor.class).spaceName()).isEqualTo("附件微服务v4.0.0");
+                    assertThat(context.getBean(ZyplayerServiceDescriptor.class).spaceName()).isEqualTo("附件微服务");
+                    assertThat(context.getBean(ZyplayerServiceDescriptor.class).groupName()).isEqualTo("isass");
                 });
     }
 

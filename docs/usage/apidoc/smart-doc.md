@@ -1,0 +1,105 @@
+# smart-doc 与服务文档使用指南
+
+## 服务内 Markdown 文档
+
+业务微服务把随服务发布的 Markdown 文档放在：
+
+```text
+src/main/resources/service-docs/
+```
+
+运行时推荐暴露：
+
+```text
+GET /{spring.application.name}/service-docs
+GET /{spring.application.name}/service-docs/{docId}
+```
+
+`service-docs` 可以包含鉴权说明、使用指南、设计说明、数据库说明和由 smart-doc 生成的离线 API 文档。这些 Markdown 会被 `isass-apidoc-zyplayer` 同步到 zyplayer-doc，并可被前端开发人员或 AI 工具读取。
+
+推荐目录：
+
+```text
+service-docs/
+  design/
+  guide/
+  database/
+  api/
+```
+
+## screw 生成数据库文档
+
+screw 需要在生成阶段通过 JDBC 连接数据库，读取真实表结构后才能输出 Markdown、HTML 或 Word 文档。因此不建议把 screw 绑定到默认构建流程，否则 CI/CD 没有数据库环境时会失败。
+
+推荐放在默认不启用的 Maven profile 中，由开发人员本地按需执行：
+
+```bash
+mvn -pl isass-service-attachment-service -Pdb-doc generate-resources
+```
+
+输出目录建议固定为：
+
+```text
+src/main/resources/service-docs/database/
+```
+
+自动化构建只打包已经提交到仓库的 Markdown 文件，不主动连接数据库生成文档。
+
+## smart-doc 生成离线 API 文档
+
+smart-doc 适合根据 JavaDoc 生成 API Markdown、OpenAPI、Postman 等产物。isass v4 推荐：
+
+- 运行时接口调试和聚合使用 SpringDoc 暴露 `/{spring.application.name}/v3/api-docs`。
+- 离线 API 文档、Postman、AI 训练材料使用 smart-doc 生成，并保存到 `service-docs/api/`。
+- 业务说明、鉴权说明、数据库说明统一放入 `service-docs/`。
+
+示例：
+
+```bash
+mvn -pl isass-service-attachment-service -Psmart-doc generate-resources
+```
+
+## 推荐 Javadoc 写法
+
+smart-doc 会读取类、方法、参数和实体字段的 Javadoc。Controller 方法上应写清楚接口意图、参数中文说明和返回值；自定义 DTO、VO、Entity 的字段也应写 Javadoc，smart-doc 会在解析复杂参数或返回对象时读取字段说明。
+
+常用标签：
+
+| 标签 | 作用 |
+| --- | --- |
+| `@apiNote` | 方法详细说明 |
+| `@param 参数名 描述\|示例值` | 参数说明和示例值 |
+| `@return` | 返回值说明 |
+| `@download` | 标记文件下载接口 |
+| `@ignore` | 忽略类或方法 |
+| `@ignoreParams` | 忽略指定请求参数 |
+| `@response` | 补充响应字段说明 |
+| `@tag` | 接口分组，可把不同 controller 的接口归入同一分类 |
+| `@extension` | 扩展自定义元数据 |
+
+示例：
+
+```java
+/**
+ * 上传附件
+ *
+ * @apiNote 接收浏览器上传的文件，保存后返回附件 ID 和访问地址。
+ * @tag 附件文件
+ * @param file 上传文件|avatar.png
+ * @param param 上传参数
+ * @return 上传结果
+ */
+```
+
+实体字段示例：
+
+```java
+/**
+ * 业务类型，用于隔离不同业务模块的附件。
+ */
+private String bizType;
+```
+
+## API 分组
+
+zyplayer-doc 的 API 接口目录默认使用 OpenAPI operation 的 `tags`。如果一个业务场景跨多个 controller，建议使用 smart-doc 的 `@tag` 写同一个分组名，让生成结果保持业务视角一致。
