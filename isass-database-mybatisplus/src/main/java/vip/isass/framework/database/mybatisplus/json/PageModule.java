@@ -169,7 +169,7 @@
 
 package vip.isass.framework.database.mybatisplus.json;
 
-import com.fasterxml.jackson.databind.module.SimpleModule;
+import tools.jackson.databind.module.SimpleModule;
 
 public class PageModule extends SimpleModule {
 

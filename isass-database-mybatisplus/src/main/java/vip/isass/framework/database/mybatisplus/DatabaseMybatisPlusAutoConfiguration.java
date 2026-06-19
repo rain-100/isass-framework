@@ -171,11 +171,10 @@ package vip.isass.framework.database.mybatisplus;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.handlers.Jackson3TypeHandler;
-import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.annotation.ComponentScan;
-import vip.isass.framework.database.mybatisplus.json.IPageDeserializer;
 import vip.isass.framework.common.support.JsonUtil;
+import vip.isass.framework.database.mybatisplus.json.IPageDeserializer;
 
 /**
  * @author Rain
@@ -186,7 +185,7 @@ public class DatabaseMybatisPlusAutoConfiguration implements InitializingBean {
     @Override
     public void afterPropertiesSet() {
         JsonUtil.simpleModule.addDeserializer(IPage.class, new IPageDeserializer());
-        JacksonTypeHandler.setObjectMapper(JsonUtil.DEFAULT_INSTANCE);
+        Jackson3TypeHandler.setObjectMapper(JsonUtil.DEFAULT_INSTANCE);
         // JsonUtil.DEFAULT_INSTANCE.registerModule(new PageModule());
         // JsonUtil.NOT_NULL_INSTANCE.registerModule(new PageModule());
     }

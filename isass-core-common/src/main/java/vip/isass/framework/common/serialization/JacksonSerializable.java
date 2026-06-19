@@ -169,7 +169,7 @@
 
 package vip.isass.framework.common.serialization;
 
-import com.fasterxml.jackson.core.type.TypeReference;
+import tools.jackson.core.type.TypeReference;
 
 /**
  * Jackson 可序列化接口

@@ -169,18 +169,17 @@
 
 package vip.isass.framework.common.support.json.serializer;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.SerializerProvider;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.databind.ValueSerializer;
+import tools.jackson.databind.SerializationContext;
 import vip.isass.framework.common.converter.datatime.LocalDateTimeToStringConverter;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
 
-public class LocalDateTimeToStringSerializer extends JsonSerializer<LocalDateTime> {
+public class LocalDateTimeToStringSerializer extends ValueSerializer<LocalDateTime> {
 
     @Override
-    public void serialize(LocalDateTime value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+    public void serialize(LocalDateTime value, JsonGenerator gen, SerializationContext serializers) {
         gen.writeString(LocalDateTimeToStringConverter.convert0(value));
     }
 

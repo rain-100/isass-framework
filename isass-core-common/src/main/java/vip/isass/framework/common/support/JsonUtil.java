@@ -172,24 +172,25 @@ package vip.isass.framework.common.support;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Assert;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.TreeNode;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.MapperFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.deser.std.StdDelegatingDeserializer;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.ser.std.NumberSerializer;
-import com.fasterxml.jackson.databind.ser.std.StdDelegatingSerializer;
 import lombok.Getter;
 import lombok.SneakyThrows;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.StreamWriteFeature;
+import tools.jackson.core.TreeNode;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.core.json.JsonReadFeature;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.MapperFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.SerializationFeature;
+import tools.jackson.databind.ValueSerializer;
+import tools.jackson.databind.deser.std.StdConvertingDeserializer;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.module.SimpleModule;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.ser.jdk.NumberSerializer;
+import tools.jackson.databind.ser.std.StdDelegatingSerializer;
 import vip.isass.framework.common.map.MultiKeyMultiValueBiMap;
 import vip.isass.framework.common.map.MultiValueBiMap;
 import vip.isass.framework.common.support.json.LocalDateTimeToLongConvert;
@@ -227,15 +228,15 @@ public class JsonUtil {
     @SuppressWarnings("unchecked")
     public static SimpleModule simpleModule = new SimpleModule()
             .addSerializer(LocalDateTime.class, new StdDelegatingSerializer(new LocalDateTimeToLongConvert()))
-            .addDeserializer(LocalDateTime.class, new StdDelegatingDeserializer<>(new LongToLocalDateTimeConvert()))
-            .addDeserializer(LocalDateTime.class, new StdDelegatingDeserializer<>(new StringToLocalDateTimeConvert()))
+            .addDeserializer(LocalDateTime.class, new StdConvertingDeserializer<>(new LongToLocalDateTimeConvert()))
+            .addDeserializer(LocalDateTime.class, new StdConvertingDeserializer<>(new StringToLocalDateTimeConvert()))
             .addSerializer(LocalDate.class, new StdDelegatingSerializer(new LocalDateToLongConvert()))
-            //        .addDeserializer(LocalDate.class, new StdDelegatingDeserializer<>(new LongToLocalDateConvert()))
-            .addDeserializer(LocalDate.class, new StdDelegatingDeserializer<>(new StringToLocalDateConvert()))
+            //        .addDeserializer(LocalDate.class, new StdConvertingDeserializer<>(new LongToLocalDateConvert()))
+            .addDeserializer(LocalDate.class, new StdConvertingDeserializer<>(new StringToLocalDateConvert()))
             .addSerializer(LocalTime.class, new StdDelegatingSerializer(new LocalTimeToLongConvert()))
-            //        .addDeserializer(LocalTime.class, new StdDelegatingDeserializer<>(new LongToLocalTimeConvert()))
-            .addDeserializer(LocalTime.class, new StdDelegatingDeserializer<>(new StringToLocalTimeConvert()))
-            .addSerializer(BigDecimal.class, (JsonSerializer<BigDecimal>) NumberSerializer.bigDecimalAsStringSerializer())
+            //        .addDeserializer(LocalTime.class, new StdConvertingDeserializer<>(new LongToLocalTimeConvert()))
+            .addDeserializer(LocalTime.class, new StdConvertingDeserializer<>(new StringToLocalTimeConvert()))
+            .addSerializer(BigDecimal.class, (ValueSerializer<BigDecimal>) NumberSerializer.bigDecimalAsStringSerializer())
             .addSerializer(Double.class, new DoubleSerializer())
             .addSerializer(double.class, new DoubleSerializer())
             .addSerializer(Float.class, new FloatSerializer())
@@ -244,40 +245,55 @@ public class JsonUtil {
             // 多值map
             .addSerializer(MultiValueBiMap.class, new MultiValueBiMapSerializer())
             .addSerializer(MultiKeyMultiValueBiMap.class, new MultiKeyMultiValueBiMapSerializer())
-            .addDeserializer(MultiValueBiMap.class, new StdDelegatingDeserializer<>(new MapToMultiValueBiMapConvert()))
-            .addDeserializer(MultiKeyMultiValueBiMap.class, new StdDelegatingDeserializer<>(new MapToMultiKeyMultiValueBiMapConvert()));
+            .addDeserializer(MultiValueBiMap.class, new StdConvertingDeserializer<>(new MapToMultiValueBiMapConvert()))
+            .addDeserializer(MultiKeyMultiValueBiMap.class, new StdConvertingDeserializer<>(new MapToMultiKeyMultiValueBiMapConvert()));
 
-    public static final ObjectMapper DEFAULT_INSTANCE = new ObjectMapper()
+    public static final ObjectMapper DEFAULT_INSTANCE = JsonMapper.builder()
             // 当实体类中不含有 json 字符串的某些字段时，不抛出异常
-            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
 
             // 非 bean 对象不抛异常
-            .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
+            .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
 
             // BigDecimal 精度
-            .configure(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS, true)
+            .enable(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS)
 
             // 禁用科学计数法
-            .configure(JsonGenerator.Feature.WRITE_BIGDECIMAL_AS_PLAIN, true)
+            .enable(StreamWriteFeature.WRITE_BIGDECIMAL_AS_PLAIN)
 
             // 允许使用注释
-            .configure(JsonParser.Feature.ALLOW_COMMENTS, true)
+            .enable(JsonReadFeature.ALLOW_JAVA_COMMENTS)
 
             // 允许字段名没有引号
-            .configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true)
+            .enable(JsonReadFeature.ALLOW_UNQUOTED_PROPERTY_NAMES)
 
             // 允许单引号
-            .configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true)
+            .enable(JsonReadFeature.ALLOW_SINGLE_QUOTES)
 
             // 忽略 transient 关键字的变量
-            .configure(MapperFeature.PROPAGATE_TRANSIENT_MARKER, true)
+            .enable(MapperFeature.PROPAGATE_TRANSIENT_MARKER)
 
-            .registerModule(simpleModule);
+            .addModule(simpleModule)
+            .build();
 
-    public static final ObjectMapper NOT_NULL_INSTANCE = DEFAULT_INSTANCE.copy()
+    public static final ObjectMapper NOT_NULL_INSTANCE = DEFAULT_INSTANCE.rebuild()
 
             // 只输出非 null 字段
-            .setSerializationInclusion(JsonInclude.Include.NON_NULL);
+            .changeDefaultPropertyInclusion(v -> v.withValueInclusion(JsonInclude.Include.NON_NULL))
+            .build();
+
+    public static final com.fasterxml.jackson.databind.ObjectMapper LEGACY_MAPPER;
+    static {
+        // Jackson 2.x ObjectMapper for third-party libraries that haven't migrated to Jackson 3.x
+        LEGACY_MAPPER = new com.fasterxml.jackson.databind.ObjectMapper()
+                .setSerializationInclusion(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL);
+        LEGACY_MAPPER.configure(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        LEGACY_MAPPER.configure(com.fasterxml.jackson.databind.SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+        LEGACY_MAPPER.configure(com.fasterxml.jackson.databind.DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS, true);
+        LEGACY_MAPPER.configure(com.fasterxml.jackson.core.JsonParser.Feature.ALLOW_COMMENTS, true);
+        LEGACY_MAPPER.configure(com.fasterxml.jackson.core.JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true);
+        LEGACY_MAPPER.configure(com.fasterxml.jackson.core.JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);
+    }
 
     @SuppressWarnings("unchecked")
     public static <T> List<T> convertArrayNodeToSimpleObjectList(JsonNode jsonNode, Class<T> clazz) {
@@ -303,7 +319,7 @@ public class JsonUtil {
             return coll;
         }
 
-        Iterator<JsonNode> elements = jsonNode.elements();
+        Iterator<JsonNode> elements = jsonNode.iterator();
         while (elements.hasNext()) {
             JsonNode next = elements.next();
             if (clazz == String.class) {
@@ -352,7 +368,7 @@ public class JsonUtil {
     public static <T> T treeToValue(TreeNode treeNode, Class<T> valueType) {
         try {
             return DEFAULT_INSTANCE.treeToValue(treeNode, valueType);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new RuntimeException(e);
         }
     }

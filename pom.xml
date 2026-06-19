@@ -220,6 +220,7 @@
 
         <!-- web -->
         <subproject>isass-web-springmvc</subproject>
+        <subproject>isass-apidoc-zyplayer</subproject>
         <!-- <subproject>isass-web-swagger</subproject> -->
 
         <!-- adapter -->

@@ -168,7 +168,7 @@
 
 package vip.isass.framework.database.mybatisplus.typehandler;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 import java.sql.PreparedStatement;
 

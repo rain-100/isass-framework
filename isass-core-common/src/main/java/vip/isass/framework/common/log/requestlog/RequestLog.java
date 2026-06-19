@@ -170,12 +170,12 @@
 package vip.isass.framework.common.log.requestlog;
 
 import cn.hutool.core.date.DateUtil;
-import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.SneakyThrows;
 import lombok.experimental.Accessors;
+import tools.jackson.databind.JsonNode;
 import vip.isass.framework.common.support.JsonUtil;
 
 import java.util.Date;

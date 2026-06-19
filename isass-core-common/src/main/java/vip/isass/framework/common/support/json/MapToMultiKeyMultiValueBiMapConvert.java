@@ -168,7 +168,7 @@
 
 package vip.isass.framework.common.support.json;
 
-import com.fasterxml.jackson.databind.util.StdConverter;
+import tools.jackson.databind.util.StdConverter;
 import vip.isass.framework.common.map.MultiKeyMultiValueBiMap;
 
 import java.util.Map;

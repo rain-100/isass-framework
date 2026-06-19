@@ -170,8 +170,8 @@
 package vip.isass.framework.common.entity;
 
 import cn.hutool.core.util.StrUtil;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
+import tools.jackson.databind.annotation.JsonSerialize;
+import tools.jackson.databind.ser.std.ToStringSerializer;
 import vip.isass.framework.common.sequence.impl.LongSequence;
 import vip.isass.framework.common.sequence.impl.UuidSequence;
 

@@ -169,17 +169,16 @@
 
 package vip.isass.framework.common.support.json.serializer;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.SerializerProvider;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.databind.ValueSerializer;
+import tools.jackson.databind.SerializationContext;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 
-public class DoubleSerializer extends JsonSerializer<Double> {
+public class DoubleSerializer extends ValueSerializer<Double> {
 
     @Override
-    public void serialize(Double value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+    public void serialize(Double value, JsonGenerator gen, SerializationContext serializers) {
         gen.writeNumber(new BigDecimal(value.toString()).toString());
     }
 

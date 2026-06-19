@@ -171,14 +171,14 @@ package vip.isass.framework.database.mybatisplus.json;
 
 import com.baomidou.mybatisplus.core.metadata.OrderItem;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.fasterxml.jackson.databind.DeserializationConfig;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.PropertyMetadata;
-import com.fasterxml.jackson.databind.PropertyName;
-import com.fasterxml.jackson.databind.deser.CreatorProperty;
-import com.fasterxml.jackson.databind.deser.SettableBeanProperty;
-import com.fasterxml.jackson.databind.deser.std.StdValueInstantiator;
+import tools.jackson.databind.DeserializationConfig;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.JavaType;
+import tools.jackson.databind.PropertyMetadata;
+import tools.jackson.databind.PropertyName;
+import tools.jackson.databind.deser.CreatorProperty;
+import tools.jackson.databind.deser.SettableBeanProperty;
+import tools.jackson.databind.deser.std.StdValueInstantiator;
 
 import java.util.List;
 
@@ -231,7 +231,7 @@ public class PageValueInstantiator extends StdValueInstantiator {
     }
 
     private CreatorProperty creatorProperty(String name, JavaType type, int index, PropertyMetadata metadata) {
-        return new CreatorProperty(
+        return CreatorProperty.construct(
                 PropertyName.construct(name),
                 type,
                 null,

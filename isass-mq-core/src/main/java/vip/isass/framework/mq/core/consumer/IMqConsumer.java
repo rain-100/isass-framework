@@ -170,7 +170,7 @@
 package vip.isass.framework.mq.core.consumer;
 
 
-import com.fasterxml.jackson.core.type.TypeReference;
+import tools.jackson.core.type.TypeReference;
 import vip.isass.framework.common.mq.MessageType;
 import vip.isass.framework.mq.core.FailStrategy;
 import vip.isass.framework.mq.core.MqMessageContext;

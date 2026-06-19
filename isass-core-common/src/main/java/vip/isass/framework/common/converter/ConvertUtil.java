@@ -172,9 +172,9 @@ package vip.isass.framework.common.converter;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.ClassUtil;
 import cn.hutool.core.util.TypeUtil;
-import com.fasterxml.jackson.databind.JavaType;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import tools.jackson.databind.JavaType;
 import vip.isass.framework.common.support.JsonUtil;
 
 import java.io.InputStream;

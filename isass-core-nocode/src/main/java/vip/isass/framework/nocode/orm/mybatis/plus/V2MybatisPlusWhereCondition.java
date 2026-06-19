@@ -172,7 +172,7 @@
 // import cn.hutool.core.util.StrUtil;
 // import com.baomidou.dynamic.datasource.DynamicRoutingDataSource;
 // import com.baomidou.mybatisplus.core.conditions.AbstractWrapper;
-// import com.fasterxml.jackson.core.JsonProcessingException;
+// import tools.jackson.core.JacksonException;
 // import com.zaxxer.hikari.HikariDataSource;
 // import lombok.SneakyThrows;
 // import vip.isass.framework.lowcode.v2.criteria.V2WhereCondition;

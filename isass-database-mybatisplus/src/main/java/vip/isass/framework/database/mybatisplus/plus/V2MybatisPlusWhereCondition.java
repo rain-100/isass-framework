@@ -173,7 +173,7 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.dynamic.datasource.DynamicRoutingDataSource;
 import com.baomidou.mybatisplus.core.conditions.AbstractWrapper;
-import com.fasterxml.jackson.core.JsonProcessingException;
+import tools.jackson.core.JacksonException;
 import lombok.SneakyThrows;
 import org.apache.ibatis.mapping.DatabaseIdProvider;
 import vip.isass.framework.common.structure.criteria.V2WhereCondition;
@@ -320,7 +320,7 @@ public class V2MybatisPlusWhereCondition {
                                     StrUtil.format("JSON_CONTAINS({},{0})", whereCondition.getColumnName()),
                                     JsonUtil.DEFAULT_INSTANCE.writeValueAsString(Collections.singletonList(whereCondition.getValue()))
                             );
-                        } catch (JsonProcessingException e) {
+                        } catch (JacksonException e) {
                             throw new RuntimeException(e);
                         }
                         break;
@@ -355,7 +355,7 @@ public class V2MybatisPlusWhereCondition {
                                     whereSql,
                                     valueArr
                             );
-                        } catch (JsonProcessingException e) {
+                        } catch (JacksonException e) {
                             throw new RuntimeException(e);
                         }
                         break;
@@ -400,7 +400,7 @@ public class V2MybatisPlusWhereCondition {
                                     whereSql,
                                     valueArr
                             );
-                        } catch (JsonProcessingException e) {
+                        } catch (JacksonException e) {
                             throw new RuntimeException(e);
                         }
                         break;

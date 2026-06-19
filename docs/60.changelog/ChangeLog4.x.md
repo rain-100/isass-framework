@@ -17,7 +17,11 @@
     - 优化配置项，统一使用 `mq.` 前缀。
 - **健康检查优化**：适配 Spring Boot 4.x 的模块化健康检查体系，更新 `HealthIndicator` 相关实现。
 - **数据库初始化优化**：回归 `v4-old` 的 `DatabaseInitializerManager` 过程式逻辑，移除 `DatabaseInitializer` 接口及 SPI 扩展机制，统一管理各数据库方言。
-- **数据库迁移工具替换**：将 Flyway 替换为 Liquibase，新增 `isass-database-core` 的单体/微服务二选一迁移配置能力。
+- **数据库迁移工具替换**：将 Flyway 替换为 Liquibase。
+    - `isass-database-core` 移除 Flyway 依赖，改为依赖 `spring-boot-starter-liquibase` 与 `liquibase-core`。
+    - 新增 `AbstractLiquibaseConfiguration` 抽象配置基类与 `LiquibaseConfigurer` 配置工具类。
+    - 服务侧通过声明独立 `SpringLiquibase` bean 实现微服务/单体两种启动模式。
+    - 单体模式下多个服务 bean 在 Spring 初始化阶段分别执行，changelog 与 Liquibase 管理表通过服务名隔离。
 - **达梦 Liquibase 兼容**：引入 `com.github.mengweijin:db-migration-dameng-liquibase`，使用开源扩展支持达梦数据库，并将 Liquibase 版本锁定为 `5.0.3`。
 - **模块合并**：
     - `isass-framework-nocode-*` 核心功能合并至 `isass-framework-common` 的 `core.structure` 目录下。
@@ -31,6 +35,15 @@
 - 优化 `IV2LocalService` 接口，增加 `getService()` 必需方法以提升类型安全性。
 - 统一 Maven 编译配置，由父 POM 统一管控 `maven.compiler.release` (Java 25)。
 - 清理根项目 POM，使其专注于模块聚合管理。
+
+#### migrate
+
+- **Jackson 3.x 迁移**：将自定义代码从 Jackson 2.x (`com.fasterxml.jackson.*`) 迁移至 Jackson 3.x (`tools.jackson.*`)：
+    - `JsonUtil`：重写 `ObjectMapper` 构造为 `JsonMapper.builder()` 构建器模式；`Feature` 枚举替换为 `JsonReadFeature`/`StreamWriteFeature`；`JsonProcessingException` → `JacksonException`；`jsonNode.elements()` → `jsonNode.iterator()`。
+    - 序列化器/反序列化器：`JsonSerializer` → `ValueSerializer`，`JsonDeserializer` → `ValueDeserializer`，`SerializerProvider` → `SerializationContext`，移除 `throws IOException`。
+    - 转换器：`StdConverter` 导入路径迁移至 `tools.jackson.databind.util.StdConverter`。
+    - MyBatis-Plus 集成：`JacksonTypeHandler` → `Jackson3TypeHandler` 适配 Jackson 3 ObjectMapper；`CreatorProperty` 构造器迁移至 `CreatorProperty.construct()` 工厂方法；`ValueInstantiators.findValueInstantiator` 适配新签名（`BeanDescription.Supplier` + `modifyValueInstantiator`）。
+    - 保留 `com.fasterxml.jackson.core:jackson-databind:2.21.2` 编译依赖，用于 Spring Data Redis 等第三方库的向后兼容；在 `JsonUtil` 中新增 `LEGACY_MAPPER`（Jackson 2.x ObjectMapper）供旧 API 调用。
 
 #### docs
 
