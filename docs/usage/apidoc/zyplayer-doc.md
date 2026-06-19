@@ -2,7 +2,7 @@
 
 ## 依赖
 
-业务微服务需要依赖 `isass-apidoc-zyplayer`。服务启动后，框架会采集 OpenAPI 和 `service-docs` Markdown，并同步到独立部署的 zyplayer-doc。
+业务微服务需要依赖 `isass-apidoc-zyplayer`。服务启动后，框架会采集运行时 OpenAPI 和 `service-docs` Markdown，并同步到独立部署的 zyplayer-doc。API 调试页面来自运行时 OpenAPI；`service-docs/api` 下的 Markdown 不会上传。
 
 ```xml
 <dependency>

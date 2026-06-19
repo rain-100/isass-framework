@@ -42,20 +42,20 @@ isass 对 zyplayer-doc 的组织约定如下：
 
 | 目录 | 内容 |
 | --- | --- |
-| `api接口` | OpenAPI operation 转换后的 API 调试页面 |
+| `api接口` | 运行时 OpenAPI operation 转换后的 API 调试页面 |
 | `设计文档` | 设计类 Markdown |
 | `使用文档` | 使用说明、鉴权说明、示例说明等 Markdown |
 | `数据库文档` | screw 或人工维护的数据库 Markdown |
 
 `api接口` 的二级目录默认取 OpenAPI operation 的第一个 `tags`。使用 smart-doc 时，推荐通过 Javadoc `@tag` 把跨 controller 的接口放到同一业务分类；未提供 tag 时归入默认分类。
 
-Markdown 文档按 `service-docs` 目录归类：
+Markdown 文档按 `service-docs` 目录归类。`service-docs/api/**` 只作为开发期 API 生成物目录，不作为 Markdown 上传到 zyplayer-doc；在线调试接口来自运行时 OpenAPI。
 
 | 资源目录 | zyplayer 目录 |
 | --- | --- |
 | `service-docs/design/**` | `设计文档` |
 | `service-docs/database/**` | `数据库文档` |
-| 其他 Markdown | `使用文档` |
+| `service-docs/guide/**` | `使用文档` |
 
 ## editorType 类型
 

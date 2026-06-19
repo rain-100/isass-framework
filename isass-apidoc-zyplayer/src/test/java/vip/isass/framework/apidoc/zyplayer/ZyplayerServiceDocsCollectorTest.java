@@ -17,8 +17,10 @@ class ZyplayerServiceDocsCollectorTest {
 
         List<ZyplayerSyncDocument> documents = collector.collect();
 
+        assertThat(documents).extracting(ZyplayerSyncDocument::id)
+                .doesNotContain("api/attachment-api");
         assertThat(documents).extracting(ZyplayerSyncDocument::folderPath)
-                .containsExactly(List.of("设计文档"), List.of("数据库文档"), List.of("使用文档"));
+                .containsExactly(List.of("数据库文档"), List.of("使用文档"), List.of("设计文档"));
     }
 
     static class FakeServiceDocsScanner extends ServiceDocsScanner {
@@ -32,7 +34,8 @@ class ZyplayerServiceDocsCollectorTest {
             return List.of(
                     new ServiceDoc("api/attachment-api", "接口文档", "api", "markdown", "service-docs/api/attachment-api.md"),
                     new ServiceDoc("database/attachment-db", "数据库文档", "database", "markdown", "service-docs/database/attachment-db.md"),
-                    new ServiceDoc("guide/token", "Token 说明", "guide", "markdown", "service-docs/guide/token.md")
+                    new ServiceDoc("guide/token", "Token 说明", "guide", "markdown", "service-docs/guide/token.md"),
+                    new ServiceDoc("design/upload", "上传设计", "design", "markdown", "service-docs/design/upload.md")
             );
         }
 

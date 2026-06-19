@@ -31,12 +31,17 @@ public class ZyplayerServiceDocsCollector {
 
     public List<ZyplayerSyncDocument> collect() {
         List<ZyplayerSyncDocument> documents = new ArrayList<>(serviceDocsScanner.findAll().stream()
+                .filter(this::shouldSyncMarkdown)
                 .map(this::toSyncDocument)
                 .toList());
         if (openApiDocsCollector != null) {
             documents.addAll(openApiDocsCollector.collect());
         }
         return documents;
+    }
+
+    private boolean shouldSyncMarkdown(ServiceDoc serviceDoc) {
+        return !"api".equals(serviceDoc.type());
     }
 
     private ZyplayerSyncDocument toSyncDocument(ServiceDoc serviceDoc) {
@@ -50,7 +55,6 @@ public class ZyplayerServiceDocsCollector {
 
     private String markdownFolderName(ServiceDoc serviceDoc) {
         return switch (serviceDoc.type()) {
-            case "api" -> "设计文档";
             case "database" -> "数据库文档";
             case "design" -> "设计文档";
             default -> "使用文档";

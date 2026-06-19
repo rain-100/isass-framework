@@ -50,7 +50,7 @@ class ZyplayerOpenApiDocsCollectorTest {
 
         assertThat(documents).singleElement().satisfies(document -> {
             assertThat(document.id()).isEqualTo("api/get/attachment-service/ping");
-            assertThat(document.title()).isEqualTo("GET /attachment-service/ping Ping");
+            assertThat(document.title()).isEqualTo("Ping");
             assertThat(document.content()).contains("http://127.0.0.1:" + server.getAddress().getPort() + "/attachment-service/ping");
         });
     }

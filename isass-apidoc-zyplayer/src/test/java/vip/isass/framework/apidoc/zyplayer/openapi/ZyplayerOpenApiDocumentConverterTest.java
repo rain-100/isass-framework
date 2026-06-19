@@ -53,7 +53,7 @@ class ZyplayerOpenApiDocumentConverterTest {
 
         assertThat(documents).singleElement().satisfies(document -> {
             assertThat(document.id()).isEqualTo("api/get/attachment-service/fileBrowse");
-            assertThat(document.title()).isEqualTo("GET /attachment-service/fileBrowse 文件列表");
+            assertThat(document.title()).isEqualTo("文件列表");
             assertThat(document.editorType()).isEqualTo(6);
             JsonNode content = read(document.content());
             assertThat(content.path("method").asText()).isEqualTo("get");
@@ -108,7 +108,7 @@ class ZyplayerOpenApiDocumentConverterTest {
     }
 
     @Test
-    void usesFirstOperationTagAsApiFolderGroup() {
+    void usesFirstOperationTagAsApiFolderGroupAcrossControllers() {
         ZyplayerOpenApiDocumentConverter converter = new ZyplayerOpenApiDocumentConverter(objectMapper);
 
         List<ZyplayerSyncDocument> documents = converter.convert("""
@@ -121,13 +121,25 @@ class ZyplayerOpenApiDocumentConverterTest {
                         "tags": ["附件上传"],
                         "responses": {"200": {"description": "OK"}}
                       }
+                    },
+                    "/attachment-service/instantTransmission": {
+                      "post": {
+                        "summary": "附件秒传",
+                        "tags": ["附件上传"],
+                        "responses": {"200": {"description": "OK"}}
+                      }
                     }
                   }
                 }
                 """, "http://127.0.0.1:20320");
 
-        assertThat(documents).singleElement().satisfies(document ->
-                assertThat(document.folderPath()).containsExactly("api接口", "附件上传"));
+        assertThat(documents).hasSize(2);
+        assertThat(documents)
+                .extracting(ZyplayerSyncDocument::folderPath)
+                .allSatisfy(folderPath -> assertThat(folderPath).containsExactly("api接口", "附件上传"));
+        assertThat(documents)
+                .extracting(ZyplayerSyncDocument::title)
+                .containsExactly("上传附件", "附件秒传");
     }
 
     @Test
@@ -155,8 +167,8 @@ class ZyplayerOpenApiDocumentConverterTest {
 
         assertThat(documents).extracting(ZyplayerSyncDocument::title)
                 .containsExactly(
-                        "POST /error 错误页提交",
-                        "GET /attachment-service/fileBrowse 文件列表");
+                        "错误页提交",
+                        "文件列表");
     }
 
     private JsonNode read(String content) {

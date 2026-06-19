@@ -112,10 +112,21 @@ public class ZyplayerOpenApiDocumentConverter {
         applyParameters(content, operation.path("parameters"));
         applyRequestBody(openApi, content, operation.path("requestBody"));
 
-        String summary = text(operation, "summary", text(operation, "operationId", ""));
-        String title = method.toUpperCase(Locale.ROOT) + " " + path + (StringUtils.hasText(summary) ? " " + summary : "");
+        String title = operationTitle(path, method, operation);
         return new ZyplayerSyncDocument("api/" + method + "/" + normalizePath(path), title, ZyplayerEditorTypes.API,
                 objectMapper.writeValueAsString(content), List.of("api接口", groupName(operation)));
+    }
+
+    private String operationTitle(String path, String method, JsonNode operation) {
+        String summary = text(operation, "summary", "");
+        if (StringUtils.hasText(summary)) {
+            return summary;
+        }
+        String operationId = text(operation, "operationId", "");
+        if (StringUtils.hasText(operationId)) {
+            return operationId;
+        }
+        return method.toUpperCase(Locale.ROOT) + " " + path;
     }
 
     private String groupName(JsonNode operation) {
