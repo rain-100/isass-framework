@@ -14,13 +14,13 @@ isass 对 zyplayer-doc 的组织约定如下：
 | --- | --- | --- |
 | 分组 | 项目 | `isass` |
 | 空间 | 微服务中文名 | `附件管理服务` |
-| 空间 UUID | 微服务应用名 | `attachment-service` |
-| 空间版本 | 微服务版本号，去掉 `-SNAPSHOT` 等预发布后缀 | `4.0.0` |
+| 空间 UUID | 微服务应用名 + 创建时间戳 | `attachment-service@20260620091415999` |
+| 空间版本 | 微服务主版本 | `v4.x` |
 | 页面 | API 接口文档、Markdown 文档或文件夹 | `文件浏览服务/文件列表` |
 
 `group-name` 默认是 `isass`，框架会先调用 `/openApi/v1/spaceGroup/list` 查询分组，找不到时调用 `/openApi/v1/spaceGroup/update` 创建分组。
 
-空间名使用 `info.service-name-cn`，空间 UUID 使用 `spring.application.name`。空间不再拼接版本号，服务版本通过 zyplayer-doc 的空间版本功能管理。框架会调用 `/openApi/v1/space/createVersion` 创建当前服务版本；版本已经存在时跳过，并继续同步到默认空间视图。
+空间名使用 `info.service-name-cn`。空间 UUID 使用 `{spring.application.name}@{yyyyMMddHHmmssSSS}`，例如 `attachment-service@20260620091415999`。zyplayer-doc 回收站彻底删除空间后仍会保留唯一编码占位，因此 isass 不使用固定 UUID；查询空间时只匹配带时间戳后缀的新规则，并选择同一微服务下时间戳最新的空间，不兼容旧的 `spring.application.name` 固定值。空间不再拼接版本号，服务版本通过 zyplayer-doc 的空间版本功能管理。框架把 `4.0.0-SNAPSHOT`、`4.1.2` 等服务版本归一化为 `v4.x` 这样的主版本；已有空间会先查询版本是否存在，新空间直接创建当前主版本。
 
 ## 同步流程
 
@@ -40,22 +40,24 @@ isass 对 zyplayer-doc 的组织约定如下：
 
 空间内默认创建四个一级目录：
 
-| 目录 | 内容 |
-| --- | --- |
-| `api接口` | 运行时 OpenAPI operation 转换后的 API 调试页面 |
-| `设计文档` | 设计类 Markdown |
-| `使用文档` | 使用说明、鉴权说明、示例说明等 Markdown |
-| `数据库文档` | screw 或人工维护的数据库 Markdown |
+| 排序 | 目录 | 内容 |
+| --- | --- | --- |
+| 10 | `api接口` | 运行时 OpenAPI operation 转换后的 API 调试页面 |
+| 20 | `使用文档` | 使用说明、鉴权说明、示例说明等 Markdown |
+| 30 | `设计文档` | 设计类 Markdown |
+| 40 | `数据库文档` | screw 或人工维护的数据库 Markdown |
 
-`api接口` 的二级目录默认取 OpenAPI operation 的第一个 `tags`。使用 smart-doc 时，推荐通过 Javadoc `@tag` 把跨 controller 的接口放到同一业务分类；未提供 tag 时归入默认分类。
+框架创建或复用一级目录时会写入 zyplayer-doc 的 `seqNo` 排序字段。同步时按 `(parentId, name)` 判断目录是否已经存在，避免重复创建同名目录；`delete-missing=true` 时会清理受框架管理目录下的空废弃目录和空重复目录，已有内容的重复目录会保留，避免误删人工维护内容。
 
-Markdown 文档按 `service-docs` 目录归类。`service-docs/api/**` 只作为开发期 API 生成物目录，不作为 Markdown 上传到 zyplayer-doc；在线调试接口来自运行时 OpenAPI。
+`api接口` 的二级目录默认取 OpenAPI operation 的第一个 `tags`。框架读取 smart-doc 生成的 `classpath:service-docs/api/openapi.json`，因此 Controller JavaDoc 中的 `@tag`、方法说明、参数说明和实体字段说明会进入 zyplayer API 页面。未提供 tag 时归入默认分类。
+
+Markdown 文档按 `service-docs` 目录归类。`service-docs/api/**` 只作为开发期 API 生成物目录，不作为 Markdown 上传到 zyplayer-doc；在线调试接口来自 `service-docs/api/openapi.json`。
 
 | 资源目录 | zyplayer 目录 |
 | --- | --- |
+| `service-docs/guide/**` | `使用文档` |
 | `service-docs/design/**` | `设计文档` |
 | `service-docs/database/**` | `数据库文档` |
-| `service-docs/guide/**` | `使用文档` |
 
 ## editorType 类型
 
@@ -106,5 +108,5 @@ exclude-path-patterns:
 ## 后续功能
 
 - 支持非 Spring 项目从 Maven `pom.xml` 的 `service-name-cn` 属性读取中文服务名。
-- 查询 zyplayer 已存在空间版本并拿到 `versionId`，让重复启动时也能准确写入指定版本。
+- 通过 zyplayer 官方 OpenAPI 补全空间版本列表接口的路径兼容矩阵。
 - 扩展更多 zyplayer 文档类型，例如表格、draw.io、思维导图和附件文件。

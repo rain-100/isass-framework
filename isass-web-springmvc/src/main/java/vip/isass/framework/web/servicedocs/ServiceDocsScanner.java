@@ -22,6 +22,8 @@ public class ServiceDocsScanner {
 
     private static final String SERVICE_DOCS_PATTERN = "classpath*:/service-docs/**/*.md";
 
+    private static final String OPEN_API_DOC_PATH = "service-docs/api/openapi.json";
+
     private final ResourcePatternResolver resourcePatternResolver;
 
     public ServiceDocsScanner(ResourcePatternResolver resourcePatternResolver) {
@@ -44,6 +46,14 @@ public class ServiceDocsScanner {
         String normalizedDocId = normalizeDocId(docId);
         return findResource(normalizedDocId).map(this::readString)
                 .orElseThrow(() -> new NoSuchElementException("service doc not found: " + normalizedDocId));
+    }
+
+    public String readOpenApiJson() {
+        Resource resource = resourcePatternResolver.getResource("classpath:" + OPEN_API_DOC_PATH);
+        if (!resource.isReadable()) {
+            throw new NoSuchElementException("openapi doc not found: " + OPEN_API_DOC_PATH);
+        }
+        return readString(resource);
     }
 
     private ServiceDoc toServiceDoc(Resource resource) {

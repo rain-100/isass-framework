@@ -20,6 +20,10 @@ public interface ZyplayerClientOperations {
 
     ZyplayerSpace updateSpace(Map<String, Object> payload);
 
+    default List<ZyplayerSpaceVersion> listSpaceVersions(Long spaceId) {
+        return List.of();
+    }
+
     default ZyplayerSpaceVersion createSpaceVersion(Map<String, Object> payload) {
         return null;
     }

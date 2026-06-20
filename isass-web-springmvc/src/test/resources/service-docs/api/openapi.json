@@ -1,0 +1,1 @@
+{"openapi":"3.1.0","info":{"title":"Attachment API","version":"v4.x"},"paths":{"/attachment-service/fileSystem":{"get":{"summary":"查询服务器文件列表","tags":["文件系统"],"responses":{"200":{"description":"OK"}}}}}}

@@ -25,4 +25,16 @@ class ServiceDocsControllerTest {
         assertThat(response.getHeaders().getContentType().toString()).isEqualTo("text/markdown;charset=UTF-8");
         assertThat(response.getBody()).contains("# Attachment Database");
     }
+
+    @Test
+    void returnsGeneratedOpenApiJsonFromServiceDocsApiDirectory() {
+        ServiceDocsController controller = new ServiceDocsController(
+                new ServiceDocsScanner(new PathMatchingResourcePatternResolver()));
+
+        ResponseEntity<String> response = controller.openApi();
+
+        assertThat(response.getHeaders().getContentType().toString()).isEqualTo("application/json;charset=UTF-8");
+        assertThat(response.getBody()).contains("\"openapi\":\"3.1.0\"");
+        assertThat(response.getBody()).contains("查询服务器文件列表");
+    }
 }

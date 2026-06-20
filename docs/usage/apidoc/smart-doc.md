@@ -15,16 +15,16 @@ GET /{spring.application.name}/service-docs
 GET /{spring.application.name}/service-docs/{docId}
 ```
 
-`service-docs` 可以包含鉴权说明、使用指南、设计说明、数据库说明和开发期 API 生成物。其中 `guide`、`design`、`database` 下的 Markdown 会被 `isass-apidoc-zyplayer` 同步到 zyplayer-doc；`api` 目录不作为 Markdown 上传，在线调试接口由运行时 OpenAPI 转换生成。
+`service-docs` 可以包含鉴权说明、使用指南、设计说明、数据库说明和开发期 API 生成物。其中 `guide`、`design`、`database` 下的 Markdown 会被 `isass-apidoc-zyplayer` 同步到 zyplayer-doc；`api` 目录不作为 Markdown 上传，在线调试接口由 smart-doc 生成的 OpenAPI 转换生成。
 
 推荐目录：
 
 ```text
 service-docs/
   api/        # API 生成物，例如 openapi.json，不上传 Markdown
-  database/   # 数据库文档
   guide/      # 使用文档
   design/     # 设计文档
+  database/   # 数据库文档
 ```
 
 ## screw 生成数据库文档
@@ -49,11 +49,12 @@ src/main/resources/service-docs/database/
 
 smart-doc 适合根据 JavaDoc 生成 API Markdown、OpenAPI、Postman 等产物。isass v4 推荐：
 
-- 运行时接口调试和聚合使用 SpringDoc 暴露 `/{spring.application.name}/v3/api-docs`。
+- zyplayer-doc 在线调试使用 smart-doc 生成的 `service-docs/api/openapi.json`。
+- 框架的 `/{spring.application.name}/v3/api-docs` 也直接读取并返回 `service-docs/api/openapi.json`，用于单体调试或外部工具读取。
 - 开发期 OpenAPI、Postman、AI 训练材料可以使用 smart-doc 生成，并保存到 `service-docs/api/`。
 - 业务说明、鉴权说明、数据库说明统一放入 `service-docs/`。
 
-`service-docs/api/*.md` 默认不上传 zyplayer-doc。需要在线调试时，使用服务运行时暴露的 `/{spring.application.name}/v3/api-docs`，由 `isass-apidoc-zyplayer` 转换为 zyplayer API 接口页面。
+`service-docs/api/*.md` 默认不上传 zyplayer-doc。需要在线调试时，先生成 `service-docs/api/openapi.json`，由 `isass-apidoc-zyplayer` 转换为 zyplayer API 接口页面；运行时 `/{spring.application.name}/v3/api-docs` 返回同一个 JSON 文件。
 
 示例：
 

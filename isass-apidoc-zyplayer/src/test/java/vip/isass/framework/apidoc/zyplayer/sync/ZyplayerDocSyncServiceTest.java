@@ -35,11 +35,16 @@ class ZyplayerDocSyncServiceTest {
         assertThat(result.createdSpaces()).isEqualTo(1);
         assertThat(result.createdPages()).isEqualTo(1);
         assertThat(client.spaceGroups).extracting(ZyplayerSpaceGroup::groupName).containsExactly("isass");
-        assertThat(client.createdVersions).extracting(ZyplayerSpaceVersion::versionName).containsExactly("4.0.0");
+        assertThat(client.createdVersions).extracting(ZyplayerSpaceVersion::versionName).containsExactly("v4.x");
+        assertThat(client.events).endsWith("upsertPage:Token 使用说明", "createVersion:v4.x");
         assertThat(client.spaces).extracting(ZyplayerSpace::name).containsExactly("附件微服务");
+        assertThat(client.spaces).extracting(ZyplayerSpace::uuid)
+                .singleElement()
+                .asString()
+                .matches("attachment-service@\\d{17}");
         assertThat(client.upsertedPages).singleElement().satisfies(payload -> {
             assertThat(payload.get("spaceId")).isEqualTo(1L);
-            assertThat(payload.get("versionId")).isEqualTo(1L);
+            assertThat(payload).doesNotContainKey("versionId");
             assertThat(payload.get("name")).isEqualTo("Token 使用说明");
             assertThat(payload.get("editorType")).isEqualTo(2);
             assertThat((String) payload.get("content")).contains("isass-doc-sync");
@@ -60,16 +65,104 @@ class ZyplayerDocSyncServiceTest {
                 new ZyplayerSyncOptions(false, true));
 
         assertThat(result.createdPages()).isEqualTo(1);
-        assertThat(client.upsertedPages).hasSize(3);
+        assertThat(client.upsertedPages).hasSize(6);
         assertThat(client.upsertedPages.get(0)).containsEntry("name", "api接口")
                 .containsEntry("editorType", 0)
-                .containsEntry("parentId", null);
-        assertThat(client.upsertedPages.get(1)).containsEntry("name", "FileBrowseController")
+                .containsEntry("parentId", 0L)
+                .containsEntry("seqNo", 10);
+        assertThat(client.upsertedPages.get(1)).containsEntry("name", "使用文档")
+                .containsEntry("editorType", 0)
+                .containsEntry("parentId", 0L)
+                .containsEntry("seqNo", 20);
+        assertThat(client.upsertedPages.get(2)).containsEntry("name", "设计文档")
+                .containsEntry("editorType", 0)
+                .containsEntry("parentId", 0L)
+                .containsEntry("seqNo", 30);
+        assertThat(client.upsertedPages.get(3)).containsEntry("name", "数据库文档")
+                .containsEntry("editorType", 0)
+                .containsEntry("parentId", 0L)
+                .containsEntry("seqNo", 40);
+        assertThat(client.upsertedPages.get(4)).containsEntry("name", "FileBrowseController")
                 .containsEntry("editorType", 0)
                 .containsEntry("parentId", 1L);
-        assertThat(client.upsertedPages.get(2)).containsEntry("name", "GET /fileBrowse 文件列表")
+        assertThat(client.upsertedPages.get(5)).containsEntry("name", "GET /fileBrowse 文件列表")
                 .containsEntry("editorType", 6)
-                .containsEntry("parentId", 2L);
+                .containsEntry("parentId", 5L);
+    }
+
+    @Test
+    void skipsCreatingSpaceVersionWhenMajorVersionAlreadyExists() {
+        FakeZyplayerClient client = new FakeZyplayerClient();
+        client.spaces.add(new ZyplayerSpace(9L, "附件微服务", 1, null, "attachment-service@20260619010101001", 1));
+        client.spaceVersions.put(9L, new ArrayList<>(List.of(new ZyplayerSpaceVersion(10L, "v4.x"))));
+        ZyplayerDocSyncService service = new ZyplayerDocSyncService(client, new ObjectMapper());
+
+        ZyplayerSyncResult result = service.sync(new ZyplayerServiceDescriptor(
+                        "attachment-service", "附件微服务", "4.0.0-SNAPSHOT", "isass"),
+                List.of(new ZyplayerSyncDocument("guide/token", "Token 使用说明", 2, "# Token")),
+                new ZyplayerSyncOptions(false, false));
+
+        assertThat(result.createdSpaces()).isZero();
+        assertThat(client.createdVersions).isEmpty();
+        assertThat(client.upsertedPages).singleElement()
+                .satisfies(payload -> assertThat(payload).doesNotContainKey("versionId"));
+    }
+
+    @Test
+    void skipsCreatingSpaceVersionWhenExistingSpaceVersionQueryFails() {
+        FakeZyplayerClient client = new FakeZyplayerClient();
+        client.spaces.add(new ZyplayerSpace(9L, "附件微服务", 1, null, "attachment-service@20260619010101001", 1));
+        client.failListSpaceVersions = true;
+        ZyplayerDocSyncService service = new ZyplayerDocSyncService(client, new ObjectMapper());
+
+        ZyplayerSyncResult result = service.sync(new ZyplayerServiceDescriptor(
+                        "attachment-service", "附件微服务", "4.0.0-SNAPSHOT", "isass"),
+                List.of(new ZyplayerSyncDocument("guide/token", "Token 使用说明", 2, "# Token")),
+                new ZyplayerSyncOptions(false, false));
+
+        assertThat(result.createdSpaces()).isZero();
+        assertThat(client.createdVersions).isEmpty();
+        assertThat(client.upsertedPages).singleElement()
+                .satisfies(payload -> assertThat(payload).doesNotContainKey("versionId"));
+    }
+
+    @Test
+    void selectsLatestTimestampSpaceForSameApplicationName() {
+        FakeZyplayerClient client = new FakeZyplayerClient();
+        client.spaces.add(new ZyplayerSpace(9L, "附件微服务", 1, null, "attachment-service@20260619010101001", 1));
+        client.spaces.add(new ZyplayerSpace(19L, "附件微服务", 1, null, "attachment-service@20260620010101001", 1));
+        client.spaces.add(new ZyplayerSpace(29L, "附件微服务", 1, null, "attachment-service", 1));
+        client.spaces.add(new ZyplayerSpace(39L, "附件微服务", 1, null, "other-service@20260621010101", 1));
+        ZyplayerDocSyncService service = new ZyplayerDocSyncService(client, new ObjectMapper());
+
+        ZyplayerSyncResult result = service.sync(new ZyplayerServiceDescriptor(
+                        "attachment-service", "附件微服务", "4.0.0-SNAPSHOT", "isass"),
+                List.of(new ZyplayerSyncDocument("guide/token", "Token 使用说明", 2, "# Token")),
+                new ZyplayerSyncOptions(false, false));
+
+        assertThat(result.createdSpaces()).isZero();
+        assertThat(client.upsertedPages).singleElement()
+                .satisfies(payload -> assertThat(payload).containsEntry("spaceId", 19L));
+    }
+
+    @Test
+    void reusesExistingManagedRootFolderWithZeroParentId() {
+        FakeZyplayerClient client = new FakeZyplayerClient();
+        client.spaces.add(new ZyplayerSpace(9L, "附件微服务", 1, null, "attachment-service@20260619010101001", 1));
+        client.pages.add(new ZyplayerPage(41L, 9L, "使用文档", 0L, 0, 7, List.of()));
+        ZyplayerDocSyncService service = new ZyplayerDocSyncService(client, new ObjectMapper());
+
+        ZyplayerSyncResult result = service.sync(new ZyplayerServiceDescriptor(
+                        "attachment-service", "附件微服务", "4.0.0-SNAPSHOT"),
+                List.of(new ZyplayerSyncDocument("guide/token", "Token 使用说明", 2, "# Token",
+                        List.of("使用文档"))),
+                new ZyplayerSyncOptions(false, false));
+
+        assertThat(result.createdPages()).isEqualTo(1);
+        assertThat(client.upsertedPages).extracting(payload -> payload.get("name"))
+                .containsExactly("api接口", "设计文档", "数据库文档", "Token 使用说明");
+        assertThat(client.upsertedPages.get(3)).containsEntry("name", "Token 使用说明")
+                .containsEntry("parentId", 41L);
     }
 
     @Test
@@ -190,6 +283,72 @@ class ZyplayerDocSyncServiceTest {
         assertThat(client.deletedPages).containsExactly(31L);
     }
 
+    @Test
+    void deletesEmptyDuplicateFoldersUnderManagedRootsWhenDeleteMissingEnabled() {
+        FakeZyplayerClient client = new FakeZyplayerClient();
+        client.spaces.add(new ZyplayerSpace(9L, "附件微服务", 1, null, "attachment-service@20260619010101001", 1));
+        client.pages.add(new ZyplayerPage(41L, 9L, "api接口", 0L, 0, 1, List.of()));
+        client.pages.add(new ZyplayerPage(42L, 9L, "文件系统", 41L, 0, 1, List.of()));
+        client.pages.add(new ZyplayerPage(43L, 9L, "api接口", 0L, 0, 1, List.of()));
+        ZyplayerDocSyncService service = new ZyplayerDocSyncService(client, new ObjectMapper());
+
+        ZyplayerSyncResult result = service.sync(new ZyplayerServiceDescriptor(
+                        "attachment-service", "附件微服务", "4.0.0-SNAPSHOT"),
+                List.of(new ZyplayerSyncDocument("api/get/fileSystem", "查询服务器文件列表", 6,
+                        "{\"method\":\"get\",\"apiUrl\":\"/attachment-service/fileSystem\"}",
+                        List.of("api接口", "文件系统"))),
+                new ZyplayerSyncOptions(true, false));
+
+        assertThat(result.deletedPages()).isEqualTo(1);
+        assertThat(client.deletedPages).containsExactly(43L);
+    }
+
+    @Test
+    void deletesDuplicateRootFolderAfterItsObsoleteChildrenBecomeEmpty() {
+        FakeZyplayerClient client = new FakeZyplayerClient();
+        client.spaces.add(new ZyplayerSpace(9L, "附件微服务", 1, null, "attachment-service@20260619010101001", 1));
+        client.pages.add(new ZyplayerPage(41L, 9L, "api接口", 0L, 0, 1, List.of()));
+        client.pages.add(new ZyplayerPage(42L, 9L, "old-controller", 41L, 0, 1, List.of()));
+        client.pages.add(new ZyplayerPage(43L, 9L, "api接口", 0L, 0, 1, List.of()));
+        client.pages.add(new ZyplayerPage(44L, 9L, "文件系统", 43L, 0, 1, List.of()));
+        client.pages.add(new ZyplayerPage(45L, 9L, "查询服务器文件列表", 44L, 6, 1, List.of()));
+        client.pageContents.put(45L, """
+                {"method":"get","apiUrl":"/attachment-service/fileSystem","_isassSyncMarker":{"service":"attachment-service","id":"api/get/fileSystem","hash":"old-hash"}}
+                """);
+        ZyplayerDocSyncService service = new ZyplayerDocSyncService(client, new ObjectMapper());
+
+        ZyplayerSyncResult result = service.sync(new ZyplayerServiceDescriptor(
+                        "attachment-service", "附件微服务", "4.0.0-SNAPSHOT"),
+                List.of(new ZyplayerSyncDocument("api/get/fileSystem", "查询服务器文件列表", 6,
+                        "{\"method\":\"get\",\"apiUrl\":\"/attachment-service/fileSystem\"}",
+                        List.of("api接口", "文件系统"))),
+                new ZyplayerSyncOptions(true, false));
+
+        assertThat(result.deletedPages()).isEqualTo(2);
+        assertThat(client.deletedPages).containsExactly(42L, 41L);
+    }
+
+    @Test
+    void deletesEmptyObsoleteFoldersUnderManagedRootsWhenDeleteMissingEnabled() {
+        FakeZyplayerClient client = new FakeZyplayerClient();
+        client.spaces.add(new ZyplayerSpace(9L, "附件微服务v4.0.0", 1, null, "attachment-service:4.0.0", 0));
+        client.pages.add(new ZyplayerPage(41L, 9L, "api接口", 0L, 0, 1, List.of()));
+        client.pages.add(new ZyplayerPage(42L, 9L, "file-system-controller", 41L, 0, 1, List.of()));
+        client.pages.add(new ZyplayerPage(43L, 9L, "文件系统", 41L, 0, 1, List.of()));
+        client.pages.add(new ZyplayerPage(44L, 9L, "手工文件夹", null, 0, 1, List.of()));
+        ZyplayerDocSyncService service = new ZyplayerDocSyncService(client, new ObjectMapper());
+
+        ZyplayerSyncResult result = service.sync(new ZyplayerServiceDescriptor(
+                        "attachment-service", "附件微服务", "4.0.0-SNAPSHOT"),
+                List.of(new ZyplayerSyncDocument("api/get/fileSystem", "查询服务器文件列表", 6,
+                        "{\"method\":\"get\",\"apiUrl\":\"/attachment-service/fileSystem\"}",
+                        List.of("api接口", "文件系统"))),
+                new ZyplayerSyncOptions(true, false));
+
+        assertThat(result.deletedPages()).isEqualTo(1);
+        assertThat(client.deletedPages).containsExactly(42L);
+    }
+
     static class FakeZyplayerClient implements ZyplayerClientOperations {
 
         final List<ZyplayerSpace> spaces = new ArrayList<>();
@@ -197,6 +356,8 @@ class ZyplayerDocSyncServiceTest {
         final List<ZyplayerSpaceGroup> spaceGroups = new ArrayList<>();
 
         final List<ZyplayerSpaceVersion> createdVersions = new ArrayList<>();
+
+        final Map<Long, List<ZyplayerSpaceVersion>> spaceVersions = new LinkedHashMap<>();
 
         final List<ZyplayerPage> pages = new ArrayList<>();
 
@@ -206,11 +367,17 @@ class ZyplayerDocSyncServiceTest {
 
         final List<Map<String, Object>> upsertedPages = new ArrayList<>();
 
+        final List<String> events = new ArrayList<>();
+
         final List<Long> releasedPages = new ArrayList<>();
 
         final List<Long> deletedPages = new ArrayList<>();
 
         final List<Long> staleOncePageIds = new ArrayList<>();
+
+        boolean failListSpaceVersions;
+
+        int listSpacesCalls;
 
         long nextSpaceId = 1;
 
@@ -218,6 +385,7 @@ class ZyplayerDocSyncServiceTest {
 
         @Override
         public List<ZyplayerSpace> listSpaces() {
+            listSpacesCalls++;
             return spaces;
         }
 
@@ -243,10 +411,20 @@ class ZyplayerDocSyncServiceTest {
         }
 
         @Override
+        public List<ZyplayerSpaceVersion> listSpaceVersions(Long spaceId) {
+            if (failListSpaceVersions) {
+                throw new ZyplayerOpenApiException("zyplayer open-api request failed: /openApi/v1/space/version/list");
+            }
+            return spaceVersions.getOrDefault(spaceId, List.of());
+        }
+
+        @Override
         public ZyplayerSpaceVersion createSpaceVersion(Map<String, Object> payload) {
             ZyplayerSpaceVersion version = new ZyplayerSpaceVersion((long) (createdVersions.size() + 1),
                     (String) payload.get("versionName"));
+            events.add("createVersion:" + version.versionName());
             createdVersions.add(version);
+            spaceVersions.computeIfAbsent((Long) payload.get("spaceId"), key -> new ArrayList<>()).add(version);
             return version;
         }
 
@@ -272,6 +450,7 @@ class ZyplayerDocSyncServiceTest {
                 throw new ZyplayerOpenApiException("该文档已被更新，您正在编辑的版本已过期，请刷新页面获取最新内容后再继续编辑");
             }
             upsertedPages.add(payload);
+            events.add("upsertPage:" + payload.get("name"));
             Long id = (Long) payload.getOrDefault("id", nextPageId++);
             ZyplayerPage page = new ZyplayerPage(id, (Long) payload.get("spaceId"), (String) payload.get("name"),
                     (Long) payload.get("parentId"), (Integer) payload.get("editorType"),

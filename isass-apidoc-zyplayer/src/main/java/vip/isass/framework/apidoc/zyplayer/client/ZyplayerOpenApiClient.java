@@ -71,6 +71,12 @@ public class ZyplayerOpenApiClient implements ZyplayerClientOperations {
     }
 
     @Override
+    public List<ZyplayerSpaceVersion> listSpaceVersions(Long spaceId) {
+        JavaType type = objectMapper.getTypeFactory().constructCollectionType(List.class, ZyplayerSpaceVersion.class);
+        return post("/openApi/v1/space/version/list", Map.of("spaceId", spaceId), type);
+    }
+
+    @Override
     public ZyplayerSpaceVersion createSpaceVersion(Map<String, Object> payload) {
         return post("/openApi/v1/space/createVersion", payload, objectMapper.constructType(ZyplayerSpaceVersion.class));
     }

@@ -31,6 +31,8 @@ public class ZyplayerApidocProperties {
 
     private String openApiDocsPath;
 
+    private String openApiSourcePath = "classpath:service-docs/api/openapi.json";
+
     private String apiBaseUrl;
 
     private String groupName = "isass";
@@ -119,6 +121,14 @@ public class ZyplayerApidocProperties {
 
     public void setOpenApiDocsPath(String openApiDocsPath) {
         this.openApiDocsPath = openApiDocsPath;
+    }
+
+    public String getOpenApiSourcePath() {
+        return openApiSourcePath;
+    }
+
+    public void setOpenApiSourcePath(String openApiSourcePath) {
+        this.openApiSourcePath = openApiSourcePath;
     }
 
     public String getApiBaseUrl() {

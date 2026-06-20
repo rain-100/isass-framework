@@ -2,7 +2,7 @@
 
 ## 依赖
 
-业务微服务需要依赖 `isass-apidoc-zyplayer`。服务启动后，框架会采集运行时 OpenAPI 和 `service-docs` Markdown，并同步到独立部署的 zyplayer-doc。API 调试页面来自运行时 OpenAPI；`service-docs/api` 下的 Markdown 不会上传。
+业务微服务需要依赖 `isass-apidoc-zyplayer`。服务启动后，框架会采集 smart-doc 生成的 `service-docs/api/openapi.json` 和 `service-docs` Markdown，并同步到独立部署的 zyplayer-doc。`service-docs/api` 下的 Markdown 不会上传。
 
 ```xml
 <dependency>
@@ -39,7 +39,11 @@ info:
   service-name-cn: 附件管理服务
 ```
 
-`group-name` 表示 zyplayer 分组，默认是 `isass`。空间名使用 `info.service-name-cn`，空间 UUID 使用 `spring.application.name`。服务版本会写入 zyplayer-doc 的空间版本，不再拼接到空间名中。
+`group-name` 表示 zyplayer 分组，默认是 `isass`。空间名使用 `info.service-name-cn`，空间 UUID 使用 `{spring.application.name}@{yyyyMMddHHmmssSSS}`，例如 `attachment-service@20260620091415999`。服务版本会写入 zyplayer-doc 的空间版本，不再拼接到空间名中。
+
+zyplayer-doc 回收站彻底删除空间后仍会保留唯一编码占位。为了避免固定 UUID 被历史删除数据占用，isass 新建空间时会追加毫秒时间戳后缀；查询空间时只匹配这种带后缀的新规则，并选择同一微服务下时间戳最新的空间。
+
+空间内一级目录固定按 `api接口`、`使用文档`、`设计文档`、`数据库文档` 排列。框架会为这些目录写入 `seqNo`，并在目录已存在时复用同名目录；开启 `delete-missing` 后，只会清理受框架管理目录下的空废弃目录和空重复目录。
 
 ## 过滤规则
 
@@ -90,6 +94,10 @@ zyplayer-doc 可以在空间级别启用版本控制。isass 的规则是：
 
 - 分组：项目，例如 `isass`。
 - 空间：微服务中文名，例如 `附件管理服务`。
-- 版本：微服务版本，例如 `4.0.0`。
+- 版本：微服务主版本，例如 `v4.x`。
 
-`-SNAPSHOT`、`-RC1` 等预发布后缀会被去掉，避免开发构建重复创建空间版本。版本已存在时，框架会跳过创建并继续同步文档。
+`4.0.0-SNAPSHOT`、`4.0.0`、`4.1.2` 会统一归入 `v4.x`，避免开发构建和补丁版本重复创建空间版本。已有空间会先查询是否存在该版本，存在则复用版本 ID；新空间会直接创建当前主版本。
+
+isass 同步文档时会先写入 zyplayer-doc 的实时视图，再创建空间版本。这样 `v4.x` 是实时文档同步完成后的快照，而不是一个空版本。页面更新接口不会主动传入 `versionId`，避免绕过 zyplayer-doc 的版本快照机制。
+
+如果 zyplayer-doc 的空间版本查询 OpenAPI 在当前部署版本不可用，框架不会在已有空间上继续创建版本，避免每次服务启动都新增一个同名 `v4.x`。这种情况下文档仍会同步到空间实时视图；已存在的版本保持不变。

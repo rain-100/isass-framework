@@ -10,21 +10,20 @@ import java.util.regex.Pattern;
  */
 public final class ZyplayerVersion {
 
-    private static final Pattern SEMVER_PREFIX = Pattern.compile("^(\\d+\\.\\d+\\.\\d+)");
+    private static final Pattern MAJOR_VERSION_PREFIX = Pattern.compile("^[vV]?(\\d+)(?:\\.|$)");
 
     private ZyplayerVersion() {
     }
 
     public static String normalize(String version) {
         if (!StringUtils.hasText(version)) {
-            return "0.0.0";
+            return "v0.x";
         }
         String trimmedVersion = version.trim();
-        Matcher matcher = SEMVER_PREFIX.matcher(trimmedVersion);
+        Matcher matcher = MAJOR_VERSION_PREFIX.matcher(trimmedVersion);
         if (matcher.find()) {
-            return matcher.group(1);
+            return "v" + matcher.group(1) + ".x";
         }
-        int suffixIndex = trimmedVersion.indexOf('-');
-        return suffixIndex > 0 ? trimmedVersion.substring(0, suffixIndex) : trimmedVersion;
+        return trimmedVersion;
     }
 }

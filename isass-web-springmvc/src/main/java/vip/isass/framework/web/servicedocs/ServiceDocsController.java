@@ -20,6 +20,8 @@ public class ServiceDocsController {
 
     private static final MediaType TEXT_MARKDOWN = new MediaType("text", "markdown", StandardCharsets.UTF_8);
 
+    private static final MediaType APPLICATION_JSON_UTF8 = new MediaType("application", "json", StandardCharsets.UTF_8);
+
     private final ServiceDocsScanner serviceDocsScanner;
 
     public ServiceDocsController(ServiceDocsScanner serviceDocsScanner) {
@@ -29,6 +31,15 @@ public class ServiceDocsController {
     @GetMapping({"/service-docs", "/${spring.application.name}/service-docs"})
     public List<ServiceDoc> list() {
         return serviceDocsScanner.findAll();
+    }
+
+    @GetMapping({"/v3/api-docs", "/${spring.application.name}/v3/api-docs"})
+    public ResponseEntity<String> openApi() {
+        try {
+            return ResponseEntity.ok().contentType(APPLICATION_JSON_UTF8).body(serviceDocsScanner.readOpenApiJson());
+        } catch (NoSuchElementException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage(), e);
+        }
     }
 
     @GetMapping({"/service-docs/**", "/${spring.application.name}/service-docs/**"})
