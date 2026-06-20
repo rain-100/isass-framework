@@ -171,7 +171,6 @@ package vip.isass.framework.common.support;
 
 
 import cn.hutool.core.util.ReflectUtil;
-import org.springframework.aop.support.AopUtils;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -210,12 +209,20 @@ public class ReflectUtils {
         return implementMethods.stream()
             .filter(m -> {
                 for (Class<?> serviceClass : apiServiceClass) {
-                    Method mostSpecificMethod = AopUtils.getMostSpecificMethod(m, serviceClass);
-                    return m != mostSpecificMethod;
+                    Method interfaceMethod = findInterfaceMethod(m, serviceClass);
+                    return interfaceMethod != null && m != interfaceMethod;
                 }
                 return false;
             })
             .collect(Collectors.toList());
+    }
+
+    private static Method findInterfaceMethod(Method method, Class<?> serviceClass) {
+        try {
+            return serviceClass.getMethod(method.getName(), method.getParameterTypes());
+        } catch (NoSuchMethodException e) {
+            return null;
+        }
     }
 
 }

@@ -179,9 +179,7 @@ import org.slf4j.LoggerFactory;
  * @param <T> 目标类型
  * @author Rain
  */
-public interface Converter<S, T> extends
-    org.springframework.core.convert.converter.Converter<S, T>,
-    cn.hutool.core.convert.Converter<T> {
+public interface Converter<S, T> extends cn.hutool.core.convert.Converter<T> {
 
     Logger log = LoggerFactory.getLogger(Converter.class);
 
@@ -194,6 +192,8 @@ public interface Converter<S, T> extends
     boolean supportSourceType(Object source);
 
     boolean supportTargetClass(Class clazz);
+
+    T convert(S source);
 
     @SuppressWarnings("unchecked")
     default T convert(Object value, T defaultValue) {

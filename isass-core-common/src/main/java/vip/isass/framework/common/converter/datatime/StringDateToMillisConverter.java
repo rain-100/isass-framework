@@ -172,7 +172,6 @@ package vip.isass.framework.common.converter.datatime;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.date.format.FastDateFormat;
 import cn.hutool.core.util.StrUtil;
-import org.springframework.stereotype.Component;
 import vip.isass.framework.common.support.Converter;
 
 /**
@@ -180,7 +179,6 @@ import vip.isass.framework.common.support.Converter;
  *
  * @author Rain
  */
-@Component
 public class StringDateToMillisConverter implements Converter<String, Long> {
 
     private static final String FORMAT = "yyyy/M/dd HH:mm";

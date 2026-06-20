@@ -186,7 +186,6 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 import okhttp3.WebSocket;
 import okhttp3.WebSocketListener;
-import org.springframework.http.MediaType;
 import vip.isass.framework.common.support.JsonUtil;
 
 import java.io.IOException;
@@ -369,7 +368,7 @@ public class OkHttpUtil {
     public static Response post(String url, String[] pathVariables, Map<String, Object> queryParams, Object body) {
         HttpUrl httpUrl = newHttpUrl(url, pathVariables, queryParams);
         RequestBody requestBody = RequestBody.create(
-                okhttp3.MediaType.get(MediaType.APPLICATION_JSON_VALUE),
+                okhttp3.MediaType.get("application/json"),
                 JsonUtil.NOT_NULL_INSTANCE.writeValueAsString(body));
         Request request = new Request.Builder().post(requestBody).url(httpUrl).build();
         return CLIENT.newCall(request).execute();

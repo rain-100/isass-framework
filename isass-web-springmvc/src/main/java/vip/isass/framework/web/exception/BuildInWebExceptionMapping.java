@@ -171,15 +171,22 @@ package vip.isass.framework.web.exception;
 
 import cn.hutool.core.exceptions.ExceptionUtil;
 import cn.hutool.core.map.MapUtil;
+import cn.hutool.core.util.StrUtil;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.http.converter.HttpMessageConversionException;
 import org.springframework.stereotype.Component;
+import org.springframework.validation.BindException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import vip.isass.framework.common.exception.IExceptionMapping;
 import vip.isass.framework.common.exception.code.IStatusMessage;
 import vip.isass.framework.common.exception.code.StatusMessageEnum;
 
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author Rain
@@ -190,18 +197,54 @@ public class BuildInWebExceptionMapping implements IExceptionMapping {
     private static Map<Class<? extends Exception>, IStatusMessage> exceptionMapping = MapUtil.<Class<? extends Exception>, IStatusMessage>builder()
         .put(HttpRequestMethodNotSupportedException.class, StatusMessageEnum.METHOD_NOT_ALLOWED_405)
         .put(HttpMessageNotReadableException.class, StatusMessageEnum.ILLEGAL_ARGUMENT_ERROR)
+        .put(HttpMessageConversionException.class, StatusMessageEnum.ILLEGAL_ARGUMENT_ERROR)
         .put(MissingServletRequestParameterException.class, StatusMessageEnum.ILLEGAL_ARGUMENT_ERROR)
+        .put(MethodArgumentNotValidException.class, StatusMessageEnum.ILLEGAL_ARGUMENT_ERROR)
+        .put(BindException.class, StatusMessageEnum.ILLEGAL_ARGUMENT_ERROR)
         .build();
 
     @Override
     public IStatusMessage getStatusCode(Exception exception) {
-        return exceptionMapping.get(exception.getClass());
+        Throwable unwrap = ExceptionUtil.unwrap(exception);
+        return exceptionMapping.get(unwrap.getClass());
     }
 
     @Override
     public String parseExceptionMessage(Throwable e) {
         Throwable unwrap = ExceptionUtil.unwrap(e);
+        if (unwrap instanceof BindException) {
+            return parseBindExceptionMessage((BindException) unwrap);
+        }
         return unwrap.getMessage();
+    }
+
+    private String parseBindExceptionMessage(BindException e) {
+        return e.getAllErrors()
+                .stream()
+                .map(error -> {
+                    StringBuilder sb = new StringBuilder();
+                    sb.append(error.getObjectName());
+                    sb.append("[");
+
+                    Object[] args = error.getArguments();
+                    if (args != null) {
+                        sb.append(Stream.of(args)
+                                .filter(DefaultMessageSourceResolvable.class::isInstance)
+                                .map(DefaultMessageSourceResolvable.class::cast)
+                                .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                                .collect(Collectors.joining(", ")));
+                    }
+
+                    sb.append("]");
+                    sb.append(error.getDefaultMessage());
+
+                    IStatusMessage statusCode = getStatusCode(e);
+                    if (statusCode != null) {
+                        return StrUtil.format(statusCode.getMsg(), sb.toString());
+                    }
+                    return sb.toString();
+                })
+                .collect(Collectors.joining(", "));
     }
 
 }

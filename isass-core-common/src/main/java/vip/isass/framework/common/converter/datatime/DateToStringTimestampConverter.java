@@ -169,7 +169,6 @@
 
 package vip.isass.framework.common.converter.datatime;
 
-import org.springframework.stereotype.Component;
 import vip.isass.framework.common.support.Converter;
 
 import java.util.Date;
@@ -179,7 +178,6 @@ import java.util.Date;
  *
  * @author Rain
  */
-@Component
 public class DateToStringTimestampConverter implements Converter<Date, String> {
 
     @Override

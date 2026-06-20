@@ -439,6 +439,12 @@
 
             <dependency>
                 <groupId>vip.isass</groupId>
+                <artifactId>isass-adapter-springboot</artifactId>
+                <version>${isass.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>vip.isass</groupId>
                 <artifactId>isass-security-springsecurity</artifactId>
                 <version>${isass.version}</version>
             </dependency>

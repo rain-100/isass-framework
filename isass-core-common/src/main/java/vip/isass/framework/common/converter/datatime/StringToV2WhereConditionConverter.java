@@ -170,7 +170,6 @@
 package vip.isass.framework.common.converter.datatime;
 
 import lombok.SneakyThrows;
-import org.springframework.stereotype.Component;
 import vip.isass.framework.common.structure.criteria.V2WhereCondition;
 import vip.isass.framework.common.support.Converter;
 import vip.isass.framework.common.support.JsonUtil;
@@ -180,7 +179,6 @@ import vip.isass.framework.common.support.JsonUtil;
  *
  * @author Rain
  */
-@Component
 public class StringToV2WhereConditionConverter implements Converter<String, V2WhereCondition> {
 
     @Override

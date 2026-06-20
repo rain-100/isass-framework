@@ -170,7 +170,6 @@
 package vip.isass.framework.common.converter.datatime;
 
 import cn.hutool.core.collection.CollUtil;
-import org.springframework.stereotype.Component;
 import vip.isass.framework.common.support.Converter;
 
 import java.util.Collection;
@@ -180,7 +179,6 @@ import java.util.Collection;
  *
  * @author Rain
  */
-@Component
 @SuppressWarnings("rawtypes")
 public class CollectionToQueryStringConverter implements Converter<Collection, String> {
 

@@ -170,7 +170,6 @@
 package vip.isass.framework.common.converter.datatime;
 
 import cn.hutool.core.util.StrUtil;
-import org.springframework.stereotype.Component;
 import vip.isass.framework.common.support.Converter;
 
 /**
@@ -178,7 +177,6 @@ import vip.isass.framework.common.support.Converter;
  *
  * @author Rain
  */
-@Component
 public class StringToClassConverter implements Converter<String, Class> {
 
     private static final String PREFIX = "class ";

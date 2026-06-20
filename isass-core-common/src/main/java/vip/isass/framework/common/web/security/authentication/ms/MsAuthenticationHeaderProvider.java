@@ -172,8 +172,6 @@ package vip.isass.framework.common.web.security.authentication.ms;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 import vip.isass.framework.common.web.header.AdditionalRequestHeaderProvider;
 
 /**
@@ -184,19 +182,15 @@ import vip.isass.framework.common.web.header.AdditionalRequestHeaderProvider;
 @Getter
 @Setter
 @Accessors(chain = true)
-@Component
 public class MsAuthenticationHeaderProvider implements AdditionalRequestHeaderProvider {
 
     public static final String HEADER = "ms-authorization";
 
-    @Value("${spring.application.name:unknown}")
-    private String appName;
+    private String appName = "unknown";
 
-    @Value("${security.ms.secret:qcyAHr35IDzI9FkD}")
-    private String secret;
+    private String secret = "qcyAHr35IDzI9FkD";
 
-    @Value(".${security.ms.secret:qcyAHr35IDzI9FkD}")
-    private String dotSecret;
+    private String dotSecret = ".qcyAHr35IDzI9FkD";
 
     private String fullMsAuthenticationHeaderValue = "";
 

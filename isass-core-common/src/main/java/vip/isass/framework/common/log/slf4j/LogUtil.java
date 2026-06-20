@@ -2,13 +2,6 @@ package vip.isass.framework.common.log.slf4j;
 
 import cn.hutool.core.lang.Assert;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.logging.LogLevel;
-import org.springframework.boot.logging.LoggerConfiguration;
-import org.springframework.boot.logging.LoggingSystem;
-import vip.isass.framework.common.support.SpringContextUtil;
-
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 日志工具
@@ -18,19 +11,18 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 public class LogUtil {
 
-    public static final Map<String, LoggerConfiguration> LEVEL_MAP = new ConcurrentHashMap<>();
+    private static volatile LogLevelManager logLevelManager = new LogLevelManager.Noop();
+
+    public static void setLogLevelManager(LogLevelManager logLevelManager) {
+        LogUtil.logLevelManager = logLevelManager == null ? new LogLevelManager.Noop() : logLevelManager;
+    }
 
     /**
      * 关闭日志
      */
     public static void loggerOff(String loggerName) {
         Assert.notBlank(loggerName, "loggerName 必填");
-        LoggingSystem loggingSystem = SpringContextUtil.getBean(LoggingSystem.class);
-        LoggerConfiguration loggerConfiguration = loggingSystem.getLoggerConfiguration(loggerName);
-        if (loggerConfiguration != null) {
-            LEVEL_MAP.put(loggerName, loggerConfiguration);
-        }
-        loggingSystem.setLogLevel(loggerName, LogLevel.OFF);
+        logLevelManager.loggerOff(loggerName);
     }
 
     /**
@@ -46,12 +38,7 @@ public class LogUtil {
      */
     public static void loggerRestore(String loggerName) {
         Assert.notBlank(loggerName, "loggerName 必填");
-        LoggerConfiguration loggerConfiguration = LEVEL_MAP.remove(loggerName);
-        if (loggerConfiguration == null) {
-            return;
-        }
-        LoggingSystem loggingSystem = SpringContextUtil.getBean(LoggingSystem.class);
-        loggingSystem.setLogLevel(loggerName, loggerConfiguration.getConfiguredLevel());
+        logLevelManager.loggerRestore(loggerName);
     }
 
     /**

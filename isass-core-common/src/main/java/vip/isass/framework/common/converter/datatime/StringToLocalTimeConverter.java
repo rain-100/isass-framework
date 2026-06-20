@@ -169,7 +169,6 @@
 
 package vip.isass.framework.common.converter.datatime;
 
-import org.springframework.stereotype.Component;
 import vip.isass.framework.common.support.Converter;
 import vip.isass.framework.common.support.LocalDateTimeUtil;
 
@@ -180,7 +179,6 @@ import java.time.LocalTime;
  *
  * @author Rain
  */
-@Component
 public class StringToLocalTimeConverter implements Converter<String, LocalTime> {
 
     @Override

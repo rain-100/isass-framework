@@ -170,7 +170,6 @@
 package vip.isass.framework.common.converter;
 
 import cn.hutool.core.util.StrUtil;
-import org.springframework.stereotype.Component;
 import vip.isass.framework.common.support.Converter;
 import vip.isass.framework.common.support.JsonUtil;
 
@@ -181,7 +180,6 @@ import java.util.Map;
  *
  * @author Rain
  */
-@Component
 public class StringToMapConverter implements Converter<String, Map<String, Object>> {
 
     @Override

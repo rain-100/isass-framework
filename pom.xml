@@ -188,7 +188,7 @@
         <subproject>isass-core-common</subproject>
         <subproject>isass-core-dependencies</subproject>
         <subproject>isass-core-parent</subproject>
-        <subproject>isass-core-nocode</subproject>
+        <subproject>isass-nocode-core</subproject>
 
         <!-- database -->
         <subproject>isass-database-core</subproject>

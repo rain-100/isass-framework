@@ -172,7 +172,6 @@ package vip.isass.framework.common.structure.service;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.Primary;
 import vip.isass.framework.common.structure.criteria.IV2Criteria;
 import vip.isass.framework.common.structure.entity.BatchSave;
 import vip.isass.framework.common.structure.entity.IV2Entity;
@@ -184,7 +183,6 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-@Primary
 public interface IV2ServiceManager<
         E extends IV2Entity<E>,
         C extends IV2Criteria<E, C>,

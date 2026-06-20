@@ -170,7 +170,6 @@
 package vip.isass.framework.common.converter.datatime;
 
 import lombok.SneakyThrows;
-import org.springframework.stereotype.Component;
 import vip.isass.framework.common.support.Converter;
 import vip.isass.framework.common.support.JsonUtil;
 
@@ -181,7 +180,6 @@ import java.util.Map;
  *
  * @author Rain
  */
-@Component
 public class MapToJsonConverter implements Converter<Map, String> {
 
     @Override

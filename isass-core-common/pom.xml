@@ -186,24 +186,6 @@
     <artifactId>isass-core-common</artifactId>
 
     <dependencies>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-aspectj</artifactId>
-            <version>${spring-boot.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-webmvc</artifactId>
-            <version>${spring-boot.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-json</artifactId>
-            <version>${spring-boot.version}</version>
-        </dependency>
-
         <!-- Jackson 2.x for backward compat with third-party libraries (Spring Data Redis, MyBatis-Plus, etc.) -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -211,8 +193,8 @@
         </dependency>
 
         <dependency>
-            <groupId>jakarta.annotation</groupId>
-            <artifactId>jakarta.annotation-api</artifactId>
+            <groupId>tools.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
         </dependency>
 
         <!-- 用到 IPage -->

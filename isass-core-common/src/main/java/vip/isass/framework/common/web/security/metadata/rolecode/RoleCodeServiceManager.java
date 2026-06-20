@@ -169,19 +169,24 @@
 
 package vip.isass.framework.common.web.security.metadata.rolecode;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Primary;
-import org.springframework.stereotype.Service;
-
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
-@Primary
-@Service
 public class RoleCodeServiceManager implements IRoleCodeService {
 
-    @Autowired(required = false)
-    private List<IRoleCodeService> services;
+    private List<IRoleCodeService> services = List.of();
+
+    public RoleCodeServiceManager() {
+    }
+
+    public RoleCodeServiceManager(List<IRoleCodeService> services) {
+        setServices(services);
+    }
+
+    public void setServices(List<IRoleCodeService> services) {
+        this.services = Objects.requireNonNullElse(services, List.of());
+    }
 
     @Override
     public Collection<String> findRoleCodesByUri(UriRoleCodesReq roleCodesReq) {
@@ -195,7 +200,7 @@ public class RoleCodeServiceManager implements IRoleCodeService {
 
     @Override
     public void setRoleCodesByUriCache(String uri, Collection<String> roleCodes) {
-        consume(services, s -> setRoleCodesByUriCache(uri, roleCodes));
+        consume(services, s -> s.setRoleCodesByUriCache(uri, roleCodes));
     }
 
     @Override

@@ -170,16 +170,16 @@
 package vip.isass.framework.common.structure.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import org.springframework.core.Ordered;
 import vip.isass.framework.common.structure.criteria.IV2Criteria;
 import vip.isass.framework.common.structure.entity.BatchSave;
 import vip.isass.framework.common.structure.entity.IV2Entity;
+import vip.isass.framework.common.support.api.IsassOrdered;
 
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 
-public interface IV2Service<E extends IV2Entity<E>, C extends IV2Criteria<E, C>> extends Ordered {
+public interface IV2Service<E extends IV2Entity<E>, C extends IV2Criteria<E, C>> extends IsassOrdered {
 
     // region 增
 

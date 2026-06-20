@@ -174,11 +174,8 @@ import cn.hutool.core.util.ClassUtil;
 import cn.hutool.core.util.StrUtil;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 import vip.isass.framework.common.support.IsassConfig;
 
-import jakarta.annotation.Resource;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -189,13 +186,11 @@ import java.util.stream.Collectors;
  * @author Rain
  */
 @Slf4j
-@Component
 public class DbEntityConvert {
 
     private static String packageName;
 
-    @Resource
-    public void setPackageName(@Value("${info.package:}") String packageName) {
+    public void setPackageName(String packageName) {
         DbEntityConvert.packageName = packageName;
     }
 

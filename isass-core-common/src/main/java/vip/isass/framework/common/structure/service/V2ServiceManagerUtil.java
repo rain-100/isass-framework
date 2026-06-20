@@ -170,9 +170,9 @@
 package vip.isass.framework.common.structure.service;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.Ordered;
 import vip.isass.framework.common.structure.UnimplementedMethodException;
 import vip.isass.framework.common.support.api.ApiOrder;
+import vip.isass.framework.common.support.api.IsassOrdered;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -181,7 +181,7 @@ import java.util.function.Function;
 @Slf4j
 public class V2ServiceManagerUtil {
 
-    public static <S extends Ordered, V> V applyUntilNotNull(List<S> services, Function<S, V> function) {
+    public static <S extends IsassOrdered, V> V applyUntilNotNull(List<S> services, Function<S, V> function) {
         checkServices(services);
 
         boolean hasLocalService = false;
@@ -217,7 +217,7 @@ public class V2ServiceManagerUtil {
         return null;
     }
 
-    public static <S extends Ordered> void consume(List<S> services, Consumer<S> consumer) {
+    public static <S extends IsassOrdered> void consume(List<S> services, Consumer<S> consumer) {
         checkServices(services);
 
         for (S service : services) {
@@ -230,7 +230,7 @@ public class V2ServiceManagerUtil {
         }
     }
 
-    public static <S extends Ordered> void consumeWithoutException(List<S> services, Consumer<S> consumer) {
+    public static <S extends IsassOrdered> void consumeWithoutException(List<S> services, Consumer<S> consumer) {
         checkServices(services);
 
         for (S service : services) {
@@ -245,7 +245,7 @@ public class V2ServiceManagerUtil {
         }
     }
 
-    public static <S extends Ordered> void checkServices(List<S> services) {
+    public static <S extends IsassOrdered> void checkServices(List<S> services) {
         if (services == null) {
             throw new UnsupportedOperationException("接口实现类列表为 null，请复制错误日志供开发人员排查错误");
         }

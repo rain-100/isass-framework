@@ -172,12 +172,6 @@ package vip.isass.framework.common.exception;
 import cn.hutool.core.exceptions.ExceptionUtil;
 import cn.hutool.core.exceptions.ValidateException;
 import cn.hutool.core.map.MapUtil;
-import cn.hutool.core.util.StrUtil;
-import org.springframework.context.support.DefaultMessageSourceResolvable;
-import org.springframework.http.converter.HttpMessageConversionException;
-import org.springframework.stereotype.Component;
-import org.springframework.validation.BindException;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import vip.isass.framework.common.exception.code.IStatusMessage;
 import vip.isass.framework.common.exception.code.StatusMessageEnum;
 
@@ -185,13 +179,10 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.time.DateTimeException;
 import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * @author Rain
  */
-@Component
 public class BuildInCoreExceptionMapping implements IExceptionMapping {
 
     private static final Map<Class<? extends Exception>, IStatusMessage> EXCEPTION_MAPPING = MapUtil.<Class<? extends Exception>, IStatusMessage>builder()
@@ -199,12 +190,9 @@ public class BuildInCoreExceptionMapping implements IExceptionMapping {
             .put(AlreadyPresentException.class, StatusMessageEnum.ALREADY_PRESENT)
             .put(AbsentException.class, StatusMessageEnum.ABSENT)
             .put(UnsupportedOperationException.class, StatusMessageEnum.UN_SUPPORT_OPERATION)
-            .put(MethodArgumentNotValidException.class, StatusMessageEnum.ILLEGAL_ARGUMENT_ERROR)
             .put(ValidateException.class, StatusMessageEnum.ILLEGAL_ARGUMENT_ERROR)
             .put(IOException.class, StatusMessageEnum.IO_ERROR)
             .put(FileNotFoundException.class, StatusMessageEnum.FILE_NOT_FOUND)
-            .put(BindException.class, StatusMessageEnum.ILLEGAL_ARGUMENT_ERROR)
-            .put(HttpMessageConversionException.class, StatusMessageEnum.ILLEGAL_ARGUMENT_ERROR)
             .put(DateTimeException.class, StatusMessageEnum.DATE_TIME_ERROR)
             .build();
 
@@ -215,42 +203,8 @@ public class BuildInCoreExceptionMapping implements IExceptionMapping {
     }
 
     public String parseExceptionMessage(Throwable e) {
-        String message;
         Throwable unwrap = ExceptionUtil.unwrap(e);
-        if (unwrap instanceof BindException) {
-            message = parseBindExceptionMessage((BindException) unwrap);
-        } else {
-            message = unwrap.getMessage();
-        }
-        return message;
-    }
-
-    private String parseBindExceptionMessage(BindException e) {
-        return e.getAllErrors()
-                .stream()
-                .map(error -> {
-                    StringBuilder sb = new StringBuilder();
-                    sb.append(error.getObjectName());
-                    sb.append("[");
-
-                    Object[] args = error.getArguments();
-                    if (args != null) {
-                        sb.append(Stream.of(args)
-                                .map(a -> (DefaultMessageSourceResolvable) a)
-                                .map(DefaultMessageSourceResolvable::getDefaultMessage)
-                                .collect(Collectors.joining(", ")));
-                    }
-
-                    sb.append("]");
-                    sb.append(error.getDefaultMessage());
-
-                    IStatusMessage statusCode = getStatusCode(e);
-                    if (statusCode != null) {
-                        return StrUtil.format(statusCode.getMsg(), sb.toString());
-                    }
-                    return sb.toString();
-                })
-                .collect(Collectors.joining(", "));
+        return unwrap.getMessage();
     }
 
 }
