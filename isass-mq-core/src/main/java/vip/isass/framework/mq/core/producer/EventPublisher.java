@@ -177,7 +177,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.stereotype.Component;
-import vip.isass.framework.mq.MqAutoConfiguration;
+import vip.isass.framework.mq.core.MqAutoConfiguration;
 import vip.isass.framework.mq.core.MqMessageContext;
 
 import jakarta.annotation.Resource;

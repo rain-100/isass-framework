@@ -167,7 +167,7 @@
  *
  */
 
-package vip.isass.framework.mq;
+package vip.isass.framework.mq.core;
 
 import lombok.Getter;
 import lombok.Setter;
