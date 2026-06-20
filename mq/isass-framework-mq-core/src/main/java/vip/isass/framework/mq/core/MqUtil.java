@@ -172,7 +172,7 @@ import cn.hutool.core.util.StrUtil;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import vip.isass.framework.mq.core.message.MqMessage;
-import vip.isass.framework.mq.core.producer.IMdaProducer;
+import vip.isass.framework.mq.core.producer.IMqProducer;
 
 /**
  * @author Rain
@@ -186,15 +186,15 @@ public class MqUtil {
      * @param mqMessage the mq message context
      */
     public static void send(@NonNull MqMessage mqMessage) {
-        if (!MdaAutoConfiguration.isEnabled()) {
+        if (!MqAutoConfiguration.isEnabled()) {
             log.warn("mq module is disabled, send message failed");
             return;
         }
 
         if (StrUtil.isBlank(mqMessage.getMqSource())) {
-            mqMessage.setMqSource(MdaAutoConfiguration.getPrimaryMqSourceName());
+            mqMessage.setMqSource(MqAutoConfiguration.getPrimaryMqSourceName());
         }
-        IMdaProducer mqProducer = MdaAutoConfiguration.getMqProducer(mqMessage.getMqSource());
+        IMqProducer mqProducer = MqAutoConfiguration.getMqProducer(mqMessage.getMqSource());
 
         if (mqProducer == null) {
             log.error("mq source[{}] not found, message send failed", mqMessage.getMqSource());

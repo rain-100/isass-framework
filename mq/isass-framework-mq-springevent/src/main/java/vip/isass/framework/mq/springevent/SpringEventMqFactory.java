@@ -166,66 +166,32 @@
  * Library.
  */
 
-package vip.isass.framework.mq.core.consumer;
+package vip.isass.framework.mq.springevent;
 
-import vip.isass.framework.mq.core.message.MessageType;
+import cn.hutool.extra.spring.SpringUtil;
+import vip.isass.framework.mq.core.IMqFactory;
+import vip.isass.framework.mq.core.config.MqSourceProperties;
+import vip.isass.framework.mq.core.consumer.IMqMessageHandler;
+import vip.isass.framework.mq.core.producer.IMqProducer;
+import vip.isass.framework.mq.springevent.consumer.SpringEventMqConsumer;
+import vip.isass.framework.mq.springevent.producer.SpringEventMqProducer;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.util.List;
 
-/**
- * @author Rain
- */
-@Target({ElementType.METHOD})
-@Retention(RetentionPolicy.RUNTIME)
-@Documented
-public @interface MdaListener {
+public class SpringEventMqFactory implements IMqFactory {
 
-    /**
-     * mq源
-     */
-    String source() default "master";
+    @Override
+    public Class<? extends MqSourceProperties> getPropertiesType() {
+        return SpringEventProperties.class;
+    }
 
-    /**
-     * @return region
-     */
-    String region() default "";
+    public void createMqConsumer(MqSourceProperties mqSourceProperties, List<IMqMessageHandler> mqMessageHandlers) {
+        SpringEventMqConsumer springEventMdaConsumer = SpringUtil.getBean(SpringEventMqConsumer.class);
+        springEventMdaConsumer.setMessageHandlers(mqMessageHandlers);
+    }
 
-    String instance() default "";
-
-    String consumerId();
-
-    int messageType() default MessageType.COMMON_MESSAGE;
-
-    /**
-     * 消息主题，一级消息类型，通过 Topic 对消息进行分类。
-     *
-     * @return topic
-     */
-    String topic() default "";
-
-    /**
-     * 消息标签，二级消息类型，用来进一步区分某个 Topic 下的消息分类。
-     *
-     * @return tag
-     */
-    String tag() default "*";
-
-    /**
-     * 设置 Consumer 实例的消费线程数，默认值
-     *
-     * @return the consumer thread number
-     */
-    int consumeThreadNumber() default -1;
-
-    /**
-     * 消息的业务标识，由消息生产者（Producer）设置，唯一标识某个业务逻辑。(一般与tag同值)
-     *
-     * @return key
-     */
-    String key() default "";
+    public IMqProducer createMqProducer(MqSourceProperties mqSourceProperties) {
+        return SpringUtil.getBean(SpringEventMqProducer.class);
+    }
 
 }

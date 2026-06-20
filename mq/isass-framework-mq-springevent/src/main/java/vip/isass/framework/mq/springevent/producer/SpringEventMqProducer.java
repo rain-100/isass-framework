@@ -166,15 +166,50 @@
  * Library.
  */
 
-package vip.isass.framework.mq.springevent;
+package vip.isass.framework.mq.springevent.producer;
 
-import org.springframework.context.ApplicationEvent;
+import cn.hutool.core.lang.Assert;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Component;
 import vip.isass.framework.mq.core.message.MqMessage;
+import vip.isass.framework.mq.core.producer.IMqProducer;
+import vip.isass.framework.mq.springevent.IsassMqEvent;
 
-public class IsassMdaEvent extends ApplicationEvent {
+/**
+ * @author Rain
+ */
+@Slf4j
+@Component
+public class SpringEventMqProducer implements IMqProducer {
 
-    public IsassMdaEvent(MqMessage source) {
-        super(source);
+    @Getter
+    @Setter
+    private String mqSourceName;
+
+    private final ApplicationEventPublisher applicationEventPublisher;
+
+    public SpringEventMqProducer(ApplicationEventPublisher applicationEventPublisher) {
+        this.applicationEventPublisher = applicationEventPublisher;
+    }
+
+    @Override
+    public void send(MqMessage mqMessage) {
+        Assert.notNull(mqMessage);
+        Assert.notNull(mqMessage.getPayload(), "payload");
+
+        applicationEventPublisher.publishEvent(new IsassMqEvent(mqMessage));
+    }
+
+    @Override
+    public void init() {
+    }
+
+    @Override
+    public void destroy() {
+
     }
 
 }

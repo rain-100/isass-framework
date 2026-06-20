@@ -181,17 +181,17 @@ import java.util.Map;
  */
 public class MessageHandlerHolder {
 
-    private static Map<String, Map<String, List<IMdaMessageHandler>>> MESSAGE_HANDLER_MAP = Collections.emptyMap();
+    private static Map<String, Map<String, List<IMqMessageHandler>>> MESSAGE_HANDLER_MAP = Collections.emptyMap();
 
-    private static List<IMdaMessageHandler> MDA_MESSAGE_HANDLERS_VIEW = Collections.emptyList();
+    private static List<IMqMessageHandler> MDA_MESSAGE_HANDLERS_VIEW = Collections.emptyList();
 
-    public static void setMdaMessageHandlers(List<IMdaMessageHandler> mqMessageHandlers) {
+    public static void setMdaMessageHandlers(List<IMqMessageHandler> mqMessageHandlers) {
         if (mqMessageHandlers == null) {
             return;
         }
 
         MESSAGE_HANDLER_MAP = MapUtil.newHashMap(mqMessageHandlers.size());
-        for (IMdaMessageHandler mqMessageHandler : mqMessageHandlers) {
+        for (IMqMessageHandler mqMessageHandler : mqMessageHandlers) {
             MESSAGE_HANDLER_MAP.computeIfAbsent(mqMessageHandler.getTopic(), k -> new HashMap<>())
                     .computeIfAbsent(mqMessageHandler.getTag(), t -> new ArrayList<>())
                     .add(mqMessageHandler);
@@ -199,19 +199,19 @@ public class MessageHandlerHolder {
         MDA_MESSAGE_HANDLERS_VIEW = Collections.unmodifiableList(mqMessageHandlers);
     }
 
-    public static List<IMdaMessageHandler> getMessageHandlers(String topic, String tag) {
-        Map<String, List<IMdaMessageHandler>> messageHandlerGroupByTag = MESSAGE_HANDLER_MAP.get(topic);
+    public static List<IMqMessageHandler> getMessageHandlers(String topic, String tag) {
+        Map<String, List<IMqMessageHandler>> messageHandlerGroupByTag = MESSAGE_HANDLER_MAP.get(topic);
         if (messageHandlerGroupByTag == null) {
             return Collections.emptyList();
         }
 
-        List<IMdaMessageHandler> messageHandlers = messageHandlerGroupByTag.get(tag);
+        List<IMqMessageHandler> messageHandlers = messageHandlerGroupByTag.get(tag);
         return messageHandlers == null
                 ? Collections.emptyList()
                 : messageHandlers;
     }
 
-    public static List<IMdaMessageHandler> getAllMessageHandlers() {
+    public static List<IMqMessageHandler> getAllMessageHandlers() {
         return MDA_MESSAGE_HANDLERS_VIEW;
     }
 

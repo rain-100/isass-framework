@@ -175,18 +175,18 @@ import vip.isass.framework.mq.core.message.MqMessage;
 
 import java.util.List;
 
-public interface IMdaConsumer {
+public interface IMqConsumer {
 
-    Logger LOGGER = LoggerFactory.getLogger(IMdaConsumer.class);
+    Logger LOGGER = LoggerFactory.getLogger(IMqConsumer.class);
 
     default void consume(MqMessage mqMessage, Object source) {
-        List<IMdaMessageHandler> messageHandlers = MessageHandlerHolder.getMessageHandlers(mqMessage.getTopic(), mqMessage.getTag());
+        List<IMqMessageHandler> messageHandlers = MessageHandlerHolder.getMessageHandlers(mqMessage.getTopic(), mqMessage.getTag());
         if (messageHandlers.isEmpty()) {
             LOGGER.warn("mq consume failed, can not found mq message handler. topic[{}] tag[{}]", mqMessage.getTopic(), mqMessage.getTag());
             return;
         }
 
-        for (IMdaMessageHandler messageHandler : messageHandlers) {
+        for (IMqMessageHandler messageHandler : messageHandlers) {
             try {
                 messageHandler.consume(mqMessage);
             } catch (Exception e) {

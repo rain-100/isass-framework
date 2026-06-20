@@ -166,32 +166,34 @@
  * Library.
  */
 
-package vip.isass.framework.mq.springevent;
+package vip.isass.framework.mq.kafka011;
 
-import cn.hutool.extra.spring.SpringUtil;
 import vip.isass.framework.mq.core.IMqFactory;
 import vip.isass.framework.mq.core.config.MqSourceProperties;
-import vip.isass.framework.mq.core.consumer.IMdaMessageHandler;
-import vip.isass.framework.mq.core.producer.IMdaProducer;
-import vip.isass.framework.mq.springevent.consumer.SpringEventMdaConsumer;
-import vip.isass.framework.mq.springevent.producer.SpringEventMdaProducer;
+import vip.isass.framework.mq.core.consumer.IMqMessageHandler;
+import vip.isass.framework.mq.core.producer.IMqProducer;
+import vip.isass.framework.mq.kafka011.config.Kafka011Properties;
+import vip.isass.framework.mq.kafka011.consumer.Kafka011MqConsumer;
+import vip.isass.framework.mq.kafka011.producer.Kafka011MqProducer;
 
 import java.util.List;
 
-public class SpringEventMdaFactory implements IMqFactory {
+public class Kafka011MqFactory implements IMqFactory {
 
     @Override
     public Class<? extends MqSourceProperties> getPropertiesType() {
-        return SpringEventProperties.class;
+        return Kafka011Properties.class;
     }
 
-    public void createMqConsumer(MqSourceProperties mqSourceProperties, List<IMdaMessageHandler> mqMessageHandlers) {
-        SpringEventMdaConsumer springEventMdaConsumer = SpringUtil.getBean(SpringEventMdaConsumer.class);
-        springEventMdaConsumer.setMessageHandlers(mqMessageHandlers);
+    public void createMqConsumer(MqSourceProperties mqSourceProperties, List<IMqMessageHandler> mqMessageHandlers) {
+        Kafka011MqConsumer kafka011MdaConsumer = new Kafka011MqConsumer((Kafka011Properties) mqMessageHandlers, mqMessageHandlers);
     }
 
-    public IMdaProducer createMqProducer(MqSourceProperties mqSourceProperties) {
-        return SpringUtil.getBean(SpringEventMdaProducer.class);
+    public IMqProducer createMqProducer(MqSourceProperties mqSourceProperties) {
+        Kafka011MqProducer kafka011MdaProducer = new Kafka011MqProducer((Kafka011Properties) mqSourceProperties);
+        kafka011MdaProducer.setMqSourceName(mqSourceProperties.getName());
+        kafka011MdaProducer.init();
+        return kafka011MdaProducer;
     }
 
 }

@@ -173,7 +173,7 @@ import vip.isass.framework.mq.core.message.MqMessage;
 /**
  * @author Rain
  */
-public interface IMdaProducer {
+public interface IMqProducer {
 
     /**
      * mq源名称

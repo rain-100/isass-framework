@@ -1,7 +1,7 @@
-import vip.isass.framework.mq.core.consumer.IMdaMessageHandler;
+import vip.isass.framework.mq.core.consumer.IMqMessageHandler;
 
 module vip.isass.framework.mq.core {
-    uses IMdaMessageHandler;
+    uses IMqMessageHandler;
 
     // 依赖的框架模块
     requires vip.isass.framework.common;

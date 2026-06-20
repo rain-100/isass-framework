@@ -182,7 +182,7 @@ import java.util.Map;
  *
  * @author Rain
  */
-public interface IMdaMessageHandler {
+public interface IMqMessageHandler {
 
     default SubscribeModel getSubscribeModel() {
         return SubscribeModel.CLUSTERING;

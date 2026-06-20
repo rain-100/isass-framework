@@ -166,34 +166,97 @@
  * Library.
  */
 
-package vip.isass.framework.mq.kafka011;
+package vip.isass.framework.mq.kafka011.producer;
 
-import vip.isass.framework.mq.core.IMqFactory;
-import vip.isass.framework.mq.core.config.MqSourceProperties;
-import vip.isass.framework.mq.core.consumer.IMdaMessageHandler;
-import vip.isass.framework.mq.core.producer.IMdaProducer;
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.lang.Assert;
+import jakarta.annotation.PostConstruct;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.SneakyThrows;
+import lombok.experimental.Accessors;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.producer.RecordMetadata;
+import vip.isass.framework.mq.core.message.MqMessage;
+import vip.isass.framework.mq.core.producer.IMqProducer;
 import vip.isass.framework.mq.kafka011.config.Kafka011Properties;
-import vip.isass.framework.mq.kafka011.consumer.Kafka011MdaConsumer;
-import vip.isass.framework.mq.kafka011.producer.Kafka011MdaProducer;
+import vip.isass.framework.serialization.jackson.JsonUtil;
 
-import java.util.List;
+import java.util.Properties;
+import java.util.concurrent.Future;
 
-public class Kafka011MdaFactory implements IMqFactory {
+/**
+ * @author Rain
+ */
+@Slf4j
+@Accessors(chain = true)
+public class Kafka011MqProducer implements IMqProducer {
+
+    @Getter
+    @Setter
+    private String mqSourceName;
+
+    private final Kafka011Properties kafka011Properties;
+
+    public Kafka011MqProducer(Kafka011Properties kafka011Properties) {
+        this.kafka011Properties = kafka011Properties;
+    }
+
+    private Producer<String, String> producer;
 
     @Override
-    public Class<? extends MqSourceProperties> getPropertiesType() {
-        return Kafka011Properties.class;
+    public void send(MqMessage mqMessage) {
+        Assert.notNull(mqMessage);
+        Assert.notBlank(mqMessage.getTopic());
+        Assert.notNull(mqMessage.getPayload());
+        ProducerRecord<String, String> record = new ProducerRecord<>(
+                getTopic(mqMessage), mqMessage.getKey(), getBody(mqMessage));
+
+        Future<RecordMetadata> send = producer.send(record);
     }
 
-    public void createMqConsumer(MqSourceProperties mqSourceProperties, List<IMdaMessageHandler> mqMessageHandlers) {
-        Kafka011MdaConsumer kafka011MdaConsumer = new Kafka011MdaConsumer((Kafka011Properties) mqMessageHandlers, mqMessageHandlers);
+    @SneakyThrows
+    private String getBody(MqMessage mqMessage) {
+        String body;
+        Object payload = mqMessage.getPayload();
+        if (payload == null) {
+            body = null;
+        } else {
+            body = JsonUtil.NOT_NULL_INSTANCE.writeValueAsString(payload);
+        }
+        return body;
     }
 
-    public IMdaProducer createMqProducer(MqSourceProperties mqSourceProperties) {
-        Kafka011MdaProducer kafka011MdaProducer = new Kafka011MdaProducer((Kafka011Properties) mqSourceProperties);
-        kafka011MdaProducer.setMqSourceName(mqSourceProperties.getName());
-        kafka011MdaProducer.init();
-        return kafka011MdaProducer;
+    private String getTopic(MqMessage mqMessage) {
+        Assert.notBlank(mqMessage.getTopic(), "topic 必填");
+        return mqMessage.getTopic();
+    }
+
+    @Override
+    public void init() {
+        Assert.notNull(kafka011Properties.getProducerProperties(), "config error! producerProperties can not be null");
+        Assert.notBlank(kafka011Properties.getServers(), "config error! servers can not be null");
+
+        Properties kafkaProps = new Properties();
+        kafkaProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka011Properties.getServers());
+        kafkaProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer");
+        kafkaProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer");
+        if (CollUtil.isNotEmpty(kafka011Properties.getProducerProperties().getProperties())) {
+            kafkaProps.putAll(kafka011Properties.getProducerProperties().getProperties());
+        }
+        producer = new KafkaProducer<>(kafkaProps);
+    }
+
+    @Override
+    @PostConstruct
+    public void destroy() {
+        if (producer != null) {
+            producer.close();
+        }
     }
 
 }

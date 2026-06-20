@@ -166,96 +166,114 @@
  * Library.
  */
 
-package vip.isass.framework.mq.kafka011.producer;
+package vip.isass.framework.mq.kafka011.consumer;
 
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.lang.Assert;
+import cn.hutool.core.util.StrUtil;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import jakarta.annotation.PostConstruct;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.SneakyThrows;
-import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.Producer;
-import org.apache.kafka.clients.producer.ProducerConfig;
-import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.clients.producer.RecordMetadata;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
+import vip.isass.framework.mq.core.consumer.IMqConsumer;
+import vip.isass.framework.mq.core.consumer.IMqMessageHandler;
 import vip.isass.framework.mq.core.message.MqMessage;
-import vip.isass.framework.mq.core.producer.IMdaProducer;
 import vip.isass.framework.mq.kafka011.config.Kafka011Properties;
-import vip.isass.framework.serialization.jackson.JsonUtil;
 
+import java.util.List;
+import java.util.Optional;
 import java.util.Properties;
-import java.util.concurrent.Future;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * @author Rain
  */
 @Slf4j
-@Accessors(chain = true)
-public class Kafka011MdaProducer implements IMdaProducer {
+public class Kafka011MqConsumer implements IMqConsumer {
 
-    @Getter
-    @Setter
-    private String mqSourceName;
+    private final ExecutorService executorService;
 
-    private final Kafka011Properties kafka011Properties;
+    private Kafka011Properties kafka011Properties;
 
-    public Kafka011MdaProducer(Kafka011Properties kafka011Properties) {
+    private List<IMqMessageHandler> mqMessageHandlers;
+
+    private boolean startup = false;
+
+    public Kafka011MqConsumer(Kafka011Properties kafka011Properties, List<IMqMessageHandler> mqMessageHandlers) {
         this.kafka011Properties = kafka011Properties;
+        this.mqMessageHandlers = mqMessageHandlers;
+        executorService = new ThreadPoolExecutor(
+                1,
+                20,
+                2,
+                TimeUnit.MINUTES,
+                new LinkedBlockingQueue<>(1),
+                new ThreadFactoryBuilder()
+                        .setNameFormat("kafka-%d")
+                        .setDaemon(true)
+                        .build());
+        init();
     }
 
-    private Producer<String, String> producer;
+    private void init() {
+        startup = true;
+        CollUtil.split(mqMessageHandlers, 5)
+                .forEach(handlers -> {
+                    Set<String> topics = mqMessageHandlers.stream()
+                            .map(IMqMessageHandler::getTopic)
+                            .filter(StrUtil::isNotBlank)
+                            .collect(Collectors.toSet());
+                    if (topics.isEmpty()) {
+                        return;
+                    }
 
-    @Override
-    public void send(MqMessage mqMessage) {
-        Assert.notNull(mqMessage);
-        Assert.notBlank(mqMessage.getTopic());
-        Assert.notNull(mqMessage.getPayload());
-        ProducerRecord<String, String> record = new ProducerRecord<>(
-                getTopic(mqMessage), mqMessage.getKey(), getBody(mqMessage));
+                    executorService.execute(() -> {
+                        Properties properties = createProperties();
+                        KafkaConsumer<String, String> consumer = new KafkaConsumer<>(properties);
+                        consumer.subscribe(topics);
 
-        Future<RecordMetadata> send = producer.send(record);
+                        while (startup) {
+                            ConsumerRecords<String, String> records = consumer.poll(100);
+                            for (ConsumerRecord<String, String> record : records) {
+                                log.debug("收到mq消息：{}", record);
+
+                                MqMessage mqMessageContext = MqMessage.builder()
+                                        .topic(record.topic())
+                                        .key(record.key())
+                                        .payload(record.value())
+                                        .build();
+                                consume(mqMessageContext, record);
+                            }
+                        }
+                    });
+                });
     }
 
-    @SneakyThrows
-    private String getBody(MqMessage mqMessage) {
-        String body;
-        Object payload = mqMessage.getPayload();
-        if (payload == null) {
-            body = null;
-        } else {
-            body = JsonUtil.NOT_NULL_INSTANCE.writeValueAsString(payload);
-        }
-        return body;
+    private Properties createProperties() {
+        Properties properties = new Properties();
+        properties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka011Properties.getServers());
+        properties.put(ConsumerConfig.GROUP_ID_CONFIG, kafka011Properties.getConsumerProperties().getGroupId());
+        properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
+        properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
+
+        Optional.ofNullable(kafka011Properties.getConsumerProperties().getProperties())
+                .ifPresent(p -> properties.putAll(kafka011Properties.getConsumerProperties().getProperties()));
+
+        return properties;
     }
 
-    private String getTopic(MqMessage mqMessage) {
-        Assert.notBlank(mqMessage.getTopic(), "topic 必填");
-        return mqMessage.getTopic();
-    }
-
-    @Override
-    public void init() {
-        Assert.notNull(kafka011Properties.getProducerProperties(), "config error! producerProperties can not be null");
-        Assert.notBlank(kafka011Properties.getServers(), "config error! servers can not be null");
-
-        Properties kafkaProps = new Properties();
-        kafkaProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka011Properties.getServers());
-        kafkaProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer");
-        kafkaProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer");
-        if (CollUtil.isNotEmpty(kafka011Properties.getProducerProperties().getProperties())) {
-            kafkaProps.putAll(kafka011Properties.getProducerProperties().getProperties());
-        }
-        producer = new KafkaProducer<>(kafkaProps);
-    }
-
-    @Override
     @PostConstruct
     public void destroy() {
-        if (producer != null) {
-            producer.close();
+        startup = false;
+        if (executorService != null) {
+            executorService.shutdown();
         }
     }
 

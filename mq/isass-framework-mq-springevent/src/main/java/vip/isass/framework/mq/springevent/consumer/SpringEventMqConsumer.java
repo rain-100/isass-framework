@@ -166,50 +166,37 @@
  * Library.
  */
 
-package vip.isass.framework.mq.springevent.producer;
+package vip.isass.framework.mq.springevent.consumer;
 
-import cn.hutool.core.lang.Assert;
+import cn.hutool.core.collection.CollUtil;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
+import vip.isass.framework.mq.core.consumer.IMqConsumer;
+import vip.isass.framework.mq.core.consumer.IMqMessageHandler;
 import vip.isass.framework.mq.core.message.MqMessage;
-import vip.isass.framework.mq.core.producer.IMdaProducer;
-import vip.isass.framework.mq.springevent.IsassMdaEvent;
+import vip.isass.framework.mq.springevent.IsassMqEvent;
 
-/**
- * @author Rain
- */
+import java.util.List;
+
 @Slf4j
 @Component
-public class SpringEventMdaProducer implements IMdaProducer {
+public class SpringEventMqConsumer implements ApplicationListener<IsassMqEvent>, IMqConsumer {
 
     @Getter
     @Setter
-    private String mqSourceName;
-
-    private final ApplicationEventPublisher applicationEventPublisher;
-
-    public SpringEventMdaProducer(ApplicationEventPublisher applicationEventPublisher) {
-        this.applicationEventPublisher = applicationEventPublisher;
-    }
+    private List<IMqMessageHandler> messageHandlers;
 
     @Override
-    public void send(MqMessage mqMessage) {
-        Assert.notNull(mqMessage);
-        Assert.notNull(mqMessage.getPayload(), "payload");
+    public void onApplicationEvent(IsassMqEvent event) {
+        if (CollUtil.isEmpty(messageHandlers)) {
+            return;
+        }
 
-        applicationEventPublisher.publishEvent(new IsassMdaEvent(mqMessage));
-    }
-
-    @Override
-    public void init() {
-    }
-
-    @Override
-    public void destroy() {
-
+        MqMessage mqMessage = (MqMessage) event.getSource();
+        consume(mqMessage, event);
     }
 
 }

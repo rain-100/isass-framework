@@ -166,37 +166,108 @@
  * Library.
  */
 
-package vip.isass.framework.mq.springevent.consumer;
+package vip.isass.framework.mq.core;
 
 import cn.hutool.core.collection.CollUtil;
-import lombok.Getter;
-import lombok.Setter;
+import cn.hutool.core.lang.Assert;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationListener;
-import org.springframework.stereotype.Component;
-import vip.isass.framework.mq.core.consumer.IMdaConsumer;
-import vip.isass.framework.mq.core.consumer.IMdaMessageHandler;
-import vip.isass.framework.mq.core.message.MqMessage;
-import vip.isass.framework.mq.springevent.IsassMdaEvent;
+import vip.isass.framework.mq.core.config.DynamicMqProperties;
+import vip.isass.framework.mq.core.config.MqSourceProperties;
+import vip.isass.framework.mq.core.consumer.IMqMessageHandler;
+import vip.isass.framework.mq.core.consumer.MessageHandlerHolder;
+import vip.isass.framework.mq.core.producer.IMqProducer;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.BiConsumer;
 
 @Slf4j
-@Component
-public class SpringEventMdaConsumer implements ApplicationListener<IsassMdaEvent>, IMdaConsumer {
+public class MqAutoConfiguration {
 
-    @Getter
-    @Setter
-    private List<IMdaMessageHandler> messageHandlers;
+    /**
+     * key: factory class name
+     */
+    private static final Map<Class<IMqFactory>, IMqFactory> mqFactoryMap = new HashMap<>();
 
-    @Override
-    public void onApplicationEvent(IsassMdaEvent event) {
-        if (CollUtil.isEmpty(messageHandlers)) {
+    /**
+     * key: mq source name
+     */
+    private static final Map<String, IMqProducer> mqProducerMap = new HashMap<>();
+
+    private static DynamicMqProperties DYNAMIC_MQ_PROPERTIES;
+
+    public static IMqProducer getMqProducer(String mqSourceName) {
+        return mqProducerMap.get(mqSourceName);
+    }
+
+    public static String getPrimaryMqSourceName() {
+        return DYNAMIC_MQ_PROPERTIES.getPrimary();
+    }
+
+    public static boolean isEnabled() {
+        if (DYNAMIC_MQ_PROPERTIES == null) {
+            log.warn("mq 未初始化");
+            return false;
+        }
+        return DYNAMIC_MQ_PROPERTIES.getEnabled();
+    }
+
+    public MqAutoConfiguration(DynamicMqProperties dynamicMqProperties, List<IMqMessageHandler> mqMessageHandlers) {
+        Assert.notNull(dynamicMqProperties, "dynamicMqProperties can not be null");
+        DYNAMIC_MQ_PROPERTIES = dynamicMqProperties;
+        MessageHandlerHolder.setMdaMessageHandlers(mqMessageHandlers);
+    }
+
+    private void loadMqFactory() {
+        DYNAMIC_MQ_PROPERTIES.getMqSourceProperties().forEach(new BiConsumer<String, MqSourceProperties>() {
+            @Override
+            public void accept(String mqSourceName, MqSourceProperties mqSourceProperties) {
+                Assert.notBlank(mqSourceName, "mqSourceName can not be blank");
+
+                // 如果mq源不启用，则无需查找其工厂类
+                if (!Boolean.TRUE.equals(mqSourceProperties.getEnabled())) {
+                    return;
+                }
+
+
+            }
+        });
+    }
+
+    public void init() {
+        log.info("isass.framework.mq.enable:{}", DYNAMIC_MQ_PROPERTIES.getEnabled());
+
+        if (Boolean.FALSE.equals(DYNAMIC_MQ_PROPERTIES.getEnabled())) {
+            log.info("skip to load mq module");
             return;
         }
 
-        MqMessage mqMessage = (MqMessage) event.getSource();
-        consume(mqMessage, event);
-    }
+        if (CollUtil.isEmpty(DYNAMIC_MQ_PROPERTIES.getMqSourceProperties())) {
+            return;
+        }
 
+        // 遍历mq源,执行初始化
+        DYNAMIC_MQ_PROPERTIES.getMqSourceProperties().forEach((mqSourceName, mqSourceProperties) -> {
+            if (!Boolean.TRUE.equals(mqSourceProperties.getEnabled())) {
+                return;
+            }
+
+            IMqFactory mqFactory = mqFactoryMap.computeIfAbsent(mqSourceProperties.getFactoryClass(),
+                    fc -> {
+                        try {
+                            return fc.getDeclaredConstructor().newInstance();
+                        } catch (Exception e) {
+                            throw new RuntimeException("loading mq factory error, factory class: " + mqSourceProperties.getFactoryClass(), e);
+                        }
+                    });
+
+            // 创建消费者
+            mqFactory.createMqConsumer(mqSourceProperties, MessageHandlerHolder.getAllMessageHandlers());
+
+            // 创建生产者
+            IMqProducer mqProducer = mqFactory.createMqProducer(mqSourceProperties);
+            mqProducerMap.put(mqSourceName, mqProducer);
+        });
+    }
 }

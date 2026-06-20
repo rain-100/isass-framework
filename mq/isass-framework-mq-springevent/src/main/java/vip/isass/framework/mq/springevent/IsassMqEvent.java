@@ -166,115 +166,15 @@
  * Library.
  */
 
-package vip.isass.framework.mq.kafka011.consumer;
+package vip.isass.framework.mq.springevent;
 
-import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.util.StrUtil;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import jakarta.annotation.PostConstruct;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
-import vip.isass.framework.mq.core.consumer.IMdaConsumer;
-import vip.isass.framework.mq.core.consumer.IMdaMessageHandler;
+import org.springframework.context.ApplicationEvent;
 import vip.isass.framework.mq.core.message.MqMessage;
-import vip.isass.framework.mq.kafka011.config.Kafka011Properties;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Properties;
-import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
+public class IsassMqEvent extends ApplicationEvent {
 
-/**
- * @author Rain
- */
-@Slf4j
-public class Kafka011MdaConsumer implements IMdaConsumer {
-
-    private final ExecutorService executorService;
-
-    private Kafka011Properties kafka011Properties;
-
-    private List<IMdaMessageHandler> mqMessageHandlers;
-
-    private boolean startup = false;
-
-    public Kafka011MdaConsumer(Kafka011Properties kafka011Properties, List<IMdaMessageHandler> mqMessageHandlers) {
-        this.kafka011Properties = kafka011Properties;
-        this.mqMessageHandlers = mqMessageHandlers;
-        executorService = new ThreadPoolExecutor(
-                1,
-                20,
-                2,
-                TimeUnit.MINUTES,
-                new LinkedBlockingQueue<>(1),
-                new ThreadFactoryBuilder()
-                        .setNameFormat("kafka-%d")
-                        .setDaemon(true)
-                        .build());
-        init();
-    }
-
-    private void init() {
-        startup = true;
-        CollUtil.split(mqMessageHandlers, 5)
-                .forEach(handlers -> {
-                    Set<String> topics = mqMessageHandlers.stream()
-                            .map(IMdaMessageHandler::getTopic)
-                            .filter(StrUtil::isNotBlank)
-                            .collect(Collectors.toSet());
-                    if (topics.isEmpty()) {
-                        return;
-                    }
-
-                    executorService.execute(() -> {
-                        Properties properties = createProperties();
-                        KafkaConsumer<String, String> consumer = new KafkaConsumer<>(properties);
-                        consumer.subscribe(topics);
-
-                        while (startup) {
-                            ConsumerRecords<String, String> records = consumer.poll(100);
-                            for (ConsumerRecord<String, String> record : records) {
-                                log.debug("收到mq消息：{}", record);
-
-                                MqMessage mqMessageContext = MqMessage.builder()
-                                        .topic(record.topic())
-                                        .key(record.key())
-                                        .payload(record.value())
-                                        .build();
-                                consume(mqMessageContext, record);
-                            }
-                        }
-                    });
-                });
-    }
-
-    private Properties createProperties() {
-        Properties properties = new Properties();
-        properties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka011Properties.getServers());
-        properties.put(ConsumerConfig.GROUP_ID_CONFIG, kafka011Properties.getConsumerProperties().getGroupId());
-        properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
-        properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
-
-        Optional.ofNullable(kafka011Properties.getConsumerProperties().getProperties())
-                .ifPresent(p -> properties.putAll(kafka011Properties.getConsumerProperties().getProperties()));
-
-        return properties;
-    }
-
-    @PostConstruct
-    public void destroy() {
-        startup = false;
-        if (executorService != null) {
-            executorService.shutdown();
-        }
+    public IsassMqEvent(MqMessage source) {
+        super(source);
     }
 
 }

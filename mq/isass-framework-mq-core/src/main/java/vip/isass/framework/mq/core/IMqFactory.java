@@ -169,8 +169,8 @@
 package vip.isass.framework.mq.core;
 
 import vip.isass.framework.mq.core.config.MqSourceProperties;
-import vip.isass.framework.mq.core.consumer.IMdaMessageHandler;
-import vip.isass.framework.mq.core.producer.IMdaProducer;
+import vip.isass.framework.mq.core.consumer.IMqMessageHandler;
+import vip.isass.framework.mq.core.producer.IMqProducer;
 
 import java.util.List;
 
@@ -180,9 +180,9 @@ public interface IMqFactory {
      */
     Class<? extends MqSourceProperties> getPropertiesType();
 
-    void createMqConsumer(MqSourceProperties messageDrivenSourceProperties, List<IMdaMessageHandler> mqMessageHandlers);
+    void createMqConsumer(MqSourceProperties messageDrivenSourceProperties, List<IMqMessageHandler> mqMessageHandlers);
 
-    IMdaProducer createMqProducer(MqSourceProperties messageDrivenSourceProperties);
+    IMqProducer createMqProducer(MqSourceProperties messageDrivenSourceProperties);
 
     /**
      * 验证配置
