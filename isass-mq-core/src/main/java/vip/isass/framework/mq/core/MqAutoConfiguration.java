@@ -169,33 +169,39 @@
 
 package vip.isass.framework.mq.core;
 
-import lombok.Getter;
-import lombok.Setter;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Bean;
+import vip.isass.framework.mq.core.config.DynamicMqProperties;
+import vip.isass.framework.mq.core.consumer.IMqMessageHandler;
 
 import java.util.List;
 
-/**
- * @author Rain
- */
-@Getter
-@Setter
-@Configuration
-@ComponentScan
+@AutoConfiguration
+@EnableConfigurationProperties(DynamicMqProperties.class)
 public class MqAutoConfiguration {
 
-    /**
-     * 总开关
-     */
-    @Value("${mq.enable:false}")
-    private Boolean enable;
+    private final DynamicMqProperties dynamicMqProperties;
 
-    @Value("${mq.default.manufacturer:}")
-    private String defaultManufacturer;
+    public MqAutoConfiguration(DynamicMqProperties dynamicMqProperties) {
+        this.dynamicMqProperties = dynamicMqProperties;
+    }
 
-    @Value("${mq.disable.disableConsumerIds:}")
-    private List<String> disableConsumerIds;
+    @Bean
+    public MqManager mqManager(ObjectProvider<List<IMqMessageHandler>> mqMessageHandlers,
+                               ObjectProvider<List<IMqFactory>> mqFactories) {
+        return new MqManager(
+                dynamicMqProperties,
+                mqMessageHandlers.getIfAvailable(List::of),
+                mqFactories.getIfAvailable(List::of));
+    }
 
+    public Boolean getEnable() {
+        return dynamicMqProperties.getEnabled();
+    }
+
+    public String getDefaultManufacturer() {
+        return dynamicMqProperties.getPrimary();
+    }
 }

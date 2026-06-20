@@ -199,6 +199,8 @@
         <!-- mq -->
         <subproject>isass-mq-kafka011</subproject>
         <subproject>isass-mq-springevent</subproject>
+        <subproject>isass-mq-redisstream</subproject>
+        <subproject>isass-mq-redispubsub</subproject>
         <subproject>isass-mq-core</subproject>
 
         <!-- net -->

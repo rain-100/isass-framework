@@ -519,6 +519,18 @@
 
             <dependency>
                 <groupId>vip.isass</groupId>
+                <artifactId>isass-mq-redisstream</artifactId>
+                <version>${isass.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>vip.isass</groupId>
+                <artifactId>isass-mq-redispubsub</artifactId>
+                <version>${isass.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>vip.isass</groupId>
                 <artifactId>isass-net-admin</artifactId>
                 <version>${isass.version}</version>
             </dependency>

@@ -15,6 +15,12 @@
     - 引入新的 `IMqConsumer` 接口和 `MqMessageContext`。
     - 实现 MQ 消费者生命周期的全自动托管，移除冗余的初始化模板代码。
     - 优化配置项，统一使用 `mq.` 前缀。
+- **MQ 多源重构**：
+    - 引入 `DynamicMqProperties`、`MqSourceProperties`、`IMqFactory`、`IMqProducer`、`IMqMessageHandler` 和 `MqManager`。
+    - 新增 `MqPublisher`，支持默认 `primary` 源和显式 source 发送。
+    - Spring Event 与 Kafka 0.11 接入 source-oriented factory 模型，业务代码无需依赖具体 MQ 产品。
+    - MQ 源必须显式配置 `type`，移除 `factory-class` 和 source 名称自动匹配。
+    - 新增 `isass-mq-redisstream` 与 `isass-mq-redispubsub` 模块，直接基于 Redisson 实现 Redis Stream 和 Redis Pub/Sub MQ 源。
 - **健康检查优化**：适配 Spring Boot 4.x 的模块化健康检查体系，更新 `HealthIndicator` 相关实现。
 - **数据库初始化优化**：回归 `v4-old` 的 `DatabaseInitializerManager` 过程式逻辑，移除 `DatabaseInitializer` 接口及 SPI 扩展机制，统一管理各数据库方言。
 - **数据库迁移工具替换**：将 Flyway 替换为 Liquibase。

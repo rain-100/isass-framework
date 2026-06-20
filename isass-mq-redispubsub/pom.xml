@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.1.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.1.0 http://maven.apache.org/xsd/maven-4.1.0.xsd">
+    <modelVersion>4.1.0</modelVersion>
+
+    <parent>
+        <groupId>vip.isass</groupId>
+        <artifactId>isass-core-parent</artifactId>
+        <version>4.0.0-SNAPSHOT</version>
+        <relativePath>../isass-core-parent/pom.xml</relativePath>
+    </parent>
+
+    <artifactId>isass-mq-redispubsub</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>vip.isass</groupId>
+            <artifactId>isass-mq-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>vip.isass</groupId>
+            <artifactId>isass-database-redis</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>
