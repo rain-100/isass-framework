@@ -85,11 +85,6 @@
 
 ### P2 — 中重要 + 中难度
 
-12. **JSR303 实体校验 + 分组校验** [2024 L61]
-    - 重要：中 — 数据校验标准化
-    - 难度：中 — 需集成 JSR303 + 优化响应消息
-    - 进展：`NocodeFieldConstraint`、`NocodeEntityValidator` 和 `NocodeCrudValidationInterceptor` 已新增 JSR303 风格字段校验元数据、create/update 分组校验和 v3 save/update 写入前校验；Spring MVC 默认校验错误响应优化和 Jakarta Validator 桥接尚未落地
-
 14. **级联删除 / 关联表删除** [2024 L63]
     - 重要：中 — 低频但必要功能
     - 难度：中 — SQL 级联逻辑设计
@@ -168,6 +163,9 @@
 
 4. **service 事件监听（前置/后置）** [2024 L62]
    - 2026-06-21：`NocodeOperationListener` 和 `NocodeOperationListenerInterceptor` 已新增 before/after/error 监听底座，并接入 v3 operation pipeline；业务可按操作粒度添加前置、后置和异常监听逻辑，不再需要通过替换完整 service 实现来扩展。
+
+5. **JSR303 实体校验 + 分组校验** [2024 L61]
+   - 2026-06-21：`NocodeFieldConstraint`、`NocodeEntityValidator` 和 `NocodeCrudValidationInterceptor` 已新增 JSR303 风格字段校验元数据、create/update 分组校验和 v3 save/update 写入前校验；`BuildInWebExceptionMapping` 已优化 `BindException` / `MethodArgumentNotValidException` 的字段错误消息，返回 `字段名: 错误信息` 形式的前端可读提示。
 
 ---
 
