@@ -206,13 +206,17 @@ public class IsassErrorController implements ErrorController {
 
     private final ErrorAttributes errorAttributes;
 
-    
-    private List<IStatusMapping> statusMappings;
+    private final List<IStatusMapping> statusMappings;
+
+    public IsassErrorController(ErrorAttributes errorAttributes) {
+        this(errorAttributes, List.of());
+    }
 
     @Autowired
-    public IsassErrorController(ErrorAttributes errorAttributes) {
+    public IsassErrorController(ErrorAttributes errorAttributes, List<IStatusMapping> statusMappings) {
         Assert.notNull(errorAttributes, "ErrorAttributes must not be null");
         this.errorAttributes = errorAttributes;
+        this.statusMappings = statusMappings == null ? List.of() : List.copyOf(statusMappings);
     }
 
     // @Override
@@ -230,6 +234,12 @@ public class IsassErrorController implements ErrorController {
     @RequestMapping(value = PATH, produces = MediaType.APPLICATION_JSON_VALUE)
     public Resp<?> errorJson(HttpServletRequest request, HttpServletResponse response) {
         Map<String, Object> errorAttributes = getErrorAttributes(request, true);
+        Integer status = resolveStatus(errorAttributes, response);
+        response.setStatus(status);
+        if (!shouldReturnJsonResponse(request)) {
+            return null;
+        }
+
         Object exception = errorAttributes.get(RequestDispatcher.ERROR_EXCEPTION);
         if (exception instanceof UnifiedException) {
             return new Resp<>()
@@ -238,7 +248,6 @@ public class IsassErrorController implements ErrorController {
                     .setMessage(((UnifiedException) exception).getMsg());
         }
 
-        Integer status = Integer.valueOf(errorAttributes.get("status").toString());
         for (IStatusMapping statusMapping : statusMappings) {
             IStatusMessage statusCode = statusMapping.getErrorCode(status);
             if (statusCode == null) {
@@ -266,6 +275,45 @@ public class IsassErrorController implements ErrorController {
                 .setSuccess(false)
                 .setStatus(status)
                 .setMessage(StatusMessageEnum.UNDEFINED.getMsg() + " " + request.getMethod() + " " + errorAttributes.get("path") + " " + errorAttributes.get("error"));
+    }
+
+    private Integer resolveStatus(Map<String, Object> errorAttributes, HttpServletResponse response) {
+        Object status = errorAttributes.get("status");
+        if (status instanceof Number number) {
+            return number.intValue();
+        }
+        if (status != null && StrUtil.isNotBlank(status.toString())) {
+            try {
+                return Integer.valueOf(status.toString());
+            } catch (NumberFormatException ignored) {
+                // Fall back to servlet response status below.
+            }
+        }
+        return response.getStatus() > 0 ? response.getStatus() : 500;
+    }
+
+    private boolean shouldReturnJsonResponse(HttpServletRequest request) {
+        if (containsMediaType(request.getContentType(), MediaType.APPLICATION_JSON)) {
+            return true;
+        }
+        String accept = request.getHeader("Accept");
+        if (containsMediaType(accept, MediaType.APPLICATION_JSON)) {
+            return true;
+        }
+        return !containsMediaType(accept, MediaType.TEXT_HTML);
+    }
+
+    private boolean containsMediaType(String headerValue, MediaType expected) {
+        if (StrUtil.isBlank(headerValue)) {
+            return false;
+        }
+        try {
+            return MediaType.parseMediaTypes(headerValue)
+                    .stream()
+                    .anyMatch(mediaType -> expected.isCompatibleWith(mediaType));
+        } catch (IllegalArgumentException ignored) {
+            return false;
+        }
     }
 
     protected Map<String, Object> getErrorAttributes(HttpServletRequest request, boolean includeStackTrace) {

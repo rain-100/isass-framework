@@ -57,6 +57,7 @@
 7. **重构异常模块** [2024 L38]
    - 重要：高 — 影响全框架异常体系
    - 难度：中 — 需设计新接口、兼容历史
+   - 进展：`Resp.detailMessage` 与 `ExceptionAdvice` 双字段错误信息已落地；`IsassErrorController` 已完成 HTML/JSON 错误响应策略设计并修复无 `IStatusMapping` 时的 NPE 风险
 
 8. **v3 通用 controller 动态生成** [2024 L54] (这个和P0 3 重复了)
    - 重要：高 — 低代码接入层关键子项
@@ -163,6 +164,9 @@
 
 1. **Resp 新增 detailMessage 字段** [2024 L40]
    - 2026-06-21：`Resp` 已新增 `detailMessage` 字段；`ExceptionAdvice` 在生产统一提示时将用户可见消息放入 `message`，将 traceId + 原始异常详情放入 `detailMessage`，便于开发排查且避免把内部细节混入用户提示。
+
+2. **IsassErrorController 错误响应策略** [2024 L41]
+   - 2026-06-21：新增 `docs/design/error-response-strategy.md`；`IsassErrorController` 对 `Accept: text/html` 的页面/静态资源错误只保留 HTTP 状态，对 JSON/API 请求返回 `Resp`，并修复状态映射列表为空时的 NPE 风险。
 
 ---
 
