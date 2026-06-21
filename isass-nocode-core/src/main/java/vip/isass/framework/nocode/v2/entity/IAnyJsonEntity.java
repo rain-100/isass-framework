@@ -176,6 +176,7 @@ import cn.hutool.core.util.StrUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import vip.isass.framework.common.support.LocalDateTimeUtil;
+import vip.isass.framework.nocode.DictTranslationProviderUtil;
 import vip.isass.framework.nocode.IDictTranslationProvider;
 
 import java.time.LocalDate;
@@ -214,8 +215,10 @@ public interface IAnyJsonEntity {
         if (MapUtil.isEmpty(dictTranslationMap)) {
             return;
         }
-        // todo IDictTranslationProvider dictTranslationProvider = BeanProviderUtil.getBean(IDictTranslationProvider.class);
-        IDictTranslationProvider dictTranslationProvider = null;
+        IDictTranslationProvider dictTranslationProvider = DictTranslationProviderUtil.getProvider();
+        if (dictTranslationProvider == null) {
+            return;
+        }
         for (Map.Entry<String, String> entry : dictTranslationMap.entrySet()) {
             if (StrUtil.isBlank(entry.getValue())) {
                 continue;

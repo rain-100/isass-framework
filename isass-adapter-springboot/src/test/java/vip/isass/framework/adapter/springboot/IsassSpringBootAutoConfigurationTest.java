@@ -100,6 +100,29 @@ class IsassSpringBootAutoConfigurationTest {
     }
 
     @Test
+    void bridgesDictTranslationProvidersToCoreHolders() {
+        new ApplicationContextRunner()
+                .withConfiguration(AutoConfigurations.of(IsassSpringBootAutoConfiguration.class))
+                .withBean("commonDictTranslationProvider",
+                        vip.isass.framework.common.structure.IDictTranslationProvider.class,
+                        () -> (typeCode, optionCode) -> "common:" + typeCode + ":" + optionCode)
+                .withBean("nocodeDictTranslationProvider",
+                        vip.isass.framework.nocode.IDictTranslationProvider.class,
+                        () -> (typeCode, optionCode) -> "nocode:" + typeCode + ":" + optionCode)
+                .run(context -> {
+                    assertThat(context).hasSingleBean(BeanProvider.class);
+                    assertThat(context).hasSingleBean(vip.isass.framework.common.structure.IDictTranslationProvider.class);
+                    assertThat(context).hasSingleBean(vip.isass.framework.nocode.IDictTranslationProvider.class);
+                    assertThat(vip.isass.framework.common.structure.DictTranslationProviderUtil.getProvider()
+                            .translate("status", "1"))
+                            .isEqualTo("common:status:1");
+                    assertThat(vip.isass.framework.nocode.DictTranslationProviderUtil.getProvider()
+                            .translate("status", "1"))
+                            .isEqualTo("nocode:status:1");
+                });
+    }
+
+    @Test
     void registersDbEntityConvertersWithConfiguredPackageName() {
         new ApplicationContextRunner()
                 .withConfiguration(AutoConfigurations.of(IsassSpringBootAutoConfiguration.class))

@@ -29,7 +29,7 @@
 | `LoginUserUtil` | 通过 `BeanProviderUtil` 获取 `LoginUserService` | 获取当前登录用户服务 | 已改为纯 Java `LoginUserService` provider/setter；Spring Boot adapter 负责从 Spring Bean 桥接 | 完成 |
 | `LongSequence` | 通过 `BeanProviderUtil.getBeanOfSupport` 查找 `Sequence<Long>` | 获取 Long 序列生成器 | 已改为纯 Java `Sequence<Long>` provider/setter；Spring Boot adapter 负责从 Spring Bean 桥接，默认仍回退随机 Long | 完成 |
 | `SystemClock` | 通过 `BeanProviderUtil` 获取 `ISystemClock` | 获取系统时钟实现 | 已改为纯 Java `ISystemClock` provider/setter；Spring Boot adapter 负责从 Spring Bean 桥接，默认仍使用 JDK 时间 | 完成 |
-| `IAnyJsonEntity` | 通过 `BeanProviderUtil` 获取 `IDictTranslationProvider` | JSON 实体字典翻译 | 当前已解耦 Spring 编译依赖；后续可进一步改为翻译 provider registry 或显式传入 context | P1 |
+| `IAnyJsonEntity` | 通过 `BeanProviderUtil` 获取 `IDictTranslationProvider` | JSON 实体字典翻译 | 已改为纯 Java `IDictTranslationProvider` provider/setter；Spring Boot adapter 负责从 Spring Bean 桥接，未配置 provider 时跳过字典翻译 | 完成 |
 | `LogUtil` | 原先使用 `LoggingSystem`、`LogLevel`、`LoggerConfiguration`，并通过运行时容器获取 Bean | 动态关闭/恢复日志级别 | 已抽象 `LogLevelManager`；core 默认无操作，`isass-adapter-springboot` 提供 `SpringBootLogLevelManager` | 完成 |
 | `ReflectUtils` | `AopUtils.getMostSpecificMethod` | 查找代理类/接口上的实际 API 方法 | 已改为 JDK 反射按方法名和参数查找接口方法 | 完成 |
 | `ApiService` | `AnnotationUtils.findAnnotation`、Spring `@Order` | 按本地服务/Feign 服务优先级路由 API 服务调用 | 已改为 `@IsassOrder` + `IsassOrderUtil`，并以反射方式兼容 Spring `@Order` | 完成 |
@@ -68,6 +68,7 @@
 - `isass-nocode-core` 已新增 v3 operation pipeline、provider router、cache facade/cache operation 等纯 Java 基础抽象，用于替代 v1/v2 的 service 排序链承载缓存/事件等增强的旧模式。
 - `isass-nocode-core` 中整文件注释的旧 lowcode MyBatis Plus 源码和未引用的 nocode `ICommonMapper`/XML 已删除；可运行的 MyBatis Plus 实现保留在 `isass-database-mybatisplus`。
 - `LoginUserUtil`、`LongSequence`、`SystemClock` 已从主动读取 `BeanProviderUtil` 改为显式 provider/setter，Spring Boot 运行时由 `isass-adapter-springboot` 通过 `ObjectProvider` 桥接。
+- 历史兼容包和 nocode v2 的 `IAnyJsonEntity` 已从主动读取 `BeanProviderUtil` 改为显式 `IDictTranslationProvider` provider/setter，并补充未配置 provider 时的跳过行为测试。
 
 ## 尚未迁移的兼容边界
 

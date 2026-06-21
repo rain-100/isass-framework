@@ -86,12 +86,18 @@ public class IsassSpringBootAutoConfiguration {
     public BeanProvider beanProvider(ConfigurableApplicationContext applicationContext,
                                      ObjectProvider<LoginUserService> loginUserServiceProvider,
                                      ObjectProvider<ISystemClock> systemClockProvider,
-                                     ObjectProvider<Sequence<?>> sequenceProvider) {
+                                     ObjectProvider<Sequence<?>> sequenceProvider,
+                                     ObjectProvider<vip.isass.framework.common.structure.IDictTranslationProvider> commonDictTranslationProvider,
+                                     ObjectProvider<vip.isass.framework.nocode.IDictTranslationProvider> nocodeDictTranslationProvider) {
         BeanProvider beanProvider = new SpringBeanProvider(applicationContext);
         BeanProviderUtil.setBeanProvider(beanProvider);
         LoginUserUtil.setLoginUserServiceProvider(loginUserServiceProvider::getIfAvailable);
         SystemClock.setSystemClockProvider(systemClockProvider::getIfAvailable);
         LongSequence.setSequenceProvider(() -> getLongSequence(sequenceProvider));
+        vip.isass.framework.common.structure.DictTranslationProviderUtil.setProviderSupplier(
+                commonDictTranslationProvider::getIfAvailable);
+        vip.isass.framework.nocode.DictTranslationProviderUtil.setProviderSupplier(
+                nocodeDictTranslationProvider::getIfAvailable);
         return beanProvider;
     }
 
