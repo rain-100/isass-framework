@@ -36,7 +36,7 @@
 3. **新增 access 接入层（controller/socketio/kafka动态生成）** [2024 L53]
    - 重要：高 — 低代码统一接入层设计
    - 难度：高 — 需抽象多种接入方式、动态生成端点
-   - 进展：纯 Java `NocodeAccessRequest` / `NocodeAccessHandler` / `NocodeCrudAccessRequests` 已落地；Spring MVC、socketio、kafka、定时任务等具体接入 adapter 尚未落地
+   - 进展：纯 Java `NocodeAccessRequest` / `NocodeAccessHandler` / `NocodeCrudAccessRequests` / `NocodeCrudAccessDefinition` 已落地，已统一标准 CRUD 操作名、请求参数名、必需参数和可选参数；Spring MVC、socketio、kafka、定时任务等具体接入 adapter 尚未落地
 
 4. **v3 代码生成器** [2024 L57]
    - 重要：高 — 低代码模块必备工具

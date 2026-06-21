@@ -41,6 +41,7 @@ v3 可以定义如下核心概念：
 - `NocodeOperationExecutor`：统一组合 route + pipeline 的 v3 调用入口，已落地；后续 access/controller/socketio/kafka 等接入层应调用 executor，而不是直接关心 provider 选择和 interceptor 编排。
 - `NocodeAccessRequest` / `NocodeAccessHandler`：框架无关的接入请求模型和处理入口，已落地；为 controller/socketio/kafka 等动态接入层提供统一底座。
 - `NocodeCrudAccessRequests`：标准 CRUD access request 工厂，已落地；统一 `id`、`body`、`criteria` 等参数名，避免不同接入层和 provider 使用不同字符串。
+- `NocodeCrudAccessDefinition`：标准 CRUD access 参数契约，已落地；定义每个标准操作的必需参数和可选参数，为后续动态 controller、socketio/kafka adapter 和 v3 代码生成器共享同一份操作描述。
 - `NocodeEntityDefinition` / `NocodeFieldDefinition`：框架无关的实体和字段元数据，已落地；用于后续动态 access、代码生成器和 ORM adapter 共享实体描述。
 - `NocodeEntityRegistry`：框架无关的实体元数据注册表，已落地；Spring/Micronaut/Solon adapter 可以各自负责发现实体定义，再注册到同一个 v3 registry。
 - `NocodeEntityRelation` / `NocodeDeleteOptions`：实体关系元数据和删除请求选项，已落地；access adapter 可通过请求参数表达是否需要级联删除或关联表删除，ORM adapter 后续按统一契约执行。
@@ -91,7 +92,7 @@ Spring Boot 场景下：
 - `NocodeCrudValidationInterceptor` 已补齐 save/update 的分组校验语义，为后续动态 controller 和 ORM provider 在执行前统一校验请求体提供底座。
 - `NocodeOperationExecutor` 已补齐 v3 标准调用入口，为后续动态 access 层生成提供稳定的纯 Java 调用门面。
 - `NocodeAccessRequest` 和 `NocodeAccessHandler` 已补齐 v3 access 接入层的纯 Java 底座，后续 Spring MVC 动态 controller 只需做协议映射。
-- `NocodeCrudOperation` 和 `NocodeCrudAccessRequests` 已补齐 v3 标准 CRUD 操作名与 access request 工厂，后续动态 controller、代码生成器和 ORM provider 可复用统一契约。
+- `NocodeCrudOperation`、`NocodeCrudAccessRequests` 和 `NocodeCrudAccessDefinition` 已补齐 v3 标准 CRUD 操作名、access request 工厂与参数契约，后续动态 controller、代码生成器和 ORM provider 可复用统一契约。
 - `NocodeEntityRelation`、`NocodeEntityRelationType` 和 `NocodeDeleteOptions` 已补齐级联删除/关联表删除的元数据和请求参数契约，后续 ORM adapter 可据此实现实际删除。
 - `NocodeFetchOptions` 已补齐关联查询请求选项，`findById`、`page`、`list` 可以通过 access 参数表达是否加载关联数据以及指定关联名；后续 ORM adapter 可据此实现一对一、一对多等关联查询。
 - `NocodeEntity`、`NocodeEntityDefinition`、`NocodeFieldDefinition`、`NocodeFieldAutoFill`、`NocodeCrudWriteInterceptor`、`NocodeEntityDefinitionProvider`、`NocodeEntityRegistry`、`NocodeQueryCriteria`、`NocodePageResult`、`NocodeQueryValidator` 等 v3 元数据、查询模型和写入处理器已补齐，为自定义实体继承 v3 接口、criteria 简化、分页对象统一、字段写入控制、自动填充、bigint 时间戳调试、ORM 无关实体探索和非 Spring SPI 自动发现提供第一阶段底座。
