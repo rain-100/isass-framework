@@ -31,6 +31,7 @@ v3 可以定义如下核心概念：
 - `NocodeOperationInterceptor`：方法增强接口，按顺序包裹 invoker，已落地。
 - `NocodeOperationPipeline`：把 interceptor 组合成调用链，已落地。
 - `NocodeOperationProvider` / `NocodeOperationRouter`：负责 local、remote、auto 路由，已落地。
+- `NocodeOperationExecutor`：统一组合 route + pipeline 的 v3 调用入口，已落地；后续 access/controller/socketio/kafka 等接入层应调用 executor，而不是直接关心 provider 选择和 interceptor 编排。
 - `NocodeCacheOperation`：缓存元数据，例如 cache name、key、cacheable/put/evict 行为，已落地。
 - `NocodeCacheManager`：isass 自有缓存门面，已落地。
 - `NocodeCacheKeyGenerator`：缓存 key 生成器，已落地。
@@ -64,6 +65,7 @@ Spring Boot 场景下：
 - `isass-nocode-core` 中旧 lowcode MyBatis Plus 注释源码和未引用 mapper 已删除，具体 ORM 实现继续放在 `isass-database-mybatisplus`。
 - `vip.isass.framework.common.structure` 暂时保留，兼容尚未迁移的业务微服务和工具代码；后续可继续缩小它在 `isass-core-common` 中的存在范围。
 - `NocodeCacheInterceptor` 已补齐 cacheable/put/evict 的执行语义，缓存增强不再需要通过实现完整 service 并参与排序链完成。
+- `NocodeOperationExecutor` 已补齐 v3 标准调用入口，为后续动态 access 层生成提供稳定的纯 Java 调用门面。
 
 ## Roadmap 对应
 
