@@ -23,6 +23,10 @@ public final class BeanProviderUtil {
         } : beanProvider;
     }
 
+    public static void setBeanProviderFromServiceLoader() {
+        setBeanProvider(IsassServiceLoader.loadFirst(BeanProvider.class).orElse(null));
+    }
+
     public static Object getContext() {
         return beanProvider.getContext();
     }

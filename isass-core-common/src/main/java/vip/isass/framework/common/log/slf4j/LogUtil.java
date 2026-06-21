@@ -2,6 +2,7 @@ package vip.isass.framework.common.log.slf4j;
 
 import cn.hutool.core.lang.Assert;
 import lombok.extern.slf4j.Slf4j;
+import vip.isass.framework.common.support.IsassServiceLoader;
 
 /**
  * 日志工具
@@ -15,6 +16,10 @@ public class LogUtil {
 
     public static void setLogLevelManager(LogLevelManager logLevelManager) {
         LogUtil.logLevelManager = logLevelManager == null ? new LogLevelManager.Noop() : logLevelManager;
+    }
+
+    public static void setLogLevelManagerFromServiceLoader() {
+        setLogLevelManager(IsassServiceLoader.loadFirst(LogLevelManager.class).orElse(null));
     }
 
     /**

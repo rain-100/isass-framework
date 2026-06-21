@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.ServiceLoader;
 
 public final class IsassServiceLoader {
@@ -22,6 +23,18 @@ public final class IsassServiceLoader {
                 .stream()
                 .map(ServiceLoader.Provider::get)
                 .toList();
+    }
+
+    public static <T> Optional<T> loadFirst(Class<T> serviceType) {
+        return loadFirst(serviceType, Thread.currentThread().getContextClassLoader());
+    }
+
+    public static <T> Optional<T> loadFirst(Class<T> serviceType, ClassLoader classLoader) {
+        ClassLoader loader = classLoader == null ? IsassServiceLoader.class.getClassLoader() : classLoader;
+        return ServiceLoader.load(serviceType, loader)
+                .stream()
+                .map(ServiceLoader.Provider::get)
+                .findFirst();
     }
 
     public static <T> List<T> mergeByClass(Collection<? extends T> first,

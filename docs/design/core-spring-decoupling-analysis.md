@@ -79,6 +79,7 @@
 - `SqlSessionConfig` 已从字段注入迁到构造器注入，通过 `ObjectProvider` 收集可选 mapper location provider 和 typehandler，便于后续继续抽离 Spring 配置边界。
 - `IsassServiceLoader` 已作为第一阶段 Java SPI 发现工具落地；`isass-core-common` 和 `isass-nocode-core` 通过 `META-INF/services/vip.isass.framework.common.support.Converter` 暴露默认 converter，Spring Boot adapter 合并 Spring Bean converter 与 SPI converter。
 - `IExceptionMapping` 已接入 Java SPI；core-common、web-springmvc、database-core、database-mybatisplus 通过 `META-INF/services` 暴露内置异常映射，`ExceptionAdvice` 合并 Spring Bean 映射和 SPI 映射，业务自定义 Bean 优先于同 class 的 SPI 默认实现。
+- `BeanProviderUtil` 和 `LogUtil` 已提供显式 `set*FromServiceLoader` 初始化入口；非 Spring runtime 可以通过 Java SPI 提供 no-arg 实现，也可以在 adapter 启动时继续主动调用 setter 注入带运行时上下文的实现。
 
 ## 尚未迁移的兼容边界
 
@@ -94,12 +95,12 @@
 
 ## 建议迁移顺序
 
-1. **SPI 化**：converter、exception mapping 已先接入 Java SPI；继续将 BeanProvider、LogLevelManager 的 adapter 接入整理为统一 Java SPI 贡献描述，便于 Micronaut/Solon adapter 复用。
+1. **SPI 化**：converter、exception mapping 已先接入 Java SPI；BeanProvider、LogLevelManager 已提供显式 SPI 初始化入口。下一步继续扫描非 core 模块，把仍可解耦的 Spring 注解和工具类迁出功能实现。
 2. **database adapter 化**：继续处理代码生成模板的 v3 输出边界，避免新生成代码继续绑定历史 v2/Spring 结构。
 3. **其他模块解耦**：继续扫描 `isass-*` 非 core 模块中可迁移的 Spring 依赖，尤其是 web/security/database/nocode 的边界。
 
 ## 风险
 
-- `BeanProviderUtil` 仍是静态门面，长期可以继续拆为更细的 registry/provider，减少核心代码对全局静态上下文的依赖。
+- `BeanProviderUtil` 仍是静态门面，长期可以继续拆为更细的 registry/provider，减少核心代码对全局静态上下文的依赖；对于需要运行时上下文的 adapter，主动 setter 仍比强制 SPI no-arg 更合适。
 - converter 同时兼容 Hutool 和 Spring 的历史语义，目前 Spring MVC 参数绑定由 adapter 桥接维持；已通过 `IsassServiceLoader.mergeByClass` 让运行时 Bean 优先于同 class 的 SPI 默认实现，后续仍需避免不同 class 但 source/target 相同的默认 converter 产生歧义。
 - database 相关模块当前大量依赖 Spring Data/MyBatis-Plus Spring 生态，短期作为 Spring-bound 实现处理，不应阻塞 `isass-core-*` 解耦。
