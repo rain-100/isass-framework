@@ -187,7 +187,7 @@ import org.apache.ibatis.session.AutoMappingUnknownColumnBehavior;
 import org.apache.ibatis.session.LocalCacheScope;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -200,7 +200,6 @@ import vip.isass.framework.database.mybatisplus.plus.handler.MybatisPlusMetaObje
 import vip.isass.framework.database.mybatisplus.typehandler.enums.ExtendedCompositeEnumTypeHandler;
 import vip.isass.framework.common.page.PageConst;
 
-import jakarta.annotation.Resource;
 import javax.sql.DataSource;
 import java.util.List;
 import java.util.Properties;
@@ -213,17 +212,23 @@ import java.util.Properties;
 @EnableTransactionManagement
 public class SqlSessionConfig implements TransactionManagementConfigurer {
 
-    @Resource
-    private DataSource dataSource;
+    private final DataSource dataSource;
 
-    @Autowired(required = false)
-    private List<IMapperLocationProvider> mapperLocationProviders;
+    private final List<IMapperLocationProvider> mapperLocationProviders;
 
-    @Autowired(required = false)
-    private List<BaseTypeHandler<?>> baseTypeHandlers;
+    private final List<BaseTypeHandler<?>> baseTypeHandlers;
 
-    @Value("${mybatis-plus.tableNameStrategy:none}")
-    private String tableNameStrategy;
+    private final String tableNameStrategy;
+
+    public SqlSessionConfig(DataSource dataSource,
+                            ObjectProvider<IMapperLocationProvider> mapperLocationProviders,
+                            ObjectProvider<BaseTypeHandler<?>> baseTypeHandlers,
+                            @Value("${mybatis-plus.tableNameStrategy:none}") String tableNameStrategy) {
+        this.dataSource = dataSource;
+        this.mapperLocationProviders = mapperLocationProviders.orderedStream().toList();
+        this.baseTypeHandlers = baseTypeHandlers.orderedStream().toList();
+        this.tableNameStrategy = tableNameStrategy;
+    }
 
     @Bean
     public DatabaseIdProvider databaseIdProvider() {

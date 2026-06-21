@@ -74,6 +74,7 @@
 - MyBatis Plus typehandler、`LongSequenceImpl`、`SystemClockImpl`、MySQL mapper location provider 已移除 `@Component`，改由 MyBatis Plus 自动配置显式注册；剩余 `@ComponentScan` 作为 Spring-bound 模块边界后续继续收缩。
 - `DatabaseAutoConfiguration`、`DatabaseMybatisPlusAutoConfiguration`、PostgreSQL MyBatis Plus 自动配置已移除多余 `@ComponentScan`；MyBatis Plus 主配置改为显式 `@Import(SqlSessionConfig.class)`。
 - MySQL 公共 repository 已移除 `@Repository` 和字段注入，改为构造器注入并由 MySQL 自动配置显式注册；MyBatis mapper 仍由 `@MapperScan` 发现。
+- `SqlSessionConfig` 已从字段注入迁到构造器注入，通过 `ObjectProvider` 收集可选 mapper location provider 和 typehandler，便于后续继续抽离 Spring 配置边界。
 
 ## 尚未迁移的兼容边界
 
