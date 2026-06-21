@@ -153,11 +153,7 @@
     - 重要：低 — 性能微优化
     - 难度：低 — 批量字段类型迁移
 
-28. **formatTimestamp/setupTimestamp** [2024 L66]
-    - 重要：低 — 调试辅助方法
-    - 难度：低 — 纯新增接口方法
-
-29. **开源许可证协议回顾** [2024 L74]
+28. **开源许可证协议回顾** [2024 L74]
     - 重要：中 — 法律合规
     - 难度：低 — 调研 + 修改
 
@@ -168,6 +164,9 @@
 
 2. **IsassErrorController 错误响应策略** [2024 L41]
    - 2026-06-21：新增 `docs/design/error-response-strategy.md`；`IsassErrorController` 对 `Accept: text/html` 的页面/静态资源错误只保留 HTTP 状态，对 JSON/API 请求返回 `Resp`，并修复状态映射列表为空时的 NPE 风险。
+
+3. **formatTimestamp/setupTimestamp 调试辅助方法** [2024 L66]
+   - 2026-06-21：`NocodeEntity` 已新增 `formatTimestamp(Function)` 和 `setupTimestamp(String, BiConsumer)` 默认方法，用于 v3 实体调试 Long 毫秒时间戳字段。
 
 ---
 
