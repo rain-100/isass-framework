@@ -3,12 +3,13 @@ package vip.isass.framework.apidoc.zyplayer.client;
 import tools.jackson.databind.JavaType;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
-import org.springframework.http.MediaType;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.RestClient;
 import vip.isass.framework.apidoc.zyplayer.ZyplayerText;
 
+import java.net.URI;
+import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
 import java.security.PrivateKey;
@@ -29,7 +30,9 @@ public class ZyplayerOpenApiClient implements ZyplayerClientOperations {
 
     private static final List<String> COLLECTION_DATA_FIELDS = List.of("list", "records", "rows", "items", "children");
 
-    private final RestClient restClient;
+    private final HttpClient httpClient;
+
+    private final URI baseUri;
 
     private final String apiKey;
 
@@ -38,11 +41,12 @@ public class ZyplayerOpenApiClient implements ZyplayerClientOperations {
     private final ObjectMapper objectMapper;
 
     public ZyplayerOpenApiClient(String baseUrl, String apiKey, String privateKey, ObjectMapper objectMapper) {
-        this(RestClient.builder().baseUrl(baseUrl).build(), apiKey, privateKey, objectMapper);
+        this(HttpClient.newHttpClient(), URI.create(baseUrl), apiKey, privateKey, objectMapper);
     }
 
-    public ZyplayerOpenApiClient(RestClient restClient, String apiKey, String privateKey, ObjectMapper objectMapper) {
-        this.restClient = restClient;
+    public ZyplayerOpenApiClient(HttpClient httpClient, URI baseUri, String apiKey, String privateKey, ObjectMapper objectMapper) {
+        this.httpClient = httpClient;
+        this.baseUri = baseUri;
         this.apiKey = apiKey;
         this.privateKey = parsePrivateKey(privateKey);
         this.objectMapper = objectMapper;
@@ -113,17 +117,11 @@ public class ZyplayerOpenApiClient implements ZyplayerClientOperations {
     private <T> T post(String path, Map<String, Object> payload, JavaType responseType) {
         try {
             String content = objectMapper.writeValueAsString(withSalt(payload));
-            MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
-            form.add("key", apiKey);
-            form.add("signature", sign(content));
-            form.add("content", content);
-
-            String response = restClient.post()
-                    .uri(path)
-                    .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                    .body(form)
-                    .retrieve()
-                    .body(String.class);
+            String response = httpClient.send(formRequest(path, Map.of(
+                            "key", apiKey,
+                            "signature", sign(content),
+                            "content", content)),
+                    HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8)).body();
             JsonNode root = objectMapper.readTree(response);
             int errCode = root.path("errCode").asInt(SUCCESS_CODE);
             if (errCode != SUCCESS_CODE) {
@@ -143,6 +141,30 @@ public class ZyplayerOpenApiClient implements ZyplayerClientOperations {
         } catch (Exception e) {
             throw new ZyplayerOpenApiException("zyplayer open-api request failed: " + path, e);
         }
+    }
+
+    private HttpRequest formRequest(String path, Map<String, String> form) {
+        return HttpRequest.newBuilder(baseUri.resolve(path))
+                .header("Content-Type", "application/x-www-form-urlencoded")
+                .POST(HttpRequest.BodyPublishers.ofString(formBody(form), StandardCharsets.UTF_8))
+                .build();
+    }
+
+    private String formBody(Map<String, String> form) {
+        StringBuilder body = new StringBuilder();
+        for (Map.Entry<String, String> entry : form.entrySet()) {
+            if (!body.isEmpty()) {
+                body.append('&');
+            }
+            body.append(urlEncode(entry.getKey()))
+                    .append('=')
+                    .append(urlEncode(entry.getValue()));
+        }
+        return body.toString();
+    }
+
+    private String urlEncode(String value) {
+        return URLEncoder.encode(value, StandardCharsets.UTF_8);
     }
 
     private JsonNode unwrapData(JsonNode data, JavaType responseType) {
