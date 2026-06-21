@@ -83,6 +83,7 @@
 - `isass-core-common/src/main/java/vip/isass/framework/common/structure/**` 仍保留历史 v2 包名，用于兼容未迁移的业务微服务和工具代码。
 - `isass-database-core` 的 Spring 绑定已初步归类：
   - `DatabaseAutoConfiguration` 已删除；原 `DatabaseExceptionMapping` 注册已迁到 Spring Boot adapter 的 classpath 条件装配。
+  - Spring Boot adapter 已新增 `@ConditionalOnIsassFeature` / `IsassFeature`，以 marker class 统一描述按 classpath 激活的可选功能装配；当前已用于 database-core 异常映射桥。
   - `LiquibaseServiceNaming` 已抽出为纯 Java 命名规则，负责服务级 changelog 路径和 Liquibase history/lock 表名；`AbstractLiquibaseConfiguration` / `LiquibaseConfigurer` 已移除 Spring 工具类依赖。
   - `AbstractLiquibaseConfiguration` / `LiquibaseConfigurer` 已迁到 `isass-adapter-springboot` 的 `vip.isass.framework.adapter.springboot.database.liquibase` 包，`SpringLiquibase`、`LiquibaseProperties`、`ResourceLoader` 桥接不再放在 database-core 源码中。
   - `isass-database-core` 已移除 Spring Boot JSON/JDBC/Liquibase/Test starter 的 compile 依赖；使用 Spring Boot Liquibase 桥的业务服务需要显式依赖 `spring-boot-starter-liquibase`。
