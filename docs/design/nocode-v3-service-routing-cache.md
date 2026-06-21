@@ -32,12 +32,14 @@ v3 拆成两层：
 v3 可以定义如下核心概念：
 
 - `NocodeOperation`：描述实体、操作名、参数、返回类型，已落地在 `isass-nocode-core`。
+- `NocodeCrudOperation`：标准 CRUD 操作名枚举，已落地；后续动态 controller、socketio/kafka access adapter、ORM provider 和代码生成器应复用同一组操作名。
 - `NocodeOperationInvoker`：执行实际本地或远程 provider，已落地。
 - `NocodeOperationInterceptor`：方法增强接口，按顺序包裹 invoker，已落地。
 - `NocodeOperationPipeline`：把 interceptor 组合成调用链，已落地。
 - `NocodeOperationProvider` / `NocodeOperationRouter`：负责 local、remote、auto 路由，已落地。
 - `NocodeOperationExecutor`：统一组合 route + pipeline 的 v3 调用入口，已落地；后续 access/controller/socketio/kafka 等接入层应调用 executor，而不是直接关心 provider 选择和 interceptor 编排。
 - `NocodeAccessRequest` / `NocodeAccessHandler`：框架无关的接入请求模型和处理入口，已落地；为 controller/socketio/kafka 等动态接入层提供统一底座。
+- `NocodeCrudAccessRequests`：标准 CRUD access request 工厂，已落地；统一 `id`、`body`、`criteria` 等参数名，避免不同接入层和 provider 使用不同字符串。
 - `NocodeEntityDefinition` / `NocodeFieldDefinition`：框架无关的实体和字段元数据，已落地；用于后续动态 access、代码生成器和 ORM adapter 共享实体描述。
 - `NocodeEntityRegistry`：框架无关的实体元数据注册表，已落地；Spring/Micronaut/Solon adapter 可以各自负责发现实体定义，再注册到同一个 v3 registry。
 - `NocodeEntity`：自定义实体的 v3 标记接口，已落地；业务实体可直接提供 entity name、display name、table name 和字段元数据，并生成 `NocodeEntityDefinition`。
@@ -80,6 +82,7 @@ Spring Boot 场景下：
 - `NocodeCacheInterceptor` 已补齐 cacheable/put/evict 的执行语义，缓存增强不再需要通过实现完整 service 并参与排序链完成。
 - `NocodeOperationExecutor` 已补齐 v3 标准调用入口，为后续动态 access 层生成提供稳定的纯 Java 调用门面。
 - `NocodeAccessRequest` 和 `NocodeAccessHandler` 已补齐 v3 access 接入层的纯 Java 底座，后续 Spring MVC 动态 controller 只需做协议映射。
+- `NocodeCrudOperation` 和 `NocodeCrudAccessRequests` 已补齐 v3 标准 CRUD 操作名与 access request 工厂，后续动态 controller、代码生成器和 ORM provider 可复用统一契约。
 - `NocodeEntity`、`NocodeEntityDefinition`、`NocodeFieldDefinition`、`NocodeEntityDefinitionProvider`、`NocodeEntityRegistry`、`NocodeQueryCriteria`、`NocodeQueryValidator` 等 v3 元数据和查询模型已补齐，为自定义实体继承 v3 接口、criteria 简化、ORM 无关实体探索和非 Spring SPI 自动发现提供第一阶段底座。
 
 ## Roadmap 对应
