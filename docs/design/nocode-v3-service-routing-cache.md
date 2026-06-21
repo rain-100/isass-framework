@@ -59,6 +59,7 @@ Spring Boot 场景下：
 - `StringToV2WhereConditionConverter` 已迁到 nocode v2 converter 包，避免 core-common 继续引用 v2 查询条件。
 - `V2MybatisPlusGenerator` 的模板变量和 nocode MyBatis XML namespace 已迁到 `vip.isass.framework.nocode` 包名。
 - 旧 Swagger/Knife4j 模块和框架源码中的 `io.swagger.annotations` 已移除，v2 接口文档描述后续以 smart-doc Javadoc 为准。
+- `isass-nocode-core` 中旧 lowcode MyBatis Plus 注释源码和未引用 mapper 已删除，具体 ORM 实现继续放在 `isass-database-mybatisplus`。
 - `vip.isass.framework.common.structure` 暂时保留，兼容尚未迁移的业务微服务和工具代码；后续可继续缩小它在 `isass-core-common` 中的存在范围。
 
 ## Roadmap 对应

@@ -66,6 +66,7 @@
 - `isass-web-swagger` 旧 Swagger/Knife4j 模块已移除，`isass-core-dependencies` 也已删除 `knife4j-dependencies` BOM 和 `isass-web-swagger` 版本管理；框架源码里的 `io.swagger.annotations` 已移除，接口文档后续走 smart-doc 生成 + zyplayer-doc 展示/调试。
 - `isass-core-common` 已显式声明 `slf4j-api`，不再依赖 Swagger/Knife4j 或其他传递依赖间接提供日志 API。
 - `isass-nocode-core` 已新增 v3 operation pipeline、provider router、cache facade/cache operation 等纯 Java 基础抽象，用于替代 v1/v2 的 service 排序链承载缓存/事件等增强的旧模式。
+- `isass-nocode-core` 中整文件注释的旧 lowcode MyBatis Plus 源码和未引用的 nocode `ICommonMapper`/XML 已删除；可运行的 MyBatis Plus 实现保留在 `isass-database-mybatisplus`。
 
 ## 尚未迁移的兼容边界
 
