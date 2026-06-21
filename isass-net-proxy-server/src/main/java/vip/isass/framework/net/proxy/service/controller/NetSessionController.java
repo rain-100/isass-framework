@@ -171,8 +171,6 @@ package vip.isass.framework.net.proxy.service.controller;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -194,7 +192,6 @@ import java.util.Map;
  * @author rain
  */
 @Slf4j
-@Api(tags = "网络会话服务")
 @RestController
 @RequestMapping("/${spring.application.name}/session")
 public class NetSessionController {
@@ -203,21 +200,18 @@ public class NetSessionController {
     private ISessionService sessionService;
 
     @PostMapping("/send")
-    @ApiOperation(value = "发送消息给客户端")
     public Resp<?> sendMessage(@RequestBody Message message) {
         sessionService.sendMessage(message);
         return Resp.bizSuccess();
     }
 
     @PostMapping("/send/batch")
-    @ApiOperation(value = "批量发送消息给客户端")
     public Resp<?> sendMessages(@RequestBody Collection<Message> messages) {
         sessionService.sendMessages(messages);
         return Resp.bizSuccess();
     }
 
     @PostMapping("/info")
-    @ApiOperation(value = "保存会话绑定信息")
     public Resp<?> saveSessionInfo(@RequestBody SessionBindingInfoChangeReq req) {
         if (StrUtil.isNotBlank(req.getSessionId())) {
             if (StrUtil.isNotBlank(req.getResetUserId())) {
@@ -270,13 +264,11 @@ public class NetSessionController {
      * @return 用户 id
      */
     @GetMapping("/{sessionId}/userId")
-    @ApiOperation(value = "获取用户id")
     public Resp<String> getUserId(@PathVariable("sessionId") String sessionId) {
         return Resp.bizSuccess(sessionService.getUserId(sessionId));
     }
 
     @PostMapping("/user/isOnline")
-    @ApiOperation(value = "批量判断用户是否在线")
     public Resp<Map<String, Boolean>> isOnline(@RequestBody Collection<String> userIds) {
         return Resp.bizSuccess(sessionService.isOnline(userIds));
     }
@@ -292,7 +284,6 @@ public class NetSessionController {
      * @return 别名
      */
     @GetMapping("/{sessionId}/alias")
-    @ApiOperation(value = "获取别名")
     public Resp<String> getAlias(@PathVariable("sessionId") String sessionId) {
         return Resp.bizSuccess(sessionService.getAlias(sessionId));
     }
@@ -304,7 +295,6 @@ public class NetSessionController {
      * @return 会话 id 列表
      */
     @GetMapping("/sessionIds")
-    @ApiOperation(value = "根据别名获取会话 id 列表")
     public Resp<Collection<String>> findSessionIdsByAlias(@RequestParam("alias") String alias) {
         return Resp.bizSuccess(sessionService.findSessionIdsByAlias(alias));
     }
@@ -315,7 +305,6 @@ public class NetSessionController {
      * @return 查询已有别名
      */
     @GetMapping("/alias")
-    @ApiOperation(value = "查询已有别名")
     public Resp<Collection<String>> findAliases(@RequestParam(name = "prefix", required = false) String prefix) {
         return Resp.bizSuccess(sessionService.findAliases(prefix));
     }
@@ -330,7 +319,6 @@ public class NetSessionController {
      * @return 标签列表
      */
     @GetMapping("/{sessionId}/tags")
-    @ApiOperation(value = "获取标签")
     public Resp<Collection<String>> getTags(@PathVariable("sessionId") String sessionId) {
         return Resp.bizSuccess(sessionService.findTags(sessionId));
     }
@@ -341,7 +329,6 @@ public class NetSessionController {
      * @return 标签列表
      */
     @GetMapping("/tags/{userId}")
-    @ApiOperation(value = "根据用户获取标签")
     public Resp<Collection<String>> getTagsByUserId(@PathVariable("userId") String userId) {
         return Resp.bizSuccess(sessionService.findTagsByUserId(userId));
     }
@@ -353,7 +340,6 @@ public class NetSessionController {
      * @return 符合条件的会话集合
      */
     @GetMapping("/any")
-    @ApiOperation(value = "根据任意标签获取会话id")
     public Resp<Collection<String>> findSessionsByAnyMatchTags(@RequestParam("tags") Collection<String> tags) {
         return Resp.bizSuccess(sessionService.findSessionsByAnyMatchTags(tags));
     }
@@ -366,7 +352,6 @@ public class NetSessionController {
      * @return 是否拥有标签
      */
     @GetMapping("/{sessionId}/containAnyTag")
-    @ApiOperation(value = "批量发送消息给客户端")
     public Resp<Boolean> containAnyTag(@PathVariable("sessionId") String sessionId, @RequestParam("tags") Collection<String> tags) {
         return Resp.bizSuccess(sessionService.containAnyTag(sessionId, tags));
     }
@@ -379,7 +364,6 @@ public class NetSessionController {
      * @return 是否拥有标签
      */
     @GetMapping("/{sessionId}/containTags")
-    @ApiOperation(value = "批量发送消息给客户端")
     public Resp<Boolean> containAllTags(@PathVariable("sessionId") String sessionId, @RequestParam("tags") Collection<String> tags) {
         return Resp.bizSuccess(sessionService.containAllTags(sessionId, tags));
     }

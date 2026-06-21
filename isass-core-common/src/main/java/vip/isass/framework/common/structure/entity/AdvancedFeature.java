@@ -1,7 +1,4 @@
 package vip.isass.framework.common.structure.entity;
-
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -21,16 +18,9 @@ import java.util.Map;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel("高级特性")
 public class AdvancedFeature {
-
-    @ApiModelProperty("日期时间格式化")
     private Map<String, String> dateFormat;
-
-    @ApiModelProperty("小数位数")
     private Map<String, Integer> decimalPlaces;
-
-    @ApiModelProperty("字典翻译")
     private Map<String, String> dictTranslation;
 
 }

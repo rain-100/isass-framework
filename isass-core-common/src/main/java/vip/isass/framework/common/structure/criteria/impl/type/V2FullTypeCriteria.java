@@ -168,8 +168,6 @@
  */
 
 package vip.isass.framework.common.structure.criteria.impl.type;
-
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
 import vip.isass.framework.common.structure.criteria.IV2Criteria;
 import vip.isass.framework.common.structure.criteria.V2WhereCondition;
@@ -234,16 +232,12 @@ public class V2FullTypeCriteria<E extends IV2Entity<E>, C extends V2FullTypeCrit
     /**
      * 分页页码
      */
-    @ApiModelProperty("页码，默认1")
     private Long pageNum;
 
     /**
      * 每页大小
      */
-    @ApiModelProperty("分页大小，默认20")
     private Long pageSize;
-
-    @ApiModelProperty(hidden = true)
     private Boolean searchCountFlag;
 
     @Override

@@ -168,8 +168,6 @@
  */
 
 package vip.isass.framework.common.structure.criteria.field;
-
-import io.swagger.annotations.ApiModel;
 import vip.isass.framework.common.structure.criteria.type.IV2SelectColumnCriteria;
 import vip.isass.framework.common.structure.criteria.type.IV2WhereConditionCriteria;
 import vip.isass.framework.common.structure.entity.IV2ParentIdEntity;
@@ -183,7 +181,6 @@ import java.util.Collection;
  *
  * @author Rain
  */
-@ApiModel
 public interface IV2ParentIdCriteria<
     PK extends Serializable,
     E extends IV2ParentIdEntity<PK, E>,

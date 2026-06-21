@@ -38,6 +38,8 @@
 | `IV2ServiceManager` | `@Primary` | v2 service manager 在 Spring 中作为主 Bean | 已移除 core 注解；如后续仍需要 Spring primary 语义，由 adapter 或具体 Spring 模块负责 | 完成 |
 | `isass-nocode-core/v2/service/*` | Spring `Ordered`、`@Primary` | nocode v2 service 链路 | 已与 core-common v2 service 同步迁移到 `IsassOrdered` | 完成 |
 | `isass-nocode-core/src/test` | `@SpringBootTest`、`@Transactional` | 集成测试事务和 Spring 容器启动 | main 源码解耦后，测试拆成纯 Java 单测和 Spring adapter 集成测试 | P2 |
+| `StringToV2WhereConditionConverter` | 依赖历史 `common.structure` v2 查询条件 | JSON 字符串转 v2 查询条件 | 已迁到 `isass-nocode-core` 的 `vip.isass.framework.nocode.v2.converter` 包，Spring Boot adapter 继续注册 | 完成 |
+| `SensitiveDataProperty` | 引用历史 `common.structure` v2 entity 常量 | 默认查询时过滤敏感字段 | 已改为 core 自有字段名常量，不再依赖 v2 entity | 完成 |
 | `isass-core-common/pom.xml` | `spring-boot`、`spring-context`、`spring-aop`、`spring-boot-starter-json` | 原先为运行时 Bean 工具、Converter、AopUtils、LoggingSystem 等提供依赖 | 已移除 Spring 依赖和 Boot JSON starter；core 保留明确的 Jackson 2 / Jackson 3 依赖。`isass-nocode-core` 自身使用 Jackson 3，已显式声明 `tools.jackson.core:jackson-databind` | 完成 |
 
 ## 已完成的阶段性迁移
@@ -59,13 +61,15 @@
 - `isass-nocode-core` 的 main 源码已不再反向引用 `vip.isass.framework.common.structure`，v2 迁移包内已补齐批量保存、未实现方法异常、db entity 和 db entity 转换器。
 - `isass-core-dependencies` 已纳入 `isass-nocode-core` 版本管理。
 - `isass-web-springmvc`、`isass-database-core`、`isass-database-mybatisplus`、`isass-adapter-springboot` 和 `isass-service-attachment` 已迁到 `vip.isass.framework.nocode.v2`，`common.structure` 暂时只作为历史兼容包保留。
+- `StringToV2WhereConditionConverter` 已从 core-common 迁到 nocode v2，`SensitiveDataProperty` 已移除对历史 v2 entity 的引用；core-common 外部已无 `common.structure` 引用。
+- `V2MybatisPlusGenerator` 的模板变量和 nocode MyBatis XML namespace 已迁到 `vip.isass.framework.nocode` 包名。
+- `isass-web-swagger` 旧 Swagger/Knife4j 模块已移除，`isass-core-dependencies` 也已删除 `knife4j-dependencies` BOM 和 `isass-web-swagger` 版本管理；框架源码里的 `io.swagger.annotations` 已移除，接口文档后续走 smart-doc 生成 + zyplayer-doc 展示/调试。
+- `isass-core-common` 已显式声明 `slf4j-api`，不再依赖 Swagger/Knife4j 或其他传递依赖间接提供日志 API。
 - `isass-nocode-core` 已新增 v3 operation pipeline、provider router、cache facade/cache operation 等纯 Java 基础抽象，用于替代 v1/v2 的 service 排序链承载缓存/事件等增强的旧模式。
 
 ## 尚未迁移的兼容边界
 
 - `isass-core-common/src/main/java/vip/isass/framework/common/structure/**` 仍保留历史 v2 包名，用于兼容未迁移的业务微服务和工具代码。
-- `StringToV2WhereConditionConverter` 仍引用历史 `common.structure` 条件对象，后续应迁到 `isass-nocode-core` 或通过 converter SPI 由 nocode 模块贡献。
-- `SensitiveDataProperty` 仍引用历史 v2 trace / logic-delete entity，后续应改为更小的纯 Java marker 抽象，或迁入 nocode 边界。
 
 ## 建议迁移顺序
 

@@ -261,12 +261,12 @@ public class V2MybatisPlusGenerator {
                                         .put("feignPackage", meta.getPackageName() + "." + meta.getModuleName() + ".api.feign")
                                         .put("tablePrefix", meta.getTablePrefix())
 
-                                        .put("idEntity", staticModels.get("vip.isass.framework.structure.entity.IV2IdEntity"))
-                                        .put("parentIdEntity", staticModels.get("vip.isass.framework.structure.entity.IV2ParentIdEntity"))
-                                        .put("logicDeleteEntity", staticModels.get("vip.isass.framework.structure.entity.IV2LogicDeleteEntity"))
-                                        .put("tenantEntity", staticModels.get("vip.isass.framework.structure.entity.IV2TenantEntity"))
-                                        .put("traceEntity", staticModels.get("vip.isass.framework.structure.entity.IV2TraceEntity"))
-                                        .put("versionEntity", staticModels.get("vip.isass.framework.structure.entity.IV2VersionEntity"))
+                                        .put("idEntity", staticModels.get("vip.isass.framework.nocode.v2.entity.IV2IdEntity"))
+                                        .put("parentIdEntity", staticModels.get("vip.isass.framework.nocode.v2.entity.IV2ParentIdEntity"))
+                                        .put("logicDeleteEntity", staticModels.get("vip.isass.framework.nocode.v2.entity.IV2LogicDeleteEntity"))
+                                        .put("tenantEntity", staticModels.get("vip.isass.framework.nocode.v2.entity.IV2TenantEntity"))
+                                        .put("traceEntity", staticModels.get("vip.isass.framework.nocode.v2.entity.IV2TraceEntity"))
+                                        .put("versionEntity", staticModels.get("vip.isass.framework.nocode.v2.entity.IV2VersionEntity"))
                                         .build()
                                 )
                                 .customFile(CollUtil.newArrayList(

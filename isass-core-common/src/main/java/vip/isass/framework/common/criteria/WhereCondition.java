@@ -168,8 +168,6 @@
  */
 
 package vip.isass.framework.common.criteria;
-
-import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -183,14 +181,8 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class WhereCondition {
-
-    @ApiModelProperty(hidden = true)
     private String columnName;
-
-    @ApiModelProperty(hidden = true)
     private Condition condition;
-
-    @ApiModelProperty(hidden = true)
     private Object value;
 
 }

@@ -168,8 +168,6 @@
  */
 
 package vip.isass.framework.common.structure.criteria.impl.type;
-
-import io.swagger.annotations.ApiModelProperty;
 import lombok.ToString;
 import vip.isass.framework.common.structure.criteria.type.IV2PageCriteria;
 import vip.isass.framework.common.structure.entity.IV2Entity;
@@ -192,8 +190,6 @@ public class V2PageCriteria<E extends IV2Entity<E>, C extends V2PageCriteria<E, 
      * 每页大小
      */
     private Long pageSize;
-
-    @ApiModelProperty(hidden = true)
     private Boolean searchCountFlag;
 
     @Override

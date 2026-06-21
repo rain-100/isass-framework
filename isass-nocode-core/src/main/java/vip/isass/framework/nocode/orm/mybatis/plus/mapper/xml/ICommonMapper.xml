@@ -168,7 +168,7 @@
   -->
 
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="vip.isass.framework.lowcode.orm.mybatis.plus.mapper.ICommonMapper">
+<mapper namespace="vip.isass.framework.nocode.orm.mybatis.plus.mapper.ICommonMapper">
 
     <select id="findAllSubRecords" resultType="java.util.Map">
         SELECT t2.*

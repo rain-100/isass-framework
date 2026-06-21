@@ -170,8 +170,6 @@
 package vip.isass.framework.common.entity;
 
 import cn.hutool.core.collection.CollUtil;
-import vip.isass.framework.common.structure.entity.IV2LogicDeleteEntity;
-import vip.isass.framework.common.structure.entity.IV2TraceEntity;
 
 import java.util.HashSet;
 
@@ -192,9 +190,9 @@ public interface SensitiveDataProperty {
         UserTracedEntity.MODIFY_USER_ID_PROPERTY,
         UserTracedEntity.MODIFY_USER_NAME_PROPERTY,
 
-        IV2LogicDeleteEntity.DELETE_FLAG_PROPERTY_NAME,
-        IV2TraceEntity.CREATE_USER_ID_PROPERTY_NAME,
-        IV2TraceEntity.MODIFY_USER_ID_PROPERTY_NAME,
+        "deleteFlag",
+        "createUserId",
+        "modifyUserId",
 
         "password");
 

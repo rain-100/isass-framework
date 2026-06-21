@@ -171,7 +171,6 @@ package vip.isass.framework.common.criteria;
 
 import cn.hutool.core.collection.CollUtil;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import vip.isass.framework.common.entity.IdEntity;
@@ -193,47 +192,19 @@ public class IdCriteria<
     extends AbstractCriteria<E, C> {
 
     //************************************************** id **************************************************//
-
-    @ApiModelProperty("id等于")
     private PK id;
-
-    @ApiModelProperty(hidden = true, value = "或者id等于")
     private PK orId;
-
-    @ApiModelProperty(hidden = true, value = "id不等于")
     private PK idNotEqual;
-
-    @ApiModelProperty(hidden = true, value = "或者id不等于")
     private PK orIdNotEqual;
-
-    @ApiModelProperty(hidden = true, value = "id所在范围")
     private Collection<PK> idIn;
-
-    @ApiModelProperty(hidden = true, value = "或者id所在范围")
     private Collection<PK> orIdIn;
-
-    @ApiModelProperty(hidden = true, value = "id不在范围")
     private Collection<PK> idNotIn;
-
-    @ApiModelProperty(hidden = true, value = "或者id不在范围")
     private Collection<PK> orIdNotIn;
-
-    @ApiModelProperty(hidden = true, value = "id包含字符")
     private String idLike;
-
-    @ApiModelProperty(hidden = true, value = "或者id包含字符")
     private String orIdLike;
-
-    @ApiModelProperty(hidden = true, value = "id不包含字符")
     private String idNotLike;
-
-    @ApiModelProperty(hidden = true, value = "或者id不包含字符")
     private String orIdNotLike;
-
-    @ApiModelProperty(hidden = true, value = "id开始以")
     private String idStartWith;
-
-    @ApiModelProperty(hidden = true, value = "或者id开始以")
     private String orIdStartWith;
 
     //************************************************** id setter **************************************************//

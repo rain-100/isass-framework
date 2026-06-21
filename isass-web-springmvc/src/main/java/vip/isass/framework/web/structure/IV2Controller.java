@@ -170,8 +170,6 @@
 package vip.isass.framework.web.structure;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -206,21 +204,18 @@ public interface IV2Controller<
 
     @Override
     @PostMapping(ADD_URI_SECOND_PART)
-    @ApiOperation(value = "增-单实体", notes = "id不需要赋值，会自动生成")
     default E add(@RequestBody E entity) {
         return getService().add(entity);
     }
 
     @Override
     @PostMapping(ADD_BATCH_URI_SECOND_PART)
-    @ApiOperation(value = "增-批量实体", notes = "id不需要赋值，会自动生成")
     default Collection<E> addBatch(@RequestBody Collection<E> entities) {
         return getService().addBatch(entities);
     }
 
     @Override
     @PostMapping(ADD_BATCH_BY_BATCH_SIZE_URI_SECOND_PART)
-    @ApiOperation(value = "增-批量实体-批量数量", notes = "id不需要赋值，会自动生成", hidden = true)
     default Collection<E> addBatchByBatchSize(@RequestBody Collection<E> entities,
                                               @PathVariable("batchSize") int batchSize) {
         return getService().addBatchByBatchSize(entities, batchSize);
@@ -228,28 +223,24 @@ public interface IV2Controller<
 
     @Override
     @PostMapping(ADD_IF_ABSENT_BY_CRITERIA_URI_SECOND_PART)
-    @ApiOperation(value = "增-单实体-根据条件-不存在时", notes = "id不需要赋值，会自动生成")
     default E addIfAbsentByCriteria(@RequestBody E entity, @ModelAttribute C criteria) {
         return getService().addIfAbsentByCriteria(entity, criteria);
     }
 
     @Override
     @PostMapping(ADD_IF_ABSENT_BY_COLUMNS_URI_SECOND_PART)
-    @ApiOperation(value = "增-单实体-根据字段-不存在时", notes = "id不需要赋值，会自动生成")
     default E addIfAbsentByColumns(@RequestBody E entity, @PathVariable("uniqueColumns") List<String> uniqueColumns) {
         return getService().addIfAbsentByColumns(entity, uniqueColumns);
     }
 
     @Override
     @PostMapping(ADD_BATCH_IF_ABSENT_BY_CRITERIA_URI_SECOND_PART)
-    @ApiOperation(value = "增-批量实体-根据条件-不存在时")
     default Integer addBatchIfAbsentByCriteria(@RequestBody List<E> entities, @ModelAttribute C criteria) {
         return getService().addBatchIfAbsentByCriteria(entities, criteria);
     }
 
     @Override
     @PostMapping(ADD_BATCH_IF_ABSENT_BY_COLUMNS_URI_SECOND_PART)
-    @ApiOperation(value = "增-批量实体-根据字段-不存在时")
     default Integer addBatchIfAbsentByColumns(@RequestBody List<E> entities,
                                               @PathVariable("uniqueColumns") List<String> uniqueColumns) {
         return getService().addBatchIfAbsentByColumns(entities, uniqueColumns);
@@ -257,25 +248,18 @@ public interface IV2Controller<
 
     @Override
     @PostMapping(ADD_OR_UPDATE_BY_CRITERIA_URI_SECOND_PART)
-    @ApiOperation(value = "增改-单实体-根据条件")
     default Boolean addOrUpdateByCriteria(@RequestBody E entity, @ModelAttribute C criteria) {
         return getService().addOrUpdateByCriteria(entity, criteria);
     }
 
     @Override
     @PostMapping(ADD_OR_UPDATE_BY_COLUMNS_URI_SECOND_PART)
-    @ApiOperation(value = "增改-单实体-根据字段",
-            notes = "根据 uniqueColumns 字段和 entity 对应的值作为查询条件，如果已存在数据，则更新数据，否则新增数据。")
-    @ApiImplicitParam(name = "uniqueColumns", value = "唯一字段名列表，根据此字段判断需要新增或者修改", required = true)
     default E addOrUpdateByColumns(@RequestBody E entity, @PathVariable("uniqueColumns") List<String> uniqueColumns) {
         return getService().addOrUpdateByColumns(entity, uniqueColumns);
     }
 
     @Override
     @PostMapping(ADD_OR_UPDATE_BATCH_BY_COLUMNS_URI_SECOND_PART)
-    @ApiOperation(value = "增改-批量实体-根据字段",
-            notes = "根据 uniqueColumns 字段和 每个 entity 对应的值作为查询条件，如果已存在数据，则更新数据，否则新增数据。")
-    @ApiImplicitParam(name = "uniqueColumns", value = "唯一字段名列表，根据此字段判断需要新增或者修改", required = true)
     default Integer addOrUpdateBatchByColumns(@RequestBody List<E> entities,
                                               @PathVariable("uniqueColumns") List<String> uniqueColumns) {
         return getService().addOrUpdateBatchByColumns(entities, uniqueColumns);
@@ -287,21 +271,18 @@ public interface IV2Controller<
 
     @Override
     @DeleteMapping(DELETE_BY_ID_URI_SECOND_PART)
-    @ApiOperation(value = "删-根据id")
     default Boolean deleteById(@PathVariable("id") Serializable id) {
         return getService().deleteById(id);
     }
 
     @Override
     @DeleteMapping(DELETE_BY_IDS_URI_SECOND_PART)
-    @ApiOperation(value = "删-根据批量id")
     default Boolean deleteByIds(@PathVariable("ids") Collection<Serializable> ids) {
         return getService().deleteByIds(ids);
     }
 
     @Override
     @DeleteMapping(DELETE_BY_CRITERIA_URI_SECOND_PART)
-    @ApiOperation(value = "删-根据条件")
     default Boolean deleteByCriteria(@ModelAttribute C criteria) {
         return getService().deleteByCriteria(criteria);
     }
@@ -312,42 +293,36 @@ public interface IV2Controller<
 
     @Override
     @PutMapping(UPDATE_BY_ID_URI_SECOND_PART)
-    @ApiOperation(value = "改-根据id-非空字段")
     default Boolean updateById(@RequestBody E entity) {
         return getService().updateById(entity);
     }
 
     @Override
     @PutMapping(UPDATE_ALL_COLUMNS_BY_ID_URI_SECOND_PART)
-    @ApiOperation(value = "改-根据id-全部字段")
     default Boolean updateAllColumnsById(@RequestBody E entity) {
         return getService().updateAllColumnsById(entity);
     }
 
     @Override
     @PutMapping(UPDATE_BY_ID_OR_EXCEPTION_URI_SECOND_PART)
-    @ApiOperation(value = "改-根据id-异常", hidden = true)
     default void updateByIdOrException(@RequestBody E entity) {
         getService().updateByIdOrException(entity);
     }
 
     @Override
     @PutMapping(UPDATE_BY_CRITERIA_URI_SECOND_PART)
-    @ApiOperation(value = "改-根据条件")
     default Boolean updateByCriteria(@RequestBody E entity, @ModelAttribute C criteria) {
         return getService().updateByCriteria(entity, criteria);
     }
 
     @Override
     @PutMapping(UPDATE_BY_CRITERIA_OR_EXCEPTION_URI_SECOND_PART)
-    @ApiOperation(value = "改-根据条件-异常", hidden = true)
     default void updateByCriteriaOrException(@RequestBody E entity, @ModelAttribute C criteria) {
         getService().updateByCriteriaOrException(entity, criteria);
     }
 
     @Override
     @PostMapping(BATCH_SAVE_URI_SECOND_PART)
-    @ApiOperation(value = "增删改-批量操作")
     default void batchSave(@RequestBody BatchSave<E> batchSave) {
         getService().batchSave(batchSave);
     }
@@ -358,84 +333,72 @@ public interface IV2Controller<
 
     @Override
     @GetMapping(GET_BY_ID_URI_SECOND_PART)
-    @ApiOperation(value = "查-单实体-根据id")
     default E getById(@PathVariable("id") Serializable id) {
         return getService().getById(id);
     }
 
     @Override
     @GetMapping(GET_BY_ID_OR_EXCEPTION_URI_SECOND_PART)
-    @ApiOperation(value = "查-单实体-根据id-异常")
     default E getByIdOrException(@PathVariable("id") Serializable id) {
         return getService().getByIdOrException(id);
     }
 
     @Override
     @GetMapping(GET_BY_CRITERIA_URI_SECOND_PART)
-    @ApiOperation(value = "查-单实体-根据条件")
     default E getByCriteria(@ModelAttribute C criteria) {
         return getService().getByCriteria(criteria);
     }
 
     @Override
     @GetMapping(GET_BY_CRITERIA_OR_WARN_URI_SECOND_PART)
-    @ApiOperation(value = "查-单实体-根据条件-警告", hidden = true)
     default E getByCriteriaOrWarn(@ModelAttribute C criteria) {
         return getService().getByCriteriaOrWarn(criteria);
     }
 
     @Override
     @GetMapping(GET_BY_CRITERIA_OR_EXCEPTION_URI_SECOND_PART)
-    @ApiOperation(value = "查-单实体-根据条件-异常")
     default E getByCriteriaOrException(@ModelAttribute C criteria) {
         return getService().getByCriteriaOrException(criteria);
     }
 
     @Override
     @GetMapping(FIND_BY_CRITERIA_URI_SECOND_PART)
-    @ApiOperation(value = "查-列表-根据条件")
     default List<E> findByCriteria(@ModelAttribute C criteria) {
         return getService().findByCriteria(criteria);
     }
 
     @Override
     @GetMapping(FIND_PAGE_BY_CRITERIA_URI_SECOND_PART)
-    @ApiOperation(value = "查-分页列表-根据条件")
     default IPage<E> findPageByCriteria(@ModelAttribute C criteria) {
         return getService().findPageByCriteria(criteria);
     }
 
     @Override
     @GetMapping(FIND_ALL_URI_SECOND_PART)
-    @ApiOperation(value = "查-列表-全部")
     default List<E> findAll() {
         return getService().findAll();
     }
 
     @Override
     @GetMapping(COUNT_BY_CRITERIA_URI_SECOND_PART)
-    @ApiOperation(value = "查-实体数量-根据条件")
     default Integer countByCriteria(@ModelAttribute C criteria) {
         return getService().countByCriteria(criteria);
     }
 
     @Override
     @GetMapping(COUNT_ALL_URI_SECOND_PART)
-    @ApiOperation(value = "查-实体数量-全部")
     default Integer countAll() {
         return getService().countAll();
     }
 
     @Override
     @GetMapping(IS_PRESENT_BY_ID_URI_SECOND_PART)
-    @ApiOperation(value = "查-是否存在-根据id")
     default Boolean isPresentById(@PathVariable("id") Serializable id) {
         return getService().isPresentById(id);
     }
 
     @Override
     @GetMapping(IS_PRESENT_BY_COLUMN_URI_SECOND_PART)
-    @ApiOperation(value = "查-是否存在-根据字段")
     default Boolean isPresentByColumn(@PathVariable("columnName") String columnName,
                                       @PathVariable("value") Object value) {
         return getService().isPresentByColumn(columnName, value);
@@ -443,14 +406,12 @@ public interface IV2Controller<
 
     @Override
     @GetMapping(IS_PRESENT_BY_CRITERIA_URI_SECOND_PART)
-    @ApiOperation(value = "查-是否存在-根据条件")
     default Boolean isPresentByCriteria(@ModelAttribute C criteria) {
         return getService().isPresentByCriteria(criteria);
     }
 
     @Override
     @GetMapping(IS_ABSENT_BY_COLUMN_URI_SECOND_PART)
-    @ApiOperation(value = "查-是否不存在-根据字段")
     default Boolean isAbsentByColumn(@PathVariable("columnName") String columnName,
                                      @PathVariable("value") Object value) {
         return getService().isAbsentByColumn(columnName, value);
@@ -458,21 +419,18 @@ public interface IV2Controller<
 
     @Override
     @GetMapping(IS_ABSENT_BY_CRITERIA_URI_SECOND_PART)
-    @ApiOperation(value = "查-是否不存在-根据条件")
     default Boolean isAbsentByCriteria(@ModelAttribute C criteria) {
         return getService().isAbsentByCriteria(criteria);
     }
 
     @Override
     @GetMapping(EXCEPTION_IF_PRESENT_BY_CRITERIA_URI_SECOND_PART)
-    @ApiOperation(value = "查-存在时异常-根据条件", hidden = true)
     default void exceptionIfPresentByCriteria(@ModelAttribute C criteria) {
         getService().exceptionIfPresentByCriteria(criteria);
     }
 
     @Override
     @GetMapping(EXCEPTION_IF_ABSENT_BY_CRITERIA_URI_SECOND_PART)
-    @ApiOperation(value = "查-不存在时异常-根据条件", hidden = true)
     default void exceptionIfAbsentByCriteria(@ModelAttribute C criteria) {
         getService().exceptionIfAbsentByCriteria(criteria);
     }

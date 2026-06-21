@@ -311,9 +311,6 @@
         <!-- apache-commons-->
         <commons-compress.version>1.28.0</commons-compress.version>
 
-        <!-- api接口文档 -->
-        <knife4j.version>4.5.0</knife4j.version>
-
         <!-- 安全权限加解密 -->
         <jjwt.version>0.13.0</jjwt.version>
         <jasypt.version>3.0.5</jasypt.version>
@@ -348,6 +345,12 @@
                 <scope>import</scope>
             </dependency>
 
+            <dependency>
+                <groupId>cn.hutool</groupId>
+                <artifactId>hutool-all</artifactId>
+                <version>${hutool.version}</version>
+            </dependency>
+
             <!-- 需要放在 spring-cloud-dependencies 前面，里面的 spring-cloud-commons-dependencies 依赖传递了 okhttp4.12.0 -->
             <dependency>
                 <groupId>com.squareup.okhttp3</groupId>
@@ -380,14 +383,6 @@
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-dependencies</artifactId>
                 <version>${spring-cloud.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-
-            <dependency>
-                <groupId>com.github.xiaoymin</groupId>
-                <artifactId>knife4j-dependencies</artifactId>
-                <version>${knife4j.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -455,12 +450,6 @@
                 <version>${isass.version}</version>
             </dependency>
 
-
-            <dependency>
-                <groupId>vip.isass</groupId>
-                <artifactId>isass-web-swagger</artifactId>
-                <version>${isass.version}</version>
-            </dependency>
 
             <dependency>
                 <groupId>vip.isass</groupId>

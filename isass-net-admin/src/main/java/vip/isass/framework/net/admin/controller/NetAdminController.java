@@ -169,8 +169,6 @@
 package vip.isass.framework.net.admin.controller;
 
 import cn.hutool.core.collection.CollUtil;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -190,7 +188,6 @@ import java.util.List;
  * @author rain
  */
 @Slf4j
-@Api(tags = "网络管理服务")
 @RestController
 @RequestMapping("/${spring.application.name}/net/admin/session")
 public class NetAdminController {
@@ -204,7 +201,6 @@ public class NetAdminController {
      * @return 会话信息集合
      */
     @GetMapping("/sessionInfoCollection")
-    @ApiOperation(value = "获取所有会话信息(用于调试)")
     public Resp<SessionInfoCollection> getSessionInfoCollection() {
         return Resp.bizSuccess(sessionService.getSessionInfoCollection());
     }
@@ -215,7 +211,6 @@ public class NetAdminController {
      * @return 在线设备 id 集合
      */
     @GetMapping("/equipment/online")
-    @ApiOperation(value = "获取所有在线设备")
     public Resp<Collection<OnlineEquipmentVo>> findOnlineEquipments() {
         Collection<String> equipmentAliases = sessionService.findAliases("equipmentId:");
         if (CollUtil.isEmpty(equipmentAliases)) {

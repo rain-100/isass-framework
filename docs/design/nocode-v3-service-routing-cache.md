@@ -56,6 +56,9 @@ Spring Boot 场景下：
 - `isass-core-dependencies` 已纳入 `isass-nocode-core` 版本管理，业务模块可以直接声明依赖而不写版本。
 - `isass-web-springmvc`、`isass-database-core`、`isass-database-mybatisplus`、`isass-adapter-springboot` 已改为依赖并使用 `isass-nocode-core` 的 v2 类型。
 - `isass-service-attachment` 已作为首个适配项目，把 v2 低代码 entity、criteria、service 导入迁移到 `vip.isass.framework.nocode.v2`。
+- `StringToV2WhereConditionConverter` 已迁到 nocode v2 converter 包，避免 core-common 继续引用 v2 查询条件。
+- `V2MybatisPlusGenerator` 的模板变量和 nocode MyBatis XML namespace 已迁到 `vip.isass.framework.nocode` 包名。
+- 旧 Swagger/Knife4j 模块和框架源码中的 `io.swagger.annotations` 已移除，v2 接口文档描述后续以 smart-doc Javadoc 为准。
 - `vip.isass.framework.common.structure` 暂时保留，兼容尚未迁移的业务微服务和工具代码；后续可继续缩小它在 `isass-core-common` 中的存在范围。
 
 ## Roadmap 对应
