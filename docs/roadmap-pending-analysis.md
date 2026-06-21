@@ -89,11 +89,6 @@
     - 重要：中 — 数据校验标准化
     - 难度：中 — 需集成 JSR303 + 优化响应消息
 
-13. **service 事件监听（前置/后置）** [2024 L62]
-    - 重要：中 — 业务扩展点
-    - 难度：中 — 需设计事件模型与触发机制
-    - 进展：`NocodeOperationListener` 和 `NocodeOperationListenerInterceptor` 已新增 before/after/error 监听底座，并接入 v3 operation pipeline；具体业务模块和 adapter 自动注册尚未落地
-
 14. **级联删除 / 关联表删除** [2024 L63]
     - 重要：中 — 低频但必要功能
     - 难度：中 — SQL 级联逻辑设计
@@ -169,6 +164,9 @@
 
 3. **formatTimestamp/setupTimestamp 调试辅助方法** [2024 L66]
    - 2026-06-21：`NocodeEntity` 已新增 `formatTimestamp(Function)` 和 `setupTimestamp(String, BiConsumer)` 默认方法，用于 v3 实体调试 Long 毫秒时间戳字段。
+
+4. **service 事件监听（前置/后置）** [2024 L62]
+   - 2026-06-21：`NocodeOperationListener` 和 `NocodeOperationListenerInterceptor` 已新增 before/after/error 监听底座，并接入 v3 operation pipeline；业务可按操作粒度添加前置、后置和异常监听逻辑，不再需要通过替换完整 service 实现来扩展。
 
 ---
 
