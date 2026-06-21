@@ -41,6 +41,7 @@
 | `StringToV2WhereConditionConverter` | 依赖历史 `common.structure` v2 查询条件 | JSON 字符串转 v2 查询条件 | 已迁到 `isass-nocode-core` 的 `vip.isass.framework.nocode.v2.converter` 包，Spring Boot adapter 继续注册 | 完成 |
 | `SensitiveDataProperty` | 引用历史 `common.structure` v2 entity 常量 | 默认查询时过滤敏感字段 | 已改为 core 自有字段名常量，不再依赖 v2 entity | 完成 |
 | `isass-core-common/pom.xml` | `spring-boot`、`spring-context`、`spring-aop`、`spring-boot-starter-json` | 原先为运行时 Bean 工具、Converter、AopUtils、LoggingSystem 等提供依赖 | 已移除 Spring 依赖和 Boot JSON starter；core 保留明确的 Jackson 2 / Jackson 3 依赖。`isass-nocode-core` 自身使用 Jackson 3，已显式声明 `tools.jackson.core:jackson-databind` | 完成 |
+| `isass-core-common/src/main/resources/banner.txt`、`logback-spring.xml` | Spring Boot banner 占位符、Spring Boot logback conversionRule | Spring Boot 应用默认 banner 和日志配置 | 已迁到 `isass-adapter-springboot/src/main/resources`；core-common 不再携带 Spring Boot 专属运行时资源 | 完成 |
 
 ## 已完成的阶段性迁移
 
@@ -58,6 +59,7 @@
 - `LogUtil` 已改为委托 `LogLevelManager`，Spring Boot 的 LoggingSystem 操作迁到 adapter。
 - `ReflectUtils` 已移除 Spring AOP 依赖。
 - `isass-core-common` 已移除 Spring 相关 Maven 依赖。
+- `isass-core-common` 的 `banner.txt` 和 `logback-spring.xml` 已迁到 `isass-adapter-springboot`，core-common 不再携带 Spring Boot 专属运行时资源。
 - `isass-nocode-core` 的 main 源码已不再反向引用 `vip.isass.framework.common.structure`，v2 迁移包内已补齐批量保存、未实现方法异常、db entity 和 db entity 转换器。
 - `isass-core-dependencies` 已纳入 `isass-nocode-core` 版本管理。
 - `isass-web-springmvc`、`isass-database-core`、`isass-database-mybatisplus`、`isass-adapter-springboot` 和 `isass-service-attachment` 已迁到 `vip.isass.framework.nocode.v2`，`common.structure` 暂时只作为历史兼容包保留。

@@ -41,8 +41,9 @@
     - database / mybatisplus 异常映射、MyBatis Plus typehandler、序列、时钟和 MySQL 公共 repository 已移除 Spring stereotype 注解，改为自动配置显式注册。
     - database-core、MyBatis Plus 主配置、MySQL 配置和 PostgreSQL 配置已移除多余 `@ComponentScan`。
     - `SqlSessionConfig` 已迁到构造器注入。
+    - 2026-06-21：已扫描 `isass-core-*` main 源码，无 Spring 类型/注解残留命中。
+    - 2026-06-21：`isass-core-common` 的 `banner.txt` 和 `logback-spring.xml` 已迁到 `isass-adapter-springboot`，core-common 不再携带 Spring Boot 专属运行时资源。
   - 下一步：
-    - 全量扫描 `isass-core-*` main 源码中的 Spring 类型引用，逐项迁移或确认仅为注释/测试依赖。
     - 分析 `isass-database-core` 中 Liquibase、Flyway、DataSource、Spring 事务相关类，决定哪些留在 database adapter，哪些迁入 Spring Boot adapter。
     - 为 Spring Boot adapter 建立 classpath 条件装配策略：业务按需依赖 database/mq/net/web/security 时，才激活对应 Spring 装配。
     - 设计 Java SPI 作为非 Spring 运行时的基础发现机制，避免自动装配逻辑只存在于 Spring Boot。
@@ -380,4 +381,3 @@
     - 当前不影响框架 v4 技术落地。
   - 重启条件：
     - 发布前统一评估 LGPL、Apache-2.0、MIT 等协议取舍。
-
