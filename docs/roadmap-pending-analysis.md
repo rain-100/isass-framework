@@ -62,6 +62,7 @@
 8. **v3 通用 controller 动态生成** [2024 L54] (这个和P0 3 重复了)
    - 重要：高 — 低代码接入层关键子项
    - 难度：中 — Spring 动态注册端点已有成熟方案
+   - 进展：`isass-web-springmvc` 已新增 `NocodeSpringMvcCrudRoute`，定义 v3 CRUD 动态 controller 的默认 HTTP method/path descriptor；真实 endpoint 注册尚未落地
 
 9. **多个 ORM 框架同时支持** [2024 L51]
     - 重要：中 — 扩展性，方便切换 sqltoy
