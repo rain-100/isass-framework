@@ -171,7 +171,8 @@ package vip.isass.framework.common.login;
 
 import vip.isass.framework.common.exception.UnifiedException;
 import vip.isass.framework.common.exception.code.StatusMessageEnum;
-import vip.isass.framework.common.support.BeanProviderUtil;
+
+import java.util.function.Supplier;
 
 /**
  * @author Rain
@@ -179,15 +180,24 @@ import vip.isass.framework.common.support.BeanProviderUtil;
 public class LoginUserUtil {
 
     private static volatile LoginUserService service = null;
+    private static volatile Supplier<LoginUserService> serviceProvider = () -> null;
+
+    public static void setLoginUserService(LoginUserService service) {
+        LoginUserUtil.service = service;
+        LoginUserUtil.serviceProvider = () -> service;
+    }
+
+    public static void setLoginUserServiceProvider(Supplier<LoginUserService> serviceProvider) {
+        LoginUserUtil.service = null;
+        LoginUserUtil.serviceProvider = serviceProvider == null ? () -> null : serviceProvider;
+    }
 
     public static LoginUser getLoginUser() {
         if (service == null) {
-            if (BeanProviderUtil.isInitialized()) {
-                try {
-                    service = BeanProviderUtil.getBean(LoginUserService.class);
-                } catch (Exception e) {
-                    // ignore
-                }
+            try {
+                service = serviceProvider.get();
+            } catch (Exception e) {
+                // ignore
             }
         }
         return service == null ? null : service.getLoginUser();

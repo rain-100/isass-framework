@@ -172,6 +172,7 @@ package vip.isass.framework.common.support;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Date;
+import java.util.function.Supplier;
 
 /**
  * @author Rain
@@ -180,6 +181,17 @@ import java.util.Date;
 public class SystemClock {
 
     private volatile static ISystemClock iSystemClock;
+    private volatile static Supplier<ISystemClock> systemClockProvider = () -> null;
+
+    public static void setSystemClock(ISystemClock systemClock) {
+        SystemClock.iSystemClock = systemClock;
+        SystemClock.systemClockProvider = () -> systemClock;
+    }
+
+    public static void setSystemClockProvider(Supplier<ISystemClock> systemClockProvider) {
+        SystemClock.iSystemClock = null;
+        SystemClock.systemClockProvider = systemClockProvider == null ? () -> null : systemClockProvider;
+    }
 
     public static long now() {
         loadSystemClockImpl();
@@ -196,7 +208,7 @@ public class SystemClock {
             synchronized (SystemClock.class) {
                 if (iSystemClock == null) {
                     try {
-                        iSystemClock = BeanProviderUtil.getBean(ISystemClock.class);
+                        iSystemClock = systemClockProvider.get();
                     } catch (Exception e) {
                         // ignore
                     }

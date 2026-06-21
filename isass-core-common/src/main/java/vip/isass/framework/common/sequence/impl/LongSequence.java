@@ -172,7 +172,8 @@ package vip.isass.framework.common.sequence.impl;
 import cn.hutool.core.util.RandomUtil;
 import lombok.extern.slf4j.Slf4j;
 import vip.isass.framework.common.sequence.Sequence;
-import vip.isass.framework.common.support.BeanProviderUtil;
+
+import java.util.function.Supplier;
 
 /**
  * @author rain
@@ -181,6 +182,17 @@ import vip.isass.framework.common.support.BeanProviderUtil;
 public class LongSequence implements Sequence<Long> {
 
     private static volatile Sequence<Long> sequence;
+    private static volatile Supplier<Sequence<Long>> sequenceProvider = () -> null;
+
+    public static void setSequence(Sequence<Long> sequence) {
+        LongSequence.sequence = sequence;
+        LongSequence.sequenceProvider = () -> sequence;
+    }
+
+    public static void setSequenceProvider(Supplier<Sequence<Long>> sequenceProvider) {
+        LongSequence.sequence = null;
+        LongSequence.sequenceProvider = sequenceProvider == null ? () -> null : sequenceProvider;
+    }
 
     @Override
     public Long next() {
@@ -193,7 +205,7 @@ public class LongSequence implements Sequence<Long> {
             synchronized (LongSequence.class) {
                 if (sequence == null) {
                     try {
-                        sequence = BeanProviderUtil.getBeanOfSupport(Sequence.class, Long.class);
+                        sequence = sequenceProvider.get();
                     } catch (Exception e) {
                         // ignore
                     }

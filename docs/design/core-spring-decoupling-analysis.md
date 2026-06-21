@@ -26,9 +26,9 @@
 | `common/converter/**` | `@Component` | 注册 String、Map、Date、LocalDateTime 等转换器 | 已移除 converter 类上的 `@Component`；`isass-adapter-springboot` 通过 `IsassSpringConverterAdapter` 桥接到 Spring `ConditionalGenericConverter` | 完成 |
 | `BuildInCoreExceptionMapping` | `@Component` | 核心异常到框架异常码映射 | 变成普通 Java 映射实现；通过 SPI 或 adapter 注册。Web MVC 异常已迁出到 `isass-web-springmvc` | P0 |
 | `BeanProviderUtil` | 原 `SpringContextUtil` 中的 `ApplicationContextAware`、`ApplicationContext`、`DefaultListableBeanFactory`、`ResolvableType`、`@Component` | 全局访问运行时 Bean、动态注册/移除 Bean、按泛型/Support 查询 Bean | 已改成纯 Java 门面，实际运行时能力由 `BeanProvider` 提供；`isass-adapter-springboot` 提供 `SpringBeanProvider`；旧 `SpringContextUtil` 不保留 | 完成 |
-| `LoginUserUtil` | 通过 `BeanProviderUtil` 获取 `LoginUserService` | 获取当前登录用户服务 | 当前已解耦 Spring 编译依赖；后续可进一步改为显式注册 `LoginUserService` provider | P0 |
-| `LongSequence` | 通过 `BeanProviderUtil.getBeanOfSupport` 查找 `Sequence<Long>` | 获取 Long 序列生成器 | 当前已解耦 Spring 编译依赖；后续可进一步改为 `SequenceRegistry` 或 SPI 查找 | P0 |
-| `SystemClock` | 通过 `BeanProviderUtil` 获取 `ISystemClock` | 获取系统时钟实现 | 当前已解耦 Spring 编译依赖；后续可进一步改为 core 静态 holder/registry/SPI | P1 |
+| `LoginUserUtil` | 通过 `BeanProviderUtil` 获取 `LoginUserService` | 获取当前登录用户服务 | 已改为纯 Java `LoginUserService` provider/setter；Spring Boot adapter 负责从 Spring Bean 桥接 | 完成 |
+| `LongSequence` | 通过 `BeanProviderUtil.getBeanOfSupport` 查找 `Sequence<Long>` | 获取 Long 序列生成器 | 已改为纯 Java `Sequence<Long>` provider/setter；Spring Boot adapter 负责从 Spring Bean 桥接，默认仍回退随机 Long | 完成 |
+| `SystemClock` | 通过 `BeanProviderUtil` 获取 `ISystemClock` | 获取系统时钟实现 | 已改为纯 Java `ISystemClock` provider/setter；Spring Boot adapter 负责从 Spring Bean 桥接，默认仍使用 JDK 时间 | 完成 |
 | `IAnyJsonEntity` | 通过 `BeanProviderUtil` 获取 `IDictTranslationProvider` | JSON 实体字典翻译 | 当前已解耦 Spring 编译依赖；后续可进一步改为翻译 provider registry 或显式传入 context | P1 |
 | `LogUtil` | 原先使用 `LoggingSystem`、`LogLevel`、`LoggerConfiguration`，并通过运行时容器获取 Bean | 动态关闭/恢复日志级别 | 已抽象 `LogLevelManager`；core 默认无操作，`isass-adapter-springboot` 提供 `SpringBootLogLevelManager` | 完成 |
 | `ReflectUtils` | `AopUtils.getMostSpecificMethod` | 查找代理类/接口上的实际 API 方法 | 已改为 JDK 反射按方法名和参数查找接口方法 | 完成 |
@@ -67,6 +67,7 @@
 - `isass-core-common` 已显式声明 `slf4j-api`，不再依赖 Swagger/Knife4j 或其他传递依赖间接提供日志 API。
 - `isass-nocode-core` 已新增 v3 operation pipeline、provider router、cache facade/cache operation 等纯 Java 基础抽象，用于替代 v1/v2 的 service 排序链承载缓存/事件等增强的旧模式。
 - `isass-nocode-core` 中整文件注释的旧 lowcode MyBatis Plus 源码和未引用的 nocode `ICommonMapper`/XML 已删除；可运行的 MyBatis Plus 实现保留在 `isass-database-mybatisplus`。
+- `LoginUserUtil`、`LongSequence`、`SystemClock` 已从主动读取 `BeanProviderUtil` 改为显式 provider/setter，Spring Boot 运行时由 `isass-adapter-springboot` 通过 `ObjectProvider` 桥接。
 
 ## 尚未迁移的兼容边界
 
