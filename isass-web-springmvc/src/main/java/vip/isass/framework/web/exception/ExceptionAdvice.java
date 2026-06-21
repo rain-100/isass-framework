@@ -258,14 +258,18 @@ public class ExceptionAdvice {
         }
 
         resp = createRespByExceptionFromExceptionMappings(e);
-        resp = resp == null
-                ? new Resp<>()
-                .setSuccess(Boolean.FALSE)
-                .setStatus(StatusMessageEnum.UNDEFINED.getStatus())
-                .setMessage(processErrorMessage(defaultMessage(ExceptionUtil.unwrap(e))))
-                : resp;
+        if (resp == null) {
+            ProcessedErrorMessage processedMessage = processErrorMessageResult(defaultMessage(ExceptionUtil.unwrap(e)));
+            resp = new Resp<>()
+                    .setSuccess(Boolean.FALSE)
+                    .setStatus(StatusMessageEnum.UNDEFINED.getStatus())
+                    .setMessage(processedMessage.message())
+                    .setDetailMessage(processedMessage.detailMessage());
+        }
         if (resp.getMessage() != null && resp.getMessage().length() > 40) {
-            resp.setMessage(processErrorMessage(resp.getMessage()));
+            ProcessedErrorMessage processedMessage = processErrorMessageResult(resp.getMessage());
+            resp.setMessage(processedMessage.message());
+            resp.setDetailMessage(processedMessage.detailMessage());
         }
         return resp;
     }
@@ -293,20 +297,27 @@ public class ExceptionAdvice {
      * @return 处理后的消息（包含traceId和控制后的错误信息）
      */
     public String processErrorMessage(String message) {
+        return processErrorMessageResult(message).message();
+    }
+
+    private ProcessedErrorMessage processErrorMessageResult(String message) {
         String traceId = LongSequence.get().toString();
+        String detailMessage = "[" + traceId + "] " + message;
 
         if (showDetailError) {
             // 显示详细错误信息，包含traceId
-            String resultMessage = "[" + traceId + "] " + message;
             log.info("[ERROR_TRACE] 返回详细错误信息 - traceId: {}, message: {}", traceId, message);
-            return resultMessage;
+            return new ProcessedErrorMessage(detailMessage, detailMessage);
         } else {
             // 不显示详情，返回统一错误提示，但仍包含traceId
             String resultMessage = "[" + traceId + "] " + prodUnifiedMessage;
             log.info("[ERROR_TRACE] 返回统一错误信息 - traceId: {}, originalMessage: {}, unifiedMessage: {}",
                     traceId, message, prodUnifiedMessage);
-            return resultMessage;
+            return new ProcessedErrorMessage(resultMessage, detailMessage);
         }
+    }
+
+    private record ProcessedErrorMessage(String message, String detailMessage) {
     }
 
 }

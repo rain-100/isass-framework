@@ -216,6 +216,12 @@ public class Resp<T> {
     private String message;
 
     /**
+     * 详细描述信息
+     */
+    @JsonInclude
+    private String detailMessage;
+
+    /**
      * 调用接口得到的数据
      */
     @JsonInclude
