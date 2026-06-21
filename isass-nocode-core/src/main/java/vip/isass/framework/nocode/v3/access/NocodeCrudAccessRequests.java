@@ -14,6 +14,7 @@ public final class NocodeCrudAccessRequests {
     public static final String ARG_BODY = "body";
     public static final String ARG_CRITERIA = "criteria";
     public static final String ARG_DELETE_OPTIONS = "deleteOptions";
+    public static final String ARG_FETCH_OPTIONS = "fetchOptions";
 
     private NocodeCrudAccessRequests() {
     }
@@ -22,12 +23,54 @@ public final class NocodeCrudAccessRequests {
         return request(entityName, NocodeCrudOperation.FIND_BY_ID, Map.of(ARG_ID, id), returnType);
     }
 
+    public static NocodeAccessRequest findById(
+            String entityName,
+            Object id,
+            NocodeFetchOptions fetchOptions,
+            Class<?> returnType
+    ) {
+        return request(
+                entityName,
+                NocodeCrudOperation.FIND_BY_ID,
+                Map.of(ARG_ID, id, ARG_FETCH_OPTIONS, fetchOptions == null ? NocodeFetchOptions.none() : fetchOptions),
+                returnType
+        );
+    }
+
     public static NocodeAccessRequest page(String entityName, NocodeQueryCriteria criteria, Class<?> returnType) {
         return request(entityName, NocodeCrudOperation.PAGE, Map.of(ARG_CRITERIA, criteria), returnType);
     }
 
+    public static NocodeAccessRequest page(
+            String entityName,
+            NocodeQueryCriteria criteria,
+            NocodeFetchOptions fetchOptions,
+            Class<?> returnType
+    ) {
+        return request(
+                entityName,
+                NocodeCrudOperation.PAGE,
+                Map.of(ARG_CRITERIA, criteria, ARG_FETCH_OPTIONS, fetchOptions == null ? NocodeFetchOptions.none() : fetchOptions),
+                returnType
+        );
+    }
+
     public static NocodeAccessRequest list(String entityName, NocodeQueryCriteria criteria, Class<?> returnType) {
         return request(entityName, NocodeCrudOperation.LIST, Map.of(ARG_CRITERIA, criteria), returnType);
+    }
+
+    public static NocodeAccessRequest list(
+            String entityName,
+            NocodeQueryCriteria criteria,
+            NocodeFetchOptions fetchOptions,
+            Class<?> returnType
+    ) {
+        return request(
+                entityName,
+                NocodeCrudOperation.LIST,
+                Map.of(ARG_CRITERIA, criteria, ARG_FETCH_OPTIONS, fetchOptions == null ? NocodeFetchOptions.none() : fetchOptions),
+                returnType
+        );
     }
 
     public static NocodeAccessRequest save(String entityName, Object body, Class<?> returnType) {

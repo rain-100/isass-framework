@@ -22,6 +22,19 @@ class NocodeCrudAccessRequestsTest {
     }
 
     @Test
+    void createsFindByIdRequestWithFetchOptions() {
+        NocodeFetchOptions options = NocodeFetchOptions.include("attachmentItems");
+
+        NocodeAccessRequest request = NocodeCrudAccessRequests.findById("attachment", 1001L, options, String.class);
+
+        assertThat(request.operationName()).isEqualTo(NocodeCrudOperation.FIND_BY_ID.getOperationName());
+        assertThat(request.arguments()).containsEntry(NocodeCrudAccessRequests.ARG_ID, 1001L);
+        assertThat(request.arguments()).containsEntry(NocodeCrudAccessRequests.ARG_FETCH_OPTIONS, options);
+        assertThat(options.includeRelations()).isTrue();
+        assertThat(options.relationNames()).containsExactly("attachmentItems");
+    }
+
+    @Test
     void createsPageRequestWithCriteriaArgument() {
         NocodeQueryCriteria criteria = NocodeQueryCriteria.builder()
                 .where("name", "demo")
@@ -31,6 +44,22 @@ class NocodeCrudAccessRequestsTest {
 
         assertThat(request.operationName()).isEqualTo(NocodeCrudOperation.PAGE.getOperationName());
         assertThat(request.arguments()).containsEntry(NocodeCrudAccessRequests.ARG_CRITERIA, criteria);
+    }
+
+    @Test
+    void createsPageAndListRequestsWithFetchOptions() {
+        NocodeQueryCriteria criteria = NocodeQueryCriteria.builder()
+                .where("name", "demo")
+                .build();
+        NocodeFetchOptions options = NocodeFetchOptions.include();
+
+        NocodeAccessRequest page = NocodeCrudAccessRequests.page("attachment", criteria, options, Object.class);
+        NocodeAccessRequest list = NocodeCrudAccessRequests.list("attachment", criteria, options, Object.class);
+
+        assertThat(page.arguments()).containsEntry(NocodeCrudAccessRequests.ARG_FETCH_OPTIONS, options);
+        assertThat(list.arguments()).containsEntry(NocodeCrudAccessRequests.ARG_FETCH_OPTIONS, options);
+        assertThat(options.includeRelations()).isTrue();
+        assertThat(options.hasRelationFilter()).isFalse();
     }
 
     @Test

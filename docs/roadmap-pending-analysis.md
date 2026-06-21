@@ -93,6 +93,7 @@
 15. **主从表关联查询** [2024 L70]
     - 重要：中 — 常用查询场景
     - 难度：中 — 需自动关联解析
+    - 进展：`NocodeEntityRelation` 已提供实体关系元数据，`NocodeFetchOptions` 已提供 findById/page/list 的关联查询请求选项，可表达是否加载关联数据以及指定关联名；具体 ORM adapter 执行尚未落地
 
 16. **criteria 条件分组支持** [2025 L36]
     - 重要：中 — 复杂查询场景

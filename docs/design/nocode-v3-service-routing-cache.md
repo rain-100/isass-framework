@@ -93,6 +93,7 @@ Spring Boot 场景下：
 - `NocodeAccessRequest` 和 `NocodeAccessHandler` 已补齐 v3 access 接入层的纯 Java 底座，后续 Spring MVC 动态 controller 只需做协议映射。
 - `NocodeCrudOperation` 和 `NocodeCrudAccessRequests` 已补齐 v3 标准 CRUD 操作名与 access request 工厂，后续动态 controller、代码生成器和 ORM provider 可复用统一契约。
 - `NocodeEntityRelation`、`NocodeEntityRelationType` 和 `NocodeDeleteOptions` 已补齐级联删除/关联表删除的元数据和请求参数契约，后续 ORM adapter 可据此实现实际删除。
+- `NocodeFetchOptions` 已补齐关联查询请求选项，`findById`、`page`、`list` 可以通过 access 参数表达是否加载关联数据以及指定关联名；后续 ORM adapter 可据此实现一对一、一对多等关联查询。
 - `NocodeEntity`、`NocodeEntityDefinition`、`NocodeFieldDefinition`、`NocodeFieldAutoFill`、`NocodeCrudWriteInterceptor`、`NocodeEntityDefinitionProvider`、`NocodeEntityRegistry`、`NocodeQueryCriteria`、`NocodePageResult`、`NocodeQueryValidator` 等 v3 元数据、查询模型和写入处理器已补齐，为自定义实体继承 v3 接口、criteria 简化、分页对象统一、字段写入控制、自动填充、bigint 时间戳调试、ORM 无关实体探索和非 Spring SPI 自动发现提供第一阶段底座。
 
 ## Roadmap 对应
