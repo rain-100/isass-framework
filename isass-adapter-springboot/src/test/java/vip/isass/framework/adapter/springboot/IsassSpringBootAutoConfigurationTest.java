@@ -15,9 +15,9 @@ import vip.isass.framework.common.log.slf4j.LogLevelManager;
 import vip.isass.framework.common.selectoption.ISelectOptionService;
 import vip.isass.framework.common.selectoption.SelectOption;
 import vip.isass.framework.common.selectoption.SelectOptionServiceManager;
-import vip.isass.framework.common.structure.entity.V2DbEntityConvert;
+import vip.isass.framework.nocode.v2.entity.V2DbEntityConvert;
 import vip.isass.framework.common.support.BeanProvider;
-import vip.isass.framework.common.support.SpringContextUtil;
+import vip.isass.framework.common.support.BeanProviderUtil;
 
 import java.util.List;
 
@@ -39,12 +39,12 @@ class IsassSpringBootAutoConfigurationTest {
     }
 
     @Test
-    void registersBeanProviderForSpringContextUtilFacade() {
+    void registersBeanProviderForBeanProviderUtilFacade() {
         new ApplicationContextRunner()
                 .withConfiguration(AutoConfigurations.of(IsassSpringBootAutoConfiguration.class))
                 .run(context -> {
                     assertThat(context).hasSingleBean(BeanProvider.class);
-                    assertThat(SpringContextUtil.isInitialized()).isTrue();
+                    assertThat(BeanProviderUtil.isInitialized()).isTrue();
                 });
     }
 

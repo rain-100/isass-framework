@@ -214,7 +214,7 @@ public interface IAnyJsonEntity {
         if (MapUtil.isEmpty(dictTranslationMap)) {
             return;
         }
-        // todo IDictTranslationProvider dictTranslationProvider = SpringContextUtil.getBean(IDictTranslationProvider.class);
+        // todo IDictTranslationProvider dictTranslationProvider = BeanProviderUtil.getBean(IDictTranslationProvider.class);
         IDictTranslationProvider dictTranslationProvider = null;
         for (Map.Entry<String, String> entry : dictTranslationMap.entrySet()) {
             if (StrUtil.isBlank(entry.getValue())) {

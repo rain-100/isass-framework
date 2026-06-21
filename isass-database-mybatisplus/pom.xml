@@ -192,6 +192,11 @@
         </dependency>
 
         <dependency>
+            <groupId>vip.isass</groupId>
+            <artifactId>isass-nocode-core</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>jakarta.annotation</groupId>
             <artifactId>jakarta.annotation-api</artifactId>
         </dependency>

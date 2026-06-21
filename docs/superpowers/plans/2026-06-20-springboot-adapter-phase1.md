@@ -28,7 +28,7 @@
 - Modify: `isass-framework-v4/isass-adapter-springboot/pom.xml`
 - Modify: `isass-framework-v4/isass-core-common/src/main/resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`
 
-- [x] Write a test that loads the adapter auto-configuration and expects `SpringContextUtil` to be registered.
+- [x] Write a test that loads the adapter auto-configuration and expects the bean provider facade to be initialized.
 - [x] Implement the adapter auto-configuration and imports file.
 - [x] Remove the core-common auto-configuration import so common no longer auto-registers itself.
 

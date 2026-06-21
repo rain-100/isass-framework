@@ -6,7 +6,7 @@ import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.ResolvableType;
 import vip.isass.framework.common.support.BeanProvider;
-import vip.isass.framework.common.support.SpringContextUtil;
+import vip.isass.framework.common.support.BeanProviderUtil;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -28,7 +28,7 @@ public class SpringBeanProvider implements BeanProvider {
     @Override
     public <T> T addBean(Class<T> beanClass) {
         DefaultListableBeanFactory beanFactory = getBeanFactory();
-        String beanName = SpringContextUtil.getBeanNameByBeanType(beanClass);
+        String beanName = BeanProviderUtil.getBeanNameByBeanType(beanClass);
         BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.genericBeanDefinition(beanClass);
         beanFactory.registerBeanDefinition(beanName, beanDefinitionBuilder.getBeanDefinition());
         return applicationContext.getBean(beanName, beanClass);

@@ -188,7 +188,7 @@ import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import vip.isass.framework.common.support.JsonUtil;
-import vip.isass.framework.common.support.SpringContextUtil;
+import vip.isass.framework.common.support.BeanProviderUtil;
 import vip.isass.framework.common.support.okhttp.OkHttpUtil;
 import vip.isass.framework.common.web.Resp;
 import vip.isass.framework.net.core.NetRedisKey;
@@ -259,7 +259,7 @@ public class SessionServiceClientProxy implements ISessionService {
 
     @Scheduled(fixedDelay = 10 * 1000)
     private void reloadNodeAllocatorService() {
-        Collection<INodeAllocatorService> nodeAllocatorServices = SpringContextUtil.getBeans(INodeAllocatorService.class);
+        Collection<INodeAllocatorService> nodeAllocatorServices = BeanProviderUtil.getBeans(INodeAllocatorService.class);
         if (CollUtil.isEmpty(nodeAllocatorServices)) {
             this.nodeAllocatorServiceMap = Collections.emptyMap();
             return;

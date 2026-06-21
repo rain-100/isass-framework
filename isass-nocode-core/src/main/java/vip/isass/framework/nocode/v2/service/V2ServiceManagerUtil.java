@@ -170,9 +170,9 @@
 package vip.isass.framework.nocode.v2.service;
 
 import lombok.extern.slf4j.Slf4j;
-import vip.isass.framework.common.structure.UnimplementedMethodException;
 import vip.isass.framework.common.support.api.ApiOrder;
 import vip.isass.framework.common.support.api.IsassOrdered;
+import vip.isass.framework.nocode.v2.UnimplementedMethodException;
 
 import java.util.List;
 import java.util.function.Consumer;

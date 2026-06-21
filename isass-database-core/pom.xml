@@ -192,6 +192,11 @@
         </dependency>
 
         <dependency>
+            <groupId>vip.isass</groupId>
+            <artifactId>isass-nocode-core</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>com.dameng</groupId>
             <artifactId>DmJdbcDriver18</artifactId>
             <scope>provided</scope>

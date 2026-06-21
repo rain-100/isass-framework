@@ -5,25 +5,25 @@ import java.util.Collection;
 /**
  * Runtime bean access facade.
  *
- * <p>The class name is kept for source compatibility. Spring-specific behavior
- * is supplied by runtime adapters such as {@code isass-adapter-springboot}.</p>
+ * <p>The actual runtime behavior is supplied by adapters such as
+ * {@code isass-adapter-springboot}.</p>
  *
  * @author Rain
  */
-public class SpringContextUtil {
+public final class BeanProviderUtil {
 
     private static volatile BeanProvider beanProvider = new BeanProvider() {
     };
 
-    private SpringContextUtil() {
+    private BeanProviderUtil() {
     }
 
     public static void setBeanProvider(BeanProvider beanProvider) {
-        SpringContextUtil.beanProvider = beanProvider == null ? new BeanProvider() {
+        BeanProviderUtil.beanProvider = beanProvider == null ? new BeanProvider() {
         } : beanProvider;
     }
 
-    public static Object getApplicationContext() {
+    public static Object getContext() {
         return beanProvider.getContext();
     }
 
@@ -41,7 +41,7 @@ public class SpringContextUtil {
      * @param beanClass class to new instance
      * @return runtime bean
      */
-    public static <T> T addBeanToSpringContext(Class<T> beanClass) {
+    public static <T> T addBeanToContext(Class<T> beanClass) {
         return beanProvider.addBean(beanClass);
     }
 

@@ -172,7 +172,7 @@ package vip.isass.framework.common.sequence.impl;
 import cn.hutool.core.util.RandomUtil;
 import lombok.extern.slf4j.Slf4j;
 import vip.isass.framework.common.sequence.Sequence;
-import vip.isass.framework.common.support.SpringContextUtil;
+import vip.isass.framework.common.support.BeanProviderUtil;
 
 /**
  * @author rain
@@ -193,7 +193,7 @@ public class LongSequence implements Sequence<Long> {
             synchronized (LongSequence.class) {
                 if (sequence == null) {
                     try {
-                        sequence = SpringContextUtil.getBeanOfSupport(Sequence.class, Long.class);
+                        sequence = BeanProviderUtil.getBeanOfSupport(Sequence.class, Long.class);
                     } catch (Exception e) {
                         // ignore
                     }

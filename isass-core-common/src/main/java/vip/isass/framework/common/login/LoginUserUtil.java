@@ -171,7 +171,7 @@ package vip.isass.framework.common.login;
 
 import vip.isass.framework.common.exception.UnifiedException;
 import vip.isass.framework.common.exception.code.StatusMessageEnum;
-import vip.isass.framework.common.support.SpringContextUtil;
+import vip.isass.framework.common.support.BeanProviderUtil;
 
 /**
  * @author Rain
@@ -182,9 +182,9 @@ public class LoginUserUtil {
 
     public static LoginUser getLoginUser() {
         if (service == null) {
-            if (SpringContextUtil.isInitialized()) {
+            if (BeanProviderUtil.isInitialized()) {
                 try {
-                    service = SpringContextUtil.getBean(LoginUserService.class);
+                    service = BeanProviderUtil.getBean(LoginUserService.class);
                 } catch (Exception e) {
                     // ignore
                 }

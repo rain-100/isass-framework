@@ -196,7 +196,7 @@ public class SystemClock {
             synchronized (SystemClock.class) {
                 if (iSystemClock == null) {
                     try {
-                        iSystemClock = SpringContextUtil.getBean(ISystemClock.class);
+                        iSystemClock = BeanProviderUtil.getBean(ISystemClock.class);
                     } catch (Exception e) {
                         // ignore
                     }

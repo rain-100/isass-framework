@@ -179,11 +179,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import vip.isass.framework.common.structure.criteria.IV2Criteria;
-import vip.isass.framework.common.structure.entity.BatchSave;
-import vip.isass.framework.common.structure.entity.IV2Entity;
-import vip.isass.framework.common.structure.service.IV2LocalService;
-import vip.isass.framework.common.structure.service.IV2Service;
+import vip.isass.framework.nocode.v2.criteria.IV2Criteria;
+import vip.isass.framework.nocode.v2.entity.BatchSave;
+import vip.isass.framework.nocode.v2.entity.IV2Entity;
+import vip.isass.framework.nocode.v2.service.IV2LocalService;
+import vip.isass.framework.nocode.v2.service.IV2Service;
 import vip.isass.framework.common.support.api.ApiOrder;
 
 import java.io.Serializable;

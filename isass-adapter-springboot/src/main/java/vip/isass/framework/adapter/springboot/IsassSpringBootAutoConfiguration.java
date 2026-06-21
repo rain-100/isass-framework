@@ -29,10 +29,10 @@ import vip.isass.framework.common.log.slf4j.LogLevelManager;
 import vip.isass.framework.common.log.slf4j.LogUtil;
 import vip.isass.framework.common.selectoption.ISelectOptionService;
 import vip.isass.framework.common.selectoption.SelectOptionServiceManager;
-import vip.isass.framework.common.structure.entity.V2DbEntityConvert;
+import vip.isass.framework.nocode.v2.entity.V2DbEntityConvert;
 import vip.isass.framework.common.support.BeanProvider;
 import vip.isass.framework.common.support.Converter;
-import vip.isass.framework.common.support.SpringContextUtil;
+import vip.isass.framework.common.support.BeanProviderUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -79,7 +79,7 @@ public class IsassSpringBootAutoConfiguration {
     @ConditionalOnMissingBean
     public BeanProvider beanProvider(ConfigurableApplicationContext applicationContext) {
         BeanProvider beanProvider = new SpringBeanProvider(applicationContext);
-        SpringContextUtil.setBeanProvider(beanProvider);
+        BeanProviderUtil.setBeanProvider(beanProvider);
         return beanProvider;
     }
 

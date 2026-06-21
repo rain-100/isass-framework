@@ -204,6 +204,10 @@ public enum V2Condition {
     CONTAINS_ALL("ContainsAll"),
     CONTAINS_ANY("ContainsAny"),
 
+    // json 对象
+    JSON_OBJECT_PATH_EQUAL("JsonObjectPathEqual"),
+    JSON_OBJECT_PATH_LIKE("JsonObjectPathLike"),
+
     // json 数组
     JSON_ARRAY_CONTAINS("JsonArrayContains"),
     JSON_ARRAY_CONTAINS_ANY("JsonArrayContainsAny"),

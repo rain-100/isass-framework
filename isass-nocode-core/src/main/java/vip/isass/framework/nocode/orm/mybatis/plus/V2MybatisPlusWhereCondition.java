@@ -392,7 +392,7 @@
 //
 //     @SneakyThrows
 //     private static String getDbType() {
-//         // todo DynamicRoutingDataSource ds = SpringContextUtil.getBean(DynamicRoutingDataSource.class);
+//         // todo DynamicRoutingDataSource ds = BeanProviderUtil.getBean(DynamicRoutingDataSource.class);
 //         DynamicRoutingDataSource ds = null;
 //         DataSource datasource = ds.determineDataSource();
 //         String dbType = DB_TYPE_MAPPING.get(datasource);

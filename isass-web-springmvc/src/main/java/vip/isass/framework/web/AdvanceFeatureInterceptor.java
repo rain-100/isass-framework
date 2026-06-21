@@ -4,8 +4,8 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
-import vip.isass.framework.common.structure.entity.AdvancedFeature;
-import vip.isass.framework.common.structure.entity.IAnyJsonEntity;
+import vip.isass.framework.nocode.v2.entity.AdvancedFeature;
+import vip.isass.framework.nocode.v2.entity.IAnyJsonEntity;
 import vip.isass.framework.common.support.JsonUtil;
 import vip.isass.framework.web.interceptor.IsassHandlerInterceptor;
 

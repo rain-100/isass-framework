@@ -181,8 +181,8 @@ import freemarker.template.TemplateHashModel;
 import freemarker.template.Version;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import vip.isass.framework.common.structure.entity.IV2LogicDeleteEntity;
-import vip.isass.framework.common.structure.entity.IV2VersionEntity;
+import vip.isass.framework.nocode.v2.entity.IV2LogicDeleteEntity;
+import vip.isass.framework.nocode.v2.entity.IV2VersionEntity;
 
 @Slf4j
 public class V2MybatisPlusGenerator {

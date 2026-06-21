@@ -176,9 +176,9 @@ import com.baomidou.mybatisplus.core.conditions.AbstractWrapper;
 import tools.jackson.core.JacksonException;
 import lombok.SneakyThrows;
 import org.apache.ibatis.mapping.DatabaseIdProvider;
-import vip.isass.framework.common.structure.criteria.V2WhereCondition;
+import vip.isass.framework.nocode.v2.criteria.V2WhereCondition;
 import vip.isass.framework.common.support.JsonUtil;
-import vip.isass.framework.common.support.SpringContextUtil;
+import vip.isass.framework.common.support.BeanProviderUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -429,8 +429,8 @@ public class V2MybatisPlusWhereCondition {
 
     @SneakyThrows
     private static String getDbType() {
-        DynamicRoutingDataSource ds = SpringContextUtil.getBean(DynamicRoutingDataSource.class);
-        return SpringContextUtil.getBean(DatabaseIdProvider.class)
+        DynamicRoutingDataSource ds = BeanProviderUtil.getBean(DynamicRoutingDataSource.class);
+        return BeanProviderUtil.getBean(DatabaseIdProvider.class)
                 .getDatabaseId(ds);
     }
 

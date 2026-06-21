@@ -179,7 +179,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import vip.isass.framework.common.structure.IDictTranslationProvider;
 import vip.isass.framework.common.support.LocalDateTimeUtil;
-import vip.isass.framework.common.support.SpringContextUtil;
+import vip.isass.framework.common.support.BeanProviderUtil;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -217,7 +217,7 @@ public interface IAnyJsonEntity {
         if (MapUtil.isEmpty(dictTranslationMap)) {
             return;
         }
-        IDictTranslationProvider dictTranslationProvider = SpringContextUtil.getBean(IDictTranslationProvider.class);
+        IDictTranslationProvider dictTranslationProvider = BeanProviderUtil.getBean(IDictTranslationProvider.class);
         for (Map.Entry<String, String> entry : dictTranslationMap.entrySet()) {
             if (StrUtil.isBlank(entry.getValue())) {
                 continue;

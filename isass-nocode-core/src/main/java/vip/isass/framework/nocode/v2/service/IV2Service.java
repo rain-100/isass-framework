@@ -170,9 +170,9 @@
 package vip.isass.framework.nocode.v2.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import vip.isass.framework.common.structure.criteria.IV2Criteria;
-import vip.isass.framework.common.structure.entity.BatchSave;
-import vip.isass.framework.common.structure.entity.IV2Entity;
+import vip.isass.framework.nocode.v2.criteria.IV2Criteria;
+import vip.isass.framework.nocode.v2.entity.BatchSave;
+import vip.isass.framework.nocode.v2.entity.IV2Entity;
 import vip.isass.framework.common.support.api.IsassOrdered;
 
 import java.io.Serializable;

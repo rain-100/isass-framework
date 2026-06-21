@@ -180,7 +180,7 @@ import vip.isass.framework.net.netty.channel.ChannelInitializerHandler;
 import vip.isass.framework.net.netty.packet.Decoder;
 import vip.isass.framework.net.netty.packet.Encoder;
 import vip.isass.framework.net.netty.packet.impl.coder.IsassBinaryPacketDecoder;
-import vip.isass.framework.common.support.SpringContextUtil;
+import vip.isass.framework.common.support.BeanProviderUtil;
 
 import jakarta.annotation.Resource;
 import java.util.concurrent.TimeUnit;
@@ -213,7 +213,7 @@ public class TcpChannelInitializerHandler extends ChannelInitializerHandler {
             new IdleStateHandler(0, 0, timeout, TimeUnit.MILLISECONDS));
 
         // 添加解码器
-        Decoder decoder = SpringContextUtil.isInitialized() ? SpringContextUtil.getBean(Decoder.class) : new IsassBinaryPacketDecoder();
+        Decoder decoder = BeanProviderUtil.isInitialized() ? BeanProviderUtil.getBean(Decoder.class) : new IsassBinaryPacketDecoder();
         pipeline.addLast("decoder", decoder);
 
         // 添加事件的处理方法

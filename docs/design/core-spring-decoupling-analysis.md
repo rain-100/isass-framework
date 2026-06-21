@@ -25,12 +25,12 @@
 | `vip.isass.framework.common.support.Converter` | 继承 `org.springframework.core.convert.converter.Converter` | isass 通用转换器，同时兼容 Hutool converter 和 Spring converter | 已移除 Spring Converter 继承，保留 Hutool converter 兼容并显式声明 `convert(S)` | 完成 |
 | `common/converter/**` | `@Component` | 注册 String、Map、Date、LocalDateTime 等转换器 | 已移除 converter 类上的 `@Component`；`isass-adapter-springboot` 通过 `IsassSpringConverterAdapter` 桥接到 Spring `ConditionalGenericConverter` | 完成 |
 | `BuildInCoreExceptionMapping` | `@Component` | 核心异常到框架异常码映射 | 变成普通 Java 映射实现；通过 SPI 或 adapter 注册。Web MVC 异常已迁出到 `isass-web-springmvc` | P0 |
-| `SpringContextUtil` | `ApplicationContextAware`、`ApplicationContext`、`DefaultListableBeanFactory`、`ResolvableType`、`@Component` | 全局访问 Spring Bean、动态注册/移除 Bean、按泛型/Support 查询 Bean | 已改成纯 Java 兼容门面，实际运行时能力由 `BeanProvider` 提供；`isass-adapter-springboot` 提供 `SpringBeanProvider` | 完成 |
-| `LoginUserUtil` | 通过 `SpringContextUtil` 获取 `LoginUserService` | 获取当前登录用户服务 | 改为依赖 core 的 `ServiceLocator` 或显式注册 `LoginUserService` provider；Spring adapter 桥接 | P0 |
-| `LongSequence` | 通过 `SpringContextUtil.getBeanOfSupport` 查找 `Sequence<Long>` | 获取 Long 序列生成器 | 改为 `SequenceRegistry` 或 SPI 查找；Spring adapter 将 Spring Bean 注册到 registry | P0 |
-| `SystemClock` | 通过 `SpringContextUtil` 获取 `ISystemClock` | 获取系统时钟实现 | 改为 core 静态 holder/registry/SPI；Spring adapter 注入 Spring Bean | P1 |
-| `IAnyJsonEntity` | 通过 `SpringContextUtil` 获取 `IDictTranslationProvider` | JSON 实体字典翻译 | 改为翻译 provider registry 或显式传入 context；Spring adapter 注册 provider | P1 |
-| `LogUtil` | `LoggingSystem`、`LogLevel`、`LoggerConfiguration`，并通过 `SpringContextUtil` 获取 Bean | 动态关闭/恢复日志级别 | 已抽象 `LogLevelManager`；core 默认无操作，`isass-adapter-springboot` 提供 `SpringBootLogLevelManager` | 完成 |
+| `BeanProviderUtil` | 原 `SpringContextUtil` 中的 `ApplicationContextAware`、`ApplicationContext`、`DefaultListableBeanFactory`、`ResolvableType`、`@Component` | 全局访问运行时 Bean、动态注册/移除 Bean、按泛型/Support 查询 Bean | 已改成纯 Java 门面，实际运行时能力由 `BeanProvider` 提供；`isass-adapter-springboot` 提供 `SpringBeanProvider`；旧 `SpringContextUtil` 不保留 | 完成 |
+| `LoginUserUtil` | 通过 `BeanProviderUtil` 获取 `LoginUserService` | 获取当前登录用户服务 | 当前已解耦 Spring 编译依赖；后续可进一步改为显式注册 `LoginUserService` provider | P0 |
+| `LongSequence` | 通过 `BeanProviderUtil.getBeanOfSupport` 查找 `Sequence<Long>` | 获取 Long 序列生成器 | 当前已解耦 Spring 编译依赖；后续可进一步改为 `SequenceRegistry` 或 SPI 查找 | P0 |
+| `SystemClock` | 通过 `BeanProviderUtil` 获取 `ISystemClock` | 获取系统时钟实现 | 当前已解耦 Spring 编译依赖；后续可进一步改为 core 静态 holder/registry/SPI | P1 |
+| `IAnyJsonEntity` | 通过 `BeanProviderUtil` 获取 `IDictTranslationProvider` | JSON 实体字典翻译 | 当前已解耦 Spring 编译依赖；后续可进一步改为翻译 provider registry 或显式传入 context | P1 |
+| `LogUtil` | 原先使用 `LoggingSystem`、`LogLevel`、`LoggerConfiguration`，并通过运行时容器获取 Bean | 动态关闭/恢复日志级别 | 已抽象 `LogLevelManager`；core 默认无操作，`isass-adapter-springboot` 提供 `SpringBootLogLevelManager` | 完成 |
 | `ReflectUtils` | `AopUtils.getMostSpecificMethod` | 查找代理类/接口上的实际 API 方法 | 已改为 JDK 反射按方法名和参数查找接口方法 | 完成 |
 | `ApiService` | `AnnotationUtils.findAnnotation`、Spring `@Order` | 按本地服务/Feign 服务优先级路由 API 服务调用 | 已新增 `IsassOrdered`、`@IsassOrder`、`IsassOrderUtil`；core 优先读取自有接口/注解，并以反射方式兼容 Spring `@Order` | 完成 |
 | `IV2Service` | 继承 Spring `Ordered` | v2 service 优先级排序 | 已替换为 `IsassOrdered` | 完成 |
@@ -38,7 +38,7 @@
 | `IV2ServiceManager` | `@Primary` | v2 service manager 在 Spring 中作为主 Bean | 已移除 core 注解；如后续仍需要 Spring primary 语义，由 adapter 或具体 Spring 模块负责 | 完成 |
 | `isass-nocode-core/v2/service/*` | Spring `Ordered`、`@Primary` | nocode v2 service 链路 | 已与 core-common v2 service 同步迁移到 `IsassOrdered` | 完成 |
 | `isass-nocode-core/src/test` | `@SpringBootTest`、`@Transactional` | 集成测试事务和 Spring 容器启动 | main 源码解耦后，测试拆成纯 Java 单测和 Spring adapter 集成测试 | P2 |
-| `isass-core-common/pom.xml` | `spring-boot`、`spring-context`、`spring-aop`、`spring-boot-starter-json` | 当前为 SpringContextUtil、Converter、AopUtils、LoggingSystem 等提供依赖 | 已移除 Spring 依赖和 Boot JSON starter；core 仅保留明确的 Jackson 2 依赖。`isass-nocode-core` 自身使用 Jackson 3，已显式声明 `tools.jackson.core:jackson-databind` | 完成 |
+| `isass-core-common/pom.xml` | `spring-boot`、`spring-context`、`spring-aop`、`spring-boot-starter-json` | 原先为运行时 Bean 工具、Converter、AopUtils、LoggingSystem 等提供依赖 | 已移除 Spring 依赖和 Boot JSON starter；core 保留明确的 Jackson 2 / Jackson 3 依赖。`isass-nocode-core` 自身使用 Jackson 3，已显式声明 `tools.jackson.core:jackson-databind` | 完成 |
 
 ## 已完成的阶段性迁移
 
@@ -52,19 +52,28 @@
 - `DbEntityConvert`、`V2DbEntityConvert` 已移除 Spring 注解，`info.package` 由 `isass-adapter-springboot` 注入。
 - 排序语义已从 Spring `Ordered/@Order/@Primary` 迁移到 `IsassOrdered/@IsassOrder/IsassOrderUtil`，并保留对 Spring `@Order` 的无编译依赖兼容读取。
 - converter 体系已移除 core 对 Spring Converter 和 `@Component` 的依赖；Spring Boot 场景由 `IsassSpringConverterAdapter` 注册到 Spring conversion service。
-- `SpringContextUtil` 已保留同名兼容门面，但不再导入 Spring；Spring 运行时能力由 adapter 的 `SpringBeanProvider` 注入。
+- `BeanProviderUtil` 已替代 `SpringContextUtil`，且不保留旧类；Spring 运行时能力由 adapter 的 `SpringBeanProvider` 注入。
 - `LogUtil` 已改为委托 `LogLevelManager`，Spring Boot 的 LoggingSystem 操作迁到 adapter。
 - `ReflectUtils` 已移除 Spring AOP 依赖。
 - `isass-core-common` 已移除 Spring 相关 Maven 依赖。
+- `isass-nocode-core` 的 main 源码已不再反向引用 `vip.isass.framework.common.structure`，v2 迁移包内已补齐批量保存、未实现方法异常、db entity 和 db entity 转换器。
+- `isass-core-dependencies` 已纳入 `isass-nocode-core` 版本管理。
+- `isass-web-springmvc`、`isass-database-core`、`isass-database-mybatisplus`、`isass-adapter-springboot` 和 `isass-service-attachment` 已迁到 `vip.isass.framework.nocode.v2`，`common.structure` 暂时只作为历史兼容包保留。
+- `isass-nocode-core` 已新增 v3 operation pipeline、provider router、cache facade/cache operation 等纯 Java 基础抽象，用于替代 v1/v2 的 service 排序链承载缓存/事件等增强的旧模式。
+
+## 尚未迁移的兼容边界
+
+- `isass-core-common/src/main/java/vip/isass/framework/common/structure/**` 仍保留历史 v2 包名，用于兼容未迁移的业务微服务和工具代码。
+- `StringToV2WhereConditionConverter` 仍引用历史 `common.structure` 条件对象，后续应迁到 `isass-nocode-core` 或通过 converter SPI 由 nocode 模块贡献。
+- `SensitiveDataProperty` 仍引用历史 v2 trace / logic-delete entity，后续应改为更小的纯 Java marker 抽象，或迁入 nocode 边界。
 
 ## 建议迁移顺序
 
-1. **命名清理**：`SpringContextUtil` 当前已是纯 Java 门面，但名称仍带 Spring；后续可新增 `RuntimeContextUtil`/`BeanProviderUtil`，逐步废弃旧名。
-2. **SPI 化**：将 converter、exception mapping、BeanProvider、LogLevelManager 的 adapter 接入整理为统一 Java SPI 贡献描述，便于 Micronaut/Solon adapter 复用。
-3. **其他模块解耦**：继续扫描 `isass-*` 非 core 模块中可迁移的 Spring 依赖，尤其是 web/security/database/nocode 的边界。
+1. **SPI 化**：将 converter、exception mapping、BeanProvider、LogLevelManager 的 adapter 接入整理为统一 Java SPI 贡献描述，便于 Micronaut/Solon adapter 复用。
+2. **其他模块解耦**：继续扫描 `isass-*` 非 core 模块中可迁移的 Spring 依赖，尤其是 web/security/database/nocode 的边界。
 
 ## 风险
 
-- `SpringContextUtil` 虽已纯化，但名称仍含 Spring。为了兼容历史调用暂时保留，后续需要以新名称替代。
+- `BeanProviderUtil` 仍是静态门面，长期可以继续拆为更细的 registry/provider，减少核心代码对全局静态上下文的依赖。
 - converter 同时兼容 Hutool 和 Spring 的历史语义，目前 Spring MVC 参数绑定由 adapter 桥接维持；后续如引入 SPI，需要避免同一 source/target 出现多个默认 converter 导致歧义。
 - database 相关模块当前大量依赖 Spring Data/MyBatis-Plus Spring 生态，短期作为 Spring-bound 实现处理，不应阻塞 `isass-core-*` 解耦。

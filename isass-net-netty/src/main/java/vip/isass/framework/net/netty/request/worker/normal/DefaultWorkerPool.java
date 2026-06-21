@@ -174,7 +174,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import vip.isass.framework.net.netty.request.Request;
 import vip.isass.framework.net.netty.request.worker.WorkerPool;
-import vip.isass.framework.common.support.SpringContextUtil;
+import vip.isass.framework.common.support.BeanProviderUtil;
 
 /**
  * 管理业务逻辑工人线程线程池
@@ -208,7 +208,7 @@ public class DefaultWorkerPool implements WorkerPool {
         workers = new DefaultWorker[this.minWorkerCount];
 
         for (int i = 0; i < workers.length; i++) {
-            DefaultWorker worker = SpringContextUtil.getBean(DefaultWorker.class);
+            DefaultWorker worker = BeanProviderUtil.getBean(DefaultWorker.class);
             worker.setName("Worker-" + i);
             workers[i] = worker;
             worker.start();

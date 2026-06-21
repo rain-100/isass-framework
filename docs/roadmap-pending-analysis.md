@@ -30,6 +30,8 @@
 2. **低代码子模块 DDD 重设计** [2024 L46]
    - 重要：高 — 低代码模块是框架核心竞争力
    - 难度：高 — 需迁移 v1/v2、设计 v3 接口、结合 DDD 重新实现
+   - 设计：v3 不继承 v1/v2 的 `IsassOrdered` service 排序链；本地/远程实现选择归调用路由层，缓存、事件、审计等归 operation interceptor，详见 `docs/design/nocode-v3-service-routing-cache.md`
+   - 进展：`isass-nocode-core` 已新增 v3 operation pipeline、provider router、cache facade/cache operation 基础抽象；v2 自有包已补齐 `BatchSave`、`UnimplementedMethodException`、`IV2DbEntity`、`V2DbEntityConvert`，main 源码不再反向引用 `common.structure`；`isass-core-dependencies` 已管理 `isass-nocode-core` 版本；`isass-web-springmvc`、`isass-database-core`、`isass-database-mybatisplus`、`isass-adapter-springboot` 和首个适配项目 `isass-service-attachment` 已迁到 `vip.isass.framework.nocode.v2`
 
 3. **新增 access 接入层（controller/socketio/kafka动态生成）** [2024 L53]
    - 重要：高 — 低代码统一接入层设计
