@@ -23,6 +23,13 @@ class NocodeEntityDefinitionTest {
                         .queryable(true)
                         .sortable(true)
                         .build())
+                .relation(NocodeEntityRelation.oneToMany(
+                        "attachmentItems",
+                        "attachment",
+                        "attachmentItem",
+                        "id",
+                        "attachmentId"
+                ))
                 .build();
 
         assertThat(definition.entityName()).isEqualTo("attachment");
@@ -31,6 +38,8 @@ class NocodeEntityDefinitionTest {
         assertThat(definition.field("name").orElseThrow().displayName()).isEqualTo("附件名称");
         assertThat(definition.idField()).isPresent();
         assertThat(definition.idField().orElseThrow().fieldName()).isEqualTo("id");
+        assertThat(definition.relations()).hasSize(1);
+        assertThat(definition.relations().getFirst().relationType()).isEqualTo(NocodeEntityRelationType.ONE_TO_MANY);
     }
 
     @Test

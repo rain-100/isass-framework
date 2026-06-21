@@ -13,6 +13,7 @@ public final class NocodeCrudAccessRequests {
     public static final String ARG_ID = "id";
     public static final String ARG_BODY = "body";
     public static final String ARG_CRITERIA = "criteria";
+    public static final String ARG_DELETE_OPTIONS = "deleteOptions";
 
     private NocodeCrudAccessRequests() {
     }
@@ -39,6 +40,20 @@ public final class NocodeCrudAccessRequests {
 
     public static NocodeAccessRequest deleteById(String entityName, Object id, Class<?> returnType) {
         return request(entityName, NocodeCrudOperation.DELETE_BY_ID, Map.of(ARG_ID, id), returnType);
+    }
+
+    public static NocodeAccessRequest deleteById(
+            String entityName,
+            Object id,
+            NocodeDeleteOptions deleteOptions,
+            Class<?> returnType
+    ) {
+        return request(
+                entityName,
+                NocodeCrudOperation.DELETE_BY_ID,
+                Map.of(ARG_ID, id, ARG_DELETE_OPTIONS, deleteOptions == null ? NocodeDeleteOptions.none() : deleteOptions),
+                returnType
+        );
     }
 
     private static NocodeAccessRequest request(

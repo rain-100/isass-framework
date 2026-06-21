@@ -17,6 +17,7 @@ public record NocodeEntityDefinition(
         String displayName,
         String tableName,
         List<NocodeFieldDefinition> fields,
+        List<NocodeEntityRelation> relations,
         Map<String, NocodeFieldDefinition> fieldMap
 ) {
 
@@ -34,6 +35,7 @@ public record NocodeEntityDefinition(
             }
         }
         fields = Collections.unmodifiableList(fieldCopy);
+        relations = relations == null ? List.of() : Collections.unmodifiableList(List.copyOf(relations));
         fieldMap = Collections.unmodifiableMap(map);
     }
 
@@ -68,6 +70,7 @@ public record NocodeEntityDefinition(
         private String displayName;
         private String tableName;
         private final List<NocodeFieldDefinition> fields = new ArrayList<>();
+        private final List<NocodeEntityRelation> relations = new ArrayList<>();
 
         private Builder(String entityName, Class<?> entityType) {
             this.entityName = entityName;
@@ -89,8 +92,13 @@ public record NocodeEntityDefinition(
             return this;
         }
 
+        public Builder relation(NocodeEntityRelation relation) {
+            relations.add(Objects.requireNonNull(relation, "relation"));
+            return this;
+        }
+
         public NocodeEntityDefinition build() {
-            return new NocodeEntityDefinition(entityName, entityType, displayName, tableName, fields, Map.of());
+            return new NocodeEntityDefinition(entityName, entityType, displayName, tableName, fields, relations, Map.of());
         }
     }
 }

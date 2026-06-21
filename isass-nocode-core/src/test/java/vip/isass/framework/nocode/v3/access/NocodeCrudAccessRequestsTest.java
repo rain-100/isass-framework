@@ -34,6 +34,32 @@ class NocodeCrudAccessRequestsTest {
     }
 
     @Test
+    void createsDeleteByIdRequestWithCascadeDeleteOptions() {
+        NocodeDeleteOptions options = NocodeDeleteOptions.cascade("attachmentItems");
+
+        NocodeAccessRequest request = NocodeCrudAccessRequests.deleteById("attachment", 1001L, options, Boolean.class);
+
+        assertThat(request.operationName()).isEqualTo(NocodeCrudOperation.DELETE_BY_ID.getOperationName());
+        assertThat(request.arguments()).containsEntry(NocodeCrudAccessRequests.ARG_ID, 1001L);
+        assertThat(request.arguments()).containsEntry(NocodeCrudAccessRequests.ARG_DELETE_OPTIONS, options);
+        assertThat(options.cascadeDelete()).isTrue();
+        assertThat(options.associatedDelete()).isFalse();
+        assertThat(options.relationNames()).containsExactly("attachmentItems");
+    }
+
+    @Test
+    void createsDeleteByIdRequestWithAssociatedDeleteOptions() {
+        NocodeDeleteOptions options = NocodeDeleteOptions.associated("attachmentTags");
+
+        NocodeAccessRequest request = NocodeCrudAccessRequests.deleteById("attachment", 1001L, options, Boolean.class);
+
+        assertThat(request.arguments()).containsEntry(NocodeCrudAccessRequests.ARG_DELETE_OPTIONS, options);
+        assertThat(options.cascadeDelete()).isFalse();
+        assertThat(options.associatedDelete()).isTrue();
+        assertThat(options.hasRelationFilter()).isTrue();
+    }
+
+    @Test
     void rejectsBlankEntityName() {
         assertThatExceptionOfType(IllegalArgumentException.class)
                 .isThrownBy(() -> NocodeCrudAccessRequests.deleteById(" ", 1L, Boolean.class));

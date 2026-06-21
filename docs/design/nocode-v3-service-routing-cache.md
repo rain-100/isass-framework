@@ -43,6 +43,7 @@ v3 可以定义如下核心概念：
 - `NocodeCrudAccessRequests`：标准 CRUD access request 工厂，已落地；统一 `id`、`body`、`criteria` 等参数名，避免不同接入层和 provider 使用不同字符串。
 - `NocodeEntityDefinition` / `NocodeFieldDefinition`：框架无关的实体和字段元数据，已落地；用于后续动态 access、代码生成器和 ORM adapter 共享实体描述。
 - `NocodeEntityRegistry`：框架无关的实体元数据注册表，已落地；Spring/Micronaut/Solon adapter 可以各自负责发现实体定义，再注册到同一个 v3 registry。
+- `NocodeEntityRelation` / `NocodeDeleteOptions`：实体关系元数据和删除请求选项，已落地；access adapter 可通过请求参数表达是否需要级联删除或关联表删除，ORM adapter 后续按统一契约执行。
 - `NocodeEntity`：自定义实体的 v3 标记接口，已落地；业务实体可直接提供 entity name、display name、table name 和字段元数据，并生成 `NocodeEntityDefinition`。
 - `NocodeEntity#formatTimestamp` / `NocodeEntity#setupTimestamp`：Long 毫秒时间戳的调试辅助方法，已落地；支持 `Entity::getCreateTime` 和 `Entity::setCreateTime` 方法引用，便于查看和设置 bigint 时间字段。
 - `NocodeFieldDefinition#clientWritable` / `NocodeFieldAutoFill`：字段写入控制和自动填充元数据，已落地；后续新增/更新 operation 可据此拒绝前端覆盖只读字段，并在创建时间、修改时间等字段上自动写入当前时间。
@@ -91,6 +92,7 @@ Spring Boot 场景下：
 - `NocodeOperationExecutor` 已补齐 v3 标准调用入口，为后续动态 access 层生成提供稳定的纯 Java 调用门面。
 - `NocodeAccessRequest` 和 `NocodeAccessHandler` 已补齐 v3 access 接入层的纯 Java 底座，后续 Spring MVC 动态 controller 只需做协议映射。
 - `NocodeCrudOperation` 和 `NocodeCrudAccessRequests` 已补齐 v3 标准 CRUD 操作名与 access request 工厂，后续动态 controller、代码生成器和 ORM provider 可复用统一契约。
+- `NocodeEntityRelation`、`NocodeEntityRelationType` 和 `NocodeDeleteOptions` 已补齐级联删除/关联表删除的元数据和请求参数契约，后续 ORM adapter 可据此实现实际删除。
 - `NocodeEntity`、`NocodeEntityDefinition`、`NocodeFieldDefinition`、`NocodeFieldAutoFill`、`NocodeCrudWriteInterceptor`、`NocodeEntityDefinitionProvider`、`NocodeEntityRegistry`、`NocodeQueryCriteria`、`NocodePageResult`、`NocodeQueryValidator` 等 v3 元数据、查询模型和写入处理器已补齐，为自定义实体继承 v3 接口、criteria 简化、分页对象统一、字段写入控制、自动填充、bigint 时间戳调试、ORM 无关实体探索和非 Spring SPI 自动发现提供第一阶段底座。
 
 ## Roadmap 对应

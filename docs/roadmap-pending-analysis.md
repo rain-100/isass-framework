@@ -88,6 +88,7 @@
 14. **级联删除 / 关联表删除** [2024 L63]
     - 重要：中 — 低频但必要功能
     - 难度：中 — SQL 级联逻辑设计
+    - 进展：`NocodeEntityRelation`、`NocodeEntityRelationType` 和 `NocodeDeleteOptions` 已新增实体关系元数据和 deleteById 请求选项，可通过 access 参数表达级联删除或关联表删除意图；具体 ORM adapter 执行尚未落地
 
 15. **主从表关联查询** [2024 L70]
     - 重要：中 — 常用查询场景
