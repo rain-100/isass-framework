@@ -88,6 +88,7 @@
 12. **JSR303 实体校验 + 分组校验** [2024 L61]
     - 重要：中 — 数据校验标准化
     - 难度：中 — 需集成 JSR303 + 优化响应消息
+    - 进展：`NocodeFieldConstraint`、`NocodeEntityValidator` 和 `NocodeCrudValidationInterceptor` 已新增 JSR303 风格字段校验元数据、create/update 分组校验和 v3 save/update 写入前校验；Spring MVC 默认校验错误响应优化和 Jakarta Validator 桥接尚未落地
 
 14. **级联删除 / 关联表删除** [2024 L63]
     - 重要：中 — 低频但必要功能

@@ -52,6 +52,7 @@ v3 可以定义如下核心概念：
 - `NocodePageRequest` / `NocodePageResult`：框架无关的分页请求和分页结果模型，已落地；ORM adapter 可把 MyBatis Plus、sqltoy 等分页对象转换为统一 v3 模型。
 - `NocodeQueryValidator`：基于实体元数据的查询校验器，已落地；可在 access/ORM adapter 执行前校验 select、where/group、sort 字段是否存在，以及字段是否允许查询或排序。
 - `NocodeBlankStringPolicy`：空字符串查询策略，已落地；接入层可明确选择忽略空字符串，或把空字符串作为真实查询值传给 ORM adapter。
+- `NocodeFieldConstraint` / `NocodeEntityValidator` / `NocodeCrudValidationInterceptor`：JSR303 风格字段校验元数据、分组校验器和 CRUD 写入校验拦截器，已落地；支持 create/update 分组、notNull、notBlank、size 等基础约束，后续可桥接 Jakarta Validator 和 Web MVC 错误响应。
 - `NocodeCacheOperation`：缓存元数据，例如 cache name、key、cacheable/put/evict 行为，已落地。
 - `NocodeCacheManager`：isass 自有缓存门面，已落地。
 - `NocodeCacheKeyGenerator`：缓存 key 生成器，已落地。
@@ -86,6 +87,7 @@ Spring Boot 场景下：
 - `vip.isass.framework.common.structure` 暂时保留，兼容尚未迁移的业务微服务和工具代码；后续可继续缩小它在 `isass-core-common` 中的存在范围。
 - `NocodeCacheInterceptor` 已补齐 cacheable/put/evict 的执行语义，缓存增强不再需要通过实现完整 service 并参与排序链完成。
 - `NocodeOperationListenerInterceptor` 已补齐 before/after/error 监听语义，service 事件监听不再需要通过替换 service 实现完成。
+- `NocodeCrudValidationInterceptor` 已补齐 save/update 的分组校验语义，为后续动态 controller 和 ORM provider 在执行前统一校验请求体提供底座。
 - `NocodeOperationExecutor` 已补齐 v3 标准调用入口，为后续动态 access 层生成提供稳定的纯 Java 调用门面。
 - `NocodeAccessRequest` 和 `NocodeAccessHandler` 已补齐 v3 access 接入层的纯 Java 底座，后续 Spring MVC 动态 controller 只需做协议映射。
 - `NocodeCrudOperation` 和 `NocodeCrudAccessRequests` 已补齐 v3 标准 CRUD 操作名与 access request 工厂，后续动态 controller、代码生成器和 ORM provider 可复用统一契约。

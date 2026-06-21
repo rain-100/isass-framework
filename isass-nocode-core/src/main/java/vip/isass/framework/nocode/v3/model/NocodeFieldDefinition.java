@@ -1,5 +1,10 @@
 package vip.isass.framework.nocode.v3.model;
 
+import vip.isass.framework.nocode.v3.validation.NocodeFieldConstraint;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -14,7 +19,8 @@ public record NocodeFieldDefinition(
         boolean queryable,
         boolean sortable,
         boolean clientWritable,
-        NocodeFieldAutoFill autoFill
+        NocodeFieldAutoFill autoFill,
+        List<NocodeFieldConstraint> constraints
 ) {
 
     public NocodeFieldDefinition {
@@ -23,6 +29,7 @@ public record NocodeFieldDefinition(
         displayName = normalize(displayName, fieldName);
         columnName = normalize(columnName, fieldName);
         autoFill = autoFill == null ? NocodeFieldAutoFill.NONE : autoFill;
+        constraints = constraints == null ? List.of() : Collections.unmodifiableList(List.copyOf(constraints));
     }
 
     public static Builder builder(String fieldName, Class<?> fieldType) {
@@ -52,6 +59,7 @@ public record NocodeFieldDefinition(
         private boolean sortable;
         private boolean clientWritable = true;
         private NocodeFieldAutoFill autoFill = NocodeFieldAutoFill.NONE;
+        private final List<NocodeFieldConstraint> constraints = new ArrayList<>();
 
         private Builder(String fieldName, Class<?> fieldType) {
             this.fieldName = fieldName;
@@ -93,6 +101,11 @@ public record NocodeFieldDefinition(
             return this;
         }
 
+        public Builder constraint(NocodeFieldConstraint constraint) {
+            constraints.add(Objects.requireNonNull(constraint, "constraint"));
+            return this;
+        }
+
         public NocodeFieldDefinition build() {
             return new NocodeFieldDefinition(
                     fieldName,
@@ -103,7 +116,8 @@ public record NocodeFieldDefinition(
                     queryable,
                     sortable,
                     clientWritable,
-                    autoFill
+                    autoFill,
+                    constraints
             );
         }
     }
