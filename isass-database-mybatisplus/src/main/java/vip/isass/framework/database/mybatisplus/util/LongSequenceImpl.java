@@ -170,13 +170,11 @@
 package vip.isass.framework.database.mybatisplus.util;
 
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
-import org.springframework.stereotype.Component;
 import vip.isass.framework.common.sequence.Sequence;
 
 /**
  * @author Rain
  */
-@Component
 public class LongSequenceImpl implements Sequence<Long> {
 
     @Override

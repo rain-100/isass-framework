@@ -169,7 +169,6 @@
 
 package vip.isass.framework.database.mybatisplus.util;
 
-import org.springframework.stereotype.Component;
 import vip.isass.framework.common.support.ISystemClock;
 
 import java.util.Date;
@@ -177,7 +176,6 @@ import java.util.Date;
 /**
  * @author Rain
  */
-@Component
 public class SystemClockImpl implements ISystemClock {
 
     public long now() {
