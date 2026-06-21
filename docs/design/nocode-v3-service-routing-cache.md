@@ -45,6 +45,7 @@ v3 可以定义如下核心概念：
 - `NocodeEntity`：自定义实体的 v3 标记接口，已落地；业务实体可直接提供 entity name、display name、table name 和字段元数据，并生成 `NocodeEntityDefinition`。
 - `NocodeEntity#formatTimestamp` / `NocodeEntity#setupTimestamp`：Long 毫秒时间戳的调试辅助方法，已落地；支持 `Entity::getCreateTime` 和 `Entity::setCreateTime` 方法引用，便于查看和设置 bigint 时间字段。
 - `NocodeFieldDefinition#clientWritable` / `NocodeFieldAutoFill`：字段写入控制和自动填充元数据，已落地；后续新增/更新 operation 可据此拒绝前端覆盖只读字段，并在创建时间、修改时间等字段上自动写入当前时间。
+- `NocodeCrudWritePayloadProcessor` / `NocodeCrudWriteInterceptor`：标准 save/update 写入前处理器，已落地；可在 operation pipeline 中基于实体字段元数据过滤前端只读字段，并填充创建时间、修改时间等服务端字段。
 - `NocodeEntityDefinitionProvider`：Java SPI 实体元数据 provider，已落地；非 Spring 环境可以通过 `META-INF/services` 提供实体定义，`NocodeEntityRegistry.fromServiceLoader()` 会自动加载并注册。
 - `NocodeQueryCriteria` / `NocodeQueryCondition` / `NocodeQueryGroup`：Map/List 化查询条件模型，已落地；不再要求为每个字段生成 `orXxx`、`xxxNotEqual` 等大量属性，复杂条件通过 group + joiner 表达。
 - `NocodePageRequest` / `NocodePageResult`：框架无关的分页请求和分页结果模型，已落地；ORM adapter 可把 MyBatis Plus、sqltoy 等分页对象转换为统一 v3 模型。
@@ -86,7 +87,7 @@ Spring Boot 场景下：
 - `NocodeOperationExecutor` 已补齐 v3 标准调用入口，为后续动态 access 层生成提供稳定的纯 Java 调用门面。
 - `NocodeAccessRequest` 和 `NocodeAccessHandler` 已补齐 v3 access 接入层的纯 Java 底座，后续 Spring MVC 动态 controller 只需做协议映射。
 - `NocodeCrudOperation` 和 `NocodeCrudAccessRequests` 已补齐 v3 标准 CRUD 操作名与 access request 工厂，后续动态 controller、代码生成器和 ORM provider 可复用统一契约。
-- `NocodeEntity`、`NocodeEntityDefinition`、`NocodeFieldDefinition`、`NocodeFieldAutoFill`、`NocodeEntityDefinitionProvider`、`NocodeEntityRegistry`、`NocodeQueryCriteria`、`NocodePageResult`、`NocodeQueryValidator` 等 v3 元数据和查询模型已补齐，为自定义实体继承 v3 接口、criteria 简化、分页对象统一、字段写入控制、自动填充元数据、bigint 时间戳调试、ORM 无关实体探索和非 Spring SPI 自动发现提供第一阶段底座。
+- `NocodeEntity`、`NocodeEntityDefinition`、`NocodeFieldDefinition`、`NocodeFieldAutoFill`、`NocodeCrudWriteInterceptor`、`NocodeEntityDefinitionProvider`、`NocodeEntityRegistry`、`NocodeQueryCriteria`、`NocodePageResult`、`NocodeQueryValidator` 等 v3 元数据、查询模型和写入处理器已补齐，为自定义实体继承 v3 接口、criteria 简化、分页对象统一、字段写入控制、自动填充、bigint 时间戳调试、ORM 无关实体探索和非 Spring SPI 自动发现提供第一阶段底座。
 
 ## Roadmap 对应
 
