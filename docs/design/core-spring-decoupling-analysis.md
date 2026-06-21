@@ -32,11 +32,11 @@
 | `IAnyJsonEntity` | 通过 `BeanProviderUtil` 获取 `IDictTranslationProvider` | JSON 实体字典翻译 | 当前已解耦 Spring 编译依赖；后续可进一步改为翻译 provider registry 或显式传入 context | P1 |
 | `LogUtil` | 原先使用 `LoggingSystem`、`LogLevel`、`LoggerConfiguration`，并通过运行时容器获取 Bean | 动态关闭/恢复日志级别 | 已抽象 `LogLevelManager`；core 默认无操作，`isass-adapter-springboot` 提供 `SpringBootLogLevelManager` | 完成 |
 | `ReflectUtils` | `AopUtils.getMostSpecificMethod` | 查找代理类/接口上的实际 API 方法 | 已改为 JDK 反射按方法名和参数查找接口方法 | 完成 |
-| `ApiService` | `AnnotationUtils.findAnnotation`、Spring `@Order` | 按本地服务/Feign 服务优先级路由 API 服务调用 | 已新增 `IsassOrdered`、`@IsassOrder`、`IsassOrderUtil`；core 优先读取自有接口/注解，并以反射方式兼容 Spring `@Order` | 完成 |
-| `IV2Service` | 继承 Spring `Ordered` | v2 service 优先级排序 | 已替换为 `IsassOrdered` | 完成 |
-| `V2ServiceManagerUtil` | 泛型约束 `S extends Ordered` | v2 service 链路选择与降级 | 已改用 `IsassOrdered`；排序语义保留 `ApiOrder` 常量 | 完成 |
+| `ApiService` | `AnnotationUtils.findAnnotation`、Spring `@Order` | 按本地服务/Feign 服务优先级路由 API 服务调用 | 已改为 `@IsassOrder` + `IsassOrderUtil`，并以反射方式兼容 Spring `@Order` | 完成 |
+| `IV2Service` | 继承 Spring `Ordered` | v2 service 优先级排序 | 已移除 `Ordered`/`IsassOrdered` 继承；仅保留历史 `getOrder()` 默认方法兼容 v2 | 完成 |
+| `V2ServiceManagerUtil` | 泛型约束 `S extends Ordered` | v2 service 链路选择与降级 | 已移除排序接口泛型约束，统一通过 `IsassOrderUtil.getOrder()` 读取顺序 | 完成 |
 | `IV2ServiceManager` | `@Primary` | v2 service manager 在 Spring 中作为主 Bean | 已移除 core 注解；如后续仍需要 Spring primary 语义，由 adapter 或具体 Spring 模块负责 | 完成 |
-| `isass-nocode-core/v2/service/*` | Spring `Ordered`、`@Primary` | nocode v2 service 链路 | 已与 core-common v2 service 同步迁移到 `IsassOrdered` | 完成 |
+| `isass-nocode-core/v2/service/*` | Spring `Ordered`、`@Primary` | nocode v2 service 链路 | 已与 core-common v2 service 同步移除排序接口继承，排序读取由 `IsassOrderUtil` 承载 | 完成 |
 | `isass-nocode-core/src/test` | `@SpringBootTest`、`@Transactional` | 集成测试事务和 Spring 容器启动 | main 源码解耦后，测试拆成纯 Java 单测和 Spring adapter 集成测试 | P2 |
 | `StringToV2WhereConditionConverter` | 依赖历史 `common.structure` v2 查询条件 | JSON 字符串转 v2 查询条件 | 已迁到 `isass-nocode-core` 的 `vip.isass.framework.nocode.v2.converter` 包，Spring Boot adapter 继续注册 | 完成 |
 | `SensitiveDataProperty` | 引用历史 `common.structure` v2 entity 常量 | 默认查询时过滤敏感字段 | 已改为 core 自有字段名常量，不再依赖 v2 entity | 完成 |
@@ -52,7 +52,7 @@
 - `SelectOptionServiceManager` 已变为纯 Java 聚合器，Spring 装配迁到 `isass-adapter-springboot`。
 - `AutoDestroyManager` 已从 core 删除，Spring 生命周期监听器迁到 `isass-adapter-springboot`。
 - `DbEntityConvert`、`V2DbEntityConvert` 已移除 Spring 注解，`info.package` 由 `isass-adapter-springboot` 注入。
-- 排序语义已从 Spring `Ordered/@Order/@Primary` 迁移到 `IsassOrdered/@IsassOrder/IsassOrderUtil`，并保留对 Spring `@Order` 的无编译依赖兼容读取。
+- 排序语义已从 Spring `Ordered/@Order/@Primary` 迁移到 `@IsassOrder/IsassOrderUtil`，并保留对 Spring `@Order` 的无编译依赖兼容读取；`IsassOrdered` 已删除。
 - converter 体系已移除 core 对 Spring Converter 和 `@Component` 的依赖；Spring Boot 场景由 `IsassSpringConverterAdapter` 注册到 Spring conversion service。
 - `BeanProviderUtil` 已替代 `SpringContextUtil`，且不保留旧类；Spring 运行时能力由 adapter 的 `SpringBeanProvider` 注入。
 - `LogUtil` 已改为委托 `LogLevelManager`，Spring Boot 的 LoggingSystem 操作迁到 adapter。

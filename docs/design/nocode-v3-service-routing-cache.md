@@ -2,13 +2,13 @@
 
 ## 背景
 
-v1/v2 的 service 调用链通过 `ApiOrder` / `IsassOrdered` 排序选择实现。这个机制可以表达单体环境优先本地 service、微服务环境使用 feign service，但不适合作为缓存、审计、事件、幂等等方法级增强机制。
+v1/v2 的 service 调用链通过 `ApiOrder` / `getOrder()` 排序选择实现。这个机制可以表达单体环境优先本地 service、微服务环境使用 feign service，但不适合作为缓存、审计、事件、幂等等方法级增强机制。
 
 典型问题是 Redis service：如果把缓存做成一个完整 service 实现，只想缓存一个方法时，也必须实现整个 service 接口。其他方法即使返回 `null`，仍会进入调用链，增加空实现和运行时开销。
 
 ## 结论
 
-`IsassOrdered` 暂时保留给 v1/v2 兼容使用。v3 service 不继承 `IsassOrdered`，也不再把缓存能力建模为一个排序 service。
+`IsassOrdered` 已删除。v2 暂时保留 `IV2Service#getOrder()` 默认方法兼容历史链路，v3 service 不继承排序接口，也不再把缓存能力建模为一个排序 service。
 
 v3 拆成两层：
 
@@ -35,7 +35,7 @@ v3 可以定义如下核心概念：
 - `NocodeCacheManager`：isass 自有缓存门面，已落地。
 - `NocodeCacheKeyGenerator`：缓存 key 生成器，已落地。
 
-已落地的 v3 基础抽象均为纯 Java，不依赖 Spring，也不要求 v3 service 继承 `IsassOrdered`。
+已落地的 v3 基础抽象均为纯 Java，不依赖 Spring，也不要求 v3 service 继承排序接口。
 
 Spring Boot 场景下：
 
@@ -45,9 +45,9 @@ Spring Boot 场景下：
 
 ## 与旧机制关系
 
-- v1/v2：继续保留 `ApiOrder` / `IsassOrdered`，避免破坏现有 service manager。
-- v3：不继承 `IsassOrdered`，不使用完整 service 作为缓存层。
-- 后续当 v3 替代 v1/v2 后，再评估删除 `IsassOrdered`、`ApiService`、`V2ServiceManagerUtil` 等 legacy 调用链。
+- v1/v2：继续保留 `ApiOrder` / `getOrder()` 历史语义，避免破坏现有 service manager。
+- v3：不继承排序接口，不使用完整 service 作为缓存层。
+- 后续当 v3 替代 v1/v2 后，再评估删除 `ApiService`、`V2ServiceManagerUtil` 等 legacy 调用链。
 
 ## 迁移进展
 

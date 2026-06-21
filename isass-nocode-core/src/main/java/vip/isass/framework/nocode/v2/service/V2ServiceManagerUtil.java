@@ -171,7 +171,7 @@ package vip.isass.framework.nocode.v2.service;
 
 import lombok.extern.slf4j.Slf4j;
 import vip.isass.framework.common.support.api.ApiOrder;
-import vip.isass.framework.common.support.api.IsassOrdered;
+import vip.isass.framework.common.support.api.IsassOrderUtil;
 import vip.isass.framework.nocode.v2.UnimplementedMethodException;
 
 import java.util.List;
@@ -181,7 +181,7 @@ import java.util.function.Function;
 @Slf4j
 public class V2ServiceManagerUtil {
 
-    public static <S extends IsassOrdered, V> V applyUntilNotNull(List<S> services, Function<S, V> function) {
+    public static <S, V> V applyUntilNotNull(List<S> services, Function<S, V> function) {
         checkServices(services);
 
         boolean hasLocalService = false;
@@ -192,7 +192,8 @@ public class V2ServiceManagerUtil {
             }
 
             // controller 的实现无需执行
-            if (service.getOrder() == ApiOrder.CONTROLLER) {
+            int order = IsassOrderUtil.getOrder(service);
+            if (order == ApiOrder.CONTROLLER) {
                 continue;
             }
 
@@ -201,7 +202,7 @@ public class V2ServiceManagerUtil {
                 hasLocalService = true;
             }
 
-            if (hasLocalService && (service.getOrder() == ApiOrder.FEIGN_SERVICE)) {
+            if (hasLocalService && (order == ApiOrder.FEIGN_SERVICE)) {
                 continue;
             }
 
@@ -217,7 +218,7 @@ public class V2ServiceManagerUtil {
         return null;
     }
 
-    public static <S extends IsassOrdered> void consume(List<S> services, Consumer<S> consumer) {
+    public static <S> void consume(List<S> services, Consumer<S> consumer) {
         checkServices(services);
 
         for (S service : services) {
@@ -230,7 +231,7 @@ public class V2ServiceManagerUtil {
         }
     }
 
-    public static <S extends IsassOrdered> void consumeWithoutException(List<S> services, Consumer<S> consumer) {
+    public static <S> void consumeWithoutException(List<S> services, Consumer<S> consumer) {
         checkServices(services);
 
         for (S service : services) {
@@ -245,7 +246,7 @@ public class V2ServiceManagerUtil {
         }
     }
 
-    public static <S extends IsassOrdered> void checkServices(List<S> services) {
+    public static <S> void checkServices(List<S> services) {
         if (services == null) {
             throw new UnsupportedOperationException("接口实现类列表为 null，请复制错误日志供开发人员排查错误");
         }

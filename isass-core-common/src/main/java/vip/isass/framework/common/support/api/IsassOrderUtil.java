@@ -10,6 +10,10 @@ import java.lang.reflect.Method;
  */
 public final class IsassOrderUtil {
 
+    public static final int HIGHEST_PRECEDENCE = Integer.MIN_VALUE;
+
+    public static final int LOWEST_PRECEDENCE = Integer.MAX_VALUE;
+
     private static final String SPRING_ORDER_ANNOTATION = "org.springframework.core.annotation.Order";
 
     private IsassOrderUtil() {
@@ -17,21 +21,38 @@ public final class IsassOrderUtil {
 
     public static int getOrder(Object source) {
         if (source == null) {
-            return IsassOrdered.LOWEST_PRECEDENCE;
-        }
-
-        if (source instanceof IsassOrdered ordered) {
-            return ordered.getOrder();
+            return LOWEST_PRECEDENCE;
         }
 
         Class<?> sourceClass = source instanceof Class<?> clazz ? clazz : source.getClass();
+        Integer methodOrder = findGetOrder(source, sourceClass);
+        if (methodOrder != null) {
+            return methodOrder;
+        }
+
         IsassOrder isassOrder = sourceClass.getAnnotation(IsassOrder.class);
         if (isassOrder != null) {
             return isassOrder.value();
         }
 
         Integer springOrder = findSpringOrder(sourceClass);
-        return springOrder == null ? IsassOrdered.LOWEST_PRECEDENCE : springOrder;
+        return springOrder == null ? LOWEST_PRECEDENCE : springOrder;
+    }
+
+    private static Integer findGetOrder(Object source, Class<?> sourceClass) {
+        if (source instanceof Class<?>) {
+            return null;
+        }
+        try {
+            Method getOrderMethod = sourceClass.getMethod("getOrder");
+            if ("IV2Service".equals(getOrderMethod.getDeclaringClass().getSimpleName())) {
+                return null;
+            }
+            Object value = getOrderMethod.invoke(source);
+            return value instanceof Integer integer ? integer : null;
+        } catch (ReflectiveOperationException e) {
+            return null;
+        }
     }
 
     private static Integer findSpringOrder(Class<?> sourceClass) {
