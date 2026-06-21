@@ -69,6 +69,7 @@
 - `isass-nocode-core` 中整文件注释的旧 lowcode MyBatis Plus 源码和未引用的 nocode `ICommonMapper`/XML 已删除；可运行的 MyBatis Plus 实现保留在 `isass-database-mybatisplus`。
 - `LoginUserUtil`、`LongSequence`、`SystemClock` 已从主动读取 `BeanProviderUtil` 改为显式 provider/setter，Spring Boot 运行时由 `isass-adapter-springboot` 通过 `ObjectProvider` 桥接。
 - 历史兼容包和 nocode v2 的 `IAnyJsonEntity` 已从主动读取 `BeanProviderUtil` 改为显式 `IDictTranslationProvider` provider/setter，并补充未配置 provider 时的跳过行为测试。
+- 数据库自动建库的 Spring `ApplicationContextInitializer` 已从 `isass-database-core` 迁到 `isass-adapter-springboot`，并通过反射发现 `DatabaseInitializerManager`；未依赖数据库模块的业务只依赖 Spring Boot adapter 时不会被强制带入 database-core。
 
 ## 尚未迁移的兼容边界
 
