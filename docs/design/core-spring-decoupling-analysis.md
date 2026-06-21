@@ -73,6 +73,7 @@
 - `DatabaseExceptionMapping`、`BuildInDatabaseExceptionMapping` 已移除 `@Component`，改由 database / mybatisplus 自动配置显式注册，减少功能类本身的 Spring 注解。
 - MyBatis Plus typehandler、`LongSequenceImpl`、`SystemClockImpl`、MySQL mapper location provider 已移除 `@Component`，改由 MyBatis Plus 自动配置显式注册；剩余 `@ComponentScan` 作为 Spring-bound 模块边界后续继续收缩。
 - `DatabaseAutoConfiguration`、`DatabaseMybatisPlusAutoConfiguration`、PostgreSQL MyBatis Plus 自动配置已移除多余 `@ComponentScan`；MyBatis Plus 主配置改为显式 `@Import(SqlSessionConfig.class)`。
+- MySQL 公共 repository 已移除 `@Repository` 和字段注入，改为构造器注入并由 MySQL 自动配置显式注册；MyBatis mapper 仍由 `@MapperScan` 发现。
 
 ## 尚未迁移的兼容边界
 

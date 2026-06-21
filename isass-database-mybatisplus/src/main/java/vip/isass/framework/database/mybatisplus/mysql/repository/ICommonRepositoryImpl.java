@@ -174,38 +174,24 @@ import cn.hutool.core.lang.Assert;
 import com.baomidou.mybatisplus.core.metadata.TableFieldInfo;
 import com.baomidou.mybatisplus.core.metadata.TableInfo;
 import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
-import org.springframework.stereotype.Repository;
 import vip.isass.framework.database.mybatisplus.mysql.mapper.ICommonMapper;
 import vip.isass.framework.common.entity.DbEntityConvert;
 import vip.isass.framework.common.entity.IdEntity;
 import vip.isass.framework.common.repository.ICommonRepository;
 
-import jakarta.annotation.Resource;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@Repository
 public class ICommonRepositoryImpl implements ICommonRepository {
 
-    @Resource
-    private ICommonMapper iCommonMapper;
+    private final ICommonMapper iCommonMapper;
 
-    //    @Resource
-    //    private DatabaseIdProvider databaseIdProvider;
-    //
-    //
-    //    private final DataSource dataSource;
-    //
-    //    public ICommonRepositoryImpl(DataSource dataSource) {
-    //        this.dataSource = dataSource;
-    //    }
-    //
-    //    @SneakyThrows
-    //    private String getDataBaseId() {
-    //        return databaseIdProvider.getDatabaseId(dataSource);
-    //    }
+    public ICommonRepositoryImpl(ICommonMapper iCommonMapper) {
+        this.iCommonMapper = iCommonMapper;
+    }
+
 
     @Override
     public <PK extends Serializable, E extends IdEntity<PK, E>> List<E>
