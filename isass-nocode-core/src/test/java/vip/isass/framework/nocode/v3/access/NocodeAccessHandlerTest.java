@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class NocodeAccessHandlerTest {
 
@@ -32,6 +33,26 @@ class NocodeAccessHandlerTest {
         String result = handler.handle(request);
 
         assertThat(result).isEqualTo("attachment:1");
+    }
+
+    @Test
+    void validatesStandardCrudRequestBeforeExecution() {
+        NocodeOperationExecutor executor = new NocodeOperationExecutor(
+                List.of(new TestProvider()),
+                List.of()
+        );
+        NocodeAccessHandler handler = new NocodeAccessHandler(executor);
+        NocodeAccessRequest request = new NocodeAccessRequest(
+                "attachment",
+                "findById",
+                Map.of(),
+                String.class,
+                NocodeRouteMode.LOCAL
+        );
+
+        assertThatThrownBy(() -> handler.handle(request))
+                .isInstanceOf(NocodeAccessValidationException.class)
+                .hasMessageContaining("Missing required argument 'id'");
     }
 
     static class TestProvider implements NocodeOperationProvider<String> {
