@@ -69,7 +69,7 @@ Spring Boot 场景下：
 - `isass-adapter-springboot` 或未来 `isass-nocode-springboot` 把 `NocodeCacheManager` 桥接到 Spring `CacheManager`。
 - 如果业务已经使用 Spring Cache，可以复用底层 cache provider。
 - v3 的接口元数据不直接依赖 Spring 注解，保证未来 Micronaut/Solon adapter 可以复用。
-- `isass-web-springmvc` 已提供 `NocodeSpringMvcCrudRoute` 作为 v3 动态 controller 的默认 HTTP method/path descriptor；后续运行时注册端点时应复用该 descriptor，避免路由、文档和代码生成各自维护路径规则。
+- `isass-web-springmvc` 已提供 `NocodeSpringMvcCrudRoute` 作为 v3 动态 controller 的默认 HTTP method/path descriptor，并通过 `NocodeSpringMvcCrudRequestFactory` 把 Spring MVC 解析出的 path/query/body 参数转换为框架无关的 `NocodeAccessRequest`；后续运行时注册端点时应复用这两个边界，避免路由、文档和代码生成各自维护路径规则。
 
 ## 与旧机制关系
 
