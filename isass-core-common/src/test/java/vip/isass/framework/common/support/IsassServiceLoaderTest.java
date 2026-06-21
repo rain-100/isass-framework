@@ -3,6 +3,8 @@ package vip.isass.framework.common.support;
 import org.junit.jupiter.api.Test;
 import vip.isass.framework.common.converter.StringToMapConverter;
 import vip.isass.framework.common.converter.datatime.StringToLocalDateConverter;
+import vip.isass.framework.common.exception.BuildInCoreExceptionMapping;
+import vip.isass.framework.common.exception.IExceptionMapping;
 
 import java.util.List;
 
@@ -17,6 +19,15 @@ class IsassServiceLoaderTest {
         assertThat(converters)
                 .extracting(Object::getClass)
                 .contains(StringToLocalDateConverter.class, StringToMapConverter.class);
+    }
+
+    @Test
+    void loadsExceptionMappingsFromMetaInfServices() {
+        List<IExceptionMapping> exceptionMappings = IsassServiceLoader.load(IExceptionMapping.class);
+
+        assertThat(exceptionMappings)
+                .extracting(Object::getClass)
+                .contains(BuildInCoreExceptionMapping.class);
     }
 
     @Test

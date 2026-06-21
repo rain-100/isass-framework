@@ -175,6 +175,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.apache.catalina.connector.ClientAbortException;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -183,6 +185,7 @@ import vip.isass.framework.common.exception.UnifiedException;
 import vip.isass.framework.common.exception.code.IStatusMessage;
 import vip.isass.framework.common.exception.code.StatusMessageEnum;
 import vip.isass.framework.common.sequence.impl.LongSequence;
+import vip.isass.framework.common.support.IsassServiceLoader;
 import vip.isass.framework.common.web.Resp;
 
 // import javax.annotation.Resource;
@@ -200,6 +203,22 @@ public class ExceptionAdvice {
 
     
     private List<IExceptionMapping> exceptionMappings;
+
+    public ExceptionAdvice() {
+        this(List.of());
+    }
+
+    @Autowired
+    public ExceptionAdvice(ObjectProvider<IExceptionMapping> exceptionMappings) {
+        this(exceptionMappings.orderedStream().toList());
+    }
+
+    ExceptionAdvice(List<IExceptionMapping> exceptionMappings) {
+        this.exceptionMappings = IsassServiceLoader.mergeByClass(
+                exceptionMappings,
+                IsassServiceLoader.load(IExceptionMapping.class)
+        );
+    }
 
     /**
      * 配置项：是否显示详细错误信息（生产环境建议关闭，开发环境建议开启）

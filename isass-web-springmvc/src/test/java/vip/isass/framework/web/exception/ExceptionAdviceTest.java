@@ -4,8 +4,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 import vip.isass.framework.common.web.Resp;
 
-import java.util.List;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ExceptionAdviceTest {
@@ -13,7 +11,6 @@ class ExceptionAdviceTest {
     @Test
     void createRespByExceptionShouldKeepDetailMessageWhenUnifiedMessageIsReturned() {
         ExceptionAdvice advice = new ExceptionAdvice();
-        ReflectionTestUtils.setField(advice, "exceptionMappings", List.of());
         ReflectionTestUtils.setField(advice, "showDetailError", false);
         ReflectionTestUtils.setField(advice, "prodUnifiedMessage", "系统繁忙，请稍后重试");
 

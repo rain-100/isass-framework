@@ -78,6 +78,7 @@
 - MySQL 公共 repository 已移除 `@Repository` 和字段注入，改为构造器注入并由 MySQL 自动配置显式注册；MyBatis mapper 仍由 `@MapperScan` 发现。
 - `SqlSessionConfig` 已从字段注入迁到构造器注入，通过 `ObjectProvider` 收集可选 mapper location provider 和 typehandler，便于后续继续抽离 Spring 配置边界。
 - `IsassServiceLoader` 已作为第一阶段 Java SPI 发现工具落地；`isass-core-common` 和 `isass-nocode-core` 通过 `META-INF/services/vip.isass.framework.common.support.Converter` 暴露默认 converter，Spring Boot adapter 合并 Spring Bean converter 与 SPI converter。
+- `IExceptionMapping` 已接入 Java SPI；core-common、web-springmvc、database-core、database-mybatisplus 通过 `META-INF/services` 暴露内置异常映射，`ExceptionAdvice` 合并 Spring Bean 映射和 SPI 映射，业务自定义 Bean 优先于同 class 的 SPI 默认实现。
 
 ## 尚未迁移的兼容边界
 
@@ -93,7 +94,7 @@
 
 ## 建议迁移顺序
 
-1. **SPI 化**：converter 已先接入 Java SPI；继续将 exception mapping、BeanProvider、LogLevelManager 的 adapter 接入整理为统一 Java SPI 贡献描述，便于 Micronaut/Solon adapter 复用。
+1. **SPI 化**：converter、exception mapping 已先接入 Java SPI；继续将 BeanProvider、LogLevelManager 的 adapter 接入整理为统一 Java SPI 贡献描述，便于 Micronaut/Solon adapter 复用。
 2. **database adapter 化**：继续处理代码生成模板的 v3 输出边界，避免新生成代码继续绑定历史 v2/Spring 结构。
 3. **其他模块解耦**：继续扫描 `isass-*` 非 core 模块中可迁移的 Spring 依赖，尤其是 web/security/database/nocode 的边界。
 
