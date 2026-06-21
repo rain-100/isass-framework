@@ -31,7 +31,7 @@
    - 重要：高 — 低代码模块是框架核心竞争力
    - 难度：高 — 需迁移 v1/v2、设计 v3 接口、结合 DDD 重新实现
    - 设计：v3 不继承 v1/v2 的 service 排序链；本地/远程实现选择归调用路由层，缓存、事件、审计等归 operation interceptor，详见 `docs/design/nocode-v3-service-routing-cache.md`
-   - 进展：`isass-nocode-core` 已新增 v3 operation pipeline、provider router、access handler、cache facade/cache operation、自定义实体标记接口、实体/字段元数据、实体元数据 SPI provider、实体注册表、Map/List 化查询条件和空字符串查询策略；v2 自有包已补齐 `BatchSave`、`UnimplementedMethodException`、`IV2DbEntity`、`V2DbEntityConvert`，main 源码不再反向引用 `common.structure`；`isass-core-dependencies` 已管理 `isass-nocode-core` 版本；`isass-web-springmvc`、`isass-database-core`、`isass-database-mybatisplus`、`isass-adapter-springboot` 和首个适配项目 `isass-service-attachment` 已迁到 `vip.isass.framework.nocode.v2`
+   - 进展：`isass-nocode-core` 已新增 v3 operation pipeline、provider router、access handler、cache facade/cache operation、自定义实体标记接口、实体/字段元数据、实体元数据 SPI provider、实体注册表、Map/List 化查询条件、查询元数据校验器和空字符串查询策略；v2 自有包已补齐 `BatchSave`、`UnimplementedMethodException`、`IV2DbEntity`、`V2DbEntityConvert`，main 源码不再反向引用 `common.structure`；`isass-core-dependencies` 已管理 `isass-nocode-core` 版本；`isass-web-springmvc`、`isass-database-core`、`isass-database-mybatisplus`、`isass-adapter-springboot` 和首个适配项目 `isass-service-attachment` 已迁到 `vip.isass.framework.nocode.v2`
 
 3. **新增 access 接入层（controller/socketio/kafka动态生成）** [2024 L53]
    - 重要：高 — 低代码统一接入层设计
@@ -69,7 +69,7 @@
 10. **criteria 简化（删除 or/NotEqual 等字段）** [2024 L52]
     - 重要：中 — 提升编译速度、IDE 体验
     - 难度：中 — 需用 Map 替代并保持兼容
-    - 进展：已新增 `NocodeQueryCriteria`、`NocodeQueryCondition`、`NocodeQueryGroup`，支持用条件列表和分组表达 equals、in、contains、or 等查询；v2 生成模板尚未迁移到 v3 模型
+    - 进展：已新增 `NocodeQueryCriteria`、`NocodeQueryCondition`、`NocodeQueryGroup`，支持用条件列表和分组表达 equals、in、contains、or 等查询；已新增 `NocodeQueryValidator` 基于字段元数据校验未知字段、不可查询字段和不可排序字段；v2 生成模板尚未迁移到 v3 模型
 
 11. **自定义实体继承 v3 接口** [2024 L48]
     - 重要：中 — 非标实体集成规范
