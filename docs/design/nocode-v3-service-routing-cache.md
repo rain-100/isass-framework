@@ -34,6 +34,8 @@ v3 可以定义如下核心概念：
 - `NocodeCacheOperation`：缓存元数据，例如 cache name、key、cacheable/put/evict 行为，已落地。
 - `NocodeCacheManager`：isass 自有缓存门面，已落地。
 - `NocodeCacheKeyGenerator`：缓存 key 生成器，已落地。
+- `NocodeCacheOperationResolver`：从 operation 解析缓存元数据，已落地。
+- `NocodeCacheInterceptor`：把 cacheable/put/evict 语义接入 operation pipeline，已落地；未匹配缓存配置或缓存不存在时直接透传到下游 invoker。
 
 已落地的 v3 基础抽象均为纯 Java，不依赖 Spring，也不要求 v3 service 继承排序接口。
 
@@ -61,6 +63,7 @@ Spring Boot 场景下：
 - 旧 Swagger/Knife4j 模块和框架源码中的 `io.swagger.annotations` 已移除，v2 接口文档描述后续以 smart-doc Javadoc 为准。
 - `isass-nocode-core` 中旧 lowcode MyBatis Plus 注释源码和未引用 mapper 已删除，具体 ORM 实现继续放在 `isass-database-mybatisplus`。
 - `vip.isass.framework.common.structure` 暂时保留，兼容尚未迁移的业务微服务和工具代码；后续可继续缩小它在 `isass-core-common` 中的存在范围。
+- `NocodeCacheInterceptor` 已补齐 cacheable/put/evict 的执行语义，缓存增强不再需要通过实现完整 service 并参与排序链完成。
 
 ## Roadmap 对应
 
