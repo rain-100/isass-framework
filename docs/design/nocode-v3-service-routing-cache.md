@@ -41,6 +41,7 @@ v3 可以定义如下核心概念：
 - `NocodeEntityDefinition` / `NocodeFieldDefinition`：框架无关的实体和字段元数据，已落地；用于后续动态 access、代码生成器和 ORM adapter 共享实体描述。
 - `NocodeEntityRegistry`：框架无关的实体元数据注册表，已落地；Spring/Micronaut/Solon adapter 可以各自负责发现实体定义，再注册到同一个 v3 registry。
 - `NocodeEntity`：自定义实体的 v3 标记接口，已落地；业务实体可直接提供 entity name、display name、table name 和字段元数据，并生成 `NocodeEntityDefinition`。
+- `NocodeEntityDefinitionProvider`：Java SPI 实体元数据 provider，已落地；非 Spring 环境可以通过 `META-INF/services` 提供实体定义，`NocodeEntityRegistry.fromServiceLoader()` 会自动加载并注册。
 - `NocodeQueryCriteria` / `NocodeQueryCondition` / `NocodeQueryGroup`：Map/List 化查询条件模型，已落地；不再要求为每个字段生成 `orXxx`、`xxxNotEqual` 等大量属性，复杂条件通过 group + joiner 表达。
 - `NocodeBlankStringPolicy`：空字符串查询策略，已落地；接入层可明确选择忽略空字符串，或把空字符串作为真实查询值传给 ORM adapter。
 - `NocodeCacheOperation`：缓存元数据，例如 cache name、key、cacheable/put/evict 行为，已落地。
@@ -78,7 +79,7 @@ Spring Boot 场景下：
 - `NocodeCacheInterceptor` 已补齐 cacheable/put/evict 的执行语义，缓存增强不再需要通过实现完整 service 并参与排序链完成。
 - `NocodeOperationExecutor` 已补齐 v3 标准调用入口，为后续动态 access 层生成提供稳定的纯 Java 调用门面。
 - `NocodeAccessRequest` 和 `NocodeAccessHandler` 已补齐 v3 access 接入层的纯 Java 底座，后续 Spring MVC 动态 controller 只需做协议映射。
-- `NocodeEntity`、`NocodeEntityDefinition`、`NocodeFieldDefinition`、`NocodeEntityRegistry`、`NocodeQueryCriteria` 等 v3 元数据和查询模型已补齐，为自定义实体继承 v3 接口、criteria 简化、ORM 无关实体探索提供第一阶段底座。
+- `NocodeEntity`、`NocodeEntityDefinition`、`NocodeFieldDefinition`、`NocodeEntityDefinitionProvider`、`NocodeEntityRegistry`、`NocodeQueryCriteria` 等 v3 元数据和查询模型已补齐，为自定义实体继承 v3 接口、criteria 简化、ORM 无关实体探索和非 Spring SPI 自动发现提供第一阶段底座。
 
 ## Roadmap 对应
 

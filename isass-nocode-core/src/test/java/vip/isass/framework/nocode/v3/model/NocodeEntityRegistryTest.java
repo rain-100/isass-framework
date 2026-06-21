@@ -39,6 +39,15 @@ class NocodeEntityRegistryTest {
         assertThat(registry.find("attachment")).contains(attachment);
     }
 
+    @Test
+    void canLoadDefinitionsFromJavaServiceLoader() {
+        NocodeEntityRegistry registry = NocodeEntityRegistry.fromServiceLoader();
+
+        assertThat(registry.find("spiAttachment"))
+                .map(NocodeEntityDefinition::displayName)
+                .contains("SPI附件");
+    }
+
     private static NocodeEntityDefinition definition(String entityName) {
         return NocodeEntityDefinition.builder(entityName, Object.class)
                 .field(NocodeFieldDefinition.builder("id", Long.class).idField(true).build())

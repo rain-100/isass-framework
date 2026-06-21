@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.ServiceLoader;
 
 /**
  * Registry for nocode v3 entity metadata.
@@ -21,6 +22,24 @@ public class NocodeEntityRegistry {
         if (definitions != null) {
             definitions.forEach(this::register);
         }
+    }
+
+    public static NocodeEntityRegistry fromServiceLoader() {
+        return fromServiceLoader(Thread.currentThread().getContextClassLoader());
+    }
+
+    public static NocodeEntityRegistry fromServiceLoader(ClassLoader classLoader) {
+        ServiceLoader<NocodeEntityDefinitionProvider> loader = classLoader == null
+                ? ServiceLoader.load(NocodeEntityDefinitionProvider.class)
+                : ServiceLoader.load(NocodeEntityDefinitionProvider.class, classLoader);
+        NocodeEntityRegistry registry = new NocodeEntityRegistry();
+        for (NocodeEntityDefinitionProvider provider : loader) {
+            Collection<NocodeEntityDefinition> definitions = provider.definitions();
+            if (definitions != null) {
+                definitions.forEach(registry::register);
+            }
+        }
+        return registry;
     }
 
     public synchronized void register(NocodeEntityDefinition definition) {
