@@ -12,7 +12,9 @@ public record NocodeFieldDefinition(
         String columnName,
         boolean idField,
         boolean queryable,
-        boolean sortable
+        boolean sortable,
+        boolean clientWritable,
+        NocodeFieldAutoFill autoFill
 ) {
 
     public NocodeFieldDefinition {
@@ -20,6 +22,7 @@ public record NocodeFieldDefinition(
         fieldType = fieldType == null ? Object.class : fieldType;
         displayName = normalize(displayName, fieldName);
         columnName = normalize(columnName, fieldName);
+        autoFill = autoFill == null ? NocodeFieldAutoFill.NONE : autoFill;
     }
 
     public static Builder builder(String fieldName, Class<?> fieldType) {
@@ -47,6 +50,8 @@ public record NocodeFieldDefinition(
         private boolean idField;
         private boolean queryable = true;
         private boolean sortable;
+        private boolean clientWritable = true;
+        private NocodeFieldAutoFill autoFill = NocodeFieldAutoFill.NONE;
 
         private Builder(String fieldName, Class<?> fieldType) {
             this.fieldName = fieldName;
@@ -78,8 +83,28 @@ public record NocodeFieldDefinition(
             return this;
         }
 
+        public Builder clientWritable(boolean clientWritable) {
+            this.clientWritable = clientWritable;
+            return this;
+        }
+
+        public Builder autoFill(NocodeFieldAutoFill autoFill) {
+            this.autoFill = autoFill;
+            return this;
+        }
+
         public NocodeFieldDefinition build() {
-            return new NocodeFieldDefinition(fieldName, fieldType, displayName, columnName, idField, queryable, sortable);
+            return new NocodeFieldDefinition(
+                    fieldName,
+                    fieldType,
+                    displayName,
+                    columnName,
+                    idField,
+                    queryable,
+                    sortable,
+                    clientWritable,
+                    autoFill
+            );
         }
     }
 }
