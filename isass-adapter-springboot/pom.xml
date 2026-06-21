@@ -218,6 +218,12 @@
         </dependency>
 
         <dependency>
+            <groupId>vip.isass</groupId>
+            <artifactId>isass-mq-core</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
             <groupId>org.liquibase</groupId>
             <artifactId>liquibase-core</artifactId>
             <optional>true</optional>

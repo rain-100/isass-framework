@@ -174,13 +174,10 @@ import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.SmartLifecycle;
-import org.springframework.stereotype.Component;
-import vip.isass.framework.mq.core.MqAutoConfiguration;
+import vip.isass.framework.mq.core.config.DynamicMqProperties;
 import vip.isass.framework.mq.core.MqMessageContext;
 
-import jakarta.annotation.Resource;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -190,14 +187,11 @@ import java.util.stream.Collectors;
  * @author Rain
  */
 @Slf4j
-@Component
-public class EventPublisher implements SmartLifecycle {
+public class EventPublisher {
 
-    @Autowired(required = false)
-    private List<ProducerManager> producerManagers;
+    private final DynamicMqProperties properties;
 
-    @Resource
-    private MqAutoConfiguration mqAutoConfiguration;
+    private final List<ProducerManager> producerManagers;
 
     private static String DEFAULT_MANUFACTURER;
 
@@ -206,7 +200,14 @@ public class EventPublisher implements SmartLifecycle {
      */
     private static Map<String, ProducerManager> producerManagerMap;
 
-    private static boolean IS_RUNNING = false;
+    private boolean running;
+
+    public EventPublisher(DynamicMqProperties properties, List<ProducerManager> producerManagers) {
+        this.properties = properties;
+        this.producerManagers = producerManagers == null
+                ? Collections.emptyList()
+                : List.copyOf(producerManagers);
+    }
 
     /**
      * 发布事件
@@ -229,10 +230,9 @@ public class EventPublisher implements SmartLifecycle {
         producerManager.send(mqMessageContext);
     }
 
-    @Override
     public void start() {
-        IS_RUNNING = true;
-        if (mqAutoConfiguration.getEnable()) {
+        running = true;
+        if (Boolean.TRUE.equals(properties.getEnabled())) {
             log.info("init mq producer manager");
         } else {
             log.info("mq is disable, skip to init EventPublisher");
@@ -258,20 +258,18 @@ public class EventPublisher implements SmartLifecycle {
             .peek(ProducerManager::init)
             .collect(Collectors.toMap(ProducerManager::manufacturer, Function.identity()));
 
-        DEFAULT_MANUFACTURER = mqAutoConfiguration.getDefaultManufacturer();
+        DEFAULT_MANUFACTURER = properties.getPrimary();
     }
 
-    @Override
     public void stop() {
         if (CollUtil.isNotEmpty(producerManagers)) {
             producerManagers.forEach(ProducerManager::destroy);
         }
-        IS_RUNNING = false;
+        running = false;
     }
 
-    @Override
     public boolean isRunning() {
-        return IS_RUNNING;
+        return running;
     }
 
 }

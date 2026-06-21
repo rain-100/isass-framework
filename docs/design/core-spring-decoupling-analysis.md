@@ -81,6 +81,7 @@
 - `IExceptionMapping` 已接入 Java SPI；core-common、web-springmvc、database-core、database-mybatisplus 通过 `META-INF/services` 暴露内置异常映射，`ExceptionAdvice` 合并 Spring Bean 映射和 SPI 映射，业务自定义 Bean 优先于同 class 的 SPI 默认实现。
 - `BeanProviderUtil` 和 `LogUtil` 已提供显式 `set*FromServiceLoader` 初始化入口；非 Spring runtime 可以通过 Java SPI 提供 no-arg 实现，也可以在 adapter 启动时继续主动调用 setter 注入带运行时上下文的实现。
 - `isass-apidoc-zyplayer` 已将仅用于文本判空/默认值的 Spring `StringUtils` 替换为纯 Java `ZyplayerText`，OpenAPI 排除规则中的 Spring `AntPathMatcher` 已替换为模块内纯 Java Ant 风格路径匹配；`ZyplayerOpenApiClient` 和 `ZyplayerOpenApiDocsCollector` 已从 Spring `RestClient` 改为 JDK `HttpClient`；OpenAPI 采集器通过端口 `Supplier` 和资源读取 `Function` 接收运行时能力，Spring `Environment` / `ResourceLoader` 仅保留在自动装配桥接层。
+- `isass-mq-core` 已移除 Spring Boot 自动配置入口和 `SmartLifecycle` / stereotype / `@ConfigurationProperties` 直接依赖；MQ Spring Boot 装配迁到 `isass-adapter-springboot`，通过 `IsassFeature.MQ_CORE` 按 classpath 条件注册 `DynamicMqProperties`、`MqManager`、旧 producer/consumer initializer 以及 `SmartLifecycle` 桥；SpringEvent/Kafka011 provider 模块改为显式声明自身 Spring 依赖，不再从 mq-core 传递获得。
 
 ## 尚未迁移的兼容边界
 

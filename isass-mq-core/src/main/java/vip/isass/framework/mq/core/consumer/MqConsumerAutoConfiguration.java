@@ -171,12 +171,9 @@ package vip.isass.framework.mq.core.consumer;
 
 import cn.hutool.core.collection.CollUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.SmartLifecycle;
-import org.springframework.stereotype.Component;
-import vip.isass.framework.mq.core.MqAutoConfiguration;
+import vip.isass.framework.mq.core.config.DynamicMqProperties;
 
-import jakarta.annotation.Resource;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -185,21 +182,24 @@ import java.util.List;
  * @author Rain
  */
 @Slf4j
-@Component
-public class MqConsumerAutoConfiguration implements SmartLifecycle {
+public class MqConsumerAutoConfiguration {
 
-    @Autowired(required = false)
-    private List<MqConsumerManager> mqConsumerManagers;
+    private final DynamicMqProperties properties;
 
-    @Resource
-    private MqAutoConfiguration mqAutoConfiguration;
+    private final List<MqConsumerManager> mqConsumerManagers;
 
-    private static boolean IS_RUNNING = false;
+    private boolean running;
 
-    @Override
+    public MqConsumerAutoConfiguration(DynamicMqProperties properties, List<MqConsumerManager> mqConsumerManagers) {
+        this.properties = properties;
+        this.mqConsumerManagers = mqConsumerManagers == null
+                ? Collections.emptyList()
+                : List.copyOf(mqConsumerManagers);
+    }
+
     public void start() {
-        IS_RUNNING = true;
-        if (mqAutoConfiguration.getEnable()) {
+        running = true;
+        if (Boolean.TRUE.equals(properties.getEnabled())) {
             log.info("init mq consumer manager");
         } else {
             log.info("isass event system is disable, will skip it");
@@ -215,17 +215,15 @@ public class MqConsumerAutoConfiguration implements SmartLifecycle {
             .forEach(MqConsumerManager::subscribe);
     }
 
-    @Override
     public void stop() {
         if (CollUtil.isNotEmpty(mqConsumerManagers)) {
             mqConsumerManagers.forEach(MqConsumerManager::destroy);
         }
-        IS_RUNNING = false;
+        running = false;
     }
 
-    @Override
     public boolean isRunning() {
-        return IS_RUNNING;
+        return running;
     }
 
 }

@@ -3,7 +3,6 @@ package vip.isass.framework.mq.core;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.SmartLifecycle;
 import vip.isass.framework.mq.core.config.DynamicMqProperties;
 import vip.isass.framework.mq.core.config.MqSourceProperties;
 import vip.isass.framework.mq.core.consumer.IMqConsumerContainer;
@@ -17,7 +16,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
-public class MqManager implements SmartLifecycle {
+public class MqManager {
 
     private final DynamicMqProperties properties;
 
@@ -47,7 +46,6 @@ public class MqManager implements SmartLifecycle {
         MqPublisher.setMqManager(this);
     }
 
-    @Override
     public void start() {
         if (!Boolean.TRUE.equals(properties.getEnabled())) {
             log.info("mq is disabled, skip to init mq sources");
@@ -124,7 +122,6 @@ public class MqManager implements SmartLifecycle {
         producer.send(mqMessage);
     }
 
-    @Override
     public void stop() {
         consumerMap.values().forEach(IMqConsumerContainer::destroy);
         consumerMap.clear();
@@ -133,7 +130,6 @@ public class MqManager implements SmartLifecycle {
         running = false;
     }
 
-    @Override
     public boolean isRunning() {
         return running;
     }

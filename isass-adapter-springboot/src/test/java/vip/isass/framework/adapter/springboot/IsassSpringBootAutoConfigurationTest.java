@@ -6,11 +6,13 @@ import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.context.annotation.ImportCandidates;
 import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.util.ClassUtils;
 import vip.isass.framework.adapter.springboot.database.IsassDatabaseSpringBootAutoConfiguration;
 import vip.isass.framework.adapter.springboot.converter.IsassSpringConverterAdapter;
 import vip.isass.framework.adapter.springboot.destroy.AutoDestroyManager;
+import vip.isass.framework.adapter.springboot.mq.IsassMqSpringBootAutoConfiguration;
 import vip.isass.framework.common.entity.DbEntityConvert;
 import vip.isass.framework.common.exception.BuildInCoreExceptionMapping;
 import vip.isass.framework.common.exception.IExceptionMapping;
@@ -21,6 +23,10 @@ import vip.isass.framework.common.selectoption.SelectOptionServiceManager;
 import vip.isass.framework.nocode.v2.entity.V2DbEntityConvert;
 import vip.isass.framework.common.support.BeanProvider;
 import vip.isass.framework.common.support.BeanProviderUtil;
+import vip.isass.framework.mq.core.MqManager;
+import vip.isass.framework.mq.core.config.DynamicMqProperties;
+import vip.isass.framework.mq.core.consumer.MqConsumerAutoConfiguration;
+import vip.isass.framework.mq.core.producer.EventPublisher;
 
 import java.util.List;
 
@@ -34,6 +40,9 @@ class IsassSpringBootAutoConfigurationTest {
     private static final String DATABASE_AUTO_CONFIGURATION_CLASS =
             "vip.isass.framework.adapter.springboot.database.IsassDatabaseSpringBootAutoConfiguration";
 
+    private static final String MQ_AUTO_CONFIGURATION_CLASS =
+            "vip.isass.framework.adapter.springboot.mq.IsassMqSpringBootAutoConfiguration";
+
     @Test
     void publishesSpringBootAutoConfigurationImport() {
         List<String> candidates = ImportCandidates
@@ -42,8 +51,10 @@ class IsassSpringBootAutoConfigurationTest {
 
         assertThat(candidates).contains(AUTO_CONFIGURATION_CLASS);
         assertThat(candidates).contains(DATABASE_AUTO_CONFIGURATION_CLASS);
+        assertThat(candidates).contains(MQ_AUTO_CONFIGURATION_CLASS);
         assertThat(ClassUtils.isPresent(AUTO_CONFIGURATION_CLASS, getClass().getClassLoader())).isTrue();
         assertThat(ClassUtils.isPresent(DATABASE_AUTO_CONFIGURATION_CLASS, getClass().getClassLoader())).isTrue();
+        assertThat(ClassUtils.isPresent(MQ_AUTO_CONFIGURATION_CLASS, getClass().getClassLoader())).isTrue();
     }
 
     @Test
@@ -121,6 +132,32 @@ class IsassSpringBootAutoConfigurationTest {
     }
 
     @Test
+    void registersMqBeansWhenMqCoreIsPresent() {
+        new ApplicationContextRunner()
+                .withConfiguration(AutoConfigurations.of(IsassMqSpringBootAutoConfiguration.class))
+                .withPropertyValues("isass.mq.enabled=false", "isass.mq.primary=test")
+                .run(context -> {
+                    assertThat(context).hasSingleBean(DynamicMqProperties.class);
+                    assertThat(context).hasSingleBean(MqManager.class);
+                    assertThat(context).hasSingleBean(EventPublisher.class);
+                    assertThat(context).hasSingleBean(MqConsumerAutoConfiguration.class);
+                    assertThat(context).hasBean("mqManagerLifecycle");
+                    assertThat(context).hasBean("eventPublisherLifecycle");
+                    assertThat(context).hasBean("mqConsumerLifecycle");
+                    assertThat(context.getBean(DynamicMqProperties.class).getPrimary()).isEqualTo("test");
+                    assertThat(context.getBean("mqManagerLifecycle")).isInstanceOf(SmartLifecycle.class);
+                });
+    }
+
+    @Test
+    void skipsMqBeansWhenMqCoreIsMissing() {
+        new ApplicationContextRunner()
+                .withClassLoader(new FilteredClassLoader("vip.isass.framework.mq"))
+                .withConfiguration(AutoConfigurations.of(IsassMqSpringBootAutoConfiguration.class))
+                .run(context -> assertThat(context).doesNotHaveBean("mqManager"));
+    }
+
+    @Test
     void registersSpringConverterAdapter() {
         new ApplicationContextRunner()
                 .withConfiguration(AutoConfigurations.of(IsassSpringBootAutoConfiguration.class))
@@ -177,7 +214,6 @@ class IsassSpringBootAutoConfigurationTest {
         ClassLoader classLoader = getClass().getClassLoader();
 
         assertThat(ClassUtils.isPresent("vip.isass.framework.database.core.DatabaseAutoConfiguration", classLoader)).isFalse();
-        assertThat(ClassUtils.isPresent("vip.isass.framework.mq.core.MqAutoConfiguration", classLoader)).isFalse();
         assertThat(ClassUtils.isPresent("vip.isass.framework.net.core.NetCoreAutoConfiguration", classLoader)).isFalse();
         assertThat(ClassUtils.isPresent("vip.isass.framework.web.WebAutoConfiguration", classLoader)).isFalse();
         assertThat(ClassUtils.isPresent("vip.isass.framework.web.security.WebSecurityAutoConfiguration", classLoader)).isFalse();

@@ -169,7 +169,6 @@
 
 package vip.isass.framework.mq.core.consumer;
 
-import org.springframework.stereotype.Component;
 import vip.isass.framework.common.mq.MessageType;
 
 import java.lang.annotation.*;
@@ -181,7 +180,6 @@ import java.lang.annotation.*;
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-@Component
 public @interface EventListener {
 
     /**
