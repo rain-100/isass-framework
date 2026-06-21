@@ -36,6 +36,7 @@ v3 可以定义如下核心概念：
 - `NocodeOperationInvoker`：执行实际本地或远程 provider，已落地。
 - `NocodeOperationInterceptor`：方法增强接口，按顺序包裹 invoker，已落地。
 - `NocodeOperationPipeline`：把 interceptor 组合成调用链，已落地。
+- `NocodeOperationListener` / `NocodeOperationListenerInterceptor`：service 逻辑前置、后置和异常监听底座，已落地；业务扩展可以只监听关心的阶段，不需要实现完整 service。
 - `NocodeOperationProvider` / `NocodeOperationRouter`：负责 local、remote、auto 路由，已落地。
 - `NocodeOperationExecutor`：统一组合 route + pipeline 的 v3 调用入口，已落地；后续 access/controller/socketio/kafka 等接入层应调用 executor，而不是直接关心 provider 选择和 interceptor 编排。
 - `NocodeAccessRequest` / `NocodeAccessHandler`：框架无关的接入请求模型和处理入口，已落地；为 controller/socketio/kafka 等动态接入层提供统一底座。
@@ -84,6 +85,7 @@ Spring Boot 场景下：
 - `isass-nocode-core` 中旧 lowcode MyBatis Plus 注释源码和未引用 mapper 已删除，具体 ORM 实现继续放在 `isass-database-mybatisplus`。
 - `vip.isass.framework.common.structure` 暂时保留，兼容尚未迁移的业务微服务和工具代码；后续可继续缩小它在 `isass-core-common` 中的存在范围。
 - `NocodeCacheInterceptor` 已补齐 cacheable/put/evict 的执行语义，缓存增强不再需要通过实现完整 service 并参与排序链完成。
+- `NocodeOperationListenerInterceptor` 已补齐 before/after/error 监听语义，service 事件监听不再需要通过替换 service 实现完成。
 - `NocodeOperationExecutor` 已补齐 v3 标准调用入口，为后续动态 access 层生成提供稳定的纯 Java 调用门面。
 - `NocodeAccessRequest` 和 `NocodeAccessHandler` 已补齐 v3 access 接入层的纯 Java 底座，后续 Spring MVC 动态 controller 只需做协议映射。
 - `NocodeCrudOperation` 和 `NocodeCrudAccessRequests` 已补齐 v3 标准 CRUD 操作名与 access request 工厂，后续动态 controller、代码生成器和 ORM provider 可复用统一契约。

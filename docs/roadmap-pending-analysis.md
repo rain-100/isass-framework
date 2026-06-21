@@ -92,6 +92,7 @@
 13. **service 事件监听（前置/后置）** [2024 L62]
     - 重要：中 — 业务扩展点
     - 难度：中 — 需设计事件模型与触发机制
+    - 进展：`NocodeOperationListener` 和 `NocodeOperationListenerInterceptor` 已新增 before/after/error 监听底座，并接入 v3 operation pipeline；具体业务模块和 adapter 自动注册尚未落地
 
 14. **级联删除 / 关联表删除** [2024 L63]
     - 重要：中 — 低频但必要功能
