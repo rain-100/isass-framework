@@ -174,8 +174,9 @@ import com.baomidou.mybatisplus.extension.handlers.Jackson3TypeHandler;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Import;
 import vip.isass.framework.common.support.JsonUtil;
+import vip.isass.framework.database.mybatisplus.config.SqlSessionConfig;
 import vip.isass.framework.database.mybatisplus.exception.BuildInDatabaseExceptionMapping;
 import vip.isass.framework.database.mybatisplus.json.IPageDeserializer;
 import vip.isass.framework.database.mybatisplus.typehandler.BigDecimalArrayTypeHandler;
@@ -196,7 +197,7 @@ import vip.isass.framework.database.mybatisplus.util.SystemClockImpl;
 /**
  * @author Rain
  */
-@ComponentScan
+@Import(SqlSessionConfig.class)
 public class DatabaseMybatisPlusAutoConfiguration implements InitializingBean {
 
     @Bean

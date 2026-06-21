@@ -169,11 +169,8 @@
 
 package vip.isass.framework.database.mybatisplus.postgresql;
 
-import org.springframework.context.annotation.ComponentScan;
-
 /**
  * @author Rain
  */
-@ComponentScan
 public class DatabaseMybatisplusPostgresqlAutoConfiguration {
 }

@@ -72,6 +72,7 @@
 - 数据库自动建库的 Spring `ApplicationContextInitializer` 已从 `isass-database-core` 迁到 `isass-adapter-springboot`，并通过反射发现 `DatabaseInitializerManager`；未依赖数据库模块的业务只依赖 Spring Boot adapter 时不会被强制带入 database-core。
 - `DatabaseExceptionMapping`、`BuildInDatabaseExceptionMapping` 已移除 `@Component`，改由 database / mybatisplus 自动配置显式注册，减少功能类本身的 Spring 注解。
 - MyBatis Plus typehandler、`LongSequenceImpl`、`SystemClockImpl`、MySQL mapper location provider 已移除 `@Component`，改由 MyBatis Plus 自动配置显式注册；剩余 `@ComponentScan` 作为 Spring-bound 模块边界后续继续收缩。
+- `DatabaseAutoConfiguration`、`DatabaseMybatisPlusAutoConfiguration`、PostgreSQL MyBatis Plus 自动配置已移除多余 `@ComponentScan`；MyBatis Plus 主配置改为显式 `@Import(SqlSessionConfig.class)`。
 
 ## 尚未迁移的兼容边界
 

@@ -173,13 +173,11 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.liquibase.autoconfigure.LiquibaseProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import vip.isass.framework.database.core.exception.DatabaseExceptionMapping;
 
 /**
  * @author Rain
  */
-@ComponentScan
 @EnableConfigurationProperties(LiquibaseProperties.class)
 public class DatabaseAutoConfiguration {
 
