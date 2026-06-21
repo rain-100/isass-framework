@@ -484,7 +484,7 @@
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>super-core-database-dameng</artifactId>
+                <artifactId>isass-database-dameng</artifactId>
                 <version>${isass.version}</version>
             </dependency>
 

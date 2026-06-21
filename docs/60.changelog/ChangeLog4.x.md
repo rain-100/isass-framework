@@ -24,11 +24,12 @@
 - **健康检查优化**：适配 Spring Boot 4.x 的模块化健康检查体系，更新 `HealthIndicator` 相关实现。
 - **数据库初始化优化**：回归 `v4-old` 的 `DatabaseInitializerManager` 过程式逻辑，移除 `DatabaseInitializer` 接口及 SPI 扩展机制，统一管理各数据库方言。
 - **数据库迁移工具替换**：将 Flyway 替换为 Liquibase。
-    - `isass-database-core` 移除 Flyway 依赖，改为依赖 `spring-boot-starter-liquibase` 与 `liquibase-core`。
+    - `isass-database-core` 移除 Flyway 依赖，保留 Liquibase 服务级命名规则。
+    - Spring Boot Liquibase 桥接由 `isass-adapter-springboot` 提供，业务服务按需依赖 `spring-boot-starter-liquibase`。
     - 新增 `LiquibaseServiceNaming` 服务级命名规则，Spring Boot adapter 提供 `AbstractLiquibaseConfiguration` 抽象配置基类与 `LiquibaseConfigurer` 配置工具类。
     - 服务侧通过声明独立 `SpringLiquibase` bean 实现微服务/单体两种启动模式。
     - 单体模式下多个服务 bean 在 Spring 初始化阶段分别执行，changelog 与 Liquibase 管理表通过服务名隔离。
-- **达梦 Liquibase 兼容**：引入 `com.github.mengweijin:db-migration-dameng-liquibase`，使用开源扩展支持达梦数据库，并将 Liquibase 版本锁定为 `5.0.3`。
+- **达梦 Liquibase 兼容**：新增 `isass-database-dameng` 模块，引入 `com.github.mengweijin:db-migration-dameng-liquibase`，使用开源扩展支持达梦数据库，并将 Liquibase 版本锁定为 `5.0.3`。
 - **模块合并**：
     - `isass-framework-nocode-*` 核心功能合并至 `isass-framework-common` 的 `core.structure` 目录下。
     - `isass-framework-database-mybatisplus-mysql` 和 `postgresql` 合并至 `isass-framework-database-mybatisplus`，支持多数据库自动配置。

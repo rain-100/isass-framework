@@ -15,6 +15,8 @@
 
 `isass-database-core` 只提供数据库基础能力和 Liquibase 服务级命名规则，不再替业务服务传递 Spring Boot Liquibase starter。
 
+如果服务使用达梦数据库，再按需依赖 `isass-database-dameng`，用于加载达梦驱动兼容、达梦 Liquibase 扩展和 ResultSetMetaData 修补能力。
+
 ### 1.1 创建 Liquibase 配置类
 
 在服务模块中创建 `vip.isass.xxx.liquibase` 包，添加配置类：

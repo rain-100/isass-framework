@@ -192,6 +192,7 @@
 
         <!-- database -->
         <subproject>isass-database-core</subproject>
+        <subproject>isass-database-dameng</subproject>
         <subproject>isass-database-elasticsearch</subproject>
         <subproject>isass-database-redis</subproject>
         <subproject>isass-database-mybatisplus</subproject>
