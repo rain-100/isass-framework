@@ -1,4 +1,4 @@
-package vip.isass.framework.database.core.liquibase;
+package vip.isass.framework.adapter.springboot.database.liquibase;
 
 import liquibase.UpdateSummaryEnum;
 import liquibase.UpdateSummaryOutputEnum;

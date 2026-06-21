@@ -1,8 +1,9 @@
-package vip.isass.framework.database.core.liquibase;
+package vip.isass.framework.adapter.springboot.database.liquibase;
 
 import liquibase.integration.spring.SpringLiquibase;
 import org.springframework.boot.liquibase.autoconfigure.LiquibaseProperties;
 import org.springframework.core.io.ResourceLoader;
+import vip.isass.framework.database.core.liquibase.LiquibaseServiceNaming;
 
 import javax.sql.DataSource;
 

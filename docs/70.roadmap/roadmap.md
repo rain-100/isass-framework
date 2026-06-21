@@ -46,9 +46,10 @@
     - 2026-06-21：已扫描 `isass-database-core` 的 Spring 绑定；运行时边界集中在 Liquibase Spring 配置，代码生成模板中的 Spring 注解短期按生成 Spring 业务代码处理。
     - 2026-06-21：`DatabaseAutoConfiguration` 中的 `DatabaseExceptionMapping` 注册已迁到 `isass-adapter-springboot` 的 `IsassDatabaseSpringBootAutoConfiguration`，通过 `@ConditionalOnClass(name=...)` 和反射按 database-core classpath 条件装配；database-core 已删除原自动配置入口。
     - 2026-06-21：已新增纯 Java `LiquibaseServiceNaming`，承接服务级 changelog 路径和 Liquibase history/lock 表名规则；`AbstractLiquibaseConfiguration` 不再内联路径规则，`LiquibaseConfigurer` 已移除 Spring `CollectionUtils` / `StringUtils` 工具依赖。验证：`mvn -pl isass-database-core -am test -Dmaven.javadoc.skip=true -Dsurefire.failIfNoSpecifiedTests=false`。
+    - 2026-06-21：`AbstractLiquibaseConfiguration` / `LiquibaseConfigurer` 已从 `isass-database-core` 迁到 `isass-adapter-springboot`，SpringLiquibase、LiquibaseProperties、ResourceLoader 桥接归入 Spring Boot adapter；adapter 对 database-core、Liquibase、Boot Liquibase 依赖使用 optional，attachment 已改用 adapter 包路径。验证：`mvn -pl isass-adapter-springboot -am test -Dmaven.javadoc.skip=true -Dsurefire.failIfNoSpecifiedTests=false`、`mvn -pl isass-service-attachment-service -am test -Dmaven.javadoc.skip=true -Dsurefire.failIfNoSpecifiedTests=false`。
   - 下一步：
-    - 将 `SpringLiquibase` / `LiquibaseProperties` / `ResourceLoader` 桥接迁到 Spring Boot adapter，database-core 保留 Liquibase 服务级命名规则和非 Spring 数据库抽象。
     - 为 Spring Boot adapter 建立 classpath 条件装配策略：业务按需依赖 database/mq/net/web/security 时，才激活对应 Spring 装配。
+    - 继续收缩 `isass-database-core` 的 Spring Boot starter 依赖，明确 Liquibase runtime 依赖由业务或 adapter starter 提供。
     - 设计 Java SPI 作为非 Spring 运行时的基础发现机制，避免自动装配逻辑只存在于 Spring Boot。
   - 验证方式：
     - `rg -n "org\\.springframework|jakarta\\.annotation\\.Resource|@Component|@Service|@Repository|@Controller" isass-core-*/*/main`

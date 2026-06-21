@@ -18,7 +18,7 @@ import org.springframework.boot.liquibase.autoconfigure.LiquibaseProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ResourceLoader;
-import vip.isass.framework.database.core.liquibase.AbstractLiquibaseConfiguration;
+import vip.isass.framework.adapter.springboot.database.liquibase.AbstractLiquibaseConfiguration;
 
 import javax.sql.DataSource;
 

@@ -11,7 +11,7 @@
 
 ## 2. 核心设计
 
-每个服务定义一个 `SpringLiquibase` bean。框架提供 `AbstractLiquibaseConfiguration` 作为服务侧配置基类，统一完成：
+每个服务定义一个 `SpringLiquibase` bean。Spring Boot adapter 提供 `AbstractLiquibaseConfiguration` 作为服务侧配置基类，database-core 提供纯 Java `LiquibaseServiceNaming`，统一完成：
 
 - `spring.liquibase.*` 标准属性映射
 - changelog 路径追加服务名
