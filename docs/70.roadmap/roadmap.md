@@ -56,6 +56,7 @@
     - 2026-06-21：`isass-apidoc-zyplayer` 已新增纯 Java `ZyplayerText`，替换 `ZyplayerVersion`、`ZyplayerServiceDescriptor`、OpenAPI 过滤/采集/转换和 OpenAPI client 中仅用于判空的 Spring `StringUtils`；保留 RestClient、Environment、ResourceLoader、AntPathMatcher 等真实 Spring/Web 边界后续再拆。验证：`mvn -pl isass-apidoc-zyplayer -am test -Dmaven.javadoc.skip=true -Dsurefire.failIfNoSpecifiedTests=false`。
     - 2026-06-21：`isass-apidoc-zyplayer` 已移除 OpenAPI 排除规则中的 Spring `AntPathMatcher`，改用模块内纯 Java Ant 风格路径匹配，支持 `**`、`*`、`?` 和 `/**` 匹配目录本身。验证：`mvn -pl isass-apidoc-zyplayer -am test -Dmaven.javadoc.skip=true -Dsurefire.failIfNoSpecifiedTests=false`。
     - 2026-06-21：`ZyplayerOpenApiClient` 已从 Spring `RestClient` / `MediaType` / `MultiValueMap` 改为 JDK `HttpClient`、`HttpRequest` 和 `URLEncoder`，OpenAPI client 本体不再依赖 Spring HTTP 客户端。验证：`mvn -pl isass-apidoc-zyplayer -am test -Dmaven.javadoc.skip=true -Dsurefire.failIfNoSpecifiedTests=false`。
+    - 2026-06-21：`ZyplayerOpenApiDocsCollector` 已移除对 Spring `Environment`、`ResourceLoader` 和 `RestClient` 的直接依赖，改为接收端口 `Supplier`、资源读取 `Function` 和 JDK `HttpClient`；Spring Boot auto-config 仅负责把 Spring 环境桥接为这些纯 Java 入参。验证：`mvn -pl isass-apidoc-zyplayer -am test -Dmaven.javadoc.skip=true -Dsurefire.failIfNoSpecifiedTests=false`。
   - 下一步：
     - 继续扫描 `isass-*` 非 core 模块的 Spring 依赖边界，优先处理可以下沉为纯 Java 接口或迁移到 adapter 的注解/工具类。
   - 验证方式：

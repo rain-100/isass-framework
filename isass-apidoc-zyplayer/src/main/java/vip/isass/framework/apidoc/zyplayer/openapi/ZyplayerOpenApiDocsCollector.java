@@ -1,66 +1,52 @@
 package vip.isass.framework.apidoc.zyplayer.openapi;
 
-import org.springframework.core.env.Environment;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceLoader;
-import org.springframework.core.io.DefaultResourceLoader;
-import org.springframework.web.client.RestClient;
 import vip.isass.framework.apidoc.zyplayer.ZyplayerApidocProperties;
 import vip.isass.framework.apidoc.zyplayer.ZyplayerText;
 import vip.isass.framework.apidoc.zyplayer.sync.ZyplayerSyncDocument;
 
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * @author Rain
  */
 public class ZyplayerOpenApiDocsCollector {
 
-    private final Environment environment;
-
     private final ZyplayerApidocProperties properties;
 
     private final ZyplayerOpenApiDocumentConverter converter;
 
-    private final RestClient restClient;
+    private final Supplier<String> serverPortSupplier;
 
-    private final ResourceLoader resourceLoader;
+    private final Function<String, String> resourceReader;
+
+    private final HttpClient httpClient;
 
     public ZyplayerOpenApiDocsCollector(
-            Environment environment,
             ZyplayerApidocProperties properties,
-            ZyplayerOpenApiDocumentConverter converter) {
-        this(environment, properties, converter, RestClient.create(), new DefaultResourceLoader());
+            ZyplayerOpenApiDocumentConverter converter,
+            Supplier<String> serverPortSupplier,
+            Function<String, String> resourceReader) {
+        this(properties, converter, serverPortSupplier, resourceReader, HttpClient.newHttpClient());
     }
 
     public ZyplayerOpenApiDocsCollector(
-            Environment environment,
             ZyplayerApidocProperties properties,
             ZyplayerOpenApiDocumentConverter converter,
-            RestClient restClient) {
-        this(environment, properties, converter, restClient, new DefaultResourceLoader());
-    }
-
-    public ZyplayerOpenApiDocsCollector(
-            Environment environment,
-            ZyplayerApidocProperties properties,
-            ZyplayerOpenApiDocumentConverter converter,
-            ResourceLoader resourceLoader) {
-        this(environment, properties, converter, RestClient.create(), resourceLoader);
-    }
-
-    public ZyplayerOpenApiDocsCollector(
-            Environment environment,
-            ZyplayerApidocProperties properties,
-            ZyplayerOpenApiDocumentConverter converter,
-            RestClient restClient,
-            ResourceLoader resourceLoader) {
-        this.environment = environment;
+            Supplier<String> serverPortSupplier,
+            Function<String, String> resourceReader,
+            HttpClient httpClient) {
         this.properties = properties;
         this.converter = converter;
-        this.restClient = restClient;
-        this.resourceLoader = resourceLoader;
+        this.serverPortSupplier = serverPortSupplier;
+        this.resourceReader = resourceReader;
+        this.httpClient = httpClient;
     }
 
     public List<ZyplayerSyncDocument> collect() {
@@ -69,10 +55,7 @@ public class ZyplayerOpenApiDocsCollector {
         }
         String openApiJson = loadGeneratedOpenApiJson();
         if (!ZyplayerText.hasText(openApiJson)) {
-            openApiJson = restClient.get()
-                    .uri(openApiDocsUrl())
-                    .retrieve()
-                    .body(String.class);
+            openApiJson = fetch(openApiDocsUrl());
         }
         return converter.convert(openApiJson, apiBaseUrl());
     }
@@ -83,13 +66,18 @@ public class ZyplayerOpenApiDocsCollector {
             return null;
         }
         try {
-            Resource resource = resourceLoader.getResource(sourcePath);
-            if (!resource.exists()) {
-                return null;
-            }
-            return resource.getContentAsString(StandardCharsets.UTF_8);
+            return resourceReader.apply(sourcePath);
         } catch (Exception e) {
             return null;
+        }
+    }
+
+    private String fetch(String url) {
+        try {
+            HttpRequest request = HttpRequest.newBuilder(URI.create(url)).GET().build();
+            return httpClient.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8)).body();
+        } catch (Exception e) {
+            throw new IllegalStateException("failed to fetch openapi docs: " + url, e);
         }
     }
 
@@ -111,10 +99,7 @@ public class ZyplayerOpenApiDocsCollector {
     }
 
     private String serverPort() {
-        return firstText(
-                environment.getProperty("local.server.port"),
-                environment.getProperty("server.port"),
-                "8080");
+        return firstText(serverPortSupplier.get(), "8080");
     }
 
     private String firstText(String... values) {

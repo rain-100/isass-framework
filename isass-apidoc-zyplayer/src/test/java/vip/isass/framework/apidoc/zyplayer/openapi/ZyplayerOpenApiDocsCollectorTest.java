@@ -4,10 +4,6 @@ import com.sun.net.httpserver.HttpServer;
 import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceLoader;
-import org.springframework.mock.env.MockEnvironment;
 import vip.isass.framework.apidoc.zyplayer.ZyplayerApidocProperties;
 import vip.isass.framework.apidoc.zyplayer.sync.ZyplayerSyncDocument;
 
@@ -41,13 +37,14 @@ class ZyplayerOpenApiDocsCollectorTest {
             exchange.close();
         });
         server.start();
-        MockEnvironment environment = new MockEnvironment()
-                .withProperty("local.server.port", String.valueOf(server.getAddress().getPort()));
         ZyplayerApidocProperties properties = new ZyplayerApidocProperties();
         properties.setOpenApiDocsPath("/attachment-service/v3/api-docs");
 
         ZyplayerOpenApiDocsCollector collector = new ZyplayerOpenApiDocsCollector(
-                environment, properties, new ZyplayerOpenApiDocumentConverter(new ObjectMapper()));
+                properties,
+                new ZyplayerOpenApiDocumentConverter(new ObjectMapper()),
+                () -> String.valueOf(server.getAddress().getPort()),
+                location -> null);
 
         List<ZyplayerSyncDocument> documents = collector.collect();
 
@@ -60,13 +57,12 @@ class ZyplayerOpenApiDocsCollectorTest {
 
     @Test
     void prefersGeneratedServiceDocsOpenApiWhenAvailable() {
-        MockEnvironment environment = new MockEnvironment()
-                .withProperty("server.port", "20320");
         ZyplayerApidocProperties properties = new ZyplayerApidocProperties();
-        ResourceLoader resourceLoader = new ResourceLoader() {
-            @Override
-            public Resource getResource(String location) {
-                return new ByteArrayResource("""
+        ZyplayerOpenApiDocsCollector collector = new ZyplayerOpenApiDocsCollector(
+                properties,
+                new ZyplayerOpenApiDocumentConverter(new ObjectMapper()),
+                () -> "20320",
+                location -> """
                         {
                           "openapi": "3.1.0",
                           "paths": {
@@ -82,17 +78,7 @@ class ZyplayerOpenApiDocsCollectorTest {
                             }
                           }
                         }
-                        """.getBytes(StandardCharsets.UTF_8));
-            }
-
-            @Override
-            public ClassLoader getClassLoader() {
-                return getClass().getClassLoader();
-            }
-        };
-
-        ZyplayerOpenApiDocsCollector collector = new ZyplayerOpenApiDocsCollector(
-                environment, properties, new ZyplayerOpenApiDocumentConverter(new ObjectMapper()), resourceLoader);
+                        """);
 
         List<ZyplayerSyncDocument> documents = collector.collect();
 
@@ -105,12 +91,14 @@ class ZyplayerOpenApiDocsCollectorTest {
 
     @Test
     void skipsCollectionWhenDisabled() {
-        MockEnvironment environment = new MockEnvironment();
         ZyplayerApidocProperties properties = new ZyplayerApidocProperties();
         properties.setOpenApiEnabled(false);
 
         ZyplayerOpenApiDocsCollector collector = new ZyplayerOpenApiDocsCollector(
-                environment, properties, new ZyplayerOpenApiDocumentConverter(new ObjectMapper()));
+                properties,
+                new ZyplayerOpenApiDocumentConverter(new ObjectMapper()),
+                () -> "8080",
+                location -> null);
 
         assertThat(collector.collect()).isEmpty();
     }

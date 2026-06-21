@@ -8,6 +8,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import vip.isass.framework.apidoc.zyplayer.client.ZyplayerClientOperations;
 import vip.isass.framework.apidoc.zyplayer.client.ZyplayerOpenApiClient;
 import vip.isass.framework.apidoc.zyplayer.openapi.ZyplayerOpenApiDocsCollector;
@@ -16,6 +18,7 @@ import vip.isass.framework.apidoc.zyplayer.openapi.ZyplayerOpenApiExcludeRules;
 import vip.isass.framework.apidoc.zyplayer.sync.ZyplayerDocSyncService;
 import vip.isass.framework.web.servicedocs.ServiceDocsScanner;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -90,8 +93,13 @@ public class ZyplayerApidocAutoConfiguration {
     public ZyplayerOpenApiDocsCollector zyplayerOpenApiDocsCollector(
             Environment environment,
             ZyplayerApidocProperties properties,
-            ZyplayerOpenApiDocumentConverter converter) {
-        return new ZyplayerOpenApiDocsCollector(environment, properties, converter);
+            ZyplayerOpenApiDocumentConverter converter,
+            ResourceLoader resourceLoader) {
+        return new ZyplayerOpenApiDocsCollector(
+                properties,
+                converter,
+                () -> firstText(environment.getProperty("local.server.port"), environment.getProperty("server.port"), "8080"),
+                location -> readResource(resourceLoader, location));
     }
 
     @Bean
@@ -116,5 +124,17 @@ public class ZyplayerApidocAutoConfiguration {
 
     private String firstText(String... values) {
         return ZyplayerText.firstText("0.0.0", values);
+    }
+
+    private String readResource(ResourceLoader resourceLoader, String location) {
+        try {
+            Resource resource = resourceLoader.getResource(location);
+            if (!resource.exists()) {
+                return null;
+            }
+            return resource.getContentAsString(StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            return null;
+        }
     }
 }

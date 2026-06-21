@@ -80,7 +80,7 @@
 - `IsassServiceLoader` 已作为第一阶段 Java SPI 发现工具落地；`isass-core-common` 和 `isass-nocode-core` 通过 `META-INF/services/vip.isass.framework.common.support.Converter` 暴露默认 converter，Spring Boot adapter 合并 Spring Bean converter 与 SPI converter。
 - `IExceptionMapping` 已接入 Java SPI；core-common、web-springmvc、database-core、database-mybatisplus 通过 `META-INF/services` 暴露内置异常映射，`ExceptionAdvice` 合并 Spring Bean 映射和 SPI 映射，业务自定义 Bean 优先于同 class 的 SPI 默认实现。
 - `BeanProviderUtil` 和 `LogUtil` 已提供显式 `set*FromServiceLoader` 初始化入口；非 Spring runtime 可以通过 Java SPI 提供 no-arg 实现，也可以在 adapter 启动时继续主动调用 setter 注入带运行时上下文的实现。
-- `isass-apidoc-zyplayer` 已将仅用于文本判空/默认值的 Spring `StringUtils` 替换为纯 Java `ZyplayerText`，OpenAPI 排除规则中的 Spring `AntPathMatcher` 已替换为模块内纯 Java Ant 风格路径匹配；`ZyplayerOpenApiClient` 已从 Spring `RestClient` 改为 JDK `HttpClient`；Environment、ResourceLoader 仍作为真实 Spring/Web 边界保留，后续需要按配置读取、资源读取分别拆接口。
+- `isass-apidoc-zyplayer` 已将仅用于文本判空/默认值的 Spring `StringUtils` 替换为纯 Java `ZyplayerText`，OpenAPI 排除规则中的 Spring `AntPathMatcher` 已替换为模块内纯 Java Ant 风格路径匹配；`ZyplayerOpenApiClient` 和 `ZyplayerOpenApiDocsCollector` 已从 Spring `RestClient` 改为 JDK `HttpClient`；OpenAPI 采集器通过端口 `Supplier` 和资源读取 `Function` 接收运行时能力，Spring `Environment` / `ResourceLoader` 仅保留在自动装配桥接层。
 
 ## 尚未迁移的兼容边界
 
