@@ -3,10 +3,6 @@
 <#include "./segment/EntityType.ftl">
 package ${cfg.criteriaPackageName};
 
-<#if swagger2>
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-</#if>
 import cn.hutool.core.collection.CollUtil;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
@@ -55,7 +51,6 @@ import java.util.Collection;
  * @author ${author}
  */
 @Getter
-<#if swagger2>@ApiModel("<#if table.comment??>${table.comment}<#else>${entity}</#if>-查询条件")</#if>
 public class ${entity}Criteria extends <#if isIdEntity>IdCriteria<${entity}Criteria, ${entity}, ${idEntityPropertyType}><#else>AbstractCriteria<${entity}, ${entity}Criteria></#if> {
 
 <#---------- BEGIN 添加成员变量 ------------>

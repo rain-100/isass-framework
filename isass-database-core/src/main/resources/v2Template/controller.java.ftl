@@ -2,7 +2,6 @@
 
 package ${cfg.controllerPackageName};
 
-import io.swagger.annotations.Api;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +21,6 @@ import vip.isass.core.web.structure.IV2Controller;
  * @author ${author}
  */
 @Slf4j
-@Api(tags = "v2<#if table.comment?trim?length gt 0>${table.comment}<#else>${entity}</#if>")
 @RestController
 @RequestMapping(IV2${entity}Service.URI_FIRST_PART)
 public class V2${table.controllerName} implements IV2${entity}Service, IV2Controller<V2${entity}, V2${entity}Criteria> {

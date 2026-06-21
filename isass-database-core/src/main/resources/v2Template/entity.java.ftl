@@ -23,8 +23,6 @@ import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 <#break>
 </#if>
 </#list>
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -107,7 +105,6 @@ import java.util.Collection;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel("v2<#if table.comment?trim?length gt 0>${table.comment}<#else>${entity}</#if>")
 public class V2${entity} implements
 <#if isIdEntity>
         IV2IdEntity<${idEntityPropertyType}, V2${entity}>,
@@ -151,7 +148,7 @@ public class V2${entity} implements
      * 数据库字段名: ${field.name}
      * 数据库字段类型: ${field.metaInfo.typeName}
      */
-    @ApiModelProperty("<#if (field.comment?trim?length > 0)>${field.comment}<#else>${field.propertyName}</#if>")<#if field.propertyName!?ends_with("Id") && field.propertyType == "Long">
+<#if field.propertyName!?ends_with("Id") && field.propertyType == "Long">
     @JsonSerialize(using = ToStringSerializer.class)</#if>
     private <#if field.comment!?contains("${enumStart}")>${field.propertyName?cap_first}<#elseif field.propertyType == "JsonNode">JsonNode<#else>${field.propertyType}</#if> ${field.propertyName};
 

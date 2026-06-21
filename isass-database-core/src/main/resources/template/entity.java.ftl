@@ -4,10 +4,6 @@
 <#include "./segment/EntityType.ftl">
 package ${cfg.entityPackageName};
 
-<#if swagger2>
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-</#if>
 <#list table.fields as field>
 <#if field.comment!?contains(enumStart)>
 import cn.hutool.core.util.RandomUtil;
@@ -77,7 +73,6 @@ import java.util.Collection;
 @Getter
 @Setter
 @Accessors(chain = true)
-<#if swagger2>@ApiModel("<#if table.comment??>${table.comment}<#else>${entity}</#if>")</#if>
 public class ${entity} implements
 <#if isIdEntity>
         IdEntity<${idEntityPropertyType}, ${entity}>,
@@ -124,7 +119,6 @@ public class ${entity} implements
      * 数据库字段名: ${field.name}
      * 数据库字段类型: ${field.type}
      */
-<#if swagger2 || field.propertyType == "Json">    @ApiModelProperty(value = "<#if field.comment??>${field.comment}<#else>${field.propertyName?cap_first}</#if>")</#if>
     private <#if field.comment!?contains("${enumStart}")>${field.propertyName?cap_first} <#else>${field.propertyType} </#if>${field.propertyName};
 
 </#list>

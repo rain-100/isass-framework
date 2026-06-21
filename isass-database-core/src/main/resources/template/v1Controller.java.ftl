@@ -3,7 +3,6 @@
 
 package ${cfg.controllerPackageName?replace(".controller",".${cfg.prefix}.controller")};
 
-import io.swagger.annotations.Api;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,7 +23,6 @@ import javax.annotation.Resource;
  */
 @Slf4j
 @RestController
-@Api(tags = "v1<#if table.comment??>${table.comment!}<#else>${table.name?replace("${cfg.tablePrefix[0]}_","","f")?replace("_","-")}</#if>")
 @RequestMapping("${cfg.controllerPrefix}/v1/${table.name?replace("${cfg.tablePrefix[0]}_","","f")?replace("_","-")}")
 public class ${cfg.prefix?cap_first}${table.controllerName} implements IV1Controller<${entity}, ${entity}Criteria, V1${table.serviceName}> {
 

@@ -5,7 +5,6 @@ package ${cfg.criteriaPackageName};
 
 import cn.hutool.core.collection.CollUtil;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import io.swagger.annotations.ApiModelProperty;
 import ${cfg.entityPackageName}.V2${entity};
 import vip.isass.core.structure.criteria.IV2Criteria;
 <#if isIdEntity>
@@ -86,7 +85,6 @@ public class V2${entity}Criteria
     // region ${field.propertyName}
 
     @Transient
-    @ApiModelProperty("<#if (field.comment?trim?length > 0)>${field.comment}<#else>${field.propertyName}</#if>")
     public ${field.propertyType} get${field.propertyName?cap_first}() {
         return getEquals(V2${entity}.${field.name?upper_case}, ${field.propertyType}.class);
     }

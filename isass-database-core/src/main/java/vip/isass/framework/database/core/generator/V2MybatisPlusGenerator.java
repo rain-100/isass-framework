@@ -198,7 +198,6 @@ public class V2MybatisPlusGenerator {
                         .outputDir(meta.getOutputDir() + "/src/main/java")
                         .commentDate("yyyy-MM-dd")
                         .disableOpenDir()
-                        .enableSwagger()
                         .dateType(DateType.TIME_PACK))
                 .dataSourceConfig(builder -> builder
                         .schema(meta.getSchemaName())
