@@ -1,6 +1,5 @@
 package vip.isass.framework.apidoc.zyplayer.openapi;
 
-import org.springframework.util.AntPathMatcher;
 import vip.isass.framework.apidoc.zyplayer.ZyplayerText;
 
 import java.util.List;
@@ -20,8 +19,6 @@ public class ZyplayerOpenApiExcludeRules {
 
     private final List<String> controllers;
 
-    private final AntPathMatcher pathMatcher = new AntPathMatcher();
-
     public ZyplayerOpenApiExcludeRules(List<String> paths, List<String> pathPatterns, List<String> controllers) {
         this.paths = normalizeRules(paths);
         this.pathPatterns = normalizeRules(pathPatterns);
@@ -34,7 +31,7 @@ public class ZyplayerOpenApiExcludeRules {
         if (paths.stream().anyMatch(rule -> rule.matches(normalizedMethod, normalizedPath))) {
             return true;
         }
-        if (pathPatterns.stream().anyMatch(rule -> rule.matchesPattern(pathMatcher, normalizedMethod, normalizedPath))) {
+        if (pathPatterns.stream().anyMatch(rule -> rule.matchesPattern(normalizedMethod, normalizedPath))) {
             return true;
         }
         return operationControllers.stream()
@@ -93,8 +90,8 @@ public class ZyplayerOpenApiExcludeRules {
             return methodMatches(operationMethod) && path.equals(operationPath);
         }
 
-        private boolean matchesPattern(AntPathMatcher pathMatcher, String operationMethod, String operationPath) {
-            return methodMatches(operationMethod) && pathMatcher.match(path, operationPath);
+        private boolean matchesPattern(String operationMethod, String operationPath) {
+            return methodMatches(operationMethod) && matchPath(path, operationPath);
         }
 
         private boolean methodMatches(String operationMethod) {
@@ -104,6 +101,39 @@ public class ZyplayerOpenApiExcludeRules {
         private static String normalizeRulePath(String path) {
             String value = path.trim();
             return value.startsWith("/") ? value : "/" + value;
+        }
+
+        private static boolean matchPath(String pattern, String path) {
+            if (pattern.endsWith("/**")) {
+                String prefix = pattern.substring(0, pattern.length() - 3);
+                if (path.equals(prefix)) {
+                    return true;
+                }
+            }
+            return path.matches(toRegex(pattern));
+        }
+
+        private static String toRegex(String pattern) {
+            StringBuilder regex = new StringBuilder("^");
+            for (int i = 0; i < pattern.length(); i++) {
+                char current = pattern.charAt(i);
+                if (current == '*') {
+                    if (i + 1 < pattern.length() && pattern.charAt(i + 1) == '*') {
+                        regex.append(".*");
+                        i++;
+                    } else {
+                        regex.append("[^/]*");
+                    }
+                } else if (current == '?') {
+                    regex.append("[^/]");
+                } else {
+                    if ("\\.[]{}()+-^$|".indexOf(current) >= 0) {
+                        regex.append('\\');
+                    }
+                    regex.append(current);
+                }
+            }
+            return regex.append('$').toString();
         }
     }
 }

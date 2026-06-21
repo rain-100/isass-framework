@@ -39,8 +39,22 @@ class ZyplayerOpenApiExcludeRulesTest {
                 List.of());
 
         assertThat(rules.matches("get", "/actuator/health", List.of())).isTrue();
+        assertThat(rules.matches("get", "/actuator", List.of())).isTrue();
         assertThat(rules.matches("post", "/internal/sync", List.of())).isTrue();
         assertThat(rules.matches("get", "/internal/sync", List.of())).isFalse();
+    }
+
+    @Test
+    void excludesSingleSegmentWildcardAndSingleCharacterWildcard() {
+        ZyplayerOpenApiExcludeRules rules = new ZyplayerOpenApiExcludeRules(
+                List.of(),
+                List.of("/internal/*/detail", "/file/?/preview"),
+                List.of());
+
+        assertThat(rules.matches("get", "/internal/order/detail", List.of())).isTrue();
+        assertThat(rules.matches("get", "/internal/order/sub/detail", List.of())).isFalse();
+        assertThat(rules.matches("get", "/file/a/preview", List.of())).isTrue();
+        assertThat(rules.matches("get", "/file/ab/preview", List.of())).isFalse();
     }
 
     @Test
