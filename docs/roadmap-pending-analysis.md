@@ -31,19 +31,22 @@
    - 重要：高 — 低代码模块是框架核心竞争力
    - 难度：高 — 需迁移 v1/v2、设计 v3 接口、结合 DDD 重新实现
    - 设计：v3 不继承 v1/v2 的 service 排序链；本地/远程实现选择归调用路由层，缓存、事件、审计等归 operation interceptor，详见 `docs/design/nocode-v3-service-routing-cache.md`
-   - 进展：`isass-nocode-core` 已新增 v3 operation pipeline、provider router、cache facade/cache operation 基础抽象；v2 自有包已补齐 `BatchSave`、`UnimplementedMethodException`、`IV2DbEntity`、`V2DbEntityConvert`，main 源码不再反向引用 `common.structure`；`isass-core-dependencies` 已管理 `isass-nocode-core` 版本；`isass-web-springmvc`、`isass-database-core`、`isass-database-mybatisplus`、`isass-adapter-springboot` 和首个适配项目 `isass-service-attachment` 已迁到 `vip.isass.framework.nocode.v2`
+   - 进展：`isass-nocode-core` 已新增 v3 operation pipeline、provider router、access handler、cache facade/cache operation、实体/字段元数据、Map/List 化查询条件和空字符串查询策略；v2 自有包已补齐 `BatchSave`、`UnimplementedMethodException`、`IV2DbEntity`、`V2DbEntityConvert`，main 源码不再反向引用 `common.structure`；`isass-core-dependencies` 已管理 `isass-nocode-core` 版本；`isass-web-springmvc`、`isass-database-core`、`isass-database-mybatisplus`、`isass-adapter-springboot` 和首个适配项目 `isass-service-attachment` 已迁到 `vip.isass.framework.nocode.v2`
 
 3. **新增 access 接入层（controller/socketio/kafka动态生成）** [2024 L53]
    - 重要：高 — 低代码统一接入层设计
    - 难度：高 — 需抽象多种接入方式、动态生成端点
+   - 进展：纯 Java `NocodeAccessRequest` / `NocodeAccessHandler` 已落地；Spring MVC、socketio、kafka、定时任务等具体接入 adapter 尚未落地
 
 4. **v3 代码生成器** [2024 L57]
    - 重要：高 — 低代码模块必备工具
    - 难度：中-高 — 根据 v3 接口设计生成逻辑
+   - 进展：v3 实体/字段元数据和查询模型已落地，可作为后续生成器输入/输出契约；生成器尚未实现
 
 5. **取消 db 实体，探索 ORM 无关实体** [2024 L50]
    - 重要：高 — 架构级提升，解耦 ORM
    - 难度：高 — 需 javassist/lombok 深度定制
+   - 进展：已新增 `NocodeEntityDefinition` / `NocodeFieldDefinition` 作为 ORM 无关实体描述；ORM adapter 如何绑定 MyBatis Plus `TableInfo`、sqltoy 等仍待实现
 
 6. **GraalVM 原生编译支持** [2025 L39]
    - 重要：高 — 云原生部署关键路线
@@ -66,10 +69,12 @@
 10. **criteria 简化（删除 or/NotEqual 等字段）** [2024 L52]
     - 重要：中 — 提升编译速度、IDE 体验
     - 难度：中 — 需用 Map 替代并保持兼容
+    - 进展：已新增 `NocodeQueryCriteria`、`NocodeQueryCondition`、`NocodeQueryGroup`，支持用条件列表和分组表达 equals、in、contains、or 等查询；v2 生成模板尚未迁移到 v3 模型
 
 11. **自定义实体继承 v3 接口** [2024 L48]
     - 重要：中 — 非标实体集成规范
     - 难度：中 — 接口设计 + 兼容已有实体
+    - 进展：已新增 v3 实体/字段元数据模型，尚未定义自定义实体需要实现的标记接口或注册方式
 
 ### 暂不排期
 
@@ -136,6 +141,7 @@
 25. **空字符串查询条件优化** [2024 L68]
     - 重要：低 — 边界情况
     - 难度：低 — 条件判断逻辑
+    - 进展：已新增 `NocodeBlankStringPolicy`，支持忽略空字符串或按空字符串查询；具体 access/ORM adapter 尚未接入
 
 26. **数据库字段注释描述关系** [2024 L47]
     - 重要：低-中 — 辅助分析
