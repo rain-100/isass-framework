@@ -1,9 +1,14 @@
 package vip.isass.framework.mq.redisstream;
 
-import org.springframework.context.annotation.ComponentScan;
+import org.redisson.api.RedissonClient;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ComponentScan
 public class RedisStreamMqAutoConfiguration {
+
+    @Bean
+    public RedisStreamMqFactory redisStreamMqFactory(RedissonClient redissonClient) {
+        return new RedisStreamMqFactory(redissonClient);
+    }
 }

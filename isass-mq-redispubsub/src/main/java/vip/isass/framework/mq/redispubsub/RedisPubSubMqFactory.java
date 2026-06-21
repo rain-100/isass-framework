@@ -1,7 +1,6 @@
 package vip.isass.framework.mq.redispubsub;
 
 import org.redisson.api.RedissonClient;
-import org.springframework.stereotype.Component;
 import vip.isass.framework.mq.core.IMqFactory;
 import vip.isass.framework.mq.core.config.MqSourceProperties;
 import vip.isass.framework.mq.core.consumer.IMqConsumerContainer;
@@ -11,7 +10,6 @@ import vip.isass.framework.mq.redispubsub.producer.RedisPubSubMqProducer;
 
 import java.util.List;
 
-@Component
 public class RedisPubSubMqFactory implements IMqFactory {
 
     private final RedissonClient redissonClient;

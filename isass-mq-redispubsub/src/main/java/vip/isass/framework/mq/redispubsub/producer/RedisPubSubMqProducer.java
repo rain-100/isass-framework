@@ -2,9 +2,10 @@ package vip.isass.framework.mq.redispubsub.producer;
 
 import cn.hutool.core.util.StrUtil;
 import org.redisson.api.RedissonClient;
-import org.springframework.util.Assert;
 import vip.isass.framework.mq.core.MqMessage;
 import vip.isass.framework.mq.core.producer.IMqProducer;
+
+import java.util.Objects;
 
 public class RedisPubSubMqProducer implements IMqProducer {
 
@@ -20,8 +21,10 @@ public class RedisPubSubMqProducer implements IMqProducer {
 
     @Override
     public void send(MqMessage mqMessage) {
-        Assert.notNull(mqMessage, "mqMessage");
-        Assert.isTrue(StrUtil.isNotBlank(mqMessage.getTopic()), "topic can not be blank");
+        Objects.requireNonNull(mqMessage, "mqMessage");
+        if (StrUtil.isBlank(mqMessage.getTopic())) {
+            throw new IllegalArgumentException("topic can not be blank");
+        }
         redissonClient.getTopic(mqMessage.getTopic()).publish(mqMessage);
     }
 
