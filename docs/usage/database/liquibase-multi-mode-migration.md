@@ -2,6 +2,19 @@
 
 ## 1. 添加新服务
 
+### 1.0 添加依赖
+
+服务模块需要按需依赖 Spring Boot Liquibase 运行时：
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-liquibase</artifactId>
+</dependency>
+```
+
+`isass-database-core` 只提供数据库基础能力和 Liquibase 服务级命名规则，不再替业务服务传递 Spring Boot Liquibase starter。
+
 ### 1.1 创建 Liquibase 配置类
 
 在服务模块中创建 `vip.isass.xxx.liquibase` 包，添加配置类：

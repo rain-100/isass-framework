@@ -47,9 +47,10 @@
     - 2026-06-21：`DatabaseAutoConfiguration` 中的 `DatabaseExceptionMapping` 注册已迁到 `isass-adapter-springboot` 的 `IsassDatabaseSpringBootAutoConfiguration`，通过 `@ConditionalOnClass(name=...)` 和反射按 database-core classpath 条件装配；database-core 已删除原自动配置入口。
     - 2026-06-21：已新增纯 Java `LiquibaseServiceNaming`，承接服务级 changelog 路径和 Liquibase history/lock 表名规则；`AbstractLiquibaseConfiguration` 不再内联路径规则，`LiquibaseConfigurer` 已移除 Spring `CollectionUtils` / `StringUtils` 工具依赖。验证：`mvn -pl isass-database-core -am test -Dmaven.javadoc.skip=true -Dsurefire.failIfNoSpecifiedTests=false`。
     - 2026-06-21：`AbstractLiquibaseConfiguration` / `LiquibaseConfigurer` 已从 `isass-database-core` 迁到 `isass-adapter-springboot`，SpringLiquibase、LiquibaseProperties、ResourceLoader 桥接归入 Spring Boot adapter；adapter 对 database-core、Liquibase、Boot Liquibase 依赖使用 optional，attachment 已改用 adapter 包路径。验证：`mvn -pl isass-adapter-springboot -am test -Dmaven.javadoc.skip=true -Dsurefire.failIfNoSpecifiedTests=false`、`mvn -pl isass-service-attachment-service -am test -Dmaven.javadoc.skip=true -Dsurefire.failIfNoSpecifiedTests=false`。
+    - 2026-06-21：`isass-database-core` 已移除 `spring-boot-starter-json`、`spring-boot-starter-jdbc`、`spring-boot-starter-liquibase`、`spring-boot-starter-test` 的 compile 依赖；测试改用 JUnit、AssertJ、Spring Test 的 test scope，attachment-service 显式依赖 `spring-boot-starter-liquibase`。验证：`mvn -pl isass-database-core -am test -Dmaven.javadoc.skip=true -Dsurefire.failIfNoSpecifiedTests=false`、`mvn -pl isass-service-attachment-service -am test -Dmaven.javadoc.skip=true -Dsurefire.failIfNoSpecifiedTests=false`、`mvn -pl isass-database-core dependency:tree -Dincludes=org.springframework.boot,org.springframework,org.liquibase -Dscope=compile -Dmaven.javadoc.skip=true`。
   - 下一步：
     - 为 Spring Boot adapter 建立 classpath 条件装配策略：业务按需依赖 database/mq/net/web/security 时，才激活对应 Spring 装配。
-    - 继续收缩 `isass-database-core` 的 Spring Boot starter 依赖，明确 Liquibase runtime 依赖由业务或 adapter starter 提供。
+    - 继续评估 `db-migration-dameng-liquibase` 是否应下沉到达梦数据库适配模块，避免 database-core 默认携带数据库厂商 Liquibase 扩展。
     - 设计 Java SPI 作为非 Spring 运行时的基础发现机制，避免自动装配逻辑只存在于 Spring Boot。
   - 验证方式：
     - `rg -n "org\\.springframework|jakarta\\.annotation\\.Resource|@Component|@Service|@Repository|@Controller" isass-core-*/*/main`
