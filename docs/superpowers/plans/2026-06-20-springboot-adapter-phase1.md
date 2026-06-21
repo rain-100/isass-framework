@@ -15,7 +15,7 @@
 ### Task 1: Roadmap Adjustment
 
 **Files:**
-- Modify: `isass-framework-v4/docs/70.roadmap/2025.md`
+- Modify: `isass-framework-v4/docs/70.roadmap/roadmap.md`
 
 - [x] Mark the CTE recursive-query item as postponed and outside the current implementation scope.
 
