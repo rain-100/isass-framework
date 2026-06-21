@@ -4,9 +4,9 @@ import org.springframework.core.env.Environment;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.DefaultResourceLoader;
-import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClient;
 import vip.isass.framework.apidoc.zyplayer.ZyplayerApidocProperties;
+import vip.isass.framework.apidoc.zyplayer.ZyplayerText;
 import vip.isass.framework.apidoc.zyplayer.sync.ZyplayerSyncDocument;
 
 import java.nio.charset.StandardCharsets;
@@ -68,7 +68,7 @@ public class ZyplayerOpenApiDocsCollector {
             return List.of();
         }
         String openApiJson = loadGeneratedOpenApiJson();
-        if (!StringUtils.hasText(openApiJson)) {
+        if (!ZyplayerText.hasText(openApiJson)) {
             openApiJson = restClient.get()
                     .uri(openApiDocsUrl())
                     .retrieve()
@@ -79,7 +79,7 @@ public class ZyplayerOpenApiDocsCollector {
 
     private String loadGeneratedOpenApiJson() {
         String sourcePath = properties.getOpenApiSourcePath();
-        if (!StringUtils.hasText(sourcePath)) {
+        if (!ZyplayerText.hasText(sourcePath)) {
             return null;
         }
         try {
@@ -98,7 +98,7 @@ public class ZyplayerOpenApiDocsCollector {
     }
 
     private String apiBaseUrl() {
-        if (StringUtils.hasText(properties.getApiBaseUrl())) {
+        if (ZyplayerText.hasText(properties.getApiBaseUrl())) {
             return properties.getApiBaseUrl();
         }
         return "http://127.0.0.1:" + serverPort();
@@ -118,11 +118,6 @@ public class ZyplayerOpenApiDocsCollector {
     }
 
     private String firstText(String... values) {
-        for (String value : values) {
-            if (StringUtils.hasText(value)) {
-                return value;
-            }
-        }
-        return "";
+        return ZyplayerText.firstText("", values);
     }
 }

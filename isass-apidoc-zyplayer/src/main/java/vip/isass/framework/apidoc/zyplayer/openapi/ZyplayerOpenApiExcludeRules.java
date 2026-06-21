@@ -1,7 +1,7 @@
 package vip.isass.framework.apidoc.zyplayer.openapi;
 
 import org.springframework.util.AntPathMatcher;
-import org.springframework.util.StringUtils;
+import vip.isass.framework.apidoc.zyplayer.ZyplayerText;
 
 import java.util.List;
 import java.util.Locale;
@@ -38,7 +38,7 @@ public class ZyplayerOpenApiExcludeRules {
             return true;
         }
         return operationControllers.stream()
-                .filter(StringUtils::hasText)
+                .filter(ZyplayerText::hasText)
                 .map(String::trim)
                 .anyMatch(controllers::contains);
     }
@@ -48,7 +48,7 @@ public class ZyplayerOpenApiExcludeRules {
             return List.of();
         }
         return values.stream()
-                .filter(StringUtils::hasText)
+                .filter(ZyplayerText::hasText)
                 .map(Rule::parse)
                 .toList();
     }
@@ -58,17 +58,17 @@ public class ZyplayerOpenApiExcludeRules {
             return List.of();
         }
         return values.stream()
-                .filter(StringUtils::hasText)
+                .filter(ZyplayerText::hasText)
                 .map(String::trim)
                 .toList();
     }
 
     private String normalizeMethod(String method) {
-        return StringUtils.hasText(method) ? method.trim().toUpperCase(Locale.ROOT) : "";
+        return ZyplayerText.hasText(method) ? method.trim().toUpperCase(Locale.ROOT) : "";
     }
 
     private String normalizePath(String path) {
-        if (!StringUtils.hasText(path)) {
+        if (!ZyplayerText.hasText(path)) {
             return "/";
         }
         String value = path.trim();

@@ -1,7 +1,5 @@
 package vip.isass.framework.apidoc.zyplayer;
 
-import org.springframework.util.StringUtils;
-
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -16,7 +14,7 @@ public final class ZyplayerVersion {
     }
 
     public static String normalize(String version) {
-        if (!StringUtils.hasText(version)) {
+        if (!ZyplayerText.hasText(version)) {
             return "v0.x";
         }
         String trimmedVersion = version.trim();

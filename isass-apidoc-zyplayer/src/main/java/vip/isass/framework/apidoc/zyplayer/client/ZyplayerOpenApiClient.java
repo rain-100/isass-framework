@@ -6,8 +6,8 @@ import tools.jackson.databind.ObjectMapper;
 import org.springframework.http.MediaType;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClient;
+import vip.isass.framework.apidoc.zyplayer.ZyplayerText;
 
 import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
@@ -215,7 +215,7 @@ public class ZyplayerOpenApiClient implements ZyplayerClientOperations {
                     .replace("-----BEGIN PRIVATE KEY-----", "")
                     .replace("-----END PRIVATE KEY-----", "")
                     .replaceAll("\\s", "");
-            if (!StringUtils.hasText(normalized)) {
+            if (!ZyplayerText.hasText(normalized)) {
                 throw new IllegalArgumentException("private key is blank");
             }
             byte[] bytes = Base64.getDecoder().decode(normalized);

@@ -4,7 +4,7 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.node.ArrayNode;
 import tools.jackson.databind.node.ObjectNode;
-import org.springframework.util.StringUtils;
+import vip.isass.framework.apidoc.zyplayer.ZyplayerText;
 import vip.isass.framework.apidoc.zyplayer.sync.ZyplayerSyncDocument;
 import vip.isass.framework.apidoc.zyplayer.sync.ZyplayerEditorTypes;
 
@@ -78,7 +78,7 @@ public class ZyplayerOpenApiDocumentConverter {
     }
 
     private void addText(List<String> values, JsonNode node) {
-        if (node.isTextual() && StringUtils.hasText(node.asText())) {
+        if (node.isTextual() && ZyplayerText.hasText(node.asText())) {
             values.add(node.asText());
         }
         if (node.isArray()) {
@@ -119,11 +119,11 @@ public class ZyplayerOpenApiDocumentConverter {
 
     private String operationTitle(String path, String method, JsonNode operation) {
         String summary = text(operation, "summary", "");
-        if (StringUtils.hasText(summary)) {
+        if (ZyplayerText.hasText(summary)) {
             return summary;
         }
         String operationId = text(operation, "operationId", "");
-        if (StringUtils.hasText(operationId)) {
+        if (ZyplayerText.hasText(operationId)) {
             return operationId;
         }
         return method.toUpperCase(Locale.ROOT) + " " + path;
@@ -133,7 +133,7 @@ public class ZyplayerOpenApiDocumentConverter {
         JsonNode tags = operation.path("tags");
         if (tags.isArray() && !tags.isEmpty()) {
             String tag = tags.get(0).asText("");
-            if (StringUtils.hasText(tag)) {
+            if (ZyplayerText.hasText(tag)) {
                 return tag;
             }
         }
@@ -228,7 +228,7 @@ public class ZyplayerOpenApiDocumentConverter {
 
     private ObjectNode defaultResponse(int statusCode, String name, JsonNode schema) {
         ObjectNode response = objectMapper.createObjectNode();
-        response.put("name", StringUtils.hasText(name) ? name : "成功");
+        response.put("name", ZyplayerText.hasText(name) ? name : "成功");
         response.put("statusCode", statusCode);
         response.put("contentType", "json");
         response.put("locked", false);
@@ -297,7 +297,7 @@ public class ZyplayerOpenApiDocumentConverter {
             ObjectNode object = objectMapper.createObjectNode();
             for (JsonNode child : schema.path("children")) {
                 String name = child.path("name").asText("");
-                if (StringUtils.hasText(name)) {
+                if (ZyplayerText.hasText(name)) {
                     object.set(name, exampleJson(child));
                 }
             }
@@ -335,7 +335,7 @@ public class ZyplayerOpenApiDocumentConverter {
 
     private String text(JsonNode node, String field, String defaultValue) {
         String value = node.path(field).asText("");
-        return StringUtils.hasText(value) ? value : defaultValue;
+        return ZyplayerText.hasText(value) ? value : defaultValue;
     }
 
     private JsonNode firstPropertyValue(JsonNode node) {
@@ -352,8 +352,8 @@ public class ZyplayerOpenApiDocumentConverter {
     }
 
     private String joinUrl(String baseUrl, String path) {
-        String base = StringUtils.hasText(baseUrl) ? baseUrl : "";
-        if (!StringUtils.hasText(base)) {
+        String base = ZyplayerText.hasText(baseUrl) ? baseUrl : "";
+        if (!ZyplayerText.hasText(base)) {
             return path;
         }
         if (base.endsWith("/") && path.startsWith("/")) {

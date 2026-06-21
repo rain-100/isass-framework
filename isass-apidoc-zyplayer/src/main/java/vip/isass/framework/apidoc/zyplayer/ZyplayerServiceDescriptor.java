@@ -1,7 +1,5 @@
 package vip.isass.framework.apidoc.zyplayer;
 
-import org.springframework.util.StringUtils;
-
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -16,10 +14,10 @@ public record ZyplayerServiceDescriptor(
 ) {
 
     public ZyplayerServiceDescriptor {
-        applicationName = StringUtils.hasText(applicationName) ? applicationName.trim() : "application";
-        serviceNameCn = StringUtils.hasText(serviceNameCn) ? serviceNameCn.trim() : applicationName;
+        applicationName = ZyplayerText.trimToDefault(applicationName, "application");
+        serviceNameCn = ZyplayerText.trimToDefault(serviceNameCn, applicationName);
         version = ZyplayerVersion.normalize(version);
-        groupName = StringUtils.hasText(groupName) ? groupName.trim() : "isass";
+        groupName = ZyplayerText.trimToDefault(groupName, "isass");
     }
 
     public ZyplayerServiceDescriptor(String applicationName, String serviceNameCn, String version) {

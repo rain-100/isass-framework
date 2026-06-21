@@ -8,7 +8,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
-import org.springframework.util.StringUtils;
 import vip.isass.framework.apidoc.zyplayer.client.ZyplayerClientOperations;
 import vip.isass.framework.apidoc.zyplayer.client.ZyplayerOpenApiClient;
 import vip.isass.framework.apidoc.zyplayer.openapi.ZyplayerOpenApiDocsCollector;
@@ -116,11 +115,6 @@ public class ZyplayerApidocAutoConfiguration {
     }
 
     private String firstText(String... values) {
-        for (String value : values) {
-            if (StringUtils.hasText(value)) {
-                return value;
-            }
-        }
-        return "0.0.0";
+        return ZyplayerText.firstText("0.0.0", values);
     }
 }
