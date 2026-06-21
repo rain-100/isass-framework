@@ -24,7 +24,7 @@
 | --- | --- | --- | --- | --- |
 | `vip.isass.framework.common.support.Converter` | 继承 `org.springframework.core.convert.converter.Converter` | isass 通用转换器，同时兼容 Hutool converter 和 Spring converter | 已移除 Spring Converter 继承，保留 Hutool converter 兼容并显式声明 `convert(S)` | 完成 |
 | `common/converter/**` | `@Component` | 注册 String、Map、Date、LocalDateTime 等转换器 | 已移除 converter 类上的 `@Component`；`isass-adapter-springboot` 通过 `IsassSpringConverterAdapter` 桥接到 Spring `ConditionalGenericConverter` | 完成 |
-| `BuildInCoreExceptionMapping` | `@Component` | 核心异常到框架异常码映射 | 变成普通 Java 映射实现；通过 SPI 或 adapter 注册。Web MVC 异常已迁出到 `isass-web-springmvc` | P0 |
+| `BuildInCoreExceptionMapping` | 原 `@Component` | 核心异常到框架异常码映射 | 已改为普通 Java 映射实现；Spring Boot 场景由 `isass-adapter-springboot` 注册，Web MVC 异常已迁出到 `isass-web-springmvc` | 完成 |
 | `BeanProviderUtil` | 原 `SpringContextUtil` 中的 `ApplicationContextAware`、`ApplicationContext`、`DefaultListableBeanFactory`、`ResolvableType`、`@Component` | 全局访问运行时 Bean、动态注册/移除 Bean、按泛型/Support 查询 Bean | 已改成纯 Java 门面，实际运行时能力由 `BeanProvider` 提供；`isass-adapter-springboot` 提供 `SpringBeanProvider`；旧 `SpringContextUtil` 不保留 | 完成 |
 | `LoginUserUtil` | 通过 `BeanProviderUtil` 获取 `LoginUserService` | 获取当前登录用户服务 | 已改为纯 Java `LoginUserService` provider/setter；Spring Boot adapter 负责从 Spring Bean 桥接 | 完成 |
 | `LongSequence` | 通过 `BeanProviderUtil.getBeanOfSupport` 查找 `Sequence<Long>` | 获取 Long 序列生成器 | 已改为纯 Java `Sequence<Long>` provider/setter；Spring Boot adapter 负责从 Spring Bean 桥接，默认仍回退随机 Long | 完成 |
