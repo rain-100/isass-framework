@@ -169,9 +169,12 @@
 
 package vip.isass.framework.database.core;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.liquibase.autoconfigure.LiquibaseProperties;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
+import vip.isass.framework.database.core.exception.DatabaseExceptionMapping;
 
 /**
  * @author Rain
@@ -180,4 +183,9 @@ import org.springframework.context.annotation.ComponentScan;
 @EnableConfigurationProperties(LiquibaseProperties.class)
 public class DatabaseAutoConfiguration {
 
+    @Bean
+    @ConditionalOnMissingBean
+    public DatabaseExceptionMapping databaseExceptionMapping() {
+        return new DatabaseExceptionMapping();
+    }
 }

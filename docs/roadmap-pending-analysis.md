@@ -25,7 +25,7 @@
 1. **核心模块与 Spring 解耦（java 模块化）** [2024 L16]
    - 重要：高 — 决定框架能否脱离 Spring 体系使用，扩展桌面应用、IoT 等场景
    - 难度：高 — 需重构模块划分、新增 adapter 层、适配其他 IoC 框架
-   - 进展：已新增 `docs/design/core-spring-decoupling-analysis.md`，逐项记录 `isass-core-*` Spring 使用点和迁移方案；`isass-core-common` main 源码已移除 Spring 编译依赖，排序、converter、异常映射、运行时 BeanProvider、LogUtil、ReflectUtils 已迁到 core 抽象 + Spring Boot adapter 桥接；数据库自动建库的 Spring initializer 已从 `isass-database-core` 迁到 `isass-adapter-springboot`，并用反射避免 adapter 强制传递 database-core
+   - 进展：已新增 `docs/design/core-spring-decoupling-analysis.md`，逐项记录 `isass-core-*` Spring 使用点和迁移方案；`isass-core-common` main 源码已移除 Spring 编译依赖，排序、converter、异常映射、运行时 BeanProvider、LogUtil、ReflectUtils 已迁到 core 抽象 + Spring Boot adapter 桥接；数据库自动建库的 Spring initializer 已从 `isass-database-core` 迁到 `isass-adapter-springboot`，并用反射避免 adapter 强制传递 database-core；database / mybatisplus 异常映射已移除 `@Component`，改为自动配置显式注册
 
 2. **低代码子模块 DDD 重设计** [2024 L46]
    - 重要：高 — 低代码模块是框架核心竞争力

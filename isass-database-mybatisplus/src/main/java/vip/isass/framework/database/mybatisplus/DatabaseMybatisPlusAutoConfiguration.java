@@ -172,8 +172,11 @@ package vip.isass.framework.database.mybatisplus;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.handlers.Jackson3TypeHandler;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import vip.isass.framework.common.support.JsonUtil;
+import vip.isass.framework.database.mybatisplus.exception.BuildInDatabaseExceptionMapping;
 import vip.isass.framework.database.mybatisplus.json.IPageDeserializer;
 
 /**
@@ -181,6 +184,12 @@ import vip.isass.framework.database.mybatisplus.json.IPageDeserializer;
  */
 @ComponentScan
 public class DatabaseMybatisPlusAutoConfiguration implements InitializingBean {
+
+    @Bean
+    @ConditionalOnMissingBean
+    public BuildInDatabaseExceptionMapping buildInDatabaseExceptionMapping() {
+        return new BuildInDatabaseExceptionMapping();
+    }
 
     @Override
     public void afterPropertiesSet() {
