@@ -83,13 +83,14 @@
 - `isass-core-common/src/main/java/vip/isass/framework/common/structure/**` 仍保留历史 v2 包名，用于兼容未迁移的业务微服务和工具代码。
 - `isass-database-core` 的 Spring 绑定已初步归类：
   - `DatabaseAutoConfiguration` 已删除；原 `DatabaseExceptionMapping` 注册已迁到 Spring Boot adapter 的 classpath 条件装配。
-  - `AbstractLiquibaseConfiguration` / `LiquibaseConfigurer` 依赖 `SpringLiquibase`、`LiquibaseProperties`、`ResourceLoader` 和 Spring 工具类，迁移前需要先设计 adapter optional 依赖或拆分纯 Java Liquibase 配置对象。
+  - `LiquibaseServiceNaming` 已抽出为纯 Java 命名规则，负责服务级 changelog 路径和 Liquibase history/lock 表名；`AbstractLiquibaseConfiguration` / `LiquibaseConfigurer` 已移除 Spring 工具类依赖。
+  - `AbstractLiquibaseConfiguration` / `LiquibaseConfigurer` 仍依赖 `SpringLiquibase`、`LiquibaseProperties`、`ResourceLoader`，后续需要迁到 Spring Boot adapter 或拆成 adapter 桥接类。
   - `src/main/resources/template/**` 与 `v2Template/**` 中的 Spring MVC、Feign、Service、Repository 注解属于代码生成输出模板，短期按“生成 Spring 业务代码”的边界处理，不作为运行时 core 解耦阻塞项。
 
 ## 建议迁移顺序
 
 1. **SPI 化**：将 converter、exception mapping、BeanProvider、LogLevelManager 的 adapter 接入整理为统一 Java SPI 贡献描述，便于 Micronaut/Solon adapter 复用。
-2. **database adapter 化**：先拆分 Liquibase 配置对象，再处理代码生成模板的 v3 输出边界。
+2. **database adapter 化**：先迁移 SpringLiquibase/Boot Properties 桥接，再处理代码生成模板的 v3 输出边界。
 3. **其他模块解耦**：继续扫描 `isass-*` 非 core 模块中可迁移的 Spring 依赖，尤其是 web/security/database/nocode 的边界。
 
 ## 风险

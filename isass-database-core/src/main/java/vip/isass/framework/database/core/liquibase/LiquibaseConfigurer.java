@@ -5,10 +5,9 @@ import liquibase.UpdateSummaryOutputEnum;
 import liquibase.integration.spring.SpringLiquibase;
 import liquibase.ui.UIServiceEnum;
 import org.springframework.boot.liquibase.autoconfigure.LiquibaseProperties;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 
 import javax.sql.DataSource;
+import java.util.Collection;
 
 public final class LiquibaseConfigurer {
 
@@ -20,8 +19,8 @@ public final class LiquibaseConfigurer {
         liquibase.setDataSource(dataSource);
         liquibase.setChangeLog(properties.getChangeLog());
         liquibase.setClearCheckSums(properties.isClearChecksums());
-        if (!CollectionUtils.isEmpty(properties.getContexts())) {
-            liquibase.setContexts(StringUtils.collectionToCommaDelimitedString(properties.getContexts()));
+        if (!isEmpty(properties.getContexts())) {
+            liquibase.setContexts(collectionToCommaDelimitedString(properties.getContexts()));
         }
         liquibase.setDefaultSchema(properties.getDefaultSchema());
         liquibase.setLiquibaseSchema(properties.getLiquibaseSchema());
@@ -30,8 +29,8 @@ public final class LiquibaseConfigurer {
         liquibase.setDatabaseChangeLogLockTable(properties.getDatabaseChangeLogLockTable());
         liquibase.setDropFirst(properties.isDropFirst());
         liquibase.setShouldRun(properties.isEnabled());
-        if (!CollectionUtils.isEmpty(properties.getLabelFilter())) {
-            liquibase.setLabelFilter(StringUtils.collectionToCommaDelimitedString(properties.getLabelFilter()));
+        if (!isEmpty(properties.getLabelFilter())) {
+            liquibase.setLabelFilter(collectionToCommaDelimitedString(properties.getLabelFilter()));
         }
         liquibase.setChangeLogParameters(properties.getParameters());
         liquibase.setRollbackFile(properties.getRollbackFile());
@@ -53,5 +52,13 @@ public final class LiquibaseConfigurer {
             liquibase.setLicenseKey(properties.getLicenseKey());
         }
         return liquibase;
+    }
+
+    private static boolean isEmpty(Collection<?> collection) {
+        return collection == null || collection.isEmpty();
+    }
+
+    private static String collectionToCommaDelimitedString(Collection<String> collection) {
+        return String.join(",", collection);
     }
 }
