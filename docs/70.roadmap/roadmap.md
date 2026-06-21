@@ -43,8 +43,10 @@
     - `SqlSessionConfig` 已迁到构造器注入。
     - 2026-06-21：已扫描 `isass-core-*` main 源码，无 Spring 类型/注解残留命中。
     - 2026-06-21：`isass-core-common` 的 `banner.txt` 和 `logback-spring.xml` 已迁到 `isass-adapter-springboot`，core-common 不再携带 Spring Boot 专属运行时资源。
+    - 2026-06-21：已扫描 `isass-database-core` 的 Spring 绑定；运行时边界集中在 `DatabaseAutoConfiguration` 和 Liquibase Spring 配置，代码生成模板中的 Spring 注解短期按生成 Spring 业务代码处理。
   - 下一步：
-    - 分析 `isass-database-core` 中 Liquibase、Flyway、DataSource、Spring 事务相关类，决定哪些留在 database adapter，哪些迁入 Spring Boot adapter。
+    - 先迁移 `DatabaseAutoConfiguration` 中异常映射注册到 Spring Boot adapter 的 classpath 条件装配。
+    - 拆分 Liquibase 配置对象，降低 `AbstractLiquibaseConfiguration` / `LiquibaseConfigurer` 对 Spring Boot 类型的直接依赖。
     - 为 Spring Boot adapter 建立 classpath 条件装配策略：业务按需依赖 database/mq/net/web/security 时，才激活对应 Spring 装配。
     - 设计 Java SPI 作为非 Spring 运行时的基础发现机制，避免自动装配逻辑只存在于 Spring Boot。
   - 验证方式：
