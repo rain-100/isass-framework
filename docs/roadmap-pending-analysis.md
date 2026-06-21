@@ -147,6 +147,7 @@
 26. **分页对象优化** [2024 L49]
     - 重要：低 — 选型替换
     - 难度：低 — 统一分页对象
+    - 进展：已新增纯 Java `NocodePageRequest` / `NocodePageResult`，后续 ORM adapter 可将 MyBatis Plus、sqltoy 等分页对象转换为统一 v3 模型
 
 27. **时间字段改为 bigint(Long)** [2024 L65]
     - 重要：低 — 性能微优化
