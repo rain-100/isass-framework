@@ -36,7 +36,7 @@
 3. **新增 access 接入层（controller/socketio/kafka动态生成）** [2024 L53]
    - 重要：高 — 低代码统一接入层设计
    - 难度：高 — 需抽象多种接入方式、动态生成端点
-   - 进展：纯 Java `NocodeAccessRequest` / `NocodeAccessHandler` / `NocodeCrudAccessRequests` / `NocodeCrudAccessDefinition` / `NocodeAccessRequestValidator` 已落地，已统一标准 CRUD 操作名、请求参数名、必需参数、可选参数和请求校验；Spring MVC、socketio、kafka、定时任务等具体接入 adapter 尚未落地
+   - 进展：纯 Java `NocodeAccessRequest` / `NocodeAccessHandler` / `NocodeCrudAccessRequests` / `NocodeCrudAccessDefinition` / `NocodeAccessRequestValidator` 已落地，已统一标准 CRUD 操作名、请求参数名、必需参数、可选参数和请求校验；Spring MVC adapter 已落地 route/request/invoker/query criteria parser 边界，socketio、kafka、定时任务等具体接入 adapter 尚未落地
 
 4. **v3 代码生成器** [2024 L57]
    - 重要：高 — 低代码模块必备工具
@@ -62,7 +62,7 @@
 8. **v3 通用 controller 动态生成** [2024 L54] (这个和P0 3 重复了)
    - 重要：高 — 低代码接入层关键子项
    - 难度：中 — Spring 动态注册端点已有成熟方案
-   - 进展：`isass-web-springmvc` 已新增 `NocodeSpringMvcCrudRoute`、`NocodeSpringMvcCrudRequestFactory` 和 `NocodeSpringMvcCrudEndpointInvoker`，定义 v3 CRUD 动态 controller 的默认 HTTP method/path descriptor，并把 path/query/body 参数转换为框架无关的 `NocodeAccessRequest` 后交给 `NocodeAccessHandler` 执行；真实 endpoint 注册尚未落地
+   - 进展：`isass-web-springmvc` 已新增 `NocodeSpringMvcCrudRoute`、`NocodeSpringMvcQueryCriteriaParser`、`NocodeSpringMvcCrudRequestFactory` 和 `NocodeSpringMvcCrudEndpointInvoker`，定义 v3 CRUD 动态 controller 的默认 HTTP method/path descriptor，并把 path/query/body 参数转换为框架无关的 `NocodeAccessRequest` 后交给 `NocodeAccessHandler` 执行；真实 endpoint 注册尚未落地
 
 9. **多个 ORM 框架同时支持** [2024 L51]
     - 重要：中 — 扩展性，方便切换 sqltoy
@@ -71,7 +71,7 @@
 10. **criteria 简化（删除 or/NotEqual 等字段）** [2024 L52]
     - 重要：中 — 提升编译速度、IDE 体验
     - 难度：中 — 需用 Map 替代并保持兼容
-    - 进展：已新增 `NocodeQueryCriteria`、`NocodeQueryCondition`、`NocodeQueryGroup`，支持用条件列表和分组表达 equals、in、contains、or 等查询；已新增 `NocodeQueryValidator` 基于字段元数据校验未知字段、不可查询字段和不可排序字段；v2 生成模板尚未迁移到 v3 模型
+    - 进展：已新增 `NocodeQueryCriteria`、`NocodeQueryCondition`、`NocodeQueryGroup`，支持用条件列表和分组表达 equals、in、contains、or 等查询；已新增 `NocodeQueryValidator` 基于字段元数据校验未知字段、不可查询字段和不可排序字段；`isass-web-springmvc` 已新增 query 参数到 v3 criteria 的 parser；v2 生成模板尚未迁移到 v3 模型
 
 11. **自定义实体继承 v3 接口** [2024 L48]
     - 重要：中 — 非标实体集成规范
@@ -134,7 +134,7 @@
 24. **空字符串查询条件优化** [2024 L68]
     - 重要：低 — 边界情况
     - 难度：低 — 条件判断逻辑
-    - 进展：已新增 `NocodeBlankStringPolicy`，支持忽略空字符串或按空字符串查询；具体 access/ORM adapter 尚未接入
+    - 进展：已新增 `NocodeBlankStringPolicy`，支持忽略空字符串或按空字符串查询；`NocodeSpringMvcQueryCriteriaParser` 已支持在 HTTP query 参数解析时配置空字符串策略；具体 ORM adapter 尚未接入
 
 25. **数据库字段注释描述关系** [2024 L47]
     - 重要：低-中 — 辅助分析
