@@ -22,6 +22,11 @@ v3 拆成两层：
    - 拦截器以“某个实体 + 某个操作 + 某组参数”为粒度生效，不要求实现完整 service 接口。
    - 缓存语义参考 Spring Cache，但抽象定义在 isass nocode/core 中，Spring Boot adapter 再桥接 Spring `CacheManager`。
 
+3. **接入层**
+   - controller、socketio、kafka、定时任务等接入方式只负责协议解析和响应转换。
+   - 接入层统一构造 `NocodeAccessRequest`，交给 `NocodeAccessHandler` 转为 `NocodeOperation` 并执行。
+   - Spring MVC 等具体动态端点生成应放在对应 adapter/access 模块，`isass-nocode-core` 只保留纯 Java 请求模型和 handler。
+
 ## 缓存建议
 
 v3 可以定义如下核心概念：
@@ -32,6 +37,7 @@ v3 可以定义如下核心概念：
 - `NocodeOperationPipeline`：把 interceptor 组合成调用链，已落地。
 - `NocodeOperationProvider` / `NocodeOperationRouter`：负责 local、remote、auto 路由，已落地。
 - `NocodeOperationExecutor`：统一组合 route + pipeline 的 v3 调用入口，已落地；后续 access/controller/socketio/kafka 等接入层应调用 executor，而不是直接关心 provider 选择和 interceptor 编排。
+- `NocodeAccessRequest` / `NocodeAccessHandler`：框架无关的接入请求模型和处理入口，已落地；为 controller/socketio/kafka 等动态接入层提供统一底座。
 - `NocodeCacheOperation`：缓存元数据，例如 cache name、key、cacheable/put/evict 行为，已落地。
 - `NocodeCacheManager`：isass 自有缓存门面，已落地。
 - `NocodeCacheKeyGenerator`：缓存 key 生成器，已落地。
@@ -66,6 +72,7 @@ Spring Boot 场景下：
 - `vip.isass.framework.common.structure` 暂时保留，兼容尚未迁移的业务微服务和工具代码；后续可继续缩小它在 `isass-core-common` 中的存在范围。
 - `NocodeCacheInterceptor` 已补齐 cacheable/put/evict 的执行语义，缓存增强不再需要通过实现完整 service 并参与排序链完成。
 - `NocodeOperationExecutor` 已补齐 v3 标准调用入口，为后续动态 access 层生成提供稳定的纯 Java 调用门面。
+- `NocodeAccessRequest` 和 `NocodeAccessHandler` 已补齐 v3 access 接入层的纯 Java 底座，后续 Spring MVC 动态 controller 只需做协议映射。
 
 ## Roadmap 对应
 
