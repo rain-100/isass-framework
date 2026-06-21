@@ -72,9 +72,9 @@
 - `LoginUserUtil`、`LongSequence`、`SystemClock` 已从主动读取 `BeanProviderUtil` 改为显式 provider/setter，Spring Boot 运行时由 `isass-adapter-springboot` 通过 `ObjectProvider` 桥接。
 - 历史兼容包和 nocode v2 的 `IAnyJsonEntity` 已从主动读取 `BeanProviderUtil` 改为显式 `IDictTranslationProvider` provider/setter，并补充未配置 provider 时的跳过行为测试。
 - 数据库自动建库的 Spring `ApplicationContextInitializer` 已从 `isass-database-core` 迁到 `isass-adapter-springboot`，并通过反射发现 `DatabaseInitializerManager`；未依赖数据库模块的业务只依赖 Spring Boot adapter 时不会被强制带入 database-core。
-- `DatabaseExceptionMapping`、`BuildInDatabaseExceptionMapping` 已移除 `@Component`，改由 database / mybatisplus 自动配置显式注册，减少功能类本身的 Spring 注解。
+- `DatabaseExceptionMapping`、`BuildInDatabaseExceptionMapping` 已移除 `@Component`，`DatabaseExceptionMapping` 已迁到 `isass-adapter-springboot` 的 `IsassDatabaseSpringBootAutoConfiguration`，通过 `@ConditionalOnClass(name=...)` 和反射按 database-core classpath 条件装配；`BuildInDatabaseExceptionMapping` 仍由 mybatisplus 自动配置显式注册。
 - MyBatis Plus typehandler、`LongSequenceImpl`、`SystemClockImpl`、MySQL mapper location provider 已移除 `@Component`，改由 MyBatis Plus 自动配置显式注册；剩余 `@ComponentScan` 作为 Spring-bound 模块边界后续继续收缩。
-- `DatabaseAutoConfiguration`、`DatabaseMybatisPlusAutoConfiguration`、PostgreSQL MyBatis Plus 自动配置已移除多余 `@ComponentScan`；MyBatis Plus 主配置改为显式 `@Import(SqlSessionConfig.class)`。
+- `DatabaseAutoConfiguration` 已删除；`DatabaseMybatisPlusAutoConfiguration`、PostgreSQL MyBatis Plus 自动配置已移除多余 `@ComponentScan`；MyBatis Plus 主配置改为显式 `@Import(SqlSessionConfig.class)`。
 - MySQL 公共 repository 已移除 `@Repository` 和字段注入，改为构造器注入并由 MySQL 自动配置显式注册；MyBatis mapper 仍由 `@MapperScan` 发现。
 - `SqlSessionConfig` 已从字段注入迁到构造器注入，通过 `ObjectProvider` 收集可选 mapper location provider 和 typehandler，便于后续继续抽离 Spring 配置边界。
 
@@ -82,14 +82,14 @@
 
 - `isass-core-common/src/main/java/vip/isass/framework/common/structure/**` 仍保留历史 v2 包名，用于兼容未迁移的业务微服务和工具代码。
 - `isass-database-core` 的 Spring 绑定已初步归类：
-  - `DatabaseAutoConfiguration` 当前只注册 `DatabaseExceptionMapping` 并启用 `LiquibaseProperties`，是后续迁入 Spring Boot adapter 的低风险入口。
+  - `DatabaseAutoConfiguration` 已删除；原 `DatabaseExceptionMapping` 注册已迁到 Spring Boot adapter 的 classpath 条件装配。
   - `AbstractLiquibaseConfiguration` / `LiquibaseConfigurer` 依赖 `SpringLiquibase`、`LiquibaseProperties`、`ResourceLoader` 和 Spring 工具类，迁移前需要先设计 adapter optional 依赖或拆分纯 Java Liquibase 配置对象。
   - `src/main/resources/template/**` 与 `v2Template/**` 中的 Spring MVC、Feign、Service、Repository 注解属于代码生成输出模板，短期按“生成 Spring 业务代码”的边界处理，不作为运行时 core 解耦阻塞项。
 
 ## 建议迁移顺序
 
 1. **SPI 化**：将 converter、exception mapping、BeanProvider、LogLevelManager 的 adapter 接入整理为统一 Java SPI 贡献描述，便于 Micronaut/Solon adapter 复用。
-2. **database adapter 化**：先迁移 `DatabaseAutoConfiguration` 的异常映射注册，再拆分 Liquibase 配置对象，最后处理代码生成模板的 v3 输出边界。
+2. **database adapter 化**：先拆分 Liquibase 配置对象，再处理代码生成模板的 v3 输出边界。
 3. **其他模块解耦**：继续扫描 `isass-*` 非 core 模块中可迁移的 Spring 依赖，尤其是 web/security/database/nocode 的边界。
 
 ## 风险

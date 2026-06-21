@@ -4,13 +4,16 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.context.annotation.ImportCandidates;
+import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.util.ClassUtils;
+import vip.isass.framework.adapter.springboot.database.IsassDatabaseSpringBootAutoConfiguration;
 import vip.isass.framework.adapter.springboot.converter.IsassSpringConverterAdapter;
 import vip.isass.framework.adapter.springboot.destroy.AutoDestroyManager;
 import vip.isass.framework.common.entity.DbEntityConvert;
 import vip.isass.framework.common.exception.BuildInCoreExceptionMapping;
+import vip.isass.framework.common.exception.IExceptionMapping;
 import vip.isass.framework.common.log.slf4j.LogLevelManager;
 import vip.isass.framework.common.selectoption.ISelectOptionService;
 import vip.isass.framework.common.selectoption.SelectOption;
@@ -28,6 +31,9 @@ class IsassSpringBootAutoConfigurationTest {
     private static final String AUTO_CONFIGURATION_CLASS =
             "vip.isass.framework.adapter.springboot.IsassSpringBootAutoConfiguration";
 
+    private static final String DATABASE_AUTO_CONFIGURATION_CLASS =
+            "vip.isass.framework.adapter.springboot.database.IsassDatabaseSpringBootAutoConfiguration";
+
     @Test
     void publishesSpringBootAutoConfigurationImport() {
         List<String> candidates = ImportCandidates
@@ -35,7 +41,9 @@ class IsassSpringBootAutoConfigurationTest {
                 .getCandidates();
 
         assertThat(candidates).contains(AUTO_CONFIGURATION_CLASS);
+        assertThat(candidates).contains(DATABASE_AUTO_CONFIGURATION_CLASS);
         assertThat(ClassUtils.isPresent(AUTO_CONFIGURATION_CLASS, getClass().getClassLoader())).isTrue();
+        assertThat(ClassUtils.isPresent(DATABASE_AUTO_CONFIGURATION_CLASS, getClass().getClassLoader())).isTrue();
     }
 
     @Test
@@ -83,6 +91,33 @@ class IsassSpringBootAutoConfigurationTest {
         new ApplicationContextRunner()
                 .withConfiguration(AutoConfigurations.of(IsassSpringBootAutoConfiguration.class))
                 .run(context -> assertThat(context).hasSingleBean(BuildInCoreExceptionMapping.class));
+    }
+
+    @Test
+    void registersDatabaseExceptionMappingWhenDatabaseCoreIsPresent() {
+        new ApplicationContextRunner()
+                .withConfiguration(AutoConfigurations.of(
+                        IsassSpringBootAutoConfiguration.class,
+                        IsassDatabaseSpringBootAutoConfiguration.class
+                ))
+                .run(context -> {
+                    assertThat(context).hasBean("databaseExceptionMapping");
+                    Object mapping = context.getBean("databaseExceptionMapping");
+                    assertThat(mapping).isInstanceOf(IExceptionMapping.class);
+                    assertThat(mapping.getClass().getName())
+                            .isEqualTo("vip.isass.framework.database.core.exception.DatabaseExceptionMapping");
+                });
+    }
+
+    @Test
+    void skipsDatabaseExceptionMappingWhenDatabaseCoreIsMissing() {
+        new ApplicationContextRunner()
+                .withClassLoader(new FilteredClassLoader("vip.isass.framework.database"))
+                .withConfiguration(AutoConfigurations.of(
+                        IsassSpringBootAutoConfiguration.class,
+                        IsassDatabaseSpringBootAutoConfiguration.class
+                ))
+                .run(context -> assertThat(context).doesNotHaveBean("databaseExceptionMapping"));
     }
 
     @Test

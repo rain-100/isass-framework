@@ -216,6 +216,12 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <dependency>
+            <groupId>vip.isass</groupId>
+            <artifactId>isass-database-core</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>

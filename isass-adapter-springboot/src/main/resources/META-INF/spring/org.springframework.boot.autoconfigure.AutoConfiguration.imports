@@ -1,1 +1,2 @@
 vip.isass.framework.adapter.springboot.IsassSpringBootAutoConfiguration
+vip.isass.framework.adapter.springboot.database.IsassDatabaseSpringBootAutoConfiguration
