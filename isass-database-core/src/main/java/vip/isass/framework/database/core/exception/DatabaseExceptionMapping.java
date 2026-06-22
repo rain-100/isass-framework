@@ -183,7 +183,7 @@ import java.util.Map;
 public class DatabaseExceptionMapping implements IExceptionMapping {
 
     private static final Map<Class<? extends Exception>, IStatusMessage> EXCEPTION_MAPPING = MapUtil.<Class<? extends Exception>, IStatusMessage>builder()
-            .put(SQLException.class, DatabaseStatusEnum.SQL_EXCEPTION)
+            .put(SQLException.class, DatabaseStatusMapping.DatabaseStatusEnum.SQL_EXCEPTION)
             .build();
 
     @Override

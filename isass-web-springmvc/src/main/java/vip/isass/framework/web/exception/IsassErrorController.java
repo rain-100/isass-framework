@@ -185,6 +185,7 @@ import vip.isass.framework.common.exception.UnifiedException;
 import vip.isass.framework.common.exception.code.IStatusMessage;
 import vip.isass.framework.common.exception.code.StatusMessageEnum;
 import vip.isass.framework.common.login.LoginUserUtil;
+import vip.isass.framework.common.support.IsassServiceLoader;
 import vip.isass.framework.common.web.Resp;
 import vip.isass.framework.web.security.authentication.jwt.JwtConst;
 
@@ -213,10 +214,13 @@ public class IsassErrorController implements ErrorController {
     }
 
     @Autowired
-    public IsassErrorController(ErrorAttributes errorAttributes, List<IStatusMapping> statusMappings) {
+    public IsassErrorController(ErrorAttributes errorAttributes, @Autowired(required = false) List<IStatusMapping> statusMappings) {
         Assert.notNull(errorAttributes, "ErrorAttributes must not be null");
         this.errorAttributes = errorAttributes;
-        this.statusMappings = statusMappings == null ? List.of() : List.copyOf(statusMappings);
+        this.statusMappings = IsassServiceLoader.mergeByClass(
+                statusMappings == null ? List.of() : statusMappings,
+                IsassServiceLoader.load(IStatusMapping.class)
+        );
     }
 
     // @Override

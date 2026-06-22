@@ -79,9 +79,12 @@
       - `isass-net-socketio`：`@ComponentScan` → `@AutoConfiguration` + `@Import`（9 个类）；`SocketIoAutoConfiguration` 自身字段注入改为 `@Bean` 方法参数注入。
       - `isass-web-springmvc`：`@ComponentScan` → `@AutoConfiguration` + `@Import`（14 个类）；`WebAutoConfiguration` 自身 `@Resource` 字段注入改为 `@Bean` 方法参数注入。
   - 下一步：
-    - 组件类内部收敛（第二阶段）：将 `@Import` 导入的 `@Component`/`@Service` 类逐步改为构造器注入 + 显式 `@Bean` 注册，优先处理 `isass-web-springmvc`、`isass-net-*` 中仍存在的字段注入；完成后再评估哪些能力类可以继续下沉为纯 Java，哪些必须保留在 Spring adapter / Spring 专属模块。
+    - 第二阶段已完成：`isass-web-springmvc`、`isass-net-websocket`、`isass-net-proxy-core`、`isass-net-proxy-server`、`isass-net-proxy-upstream`、`isass-net-socketio`、`isass-net-netty` 共 40+ 个 `@Component`/`@Service` 类已从字段/Setter 注入改为构造器注入 + 显式 `@Bean` 注册；新增 `NettyAutoConfigurationTest` / `WebAutoConfigurationTest`。提交：`bde31421`。
+    - 第三阶段：评估 `isass-web-springmvc`、`isass-net-*` 中哪些能力类可以继续下沉为纯 Java 接口/工具类，哪些必须保留在 Spring adapter / Spring 专属模块。
+      - `ICommonRepository` / `ICommonService` / `CommonServiceImpl` 已从 `isass-core-common` + `isass-web-springmvc` 迁到 `isass-nocode-core`（`vip.isass.framework.nocode.repository`），三个类均为纯 Java 无 Spring 依赖。
+      - `WebStatusMapping` 已从 `isass-web-springmvc` 迁到 `isass-core-common`（`vip.isass.framework.common.exception`），纯 Java 实现 `IStatusMapping`，@Bean 注册保留在 `WebAutoConfiguration`。
     - `isass-security-springsecurity` 仍使用 `@ComponentScan`，其为 Spring Security 专属适配模块，保留暂不迁移。
-    - `isass-adapter-springboot` 的 `IsassSpringBootAutoConfiguration` 仍使用 `@ComponentScan(basePackages = "vip.isass.framework.common")`，需确认该包是否还有需要 auto-scan 的组件。
+    - `isass-adapter-springboot` 的 `IsassSpringBootAutoConfiguration` 原 `@ComponentScan(basePackages = "vip.isass.framework.common")` 已移除：`vip.isass.framework.common` 包 main 源码已无 Spring 组件需扫包。
 
 ### 1.2 配置、构建与部署
 
@@ -178,20 +181,21 @@
   - 已完成步骤：
     - `Resp.detailMessage` 与 `ExceptionAdvice` 双字段错误信息已落地。
     - `IsassErrorController` 已有 HTML/JSON 错误响应策略。
+    - `UnifiedException` 作为统一异常基类已在 core-common，实现 `IStatusMessage` 携带状态码。
+    - `IExceptionMapping` 接口 + SPI 发现机制已在 core-common 抽象层；Spring Web `ExceptionAdvice` 通过 `IsassServiceLoader` 合并 SPI 映射与 Spring Bean 映射。
+    - 新增 `BuildInCoreExceptionMappingTest`（10 个测试）：覆盖 参数校验（IllegalArgumentException/ValidateException）、404 类（AbsentException/FileNotFoundException）、业务异常（AlreadyPresentException）、不支持操作（UnsupportedOperationException）、IO 异常、日期异常、未知异常。验证：`mvn -pl isass-core-common test -Dtest=BuildInCoreExceptionMappingTest -Dmaven.javadoc.skip=true`。
   - 下一步：
-    - 统一框架异常基类、异常码、HTTP 状态映射、用户提示消息和详细诊断消息的关系。
-    - 将异常映射接口保持在 core 抽象层，Spring Web 只负责 HTTP adapter。
-    - 为常见异常增加映射测试：参数校验、权限、404、业务异常、未知异常。
+    - 评估是否需要进一步拆分/统一异常码枚举 `StatusMessageEnum`，使其同时承载模块标识和业务语义。
+    - 补充 `ExceptionAdvice` 集成测试覆盖所有已映射异常类型。
 
-- [ ] **异常码按模块分类**
-  - 目标：
-    - 微服务按端口或 `ModuleInfo` 分类。ModuleInfo.MODULE_CODE 取值规则：5位数，isass 框架模块使用hashCode（现有实现，能否不同jdk环境，每次重启都不变），业务微服务使用端口号。
-    - isass 框架异常码按模块分类。
-    - 支持捕获已有异常转换成约定异常码和异常消息。
-  - 执行步骤：
-    - 设计异常码范围规范，例如 core/web/database/nocode/apidoc/security。
-    - 在异常映射层支持按异常类型、模块、状态码解析统一错误响应。(这是什么意思？)
-    - 补充单元测试和文档。
+- [~] **异常码按模块分类**
+  - 已完成步骤：
+    - 新增 `ModuleCodeResolver`（`isass-core-common`）：提供异常码模块解析（`resolveModuleCode`/`isCommonCode`/`compose`），统一约定 `MODULE_CODE * 10000 + localCode` 格式。
+    - `isass-security-springsecurity` `ModuleInfo` 字段名 `CODE` → `MODULE_CODE`，与 `isass-database-core`、`isass-nocode-core` 统一。
+    - 新增 `ModuleCodeResolverTest`（6 个测试）。验证：`mvn -pl isass-core-common test -Dtest=ModuleCodeResolverTest -Dmaven.javadoc.skip=true`。
+  - 下一步：
+    - 按模块将 `StatusMessageEnum` 中散列码迁移到各模块独立枚举，使用 `ModuleInfo.STATUS_CODE_PREFIX` 模式。
+    - 补充异常码唯一性校验测试
 
 ## 四、低代码 v3 核心设计
 

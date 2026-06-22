@@ -167,27 +167,20 @@
  *
  */
 
-package vip.isass.framework.database.core.exception;
+package vip.isass.framework.nocode.repository;
 
-import lombok.Getter;
-import vip.isass.framework.common.exception.code.IStatusMessage;
+import vip.isass.framework.common.entity.IdEntity;
 
-/**
- * @author Rain
- */
-@Getter
-public enum DatabaseStatusEnum implements IStatusMessage {
+import java.io.Serializable;
+import java.util.List;
 
-    SQL_EXCEPTION(10001_00000, "数据库错误"),
-    ;
+public interface ICommonService {
 
-    private final Integer status;
-
-    private final String msg;
-
-    DatabaseStatusEnum(Integer status, String msg) {
-        this.status = status;
-        this.msg = msg;
-    }
+    <PK extends Serializable, E extends IdEntity<PK, E>>
+    List<E> findAllSubRecords(Class<E> entityClass,
+                              String idColumnName,
+                              String parentIdColumnName,
+                              PK id,
+                              boolean returnIdRecord);
 
 }

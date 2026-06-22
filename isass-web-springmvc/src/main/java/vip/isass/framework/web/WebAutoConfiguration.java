@@ -178,7 +178,6 @@ import org.springframework.http.converter.BufferedImageHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
-import vip.isass.framework.common.repository.ICommonRepository;
 import vip.isass.framework.common.web.header.AdditionalRequestHeaderProvider;
 import vip.isass.framework.web.config.ObjectMapperConfiguration;
 import vip.isass.framework.web.config.WebConfig;
@@ -243,14 +242,6 @@ public class WebAutoConfiguration {
     @Bean
     public TraceIdInterceptor traceIdInterceptor() {
         return new TraceIdInterceptor();
-    }
-
-    @Bean
-    public CommonServiceImpl commonServiceImpl(
-            @Autowired(required = false) ICommonRepository commonRepository) {
-        return commonRepository == null
-                ? new CommonServiceImpl()
-                : new CommonServiceImpl(commonRepository);
     }
 
     @Bean

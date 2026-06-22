@@ -6,7 +6,6 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.logging.LoggingSystem;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.ConfigurableApplicationContext;
 import vip.isass.framework.adapter.springboot.converter.IsassSpringConverterAdapter;
 import vip.isass.framework.adapter.springboot.destroy.AutoDestroyManager;
@@ -34,7 +33,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 @AutoConfiguration
-@ComponentScan(basePackages = "vip.isass.framework.common")
 public class IsassSpringBootAutoConfiguration {
 
     @Bean

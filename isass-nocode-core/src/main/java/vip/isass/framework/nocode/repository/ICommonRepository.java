@@ -167,44 +167,32 @@
  *
  */
 
-package vip.isass.framework.web;
+package vip.isass.framework.nocode.repository;
 
-import cn.hutool.core.lang.Assert;
 import vip.isass.framework.common.entity.IdEntity;
-import vip.isass.framework.common.repository.ICommonRepository;
 
 import java.io.Serializable;
 import java.util.List;
 
-public class CommonServiceImpl implements ICommonService {
+public interface ICommonRepository {
 
-    private final ICommonRepository commonRepository;
-
-    public CommonServiceImpl() {
-        this(null);
-    }
-
-    public CommonServiceImpl(ICommonRepository commonRepository) {
-        this.commonRepository = commonRepository;
-    }
-
-    @Override
-    public <PK extends Serializable, E extends IdEntity<PK, E>> List<E> findAllSubRecords(Class<E> entityClass,
-                                                                                          String idColumnName,
-                                                                                          String parentIdColumnName,
-                                                                                          PK id,
-                                                                                          boolean returnIdRecord) {
-        if (commonRepository == null) {
-            throw new UnsupportedOperationException("当前环境没有ICommonRepository的实现");
-        }
-
-        Assert.notNull(id, "id必填");
-        return commonRepository.findAllSubRecords(
-            entityClass,
-            idColumnName,
-            parentIdColumnName,
-            id,
-            returnIdRecord);
-    }
+    /**
+     * 查找指定 id 的所有子类
+     *
+     * @param entityClass        实体类型
+     * @param idColumnName       主键的字段名
+     * @param parentIdColumnName 父 id 的字段名
+     * @param id                 id 的值
+     * @param returnIdRecord     返回结果是否需要包含 id 本身的记录
+     * @param <PK>               主键类型
+     * @param <E>                实体类型
+     * @return
+     */
+    <PK extends Serializable, E extends IdEntity<PK, E>>
+    List<E> findAllSubRecords(Class<E> entityClass,
+                              String idColumnName,
+                              String parentIdColumnName,
+                              PK id,
+                              boolean returnIdRecord);
 
 }

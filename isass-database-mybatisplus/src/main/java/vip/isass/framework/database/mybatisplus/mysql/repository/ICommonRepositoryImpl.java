@@ -177,7 +177,7 @@ import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
 import vip.isass.framework.database.mybatisplus.mysql.mapper.ICommonMapper;
 import vip.isass.framework.common.entity.DbEntityConvert;
 import vip.isass.framework.common.entity.IdEntity;
-import vip.isass.framework.common.repository.ICommonRepository;
+import vip.isass.framework.nocode.repository.ICommonRepository;
 
 import java.io.Serializable;
 import java.util.List;
