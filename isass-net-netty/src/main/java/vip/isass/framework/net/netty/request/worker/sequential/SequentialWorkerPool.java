@@ -177,7 +177,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.util.concurrent.*;
 
@@ -193,29 +192,35 @@ public class SequentialWorkerPool implements WorkerPool {
      */
     @Getter
     @Setter
-    @Value("${pool.corePoolSize:5}")
-    private int corePoolSize;
+    private int corePoolSize = 5;
 
     /**
      * 线程池允许最大的线程数
      */
     @Getter
     @Setter
-    @Value("${pool.maximumPoolSize:10}")
-    private int maximumPoolSize;
+    private int maximumPoolSize = 10;
 
     @Getter
     @Setter
-    @Value("${pool.taskThreshold:10}")
-    private int taskThreshold;
+    private int taskThreshold = 10;
 
     /**
      * 空闲存活时间，单位：毫秒
      */
     @Getter
     @Setter
-    @Value("${pool.keepAliveTime:10000}")
-    private int keepAliveTime;
+    private int keepAliveTime = 10000;
+
+    public SequentialWorkerPool() {
+    }
+
+    public SequentialWorkerPool(int corePoolSize, int maximumPoolSize, int taskThreshold, int keepAliveTime) {
+        this.corePoolSize = corePoolSize;
+        this.maximumPoolSize = maximumPoolSize;
+        this.taskThreshold = taskThreshold;
+        this.keepAliveTime = keepAliveTime;
+    }
 
     /**
      * key: 分组的 key

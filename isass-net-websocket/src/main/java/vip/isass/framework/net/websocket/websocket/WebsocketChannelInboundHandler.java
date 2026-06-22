@@ -198,7 +198,6 @@ import io.netty.util.CharsetUtil;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 import vip.isass.framework.common.support.JsonUtil;
 import vip.isass.framework.net.core.handler.manager.EventManager;
 import vip.isass.framework.net.core.message.Message;
@@ -207,7 +206,6 @@ import vip.isass.framework.net.core.session.ISessionService;
 import vip.isass.framework.net.websocket.packet.WebsocketPacket;
 import vip.isass.framework.net.websocket.session.WebsocketClientSession;
 
-import jakarta.annotation.Resource;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -215,18 +213,20 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Rain
  */
 @Slf4j
-@Component
 @ChannelHandler.Sharable
 public class WebsocketChannelInboundHandler extends SimpleChannelInboundHandler<Object> {
 
     private Map<Channel, WebSocketServerHandshaker> handshakers = new ConcurrentHashMap<>(128);
 
     @Getter
-    @Resource
-    private ISessionService sessionService;
+    private final ISessionService sessionService;
 
-    @Resource
-    private EventManager eventManager;
+    private final EventManager eventManager;
+
+    public WebsocketChannelInboundHandler(ISessionService sessionService, EventManager eventManager) {
+        this.sessionService = sessionService;
+        this.eventManager = eventManager;
+    }
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {

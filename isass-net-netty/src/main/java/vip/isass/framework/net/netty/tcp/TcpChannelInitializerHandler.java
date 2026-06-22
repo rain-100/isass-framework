@@ -173,8 +173,6 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.timeout.IdleStateHandler;
 import lombok.Getter;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import vip.isass.framework.net.netty.channel.ChannelEventHandler;
 import vip.isass.framework.net.netty.channel.ChannelInitializerHandler;
 import vip.isass.framework.net.netty.packet.Decoder;
@@ -182,26 +180,21 @@ import vip.isass.framework.net.netty.packet.Encoder;
 import vip.isass.framework.net.netty.packet.impl.coder.IsassBinaryPacketDecoder;
 import vip.isass.framework.common.support.BeanProviderUtil;
 
-import jakarta.annotation.Resource;
 import java.util.concurrent.TimeUnit;
 
-/**
- * 客户端成功connect后执行此类来初始化化此channel的行为
- *
- * @author Rain
- */
-@ConditionalOnMissingBean(ChannelInitializerHandler.class)
 public class TcpChannelInitializerHandler extends ChannelInitializerHandler {
 
     @Getter
-    @Value("${tcp.server.socket.timeout:120000}")
-    private int timeout;
+    private final int timeout;
 
-    @Resource
-    private Encoder encoder;
+    private final Encoder encoder;
+    private final ChannelEventHandler channelEventHandler;
 
-    @Resource
-    private ChannelEventHandler channelEventHandler;
+    public TcpChannelInitializerHandler(Encoder encoder, ChannelEventHandler channelEventHandler, int timeout) {
+        this.encoder = encoder;
+        this.channelEventHandler = channelEventHandler;
+        this.timeout = timeout;
+    }
 
     @Override
     protected void initChannel(SocketChannel socketChannel) {

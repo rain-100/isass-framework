@@ -169,16 +169,17 @@
 
 package vip.isass.framework.web;
 
-
-import org.springframework.context.annotation.Bean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.http.converter.BufferedImageHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
+import vip.isass.framework.common.repository.ICommonRepository;
+import vip.isass.framework.common.web.header.AdditionalRequestHeaderProvider;
 import vip.isass.framework.web.config.ObjectMapperConfiguration;
 import vip.isass.framework.web.config.WebConfig;
 import vip.isass.framework.web.exception.ExceptionAdvice;
@@ -195,27 +196,20 @@ import vip.isass.framework.web.uri.UriPrefixProvider;
 import java.awt.image.BufferedImage;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
+import java.util.List;
 
 @AutoConfiguration
 @Import({
         ObjectMapperConfiguration.class,
         WebConfig.class,
         AdvanceFeatureInterceptor.class,
-        CommonServiceImpl.class,
-        ServiceDocsScanner.class,
         ServiceDocsController.class,
-        UriPrefixProvider.class,
-        WebStatusMapping.class,
         IsassErrorController.class,
         ExceptionAdvice.class,
         ResponseAdvice.class,
-        UriMappingInterceptor.class,
-        TraceIdInterceptor.class,
-        RestTemplateInterceptor.class
+        UriPrefixProvider.class
 })
 public class WebAutoConfiguration {
-
-    public static final int CONN_TIMEOUT_IN_MILLIS = 10_000;
 
     public static final int READ_TIMEOUT_IN_MILLIS = 50_000;
 
@@ -233,6 +227,41 @@ public class WebAutoConfiguration {
     @Bean
     public HttpMessageConverter<BufferedImage> bufferedImageHttpMessageConverter() {
         return new BufferedImageHttpMessageConverter();
+    }
+
+    @Bean
+    public ServiceDocsScanner serviceDocsScanner(
+            org.springframework.core.io.support.ResourcePatternResolver resourcePatternResolver) {
+        return new ServiceDocsScanner(resourcePatternResolver);
+    }
+
+    @Bean
+    public WebStatusMapping webStatusMapping() {
+        return new WebStatusMapping();
+    }
+
+    @Bean
+    public TraceIdInterceptor traceIdInterceptor() {
+        return new TraceIdInterceptor();
+    }
+
+    @Bean
+    public CommonServiceImpl commonServiceImpl(
+            @Autowired(required = false) ICommonRepository commonRepository) {
+        return commonRepository == null
+                ? new CommonServiceImpl()
+                : new CommonServiceImpl(commonRepository);
+    }
+
+    @Bean
+    public UriMappingInterceptor uriMappingInterceptor(UriPrefixProvider uriPrefixProvider) {
+        return new UriMappingInterceptor(uriPrefixProvider);
+    }
+
+    @Bean
+    public RestTemplateInterceptor restTemplateInterceptor(
+            @Autowired(required = false) List<AdditionalRequestHeaderProvider> additionalHeaderProviders) {
+        return new RestTemplateInterceptor(additionalHeaderProviders);
     }
 
 }

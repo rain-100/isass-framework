@@ -177,12 +177,9 @@ import io.netty.handler.stream.ChunkedWriteHandler;
 import io.netty.handler.timeout.IdleStateHandler;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import vip.isass.framework.net.netty.channel.ChannelEventHandler;
 import vip.isass.framework.net.netty.channel.ChannelInitializerHandler;
 
-import jakarta.annotation.Resource;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -191,18 +188,20 @@ import java.util.concurrent.TimeUnit;
  * @author Rain
  */
 @Slf4j
-@ConditionalOnMissingBean(ChannelInitializerHandler.class)
 public class WebsocketChannelInitializerHandler extends ChannelInitializerHandler {
 
     /**
      * 默认4分钟
      */
     @Getter
-    @Value("${server.websocket.timeout:240000}")
-    private int timeout;
+    private final int timeout;
 
-    @Resource
-    private ChannelEventHandler channelEventHandler;
+    private final ChannelEventHandler channelEventHandler;
+
+    public WebsocketChannelInitializerHandler(ChannelEventHandler channelEventHandler, int timeout) {
+        this.channelEventHandler = channelEventHandler;
+        this.timeout = timeout;
+    }
 
     @Override
     protected void initChannel(SocketChannel socketChannel) {

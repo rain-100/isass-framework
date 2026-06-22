@@ -171,8 +171,6 @@ package vip.isass.framework.net.socketio.handler;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.annotation.OnDisconnect;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import vip.isass.framework.net.core.session.ISessionService;
 import vip.isass.framework.net.core.session.Session;
 import vip.isass.framework.net.core.handler.manager.EventManager;
@@ -183,14 +181,16 @@ import vip.isass.framework.net.core.handler.manager.EventManager;
  * @author rain
  */
 @Slf4j
-@Component
 public class OnSocketIoDisconnectListener {
 
-    @Autowired
-    private ISessionService sessionManager;
+    private final ISessionService sessionManager;
 
-    @Autowired
-    private EventManager eventManager;
+    private final EventManager eventManager;
+
+    public OnSocketIoDisconnectListener(ISessionService sessionManager, EventManager eventManager) {
+        this.sessionManager = sessionManager;
+        this.eventManager = eventManager;
+    }
 
     @OnDisconnect
     public void onDisconnect(SocketIOClient client) {

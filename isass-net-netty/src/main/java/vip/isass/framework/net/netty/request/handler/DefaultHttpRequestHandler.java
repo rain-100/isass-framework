@@ -178,14 +178,11 @@ import com.googlecode.protobuf.format.JsonFormat;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Primary;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
 import vip.isass.framework.net.core.message.MessageCmd;
 import vip.isass.framework.net.netty.config.NetProperties;
@@ -199,7 +196,6 @@ import vip.isass.framework.common.support.JsonUtil;
 import vip.isass.framework.common.support.UriRequestMapping;
 import vip.isass.framework.net.netty.protobuf.base.NetworkFrame;
 
-import jakarta.annotation.Resource;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
@@ -214,20 +210,13 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 @ConditionalOnMissingBean(RequestHandler.class)
 public class DefaultHttpRequestHandler implements RequestHandler {
 
-    @Resource
-    private NetProperties netProperties;
+    private final NetProperties netProperties;
+    private final RestTemplate restTemplate;
 
-    @Primary
-    @Bean
-    public RestTemplate restTemplate() {
-        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
-        requestFactory.setConnectTimeout(netProperties.getRestTemplateTimeOut());
-        requestFactory.setReadTimeout(netProperties.getRestTemplateTimeOut());
-        return new RestTemplate(requestFactory);
+    public DefaultHttpRequestHandler(NetProperties netProperties, RestTemplate restTemplate) {
+        this.netProperties = netProperties;
+        this.restTemplate = restTemplate;
     }
-
-    @Resource
-    private RestTemplate restTemplate;
 
     @Override
     public void handle(Request request) {

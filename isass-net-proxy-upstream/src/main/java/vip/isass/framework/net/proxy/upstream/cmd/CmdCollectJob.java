@@ -171,9 +171,6 @@ package vip.isass.framework.net.proxy.upstream.cmd;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
-
-import jakarta.annotation.Resource;
 
 /**
  * cmd 收集定时任务
@@ -181,11 +178,13 @@ import jakarta.annotation.Resource;
  * @author rain
  */
 @Slf4j
-@Component
 public class CmdCollectJob {
 
-    @Resource
-    private CmdCollectService cmdCollectService;
+    private final CmdCollectService cmdCollectService;
+
+    public CmdCollectJob(CmdCollectService cmdCollectService) {
+        this.cmdCollectService = cmdCollectService;
+    }
 
     /**
      * 每2分钟向 redis 更新一次本服务的 cmd，防止 redis 数据被清了要等很长时间才恢复

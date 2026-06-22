@@ -168,7 +168,6 @@
 
 package vip.isass.framework.net.websocket;
 
-import org.springframework.stereotype.Component;
 import vip.isass.framework.net.core.handler.IMessageEventRegister;
 
 import java.util.Collection;
@@ -179,7 +178,6 @@ import java.util.Collection;
  *
  * @author rain
  */
-@Component
 public class WebsocketEventHandlerRegister implements IMessageEventRegister {
 
     @Override

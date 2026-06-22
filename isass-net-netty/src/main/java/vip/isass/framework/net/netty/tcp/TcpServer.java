@@ -185,7 +185,6 @@ import org.springframework.context.annotation.Configuration;
 import vip.isass.framework.net.core.server.NetProtocol;
 import vip.isass.framework.net.core.server.Server;
 
-import jakarta.annotation.Resource;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -198,11 +197,8 @@ import java.util.concurrent.Executors;
 @ConditionalOnProperty(prefix = "core-net.tcp", name = "enabled", havingValue = "true")
 public class TcpServer implements Server {
 
-    @Resource
-    private TcpChannelInitializerHandler channelInitializerHandler;
-
-    @Value("${core-net.tcp.port:20002}")
-    private int port;
+    private final TcpChannelInitializerHandler channelInitializerHandler;
+    private final int port;
 
     private ExecutorService executorService;
 
@@ -213,6 +209,12 @@ public class TcpServer implements Server {
     private EventLoopGroup worker = null;
 
     private boolean isShutdown = true;
+
+    public TcpServer(TcpChannelInitializerHandler channelInitializerHandler,
+                     @Value("${core-net.tcp.port:20002}") int port) {
+        this.channelInitializerHandler = channelInitializerHandler;
+        this.port = port;
+    }
 
     private synchronized boolean isShutdown() {
         return isShutdown;

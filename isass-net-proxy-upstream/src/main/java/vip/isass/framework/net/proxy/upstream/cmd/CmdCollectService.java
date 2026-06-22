@@ -174,14 +174,12 @@ import com.baomidou.lock.annotation.Lock4j;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 import vip.isass.framework.common.support.LocalDateTimeUtil;
 import vip.isass.framework.common.support.SystemClock;
 import vip.isass.framework.net.core.handler.OnMessageEventHandler;
 import vip.isass.framework.net.core.message.CmdCollectDto;
 import vip.isass.framework.net.proxy.core.CmdRedisService;
 
-import jakarta.annotation.Resource;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -193,17 +191,21 @@ import java.util.stream.Collectors;
  * @author rain
  */
 @Slf4j
-@Component
 public class CmdCollectService {
 
-    @Resource
-    private CmdRedisService cmdRedisService;
+    private final CmdRedisService cmdRedisService;
 
-    @Autowired(required = false)
-    private List<OnMessageEventHandler<?>> onMessageEventHandlers;
+    private final List<OnMessageEventHandler<?>> onMessageEventHandlers;
 
-    @Value("${spring.application.name:}")
-    private String applicationName;
+    private final String applicationName;
+
+    public CmdCollectService(CmdRedisService cmdRedisService,
+                             @Autowired(required = false) List<OnMessageEventHandler<?>> onMessageEventHandlers,
+                             @Value("${spring.application.name:}") String applicationName) {
+        this.cmdRedisService = cmdRedisService;
+        this.onMessageEventHandlers = onMessageEventHandlers;
+        this.applicationName = applicationName;
+    }
 
     @Lock4j(name = "CmdCollectService:", keys = "#applicationName", acquireTimeout = 10_000, expire = 30_000)
     public void collect(List<OnMessageEventHandler<?>> onMessageEventHandlers, String applicationName) {

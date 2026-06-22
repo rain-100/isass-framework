@@ -2,7 +2,6 @@ package vip.isass.framework.web.servicedocs;
 
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.ResourcePatternResolver;
-import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -14,7 +13,6 @@ import java.util.NoSuchElementException;
 /**
  * @author Rain
  */
-@Component
 public class ServiceDocsScanner {
 
     private final ResourcePatternResolver resourcePatternResolver;

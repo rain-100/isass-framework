@@ -172,12 +172,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.Topic;
-import org.springframework.stereotype.Component;
 import vip.isass.framework.cache.redis.IRedisSubscriber;
 import vip.isass.framework.net.core.NetRedisKey;
 import vip.isass.framework.net.core.session.ISessionService;
-
-import jakarta.annotation.Resource;
 
 /**
  * 服务端推送消息给客户端时，使用 redis 的 pubsub 功能中转消息
@@ -187,11 +184,13 @@ import jakarta.annotation.Resource;
  * @author rain
  */
 @Slf4j
-@Component
 public class S2CMessageRedisSubscriber implements IRedisSubscriber<vip.isass.framework.net.core.message.Message> {
 
-    @Resource
-    public ISessionService sessionService;
+    public final ISessionService sessionService;
+
+    public S2CMessageRedisSubscriber(ISessionService sessionService) {
+        this.sessionService = sessionService;
+    }
 
     @Override
     public void onMessage(vip.isass.framework.net.core.message.Message message, Message redisMessage, byte[] pattern) {

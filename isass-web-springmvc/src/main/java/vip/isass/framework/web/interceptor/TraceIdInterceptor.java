@@ -170,7 +170,6 @@
 package vip.isass.framework.web.interceptor;
 
 import org.apache.skywalking.apm.toolkit.trace.TraceContext;
-import org.springframework.stereotype.Component;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -178,7 +177,6 @@ import jakarta.servlet.http.HttpServletResponse;
 /**
  * @author Rain
  */
-@Component
 public class TraceIdInterceptor implements IsassHandlerInterceptor {
 
     public static final String HEADER_NAME = "isass-trace-id";

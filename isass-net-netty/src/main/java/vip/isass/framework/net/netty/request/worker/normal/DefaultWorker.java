@@ -177,7 +177,6 @@ import vip.isass.framework.net.netty.request.Request;
 import vip.isass.framework.net.netty.request.handler.RequestHandler;
 import vip.isass.framework.net.netty.request.worker.Worker;
 
-import jakarta.annotation.Resource;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
@@ -189,14 +188,14 @@ import java.util.concurrent.BlockingQueue;
 @Scope("prototype")
 public class DefaultWorker extends Worker {
 
-    @Resource
-    private RequestHandler requestHandler;
+    private final RequestHandler requestHandler;
 
     private static final int MAX_QUEUE_SIZE = Math.min(1000, 1000);
 
     private BlockingQueue<Request> blockingQueue;
 
-    public DefaultWorker() {
+    public DefaultWorker(RequestHandler requestHandler) {
+        this.requestHandler = requestHandler;
         this.blockingQueue = new ArrayBlockingQueue<>(MAX_QUEUE_SIZE);
         this.setDaemon(true);
     }

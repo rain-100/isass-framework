@@ -173,14 +173,11 @@ import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.listener.ExceptionListener;
 import io.netty.channel.ChannelHandlerContext;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import vip.isass.framework.net.core.handler.manager.EventManager;
 import vip.isass.framework.net.core.message.MessageCmd;
 import vip.isass.framework.net.core.session.ISessionService;
 import vip.isass.framework.net.core.session.Session;
 
-import jakarta.annotation.Resource;
 import java.util.List;
 
 /**
@@ -189,14 +186,16 @@ import java.util.List;
  * @author rain
  */
 @Slf4j
-@Component
 public class OnSocketIoErrorListener implements ExceptionListener {
 
-    @Autowired
-    private EventManager eventManager;
+    private final EventManager eventManager;
 
-    @Resource
-    private ISessionService sessionService;
+    private final ISessionService sessionService;
+
+    public OnSocketIoErrorListener(EventManager eventManager, ISessionService sessionService) {
+        this.eventManager = eventManager;
+        this.sessionService = sessionService;
+    }
 
     @Override
     public void onEventException(Exception e, List<Object> args, SocketIOClient client) {

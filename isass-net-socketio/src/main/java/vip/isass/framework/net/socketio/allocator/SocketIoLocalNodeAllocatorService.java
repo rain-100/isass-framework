@@ -180,7 +180,6 @@ import vip.isass.framework.net.core.server.NetServerInfo;
 import vip.isass.framework.net.core.server.allocator.INodeAllocatorService;
 import vip.isass.framework.net.socketio.SocketIoProperties;
 
-import jakarta.annotation.Resource;
 import java.util.Collection;
 import java.util.Collections;
 
@@ -188,11 +187,14 @@ import java.util.Collections;
 @ConditionalOnProperty(name = "kernel.net.proxy.enabled", havingValue = "false", matchIfMissing = true)
 public class SocketIoLocalNodeAllocatorService implements INodeAllocatorService, InitializingBean {
 
-    @Resource
-    private SocketIoProperties socketIoProperties;
+    private final SocketIoProperties socketIoProperties;
 
-    @Value("${server.port}")
-    private int httpPort;
+    private final int httpPort;
+
+    public SocketIoLocalNodeAllocatorService(SocketIoProperties socketIoProperties, @Value("${server.port}") int httpPort) {
+        this.socketIoProperties = socketIoProperties;
+        this.httpPort = httpPort;
+    }
 
     @Getter
     private final NetProtocol netProtocol = NetProtocol.socketio;

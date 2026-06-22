@@ -180,6 +180,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.io.DefaultResourceLoader;
+import vip.isass.framework.net.core.handler.manager.EventManager;
+import vip.isass.framework.net.core.session.ISessionService;
 import vip.isass.framework.net.socketio.allocator.SocketIoLocalNodeAllocatorService;
 import vip.isass.framework.net.socketio.allocator.SocketioNodeAllocatorConfiguration;
 import vip.isass.framework.net.socketio.handler.OnSocketIoConnectListener;
@@ -190,11 +192,6 @@ import vip.isass.framework.net.socketio.handler.OnSocketIoErrorListener;
 @AutoConfiguration
 @Import({
         SocketIoProperties.class,
-        SocketIoServer.class,
-        SocketIoEventHandlerRegister.class,
-        OnSocketIoConnectListener.class,
-        OnSocketIoDisconnectListener.class,
-        OnSocketIoErrorListener.class,
         SocketioNodeAllocatorConfiguration.class,
         SocketIoLocalNodeAllocatorService.class,
         SocketioForwardController.class
@@ -243,6 +240,31 @@ public class SocketIoAutoConfiguration {
     @Bean
     public SpringAnnotationScanner springAnnotationScanner(SocketIOServer socketIoServer) {
         return new SpringAnnotationScanner(socketIoServer);
+    }
+
+    @Bean
+    public OnSocketIoConnectListener onSocketIoConnectListener(EventManager eventManager) {
+        return new OnSocketIoConnectListener(eventManager);
+    }
+
+    @Bean
+    public OnSocketIoDisconnectListener onSocketIoDisconnectListener(ISessionService sessionService, EventManager eventManager) {
+        return new OnSocketIoDisconnectListener(sessionService, eventManager);
+    }
+
+    @Bean
+    public OnSocketIoErrorListener onSocketIoErrorListener(EventManager eventManager, ISessionService sessionService) {
+        return new OnSocketIoErrorListener(eventManager, sessionService);
+    }
+
+    @Bean
+    public SocketIoServer socketIoServer(SocketIOServer socketIOServer) {
+        return new SocketIoServer(socketIOServer);
+    }
+
+    @Bean
+    public SocketIoEventHandlerRegister socketIoEventHandlerRegister(SocketIoServer socketIoServer, ISessionService sessionService, EventManager eventManager) {
+        return new SocketIoEventHandlerRegister(socketIoServer, sessionService, eventManager);
     }
 
 }

@@ -172,12 +172,10 @@ package vip.isass.framework.net.proxy.core;
 import tools.jackson.core.type.TypeReference;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.stereotype.Service;
 import vip.isass.framework.common.support.JsonUtil;
 import vip.isass.framework.net.core.NetRedisKey;
 import vip.isass.framework.net.core.message.CmdCollectDto;
 
-import jakarta.annotation.Resource;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -189,14 +187,16 @@ import java.util.concurrent.TimeUnit;
  * @author rain
  */
 @Slf4j
-@Service
 public class CmdRedisService {
 
-    @Resource
-    private RedisTemplate<String, Object> redisTemplate;
+    private final RedisTemplate<String, Object> redisTemplate;
 
     private static final TypeReference<Map<String, List<CmdCollectDto>>> MAP_TYPE_REFERENCE = new TypeReference<Map<String, List<CmdCollectDto>>>() {
     };
+
+    public CmdRedisService(RedisTemplate<String, Object> redisTemplate) {
+        this.redisTemplate = redisTemplate;
+    }
 
     private static final TypeReference<List<CmdCollectDto>> LIST_TYPE_REFERENCE = new TypeReference<List<CmdCollectDto>>() {
     };

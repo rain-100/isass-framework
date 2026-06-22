@@ -196,7 +196,6 @@ import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import vip.isass.framework.net.netty.channel.ChannelEventHandler;
 import vip.isass.framework.net.netty.packet.TcpPacket;
 import vip.isass.framework.net.netty.request.Request;
@@ -204,7 +203,6 @@ import vip.isass.framework.net.netty.request.RequestManager;
 import vip.isass.framework.net.core.session.ISessionService;
 import vip.isass.framework.common.support.JsonUtil;
 
-import jakarta.annotation.Resource;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -213,18 +211,24 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Slf4j
 @ChannelHandler.Sharable
-@ConditionalOnMissingBean(ChannelEventHandler.class)
 public class WebsocketChannelEventHandler extends SimpleChannelInboundHandler<Object> implements ChannelEventHandler {
 
     private Map<Channel, WebSocketServerHandshaker> handshakers = new ConcurrentHashMap<>(128);
 
-    @Getter
-    @Resource
-    private ISessionService sessionService;
+    private final ISessionService sessionService;
 
     @Getter
-    @Resource
-    private RequestManager requestManager;
+    private final RequestManager requestManager;
+
+    public WebsocketChannelEventHandler(ISessionService sessionService, RequestManager requestManager) {
+        this.sessionService = sessionService;
+        this.requestManager = requestManager;
+    }
+
+    @Override
+    public ISessionService getSessionService() {
+        return sessionService;
+    }
 
     @Override
     public Logger getLogger() {

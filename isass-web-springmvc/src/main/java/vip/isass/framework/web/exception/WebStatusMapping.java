@@ -171,7 +171,6 @@ package vip.isass.framework.web.exception;
 
 import cn.hutool.core.map.MapUtil;
 import lombok.Getter;
-import org.springframework.stereotype.Component;
 import vip.isass.framework.common.exception.IStatusMapping;
 import vip.isass.framework.common.exception.code.IStatusMessage;
 import vip.isass.framework.common.exception.code.StatusMessageEnum;
@@ -181,10 +180,6 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-/**
- * @author Rain
- */
-@Component
 public class WebStatusMapping implements IStatusMapping {
 
     private static final Map<Integer, IStatusMessage> statusMapping = MapUtil

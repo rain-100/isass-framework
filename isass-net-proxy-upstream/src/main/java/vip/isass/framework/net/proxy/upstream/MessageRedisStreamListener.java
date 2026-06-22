@@ -177,9 +177,7 @@ import org.apache.commons.lang3.reflect.FieldUtils;
 import org.redisson.RedissonShutdownException;
 import org.redisson.client.protocol.RedisStrictCommand;
 import org.redisson.spring.data.connection.RedissonStreamCommands;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.ObjectRecord;
@@ -189,14 +187,12 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.stream.StreamListener;
 import org.springframework.data.redis.stream.StreamMessageListenerContainer;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-import org.springframework.stereotype.Component;
 import vip.isass.framework.cache.redis.RedisConfig;
 import vip.isass.framework.net.core.NetRedisKey;
 import vip.isass.framework.net.core.handler.manager.IEventManager;
 import vip.isass.framework.net.core.message.Message;
 
 import jakarta.annotation.PreDestroy;
-import jakarta.annotation.Resource;
 import java.lang.reflect.Field;
 import java.time.Duration;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -205,13 +201,25 @@ import java.util.concurrent.ThreadPoolExecutor;
  * @author rain
  */
 @Slf4j
-@Component
 public class MessageRedisStreamListener implements StreamListener<String, ObjectRecord<String, Message>> {
 
-    @Resource
-    private IEventManager eventManager;
+    private final IEventManager eventManager;
+
+    private final RedisTemplate<String, Object> redisTemplate;
+
+    private final String streamServiceKey;
 
     private ThreadPoolTaskExecutor executor;
+
+    private static final Consumer CONSUMER = Consumer.from(NetRedisKey.CONSUMER_GROUP, RandomUtil.randomString(6));
+
+    public MessageRedisStreamListener(IEventManager eventManager,
+                                      RedisTemplate<String, Object> redisTemplate,
+                                      @Value("${spring.application.name:}") String applicationName) {
+        this.eventManager = eventManager;
+        this.redisTemplate = redisTemplate;
+        this.streamServiceKey = NetRedisKey.REDIS_STREAM_PREFIX_KEY + applicationName;
+    }
 
     private void initExecutor() {
         this.executor = new ThreadPoolTaskExecutor();
@@ -228,18 +236,6 @@ public class MessageRedisStreamListener implements StreamListener<String, Object
     public void onMessage(ObjectRecord<String, Message> message) {
         Message value = message.getValue();
         eventManager.onMessage(value);
-    }
-
-    private static final Consumer CONSUMER = Consumer.from(NetRedisKey.CONSUMER_GROUP, RandomUtil.randomString(6));
-
-    @Resource
-    private RedisTemplate<String, Object> redisTemplate;
-
-    private String streamServiceKey;
-
-    @Autowired
-    public void setApplicationName(@Value("${spring.application.name:}") String applicationName) {
-        this.streamServiceKey = NetRedisKey.REDIS_STREAM_PREFIX_KEY + applicationName;
     }
 
     @PreDestroy
@@ -266,7 +262,6 @@ public class MessageRedisStreamListener implements StreamListener<String, Object
      * @param factory redis 连接工厂
      * @return StreamMessageListenerContainer
      */
-    @Bean(initMethod = "start", destroyMethod = "stop")
     public StreamMessageListenerContainer<String, ObjectRecord<String, Message>>
     netTransferMessageListenerContainer(RedisConnectionFactory factory) {
         initExecutor();

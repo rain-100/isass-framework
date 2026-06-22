@@ -184,7 +184,6 @@ import vip.isass.framework.net.core.message.Message;
 import vip.isass.framework.net.core.session.ISessionService;
 import vip.isass.framework.net.core.session.SessionBindingInfoChangeReq;
 
-import jakarta.annotation.Resource;
 import java.util.Collection;
 import java.util.Map;
 
@@ -196,8 +195,11 @@ import java.util.Map;
 @RequestMapping("/${spring.application.name}/session")
 public class NetSessionController {
 
-    @Resource
-    private ISessionService sessionService;
+    private final ISessionService sessionService;
+
+    public NetSessionController(ISessionService sessionService) {
+        this.sessionService = sessionService;
+    }
 
     @PostMapping("/send")
     public Resp<?> sendMessage(@RequestBody Message message) {

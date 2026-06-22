@@ -171,16 +171,13 @@ package vip.isass.framework.net.proxy.service.service;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
 import vip.isass.framework.net.core.NetRedisKey;
 import vip.isass.framework.net.core.handler.IMessageEventRegister;
 import vip.isass.framework.net.core.message.CmdCollectDto;
 import vip.isass.framework.net.core.message.MessageCmd;
 import vip.isass.framework.net.proxy.core.CmdRedisService;
 
-import jakarta.annotation.Resource;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -196,17 +193,17 @@ import java.util.stream.Collectors;
  * @author rain
  */
 @Slf4j
-@Service
 public class ProxyClientCmdListeningService {
 
-    @Value("${spring.application.name:}")
-    private String applicationName;
+    private final String applicationName;
+    private final CmdRedisService cmdRedisService;
+    private final List<IMessageEventRegister> messageEventRegisters;
 
-    @Resource
-    private CmdRedisService cmdRedisService;
-
-    @Autowired(required = false)
-    private List<IMessageEventRegister> messageEventRegisters;
+    public ProxyClientCmdListeningService(@Value("${spring.application.name:}") String applicationName, CmdRedisService cmdRedisService, List<IMessageEventRegister> messageEventRegisters) {
+        this.applicationName = applicationName;
+        this.cmdRedisService = cmdRedisService;
+        this.messageEventRegisters = messageEventRegisters;
+    }
 
     /**
      * 正在监听的 cmd

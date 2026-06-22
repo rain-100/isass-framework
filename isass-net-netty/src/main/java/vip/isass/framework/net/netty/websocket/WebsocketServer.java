@@ -178,13 +178,10 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.stereotype.Component;
 import vip.isass.framework.net.netty.channel.ChannelInitializerHandler;
 
-import jakarta.annotation.Resource;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -193,18 +190,19 @@ import java.util.concurrent.Executors;
  * @author Rain
  */
 @Slf4j
-@Component
 public class WebsocketServer implements ApplicationListener<ContextRefreshedEvent> {
 
-    @Resource
-    private ChannelInitializerHandler channelInitializerHandler;
-
-    @Value("${server.websocket.port:20003}")
-    private int port;
+    private final ChannelInitializerHandler channelInitializerHandler;
+    private final int port;
 
     private ExecutorService executorService;
 
     private boolean isShutdown = true;
+
+    public WebsocketServer(ChannelInitializerHandler channelInitializerHandler, int port) {
+        this.channelInitializerHandler = channelInitializerHandler;
+        this.port = port;
+    }
 
     private synchronized boolean isShutdown() {
         return isShutdown;

@@ -183,7 +183,6 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import vip.isass.framework.web.interceptor.IsassHandlerInterceptor;
 
-import jakarta.annotation.Resource;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -194,29 +193,26 @@ import java.util.List;
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
-    @Resource
-    private List<IsassHandlerInterceptor> isassHandlerInterceptors;
+    private final List<IsassHandlerInterceptor> isassHandlerInterceptors;
 
-    /**
-     * 允许跨域的域名，*表示允许任何域名使用
-     */
     @Getter
-    @Value("${core.web.allowedOrigins:*}")
-    private String allowedOrigins;
+    private final String allowedOrigins;
 
-    /**
-     * 允许的方法
-     */
     @Getter
-    @Value("${core.web.allowedMethods:*}")
-    private String allowedMethods;
+    private final String allowedMethods;
 
-    /**
-     * 允许的请求头
-     */
     @Getter
-    @Value("${core.web.allowedHeaders:*}")
-    private String allowedHeaders;
+    private final String allowedHeaders;
+
+    public WebConfig(List<IsassHandlerInterceptor> isassHandlerInterceptors,
+                     @Value("${core.web.allowedOrigins:*}") String allowedOrigins,
+                     @Value("${core.web.allowedMethods:*}") String allowedMethods,
+                     @Value("${core.web.allowedHeaders:*}") String allowedHeaders) {
+        this.isassHandlerInterceptors = isassHandlerInterceptors;
+        this.allowedOrigins = allowedOrigins;
+        this.allowedMethods = allowedMethods;
+        this.allowedHeaders = allowedHeaders;
+    }
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {

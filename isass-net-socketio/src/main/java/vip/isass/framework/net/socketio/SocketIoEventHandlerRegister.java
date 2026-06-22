@@ -170,14 +170,12 @@
 package vip.isass.framework.net.socketio;
 
 import cn.hutool.core.collection.CollUtil;
-import org.springframework.stereotype.Component;
 import vip.isass.framework.net.core.handler.IMessageEventRegister;
 import vip.isass.framework.net.core.handler.manager.EventManager;
 import vip.isass.framework.net.core.message.Message;
 import vip.isass.framework.net.core.session.ISessionService;
 import vip.isass.framework.net.core.session.Session;
 
-import jakarta.annotation.Resource;
 import java.util.Collection;
 
 /**
@@ -185,17 +183,19 @@ import java.util.Collection;
  *
  * @author rain
  */
-@Component
 public class SocketIoEventHandlerRegister implements IMessageEventRegister {
 
-    @Resource
-    private SocketIoServer socketIoServer;
+    private final SocketIoServer socketIoServer;
 
-    @Resource
-    private ISessionService sessionService;
+    private final ISessionService sessionService;
 
-    @Resource
-    private EventManager eventManager;
+    private final EventManager eventManager;
+
+    public SocketIoEventHandlerRegister(SocketIoServer socketIoServer, ISessionService sessionService, EventManager eventManager) {
+        this.socketIoServer = socketIoServer;
+        this.sessionService = sessionService;
+        this.eventManager = eventManager;
+    }
 
     @Override
     public void listening(Collection<String> commands) {

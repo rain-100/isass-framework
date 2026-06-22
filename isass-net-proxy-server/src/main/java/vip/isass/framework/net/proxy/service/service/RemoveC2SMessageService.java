@@ -175,12 +175,10 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.data.redis.serializer.RedisSerializer;
-import org.springframework.stereotype.Service;
 import vip.isass.framework.common.support.LocalDateTimeUtil;
 import vip.isass.framework.net.core.NetRedisKey;
 import vip.isass.framework.net.core.message.Message;
 
-import jakarta.annotation.Resource;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -190,11 +188,13 @@ import java.util.Set;
  *
  * @author rain
  */
-@Service
 public class RemoveC2SMessageService {
 
-    @Resource
-    private RedisTemplate<String, Message> redisTemplate;
+    private final RedisTemplate<String, Message> redisTemplate;
+
+    public RemoveC2SMessageService(RedisTemplate<String, Message> redisTemplate) {
+        this.redisTemplate = redisTemplate;
+    }
 
     /**
      * 每隔5分钟删除一次5分钟前的旧消息

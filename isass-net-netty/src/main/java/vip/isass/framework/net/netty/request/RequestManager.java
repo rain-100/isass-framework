@@ -170,9 +170,6 @@
 package vip.isass.framework.net.netty.request;
 
 import vip.isass.framework.net.netty.request.worker.WorkerPool;
-import org.springframework.stereotype.Component;
-
-import jakarta.annotation.Resource;
 
 /**
  * 请求管理器
@@ -180,14 +177,16 @@ import jakarta.annotation.Resource;
  *
  * @author Rain
  */
-@Component
 public class RequestManager {
 
     /**
      * 处理客户端请求的线程池
      */
-    @Resource
-    private WorkerPool workerPool;
+    private final WorkerPool workerPool;
+
+    public RequestManager(WorkerPool workerPool) {
+        this.workerPool = workerPool;
+    }
 
     public void addRequest(Request request) {
         this.workerPool.putRequestInQueue(request);

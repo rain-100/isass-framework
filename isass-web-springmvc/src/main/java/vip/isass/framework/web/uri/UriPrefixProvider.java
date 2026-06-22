@@ -175,38 +175,31 @@ import cn.hutool.core.util.StrUtil;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-
-import jakarta.annotation.Resource;
 
 /**
  * @author Rain
  */
 
 @Getter
-@Component
 public class UriPrefixProvider {
     private static final Logger log = LoggerFactory.getLogger(UriPrefixProvider.class);
 
-    private String appName = "";
+    private final String appName;
 
-    private String contextPath = "";
+    private final String contextPath;
 
-    private String uriPrefix;
-
-    @Resource
-    public void setAppName(@Value("${spring.application.name:}") String applicationName) {
+    public UriPrefixProvider(@Value("${spring.application.name:}") String applicationName,
+                              @Value("${server.servlet.context-path:}") String contextPath) {
         if (StrUtil.isBlank(applicationName)) {
             throw new IllegalArgumentException("请配置 spring.application.name");
         }
         log.info("applicationName:{}", applicationName);
         this.appName = "/" + applicationName;
-    }
 
-    @Resource
-    public void setContextPath(@Value("${server.servlet.context-path:}") String contextPath) {
         if (StrUtil.isNotBlank(contextPath)) {
             this.contextPath = "/" + contextPath;
+        } else {
+            this.contextPath = "";
         }
     }
 

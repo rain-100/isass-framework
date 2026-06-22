@@ -170,19 +170,23 @@
 package vip.isass.framework.web;
 
 import cn.hutool.core.lang.Assert;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import vip.isass.framework.common.entity.IdEntity;
 import vip.isass.framework.common.repository.ICommonRepository;
 
 import java.io.Serializable;
 import java.util.List;
 
-@Service
 public class CommonServiceImpl implements ICommonService {
 
-    @Autowired(required = false)
-    private ICommonRepository commonRepository;
+    private final ICommonRepository commonRepository;
+
+    public CommonServiceImpl() {
+        this(null);
+    }
+
+    public CommonServiceImpl(ICommonRepository commonRepository) {
+        this.commonRepository = commonRepository;
+    }
 
     @Override
     public <PK extends Serializable, E extends IdEntity<PK, E>> List<E> findAllSubRecords(Class<E> entityClass,

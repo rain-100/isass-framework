@@ -183,8 +183,6 @@ import vip.isass.framework.net.core.session.ISessionService;
 import vip.isass.framework.net.proxy.service.service.GatewayToRedisMessageService;
 import vip.isass.framework.net.proxy.service.service.RemoveC2SMessageService;
 
-import jakarta.annotation.Resource;
-
 /**
  * @author rain
  */
@@ -193,14 +191,15 @@ import jakarta.annotation.Resource;
 @RequestMapping("/${spring.application.name}/sender")
 public class NetMessageSenderController {
 
-    @Resource
-    private ISessionService sessionService;
+    private final ISessionService sessionService;
+    private final GatewayToRedisMessageService gatewayToRedisMessageService;
+    private final RemoveC2SMessageService removeC2SMessageService;
 
-    @Resource
-    private GatewayToRedisMessageService gatewayToRedisMessageService;
-
-    @Resource
-    private RemoveC2SMessageService removeC2SMessageService;
+    public NetMessageSenderController(ISessionService sessionService, GatewayToRedisMessageService gatewayToRedisMessageService, RemoveC2SMessageService removeC2SMessageService) {
+        this.sessionService = sessionService;
+        this.gatewayToRedisMessageService = gatewayToRedisMessageService;
+        this.removeC2SMessageService = removeC2SMessageService;
+    }
 
     @PostMapping("/send")
     public void sendMessage(@RequestBody Message message) {

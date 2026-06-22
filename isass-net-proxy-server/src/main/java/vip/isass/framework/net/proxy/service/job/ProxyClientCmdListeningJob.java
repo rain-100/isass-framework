@@ -170,10 +170,7 @@ package vip.isass.framework.net.proxy.service.job;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
 import vip.isass.framework.net.proxy.service.service.ProxyClientCmdListeningService;
-
-import jakarta.annotation.Resource;
 
 /**
  * cmd 监听任务，拉取 redis 指定的 key，取出 cmd，供 socketio 框架监听
@@ -181,11 +178,13 @@ import jakarta.annotation.Resource;
  * @author rain
  */
 @Slf4j
-@Component
 public class ProxyClientCmdListeningJob {
 
-    @Resource
-    public ProxyClientCmdListeningService proxyClientCmdListeningService;
+    public final ProxyClientCmdListeningService proxyClientCmdListeningService;
+
+    public ProxyClientCmdListeningJob(ProxyClientCmdListeningService proxyClientCmdListeningService) {
+        this.proxyClientCmdListeningService = proxyClientCmdListeningService;
+    }
 
     /**
      * 每隔30秒获取一次 cmd

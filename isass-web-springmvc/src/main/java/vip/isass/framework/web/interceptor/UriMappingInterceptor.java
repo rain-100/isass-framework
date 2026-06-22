@@ -169,23 +169,23 @@
 
 package vip.isass.framework.web.interceptor;
 
-import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerMapping;
 import vip.isass.framework.common.support.UriRequestMapping;
 import vip.isass.framework.web.uri.UriPrefixProvider;
 
-import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 /**
  * @author Rain
  */
-@Component
 public class UriMappingInterceptor implements IsassHandlerInterceptor {
 
-    @Resource
-    private UriPrefixProvider uriPrefixProvider;
+    private final UriPrefixProvider uriPrefixProvider;
+
+    public UriMappingInterceptor(UriPrefixProvider uriPrefixProvider) {
+        this.uriPrefixProvider = uriPrefixProvider;
+    }
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {

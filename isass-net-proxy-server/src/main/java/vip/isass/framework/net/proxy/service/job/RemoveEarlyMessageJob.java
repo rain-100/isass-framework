@@ -169,21 +169,20 @@
 package vip.isass.framework.net.proxy.service.job;
 
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
 import vip.isass.framework.net.proxy.service.service.RemoveC2SMessageService;
-
-import jakarta.annotation.Resource;
 
 /**
  * 定时删除 redis 旧的中转消息
  *
  * @author rain
  */
-@Component
 public class RemoveEarlyMessageJob {
 
-    @Resource
-    private RemoveC2SMessageService removeC2SMessageService;
+    private final RemoveC2SMessageService removeC2SMessageService;
+
+    public RemoveEarlyMessageJob(RemoveC2SMessageService removeC2SMessageService) {
+        this.removeC2SMessageService = removeC2SMessageService;
+    }
 
     /**
      * 每5分钟执行一次

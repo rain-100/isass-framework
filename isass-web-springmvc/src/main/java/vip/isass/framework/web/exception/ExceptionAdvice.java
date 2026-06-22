@@ -201,36 +201,33 @@ import java.util.List;
 public class ExceptionAdvice {
     private static final Logger log = LoggerFactory.getLogger(ExceptionAdvice.class);
 
-    
-    private List<IExceptionMapping> exceptionMappings;
+    private final List<IExceptionMapping> exceptionMappings;
 
-    public ExceptionAdvice() {
-        this(List.of());
-    }
+    private final boolean showDetailError;
 
+    private final String prodUnifiedMessage;
+
+    /**
+     * 配置项：是否显示详细错误信息（生产环境建议关闭，开发环境建议开启）
+     * 配置项：生产环境统一错误提示语
+     */
     @Autowired
-    public ExceptionAdvice(ObjectProvider<IExceptionMapping> exceptionMappings) {
-        this(exceptionMappings.orderedStream().toList());
-    }
-
-    ExceptionAdvice(List<IExceptionMapping> exceptionMappings) {
+    public ExceptionAdvice(ObjectProvider<IExceptionMapping> exceptionMappings,
+                           @Value("${app.exception.show-detail-error:true}") boolean showDetailError,
+                           @Value("${app.exception.prod-unified-message:系统繁忙，请稍后重试}") String prodUnifiedMessage) {
+        this.showDetailError = showDetailError;
+        this.prodUnifiedMessage = prodUnifiedMessage;
         this.exceptionMappings = IsassServiceLoader.mergeByClass(
-                exceptionMappings,
+                exceptionMappings.orderedStream().toList(),
                 IsassServiceLoader.load(IExceptionMapping.class)
         );
     }
 
-    /**
-     * 配置项：是否显示详细错误信息（生产环境建议关闭，开发环境建议开启）
-     */
-    @Value("${app.exception.show-detail-error:true}")
-    private boolean showDetailError;
-
-    /**
-     * 配置项：生产环境统一错误提示语
-     */
-    @Value("${app.exception.prod-unified-message:系统繁忙，请稍后重试}")
-    private String prodUnifiedMessage;
+    ExceptionAdvice(boolean showDetailError, String prodUnifiedMessage) {
+        this.showDetailError = showDetailError;
+        this.prodUnifiedMessage = prodUnifiedMessage;
+        this.exceptionMappings = IsassServiceLoader.load(IExceptionMapping.class);
+    }
 
     /**
      * 处理 controller 抛出的异常

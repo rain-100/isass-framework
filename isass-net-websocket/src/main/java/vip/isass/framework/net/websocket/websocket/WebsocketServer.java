@@ -178,12 +178,10 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 import vip.isass.framework.net.core.server.NetProtocol;
 import vip.isass.framework.net.core.server.Server;
 import vip.isass.framework.net.websocket.WebsocketProperties;
 
-import jakarta.annotation.Resource;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -192,20 +190,23 @@ import java.util.concurrent.Executors;
  * @author Rain
  */
 @Slf4j
-@Component
 public class WebsocketServer implements Server {
 
-    @Resource
-    private WebsocketChannelInitializerHandler websocketChannelInitializerHandler;
+    private final WebsocketChannelInitializerHandler websocketChannelInitializerHandler;
 
-    @Resource
-    private WebsocketProperties websocketProperties;
+    private final WebsocketProperties websocketProperties;
 
     private ExecutorService executorService;
 
     private EventLoopGroup boss;
 
     private EventLoopGroup worker;
+
+    public WebsocketServer(WebsocketChannelInitializerHandler websocketChannelInitializerHandler,
+                            WebsocketProperties websocketProperties) {
+        this.websocketChannelInitializerHandler = websocketChannelInitializerHandler;
+        this.websocketProperties = websocketProperties;
+    }
 
     @Override
     public String getListeningAddress() {

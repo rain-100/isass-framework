@@ -179,10 +179,8 @@ import io.netty.handler.codec.http.websocketx.WebSocketFrameAggregator;
 import io.netty.handler.stream.ChunkedWriteHandler;
 import io.netty.handler.timeout.IdleStateHandler;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 import vip.isass.framework.net.websocket.WebsocketProperties;
 
-import jakarta.annotation.Resource;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -191,7 +189,6 @@ import java.util.concurrent.TimeUnit;
  * @author Rain
  */
 @Slf4j
-@Component
 // 本实例是线程安全的可以被多个 channel 复用
 @ChannelHandler.Sharable
 public class WebsocketChannelInitializerHandler extends ChannelInitializer<SocketChannel> {
@@ -199,11 +196,15 @@ public class WebsocketChannelInitializerHandler extends ChannelInitializer<Socke
     /**
      * 默认4分钟
      */
-    @Resource
-    private WebsocketProperties websocketProperties;
+    private final WebsocketProperties websocketProperties;
 
-    @Resource
-    private WebsocketChannelInboundHandler websocketChannelInboundHandler;
+    private final WebsocketChannelInboundHandler websocketChannelInboundHandler;
+
+    public WebsocketChannelInitializerHandler(WebsocketProperties websocketProperties,
+                                               WebsocketChannelInboundHandler websocketChannelInboundHandler) {
+        this.websocketProperties = websocketProperties;
+        this.websocketChannelInboundHandler = websocketChannelInboundHandler;
+    }
 
     @Override
     protected void initChannel(SocketChannel socketChannel) {

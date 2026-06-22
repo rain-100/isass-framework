@@ -186,7 +186,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
 import vip.isass.framework.common.support.JsonUtil;
 import vip.isass.framework.common.support.BeanProviderUtil;
 import vip.isass.framework.common.support.okhttp.OkHttpUtil;
@@ -202,7 +201,6 @@ import vip.isass.framework.net.core.session.SessionBindingInfoChangeReq;
 import vip.isass.framework.net.core.session.SessionInfoCollection;
 
 import jakarta.annotation.Nonnull;
-import jakarta.annotation.Resource;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
@@ -217,7 +215,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 @Slf4j
-@Component
 public class SessionServiceClientProxy implements ISessionService {
 
     public static final OkHttpClient CLIENT;
@@ -247,15 +244,19 @@ public class SessionServiceClientProxy implements ISessionService {
                 .build();
     }
 
-    @Value("${kernel.net.defaultProtocol:}")
-    private String defaultProtocol;
+    private final String defaultProtocol;
 
     private NetProtocol defaultNetProtocol;
 
-    @Resource
-    private RedisTemplate<String, ?> redisTemplate;
+    private final RedisTemplate<String, Object> redisTemplate;
 
     private Map<NetProtocol, INodeAllocatorService> nodeAllocatorServiceMap;
+
+    public SessionServiceClientProxy(@Value("${kernel.net.defaultProtocol:}") String defaultProtocol,
+                                     RedisTemplate<String, Object> redisTemplate) {
+        this.defaultProtocol = defaultProtocol;
+        this.redisTemplate = redisTemplate;
+    }
 
     @Scheduled(fixedDelay = 10 * 1000)
     private void reloadNodeAllocatorService() {

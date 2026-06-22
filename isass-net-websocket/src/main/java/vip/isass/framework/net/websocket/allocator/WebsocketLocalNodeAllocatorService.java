@@ -180,7 +180,6 @@ import vip.isass.framework.net.core.server.NetServerInfo;
 import vip.isass.framework.net.core.server.allocator.INodeAllocatorService;
 import vip.isass.framework.net.websocket.WebsocketProperties;
 
-import jakarta.annotation.Resource;
 import java.util.Collection;
 import java.util.Collections;
 
@@ -188,16 +187,20 @@ import java.util.Collections;
 @ConditionalOnProperty(name = "kernel.net.proxy.enabled", havingValue = "false", matchIfMissing = true)
 public class WebsocketLocalNodeAllocatorService implements INodeAllocatorService, InitializingBean {
 
-    @Resource
-    private WebsocketProperties websocketProperties;
+    private final WebsocketProperties websocketProperties;
 
-    @Value("${server.port}")
-    private int httpPort;
+    private final int httpPort;
 
     @Getter
     private final NetProtocol netProtocol = NetProtocol.websocket;
 
     private NetServerInfo netServerInfo;
+
+    public WebsocketLocalNodeAllocatorService(WebsocketProperties websocketProperties,
+                                               @Value("${server.port}") int httpPort) {
+        this.websocketProperties = websocketProperties;
+        this.httpPort = httpPort;
+    }
 
     @Override
     public NetServerInfo allocate(String clientIp) {

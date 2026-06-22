@@ -172,11 +172,9 @@ import org.springframework.data.redis.connection.stream.ObjectRecord;
 import org.springframework.data.redis.connection.stream.RecordId;
 import org.springframework.data.redis.connection.stream.StreamRecords;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.stereotype.Service;
 import vip.isass.framework.net.core.NetRedisKey;
 import vip.isass.framework.net.core.message.Message;
 
-import jakarta.annotation.Resource;
 import java.util.Map;
 
 /**
@@ -184,11 +182,13 @@ import java.util.Map;
  *
  * @author rain
  */
-@Service
 public class GatewayToRedisMessageService {
 
-    @Resource
-    private RedisTemplate<String, Message> redisTemplate;
+    private final RedisTemplate<String, Message> redisTemplate;
+
+    public GatewayToRedisMessageService(RedisTemplate<String, Message> redisTemplate) {
+        this.redisTemplate = redisTemplate;
+    }
 
     public String createGroup(String key, String group) {
         return redisTemplate.opsForStream().createGroup(key, group);

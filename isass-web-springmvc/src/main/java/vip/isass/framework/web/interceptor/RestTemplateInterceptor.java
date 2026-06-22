@@ -169,13 +169,11 @@
 
 package vip.isass.framework.web.interceptor;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.stereotype.Component;
 import vip.isass.framework.common.web.header.AdditionalRequestHeaderProvider;
 
 import java.io.IOException;
@@ -184,11 +182,13 @@ import java.util.List;
 /**
  * @author Rain
  */
-@Component
 public class RestTemplateInterceptor implements ClientHttpRequestInterceptor {
 
-    @Autowired(required = false)
-    private List<AdditionalRequestHeaderProvider> additionalHeaderProviders;
+    private final List<AdditionalRequestHeaderProvider> additionalHeaderProviders;
+
+    public RestTemplateInterceptor(List<AdditionalRequestHeaderProvider> additionalHeaderProviders) {
+        this.additionalHeaderProviders = additionalHeaderProviders;
+    }
 
     /**
      * todo 如果访问的url是微服务集群内部服务，添加头信息
