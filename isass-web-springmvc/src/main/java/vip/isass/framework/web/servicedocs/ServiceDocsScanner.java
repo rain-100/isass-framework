@@ -6,7 +6,6 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Comparator;
 import java.util.List;
@@ -18,12 +17,6 @@ import java.util.NoSuchElementException;
 @Component
 public class ServiceDocsScanner {
 
-    private static final String SERVICE_DOCS_PREFIX = "service-docs/";
-
-    private static final String SERVICE_DOCS_PATTERN = "classpath*:/service-docs/**/*.md";
-
-    private static final String OPEN_API_DOC_PATH = "service-docs/api/openapi.json";
-
     private final ResourcePatternResolver resourcePatternResolver;
 
     public ServiceDocsScanner(ResourcePatternResolver resourcePatternResolver) {
@@ -32,7 +25,7 @@ public class ServiceDocsScanner {
 
     public List<ServiceDoc> findAll() {
         try {
-            return List.of(resourcePatternResolver.getResources(SERVICE_DOCS_PATTERN)).stream()
+            return List.of(resourcePatternResolver.getResources(ServiceDocsPaths.SERVICE_DOCS_PATTERN)).stream()
                     .filter(Resource::isReadable)
                     .map(this::toServiceDoc)
                     .sorted(Comparator.comparing(ServiceDoc::id))
@@ -49,9 +42,9 @@ public class ServiceDocsScanner {
     }
 
     public String readOpenApiJson() {
-        Resource resource = resourcePatternResolver.getResource("classpath:" + OPEN_API_DOC_PATH);
+        Resource resource = resourcePatternResolver.getResource("classpath:" + ServiceDocsPaths.OPEN_API_DOC_PATH);
         if (!resource.isReadable()) {
-            throw new NoSuchElementException("openapi doc not found: " + OPEN_API_DOC_PATH);
+            throw new NoSuchElementException("openapi doc not found: " + ServiceDocsPaths.OPEN_API_DOC_PATH);
         }
         return readString(resource);
     }
@@ -59,13 +52,13 @@ public class ServiceDocsScanner {
     private ServiceDoc toServiceDoc(Resource resource) {
         String path = extractPath(resource);
         String id = path.substring(0, path.length() - ".md".length());
-        return new ServiceDoc(id, extractTitle(resource, id), extractType(id), "markdown", SERVICE_DOCS_PREFIX + path);
+        return new ServiceDoc(id, extractTitle(resource, id), extractType(id), "markdown", ServiceDocsPaths.SERVICE_DOCS_PREFIX + path);
     }
 
     private java.util.Optional<Resource> findResource(String docId) {
         String expectedPath = docId + ".md";
         try {
-            return List.of(resourcePatternResolver.getResources(SERVICE_DOCS_PATTERN)).stream()
+            return List.of(resourcePatternResolver.getResources(ServiceDocsPaths.SERVICE_DOCS_PATTERN)).stream()
                     .filter(Resource::isReadable)
                     .filter(resource -> extractPath(resource).equals(expectedPath))
                     .findFirst();
@@ -76,12 +69,7 @@ public class ServiceDocsScanner {
 
     private String extractPath(Resource resource) {
         try {
-            String url = URLDecoder.decode(resource.getURL().toExternalForm(), StandardCharsets.UTF_8);
-            int index = url.lastIndexOf(SERVICE_DOCS_PREFIX);
-            if (index < 0) {
-                throw new IllegalStateException("resource is not under service-docs: " + url);
-            }
-            return url.substring(index + SERVICE_DOCS_PREFIX.length());
+            return ServiceDocsPaths.resourcePathFromUrl(resource.getURL().toString());
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -104,17 +92,7 @@ public class ServiceDocsScanner {
     }
 
     private String normalizeDocId(String docId) {
-        String normalizedDocId = docId == null ? "" : docId.trim();
-        while (normalizedDocId.startsWith("/")) {
-            normalizedDocId = normalizedDocId.substring(1);
-        }
-        if (normalizedDocId.endsWith(".md")) {
-            normalizedDocId = normalizedDocId.substring(0, normalizedDocId.length() - ".md".length());
-        }
-        if (normalizedDocId.isBlank() || normalizedDocId.contains("..") || normalizedDocId.contains("\\")) {
-            throw new IllegalArgumentException("invalid service doc id: " + docId);
-        }
-        return normalizedDocId;
+        return ServiceDocsPaths.normalizeDocId(docId);
     }
 
     private String readString(Resource resource) {

@@ -6,6 +6,7 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ServiceDocsScannerTest {
 
@@ -35,5 +36,29 @@ class ServiceDocsScannerTest {
         String content = scanner.readContent("database/attachment-db");
 
         assertThat(content).contains("# Attachment Database");
+    }
+
+    @Test
+    void normalizesServiceDocIds() {
+        assertThat(ServiceDocsPaths.normalizeDocId("/guide/token.md")).isEqualTo("guide/token");
+        assertThat(ServiceDocsPaths.normalizeDocId(" database/attachment-db ")).isEqualTo("database/attachment-db");
+    }
+
+    @Test
+    void rejectsInvalidServiceDocIds() {
+        assertThatThrownBy(() -> ServiceDocsPaths.normalizeDocId("../application.yml"))
+                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> ServiceDocsPaths.normalizeDocId("bad\\path"))
+                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> ServiceDocsPaths.normalizeDocId(" "))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void extractsServiceDocsPathFromUrl() {
+        assertThat(ServiceDocsPaths.resourcePathFromUrl("file:/app/classes/service-docs/guide/token.md"))
+                .isEqualTo("guide/token.md");
+        assertThat(ServiceDocsPaths.resourcePathFromUrl("file:/tmp/service-docs/cache/classes/service-docs/guide/token.md"))
+                .isEqualTo("guide/token.md");
     }
 }

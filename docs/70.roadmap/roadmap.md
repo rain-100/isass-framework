@@ -59,6 +59,10 @@
     - 2026-06-21：`ZyplayerOpenApiDocsCollector` 已移除对 Spring `Environment`、`ResourceLoader` 和 `RestClient` 的直接依赖，改为接收端口 `Supplier`、资源读取 `Function` 和 JDK `HttpClient`；Spring Boot auto-config 仅负责把 Spring 环境桥接为这些纯 Java 入参。验证：`mvn -pl isass-apidoc-zyplayer -am test -Dmaven.javadoc.skip=true -Dsurefire.failIfNoSpecifiedTests=false`。
     - 2026-06-21：`isass-mq-core` 已移除 `MqManager`、`EventPublisher`、`MqConsumerAutoConfiguration`、`DynamicMqProperties`、`EventListener` 中的 Spring 类型/注解，并删除模块内 Spring Boot auto-configuration imports；`isass-adapter-springboot` 新增 MQ Spring Boot 自动装配和 `SmartLifecycle` 桥，按 `isass-mq-core` classpath 条件激活；`isass-mq-springevent`、`isass-mq-kafka011` 已补齐自身显式 Spring 编译依赖，不再依赖 mq-core 传递 Spring。验证：`mvn -pl isass-mq-core,isass-adapter-springboot -am test -Dmaven.javadoc.skip=true -Dsurefire.failIfNoSpecifiedTests=false`、`mvn -pl isass-mq-kafka011,isass-mq-springevent,isass-mq-redisstream,isass-mq-redispubsub -am test -Dmaven.javadoc.skip=true -Dsurefire.failIfNoSpecifiedTests=false`。
     - 2026-06-21：`isass-mq-redisstream`、`isass-mq-redispubsub` 已移除 factory 上的 Spring `@Component` 和 auto-config 的 `@ComponentScan`，改为显式 `@Bean` 注册；producer 参数校验从 Spring `Assert` 改为 JDK `Objects.requireNonNull` + `IllegalArgumentException`。验证：`mvn -pl isass-mq-redisstream,isass-mq-redispubsub -am test -Dmaven.javadoc.skip=true -Dsurefire.failIfNoSpecifiedTests=false`。
+    - 2026-06-22：`isass-encryption` 已从 `jasypt-spring-boot-starter` 切换为 `org.jasypt:jasypt`，模块 main 源码继续只使用 Jasypt core `BasicTextEncryptor`；新增加解密闭环测试。验证：`mvn -pl isass-adapter-springboot,isass-encryption,isass-net-admin -am test -Dmaven.javadoc.skip=true -Dsurefire.failIfNoSpecifiedTests=false`、`mvn -pl isass-encryption dependency:tree -Dincludes=org.springframework -Dscope=compile -Dmaven.javadoc.skip=true`。
+    - 2026-06-22：`isass-net-admin` 已移除 `@ComponentScan` 自动扫包方式，改为显式 `@AutoConfiguration` 注册 `NetAdminController`；`NetAdminController` 改为构造器注入 `ISessionService`，并新增自动装配测试。验证：`mvn -pl isass-net-admin -am test -Dmaven.javadoc.skip=true -Dsurefire.failIfNoSpecifiedTests=false`。
+    - 2026-06-22：`isass-service-attachment` 的 MQ 测试已适配 `isass-adapter-springboot` 中的 `IsassMqSpringBootAutoConfiguration`，用于验证业务微服务按需依赖 adapter 后仍可使用 Spring Event MQ。验证：`mvn -pl isass-service-attachment-service -Dtest=FileBrowseControllerMqTest test -Dmaven.javadoc.skip=true -Dsurefire.failIfNoSpecifiedTests=false`。
+    - 2026-06-22：`isass-web-springmvc` 的 service-docs 路径常量、文档 id 规范化和资源路径解析已抽取到纯 Java `ServiceDocsPaths`，`ServiceDocsScanner` 继续只负责 Spring classpath 资源扫描和内容读取；公共 URL 未变化。验证：`mvn -pl isass-web-springmvc -am test -Dmaven.javadoc.skip=true -Dsurefire.failIfNoSpecifiedTests=false`。
   - 下一步：
     - 继续扫描 `isass-*` 非 core 模块的 Spring 依赖边界，优先处理可以下沉为纯 Java 接口或迁移到 adapter 的注解/工具类。
   - 验证方式：
@@ -130,15 +134,14 @@
     - 为版本查询、版本创建、目录查重、文档查重补充自动化测试。
     - 在 attachment 重启两次验证空间、版本、一级目录、API 文档不重复创建。
 
-- [ ] **服务文档暴露协议固化**
-  - 目标：
-    - 微服务统一暴露 `/{service-name}/service-docs`。
-    - API JSON 暴露 `/{service-name}/v3/api-docs`，数据源使用 `service-docs/api/openapi.json`，不再依赖 SpringDoc。
-  - 执行步骤：
-    - 移除 SpringDoc 依赖和自动生成链路。
-    - 添加 `v3/api-docs` controller，读取 `service-docs/api/openapi.json`。
-    - 当 openapi.json 不存在时返回明确错误或空文档策略。
-    - attachment 重新生成 smart-doc 文档并验证接口返回。
+- [x] **服务文档暴露协议固化**
+  - 完成记录：
+    - 微服务统一暴露 `/{service-name}/service-docs`，同时保留无服务名前缀的 `/service-docs` 便于单体和本地调试。
+    - API JSON 统一暴露 `/{service-name}/v3/api-docs`，同时保留无服务名前缀的 `/v3/api-docs`。
+    - `v3/api-docs` 数据源来自 `service-docs/api/openapi.json`，由 smart-doc 在开发阶段生成，不依赖 SpringDoc 运行时生成链路。
+    - `ServiceDocsScanner` 负责扫描 `service-docs/**/*.md` 与读取 `service-docs/api/openapi.json`；`ServiceDocsController` 负责 HTTP 暴露。
+    - attachment 已约定 OpenAPI JSON 地址为 `http://127.0.0.1:20320/attachment-service/v3/api-docs`，Markdown 服务文档地址为 `http://127.0.0.1:20320/attachment-service/service-docs`。
+    - 验证：`mvn -pl isass-web-springmvc -am test -Dmaven.javadoc.skip=true -Dsurefire.failIfNoSpecifiedTests=false`。
 
 ## 三、异常体系
 

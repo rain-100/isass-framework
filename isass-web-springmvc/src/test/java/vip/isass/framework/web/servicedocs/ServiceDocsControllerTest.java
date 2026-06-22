@@ -2,12 +2,15 @@ package vip.isass.framework.web.servicedocs;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ServiceDocsControllerTest {
 
@@ -36,5 +39,18 @@ class ServiceDocsControllerTest {
         assertThat(response.getHeaders().getContentType().toString()).isEqualTo("application/json;charset=UTF-8");
         assertThat(response.getBody()).contains("\"openapi\":\"3.1.0\"");
         assertThat(response.getBody()).contains("查询服务器文件列表");
+    }
+
+    @Test
+    void rejectsInvalidDocIdWithBadRequest() {
+        ServiceDocsController controller = new ServiceDocsController(
+                new ServiceDocsScanner(new PathMatchingResourcePatternResolver()));
+        MockHttpServletRequest request = new MockHttpServletRequest("GET", "/attachment-service/service-docs/../application.yml");
+        request.setContextPath("/attachment-service");
+
+        assertThatThrownBy(() -> controller.content(request))
+                .isInstanceOf(ResponseStatusException.class)
+                .satisfies(e -> assertThat(((ResponseStatusException) e).getStatusCode())
+                        .isEqualTo(HttpStatus.BAD_REQUEST));
     }
 }
