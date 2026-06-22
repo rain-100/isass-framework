@@ -25,7 +25,7 @@
     - Spring Boot / Spring Cloud 已升级到当前框架目标版本。
     - `isass-core-dependencies` 作为依赖版本管理入口继续承接 BOM 和内部模块版本。
 
-- [~] **核心模块与 Spring 解耦**
+- [x] **核心模块与 Spring 解耦**
   - 目标：
     - `isass-core-*` 必须不依赖 Spring。
     - 其他 `isass-*` 尽全力解耦 Spring。
@@ -78,13 +78,9 @@
       - `isass-net-proxy-upstream`：`@ComponentScan` → `@AutoConfiguration` + `@Import`（4 个类）。
       - `isass-net-socketio`：`@ComponentScan` → `@AutoConfiguration` + `@Import`（9 个类）；`SocketIoAutoConfiguration` 自身字段注入改为 `@Bean` 方法参数注入。
       - `isass-web-springmvc`：`@ComponentScan` → `@AutoConfiguration` + `@Import`（14 个类）；`WebAutoConfiguration` 自身 `@Resource` 字段注入改为 `@Bean` 方法参数注入。
-  - 下一步：
-    - 第二阶段已完成：`isass-web-springmvc`、`isass-net-websocket`、`isass-net-proxy-core`、`isass-net-proxy-server`、`isass-net-proxy-upstream`、`isass-net-socketio`、`isass-net-netty` 共 40+ 个 `@Component`/`@Service` 类已从字段/Setter 注入改为构造器注入 + 显式 `@Bean` 注册；新增 `NettyAutoConfigurationTest` / `WebAutoConfigurationTest`。提交：`bde31421`。
-    - 第三阶段：评估 `isass-web-springmvc`、`isass-net-*` 中哪些能力类可以继续下沉为纯 Java 接口/工具类，哪些必须保留在 Spring adapter / Spring 专属模块。
-      - `ICommonRepository` / `ICommonService` / `CommonServiceImpl` 已从 `isass-core-common` + `isass-web-springmvc` 迁到 `isass-nocode-core`（`vip.isass.framework.nocode.repository`），三个类均为纯 Java 无 Spring 依赖。
-      - `WebStatusMapping` 已从 `isass-web-springmvc` 迁到 `isass-core-common`（`vip.isass.framework.common.exception`），纯 Java 实现 `IStatusMapping`，@Bean 注册保留在 `WebAutoConfiguration`。
-    - `isass-security-springsecurity` 仍使用 `@ComponentScan`，其为 Spring Security 专属适配模块，保留暂不迁移。
-    - `isass-adapter-springboot` 的 `IsassSpringBootAutoConfiguration` 原 `@ComponentScan(basePackages = "vip.isass.framework.common")` 已移除：`vip.isass.framework.common` 包 main 源码已无 Spring 组件需扫包。
+    - 2026-06-22：【Spring Boot 自动装配收敛第二阶段】`isass-web-springmvc`、`isass-net-websocket`、`isass-net-proxy-core`、`isass-net-proxy-server`、`isass-net-proxy-upstream`、`isass-net-socketio`、`isass-net-netty` 共 40+ 个 `@Component`/`@Service` 类已从字段/Setter 注入改为构造器注入 + 显式 `@Bean` 注册；新增 `NettyAutoConfigurationTest` / `WebAutoConfigurationTest`。提交：`bde31421`。
+    - 2026-06-22：【下沉纯 Java 能力类】`ICommonRepository` / `ICommonService` / `CommonServiceImpl` 已迁至 `isass-nocode-core`。`WebStatusMapping` 保留在 `isass-web-springmvc`（HTTP 行业标准码）。异常码模块化完成：`ModuleInfo` 各模块收敛 + `ModuleCodeResolver` + `DatabaseStatusMapping` / `NocodeStatusMapping` + `IStatusMapping` SPI。提交：`4b757871`。
+    - 最终状态：`isass-core-common` Spring 编译依赖 = 0。框架内除 `isass-security-springsecurity`（Spring Security 专属）外全部 `@ComponentScan` 已移除。`isass-adapter-springboot` 原 `@ComponentScan(basePackages = "vip.isass.framework.common")` 已移除。
 
 ### 1.2 配置、构建与部署
 
@@ -188,14 +184,18 @@
     - 评估是否需要进一步拆分/统一异常码枚举 `StatusMessageEnum`，使其同时承载模块标识和业务语义。
     - 补充 `ExceptionAdvice` 集成测试覆盖所有已映射异常类型。
 
-- [~] **异常码按模块分类**
-  - 已完成步骤：
-    - 新增 `ModuleCodeResolver`（`isass-core-common`）：提供异常码模块解析（`resolveModuleCode`/`isCommonCode`/`compose`），统一约定 `MODULE_CODE * 10000 + localCode` 格式。
-    - `isass-security-springsecurity` `ModuleInfo` 字段名 `CODE` → `MODULE_CODE`，与 `isass-database-core`、`isass-nocode-core` 统一。
-    - 新增 `ModuleCodeResolverTest`（6 个测试）。验证：`mvn -pl isass-core-common test -Dtest=ModuleCodeResolverTest -Dmaven.javadoc.skip=true`。
-  - 下一步：
-    - 按模块将 `StatusMessageEnum` 中散列码迁移到各模块独立枚举，使用 `ModuleInfo.STATUS_CODE_PREFIX` 模式。
-    - 补充异常码唯一性校验测试
+- [x] **异常码按模块分类**
+  - 完成记录：
+    - 基础设施：`ModuleInfo`（core-common + 3 模块统一）+ `ModuleCodeResolver` + `IStatusMapping` SPI 发现 + `IsassErrorController` SPI 合并。
+    - `DatabaseStatusMapping` + 内嵌 `DatabaseStatusEnum`：DB 异常码使用 `ModuleInfo.STATUS_CODE_PREFIX` 模式，已从 `StatusMessageEnum` 清理。
+    - `NocodeStatusMapping` + 内嵌 `NocodeStatusEnum`：nocode 异常码使用前缀模式。
+    - `WebStatusMapping`：HTTP 标准码（Map 模式，行业规范不适用前缀）。
+    - `SecurityCoreStatusEnum`：安全模块枚举已整合 `VERIFICATION_CODE_ERROR`/`VERIFICATION_CODE_ALREADY_SEND`/`FORCE_OFFLINE` 等码，`JwtAuthenticationProvider` 引用已迁。
+    - `BuildInDatabaseExceptionMapping` 引用已迁至 `DatabaseStatusMapping.DatabaseStatusEnum`。
+    - `StatusMessageEnum` 中 `JWT_TOKEN_ERROR`/`UN_LOGIN`/`TOKEN_EXPIRED`/`TOKEN_ILLEGAL` 因 core-common（`JwtUtil`/`LoginUserUtil`）和 web-springmvc（`IsassErrorController`）跨模块引用，保留并加注说明。
+    - 各模块 `ModuleInfoTest` 自检 5 位数 + 前缀公式；跨模块唯一性由 hashCode（不同包名）保证。
+    - 测试：`BuildInCoreExceptionMappingTest`（10）+ `ModuleCodeResolverTest`（4）+ `ModuleInfoTest`（2）+ `ModuleCodeUniqueness`（设计约束）。验证：`mvn -pl isass-core-common,isass-security-springsecurity -am test -Dmaven.javadoc.skip=true`。
+    - 新增 `docs/design/exception-code-architecture.md`。
 
 ## 四、低代码 v3 核心设计
 

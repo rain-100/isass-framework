@@ -184,11 +184,12 @@ public enum StatusMessageEnum implements IStatusMessage {
     ALREADY_PRESENT(12, "数据已存在"),
     ABSENT(13, "数据不存在"),
     UN_SUPPORT_OPERATION(14, "暂不支持该操作:{}"),
+
+    // 安全相关（core-common JwtUtil/LoginUserUtil/IsassErrorController 引用，不迁至 security）
     JWT_TOKEN_ERROR(15, "token错误或过期"),
     UN_LOGIN(16, "未登录系统"),
+
     FEIGN_ERROR(18, "feign请求异常"),
-    TOKEN_FORCE_OFFLINE(19, "强制下线"),
-    VERIFICATION_CODE_ALREADY_SEND(20, "请勿重复发送验证码"),
     IO_ERROR(22, "io异常"),
     FILE_NOT_FOUND(23, "文件不存在"),
 
@@ -202,7 +203,6 @@ public enum StatusMessageEnum implements IStatusMessage {
 
     URI_PARSE_ERROR(1003, "uri解析错误"),
     HTTP_METHOD_PARSE_ERROR(1004, "http method 解析错误"),
-    VERIFICATION_CODE_ERROR(1006, "验证码错误"),
     TOKEN_EXPIRED(1008, "token 已过期"),
     TOKEN_ILLEGAL(1009, "token 错误"),
     CONFIG_ERROR(1010, "配置错误"),

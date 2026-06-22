@@ -182,6 +182,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 import vip.isass.framework.common.exception.UnifiedException;
 import vip.isass.framework.common.exception.code.StatusMessageEnum;
+import vip.isass.framework.web.security.exception.SecurityCoreStatusEnum;
 import vip.isass.framework.common.security.jwt.JwtInfo;
 import vip.isass.framework.common.security.jwt.JwtUtil;
 import vip.isass.framework.web.security.IsassGrantedAuthority;
@@ -213,7 +214,7 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
         try {
             jwtInfo = JwtUtil.parse(token, secret);
         } catch (UnifiedException e) {
-            if (StatusMessageEnum.TOKEN_EXPIRED.getStatus().equals(e.getStatus())) {
+            if (SecurityCoreStatusEnum.TOKEN_EXPIRED.getStatus().equals(e.getStatus())) {
                 throw new CredentialsExpiredException(e.getMsg());
             }
             throw new BadCredentialsException(e.getMsg());
