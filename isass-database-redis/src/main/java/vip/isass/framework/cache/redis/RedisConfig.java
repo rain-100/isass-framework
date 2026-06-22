@@ -180,7 +180,6 @@ import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CachingConfigurerSupport;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
@@ -210,7 +209,6 @@ import java.util.concurrent.ThreadPoolExecutor;
  */
 @Configuration(proxyBeanMethods = false)
 @EnableCaching
-@ComponentScan
 public class RedisConfig extends CachingConfigurerSupport {
 
     Logger log = LoggerFactory.getLogger(RedisConfig.class);
@@ -338,6 +336,18 @@ public class RedisConfig extends CachingConfigurerSupport {
         }
 
         return streamMessageListenerContainer;
+    }
+
+    @Bean
+    public RedisStreamConsumerCleaner redisStreamConsumerCleaner(RedisTemplate<String, ?> redisTemplate,
+                                                                  @Autowired(required = false) List<IRedisStreamListener<?>> listeners) {
+        return new RedisStreamConsumerCleaner(redisTemplate, listeners);
+    }
+
+    @Bean
+    public RedisStreamMessageCleaner redisStreamMessageCleaner(RedisTemplate<String, ?> redisTemplate,
+                                                                @Autowired(required = false) List<IRemovableStreamMessageProvider> providers) {
+        return new RedisStreamMessageCleaner(redisTemplate, providers);
     }
 
 }

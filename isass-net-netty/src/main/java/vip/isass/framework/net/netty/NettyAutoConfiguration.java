@@ -169,16 +169,21 @@
 
 package vip.isass.framework.net.netty;
 
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.context.annotation.Import;
+import vip.isass.framework.net.netty.config.NetProperties;
+import vip.isass.framework.net.netty.request.RequestManager;
+import vip.isass.framework.net.netty.tcp.TcpServer;
+import vip.isass.framework.net.netty.websocket.WebsocketServer;
 
-/**
- * @author Rain
- */
-@ComponentScan
-@Configuration
+@AutoConfiguration
+@Import({
+        NetProperties.class,
+        RequestManager.class,
+        TcpServer.class,
+        WebsocketServer.class
+})
 @ConditionalOnProperty(name = {"kernel.net.enabled", "kernel.net.netty.enabled"}, havingValue = "true", matchIfMissing = false)
 public class NettyAutoConfiguration {
 }

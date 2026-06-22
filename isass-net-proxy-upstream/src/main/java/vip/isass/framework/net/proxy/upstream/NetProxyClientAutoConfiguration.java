@@ -169,16 +169,20 @@
 
 package vip.isass.framework.net.proxy.upstream;
 
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import vip.isass.framework.net.proxy.upstream.cmd.CmdCollectJob;
+import vip.isass.framework.net.proxy.upstream.cmd.CmdCollectService;
 
-/**
- * @author Rain
- */
-@ComponentScan
-@Configuration
+@AutoConfiguration
+@Import({
+        CmdCollectJob.class,
+        CmdCollectService.class,
+        MessageRedisStreamListener.class,
+        SessionServiceClientProxy.class
+})
 @EnableScheduling
 @ConditionalOnProperty(name = {"kernel.net.enabled", "kernel.net.proxy.enabled"}, havingValue = "true")
 public class NetProxyClientAutoConfiguration {

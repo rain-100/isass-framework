@@ -169,42 +169,59 @@
 
 package vip.isass.framework.web;
 
+
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.http.converter.BufferedImageHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
+import vip.isass.framework.web.config.ObjectMapperConfiguration;
+import vip.isass.framework.web.config.WebConfig;
+import vip.isass.framework.web.exception.ExceptionAdvice;
+import vip.isass.framework.web.exception.IsassErrorController;
+import vip.isass.framework.web.exception.WebStatusMapping;
 import vip.isass.framework.web.interceptor.RestTemplateInterceptor;
+import vip.isass.framework.web.interceptor.TraceIdInterceptor;
+import vip.isass.framework.web.interceptor.UriMappingInterceptor;
+import vip.isass.framework.web.response.ResponseAdvice;
+import vip.isass.framework.web.servicedocs.ServiceDocsController;
+import vip.isass.framework.web.servicedocs.ServiceDocsScanner;
+import vip.isass.framework.web.uri.UriPrefixProvider;
 
-import jakarta.annotation.Resource;
 import java.awt.image.BufferedImage;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 
-/**
- * @author Rain
- */
-@ComponentScan
+@AutoConfiguration
+@Import({
+        ObjectMapperConfiguration.class,
+        WebConfig.class,
+        AdvanceFeatureInterceptor.class,
+        CommonServiceImpl.class,
+        ServiceDocsScanner.class,
+        ServiceDocsController.class,
+        UriPrefixProvider.class,
+        WebStatusMapping.class,
+        IsassErrorController.class,
+        ExceptionAdvice.class,
+        ResponseAdvice.class,
+        UriMappingInterceptor.class,
+        TraceIdInterceptor.class,
+        RestTemplateInterceptor.class
+})
 public class WebAutoConfiguration {
 
     public static final int CONN_TIMEOUT_IN_MILLIS = 10_000;
 
     public static final int READ_TIMEOUT_IN_MILLIS = 50_000;
 
-    @Resource
-    private RestTemplateInterceptor restTemplateInterceptor;
-
     @Bean
-    public RestTemplate noBalancedRestTemplate() {
+    public RestTemplate noBalancedRestTemplate(RestTemplateInterceptor restTemplateInterceptor) {
         SimpleClientHttpRequestFactory httpRequestFactory = new SimpleClientHttpRequestFactory();
-        httpRequestFactory.setReadTimeout(CONN_TIMEOUT_IN_MILLIS);
-        httpRequestFactory.setReadTimeout(CONN_TIMEOUT_IN_MILLIS);
-        httpRequestFactory.setReadTimeout(CONN_TIMEOUT_IN_MILLIS);
-        httpRequestFactory.setReadTimeout(CONN_TIMEOUT_IN_MILLIS);
         httpRequestFactory.setReadTimeout(READ_TIMEOUT_IN_MILLIS);
 
         RestTemplate restTemplate = new RestTemplate(httpRequestFactory);

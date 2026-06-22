@@ -175,15 +175,18 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import vip.isass.framework.common.web.Resp;
 
-import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping
 public class AllocatorController {
 
-    @Resource
-    private AllocatorService allocatorService;
+    private final AllocatorService allocatorService;
+
+    public AllocatorController(AllocatorService allocatorService) {
+        this.allocatorService = allocatorService;
+    }
+
     @GetMapping("/{serverName}/allocator/node")
     public Resp<String> allocate(HttpServletRequest request,
                                  @PathVariable("serverName") String serverName) {

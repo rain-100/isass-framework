@@ -169,14 +169,18 @@
 
 package vip.isass.framework.mq.spring.event;
 
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.context.annotation.Import;
+import vip.isass.framework.mq.spring.event.consumer.SpringEventMqConsumerManager;
+import vip.isass.framework.mq.spring.event.producer.SpringEventProducerManager;
 
-/**
- * @author Rain
- */
-@Configuration
-@ComponentScan
+@AutoConfiguration
+@Import({
+        SpringEventConfiguration.class,
+        SpringEventMqFactory.class,
+        SpringEventMqConsumerManager.class,
+        SpringEventProducerManager.class
+})
 public class SpringEventAutoConfiguration {
 
 }

@@ -187,11 +187,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>jakarta.annotation</groupId>
-            <artifactId>jakarta.annotation-api</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>vip.isass</groupId>
             <artifactId>isass-core-common</artifactId>
         </dependency>

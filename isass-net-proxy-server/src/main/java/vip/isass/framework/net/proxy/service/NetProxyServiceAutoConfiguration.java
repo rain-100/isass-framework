@@ -169,16 +169,32 @@
 
 package vip.isass.framework.net.proxy.service;
 
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import vip.isass.framework.net.proxy.service.controller.NetMessageSenderController;
+import vip.isass.framework.net.proxy.service.controller.NetSessionController;
+import vip.isass.framework.net.proxy.service.handler.net.MessageDispatcherHandler;
+import vip.isass.framework.net.proxy.service.handler.redis.S2CMessageRedisSubscriber;
+import vip.isass.framework.net.proxy.service.job.ProxyClientCmdListeningJob;
+import vip.isass.framework.net.proxy.service.job.RemoveEarlyMessageJob;
+import vip.isass.framework.net.proxy.service.service.GatewayToRedisMessageService;
+import vip.isass.framework.net.proxy.service.service.ProxyClientCmdListeningService;
+import vip.isass.framework.net.proxy.service.service.RemoveC2SMessageService;
 
-/**
- * @author Rain
- */
-@ComponentScan
-@Configuration
+@AutoConfiguration
+@Import({
+        MessageDispatcherHandler.class,
+        S2CMessageRedisSubscriber.class,
+        ProxyClientCmdListeningJob.class,
+        RemoveEarlyMessageJob.class,
+        GatewayToRedisMessageService.class,
+        ProxyClientCmdListeningService.class,
+        RemoveC2SMessageService.class,
+        NetMessageSenderController.class,
+        NetSessionController.class
+})
 @EnableScheduling
 @ConditionalOnProperty(name = {"kernel.net.enabled", "kernel.net.proxy.enabled"}, havingValue = "true")
 public class NetProxyServiceAutoConfiguration {

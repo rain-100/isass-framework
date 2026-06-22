@@ -170,8 +170,6 @@
 package vip.isass.framework.net.core.handler.manager;
 
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import vip.isass.framework.net.core.handler.IMessageEventRegister;
 import vip.isass.framework.net.core.handler.OnMessageEventHandler;
 
@@ -183,14 +181,17 @@ import java.util.stream.Collectors;
  *
  * @author rain
  */
-@Component
 public class MessageEventRegisterManager implements InitializingBean {
 
-    @Autowired(required = false)
-    private List<IMessageEventRegister> messageEventRegisters;
+    private final List<IMessageEventRegister> messageEventRegisters;
 
-    @Autowired(required = false)
-    private List<OnMessageEventHandler<?>> onMessageEventHandlers;
+    private final List<OnMessageEventHandler<?>> onMessageEventHandlers;
+
+    public MessageEventRegisterManager(List<IMessageEventRegister> messageEventRegisters,
+                                        List<OnMessageEventHandler<?>> onMessageEventHandlers) {
+        this.messageEventRegisters = messageEventRegisters;
+        this.onMessageEventHandlers = onMessageEventHandlers;
+    }
 
     @Override
     public void afterPropertiesSet() {

@@ -169,16 +169,15 @@
 
 package vip.isass.framework.net.proxy.core;
 
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
-/**
- * @author Rain
- */
-@ComponentScan
-@Configuration
+@AutoConfiguration
+@Import({
+        CmdRedisService.class
+})
 @EnableScheduling
 @ConditionalOnProperty(name = {"kernel.net.enabled", "kernel.net.proxy.enabled"}, havingValue = "true")
 public class NetProxyCoreAutoConfiguration {

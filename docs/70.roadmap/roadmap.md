@@ -63,11 +63,24 @@
     - 2026-06-22：`isass-net-admin` 已移除 `@ComponentScan` 自动扫包方式，改为显式 `@AutoConfiguration` 注册 `NetAdminController`；`NetAdminController` 改为构造器注入 `ISessionService`，并新增自动装配测试。验证：`mvn -pl isass-net-admin -am test -Dmaven.javadoc.skip=true -Dsurefire.failIfNoSpecifiedTests=false`。
     - 2026-06-22：`isass-service-attachment` 的 MQ 测试已适配 `isass-adapter-springboot` 中的 `IsassMqSpringBootAutoConfiguration`，用于验证业务微服务按需依赖 adapter 后仍可使用 Spring Event MQ。验证：`mvn -pl isass-service-attachment-service -Dtest=FileBrowseControllerMqTest test -Dmaven.javadoc.skip=true -Dsurefire.failIfNoSpecifiedTests=false`。
     - 2026-06-22：`isass-web-springmvc` 的 service-docs 路径常量、文档 id 规范化和资源路径解析已抽取到纯 Java `ServiceDocsPaths`，`ServiceDocsScanner` 继续只负责 Spring classpath 资源扫描和内容读取；公共 URL 未变化。验证：`mvn -pl isass-web-springmvc -am test -Dmaven.javadoc.skip=true -Dsurefire.failIfNoSpecifiedTests=false`。
+    - 2026-06-22：`isass-database-elasticsearch` 已移除空壳 `@ComponentScan`，改为 `@AutoConfiguration` 显式自动配置；模块内未使用的 `jakarta.annotation-api` 依赖已删除。验证：`mvn -pl isass-database-elasticsearch -am test -Dmaven.javadoc.skip=true -Dsurefire.failIfNoSpecifiedTests=false`。
+    - 2026-06-22：【第一阶段：移除 `@ComponentScan`】批量移除 10 个非 core 模块的 `@ComponentScan` 扫包入口，改为 `@AutoConfiguration` + `@Import`/`@Bean` 显式装配。入口类已统一标注 `@AutoConfiguration` 并列入对应 `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`。注意：本批仅完成扫包入口移除，各组件类内部仍保留 `@Component`/`@Service`/`@Configuration` 以及字段注入（`@Autowired`/`@Value`/`@Resource`），仍需后续逐模块收敛为显式 `@Bean` + 构造器注入。全量验证：`mvn -pl isass-database-redis,isass-net-core,isass-mq-kafka011,isass-mq-springevent,isass-net-websocket,isass-net-netty,isass-net-proxy-core,isass-net-proxy-server,isass-net-proxy-upstream,isass-net-socketio,isass-web-springmvc -am test -Dmaven.javadoc.skip=true -Dsurefire.failIfNoSpecifiedTests=false` → BUILD SUCCESS。
+    - 2026-06-22：具体模块明细：
+      - `isass-database-redis`：`@ComponentScan` → `@Configuration` + 显式 `@Bean`（`RedisStreamConsumerCleaner`、`RedisStreamMessageCleaner`）。两个 cleaner 已改为构造器注入，移除 `@Component`/`@Autowired`/`@Resource`。
+      - `isass-net-core`：`@ComponentScan` → `@AutoConfiguration` + `@Import`（9 个事件处理器 / configuration 类）+ 显式 `@Bean`（`EventManager`、`MessageEventRegisterManager`、`AllocatorService`、`AllocatorController`）。上述 4 个类已从字段注入改为构造器注入。
+      - `isass-mq-kafka011`：`@ComponentScan` → `@AutoConfiguration` + `@Import`（5 个类）。
+      - `isass-mq-springevent`：`@ComponentScan` → `@AutoConfiguration` + `@Import`（4 个类）。
+      - `isass-net-websocket`：`@ComponentScan` → `@AutoConfiguration` + `@Import`（7 个类）。
+      - `isass-net-netty`：`@ComponentScan` → `@AutoConfiguration` + `@Import`（4 个类）。
+      - `isass-net-proxy-core`：`@ComponentScan` → `@AutoConfiguration` + `@Import`（1 个类）。
+      - `isass-net-proxy-server`：`@ComponentScan` → `@AutoConfiguration` + `@Import`（9 个类）。
+      - `isass-net-proxy-upstream`：`@ComponentScan` → `@AutoConfiguration` + `@Import`（4 个类）。
+      - `isass-net-socketio`：`@ComponentScan` → `@AutoConfiguration` + `@Import`（9 个类）；`SocketIoAutoConfiguration` 自身字段注入改为 `@Bean` 方法参数注入。
+      - `isass-web-springmvc`：`@ComponentScan` → `@AutoConfiguration` + `@Import`（14 个类）；`WebAutoConfiguration` 自身 `@Resource` 字段注入改为 `@Bean` 方法参数注入。
   - 下一步：
-    - 继续扫描 `isass-*` 非 core 模块的 Spring 依赖边界，优先处理可以下沉为纯 Java 接口或迁移到 adapter 的注解/工具类。
-  - 验证方式：
-    - `rg -n "org\\.springframework|jakarta\\.annotation\\.Resource|@Component|@Service|@Repository|@Controller" isass-core-*/*/main`
-    - 相关模块执行 `mvn -pl <module> -am test -Dmaven.javadoc.skip=true -Dsurefire.failIfNoSpecifiedTests=false`
+    - 组件类内部收敛（第二阶段）：将 `@Import` 导入的 `@Component`/`@Service` 类逐步改为构造器注入 + 显式 `@Bean` 注册，优先处理 `isass-web-springmvc`、`isass-net-*` 中仍存在的字段注入。
+    - `isass-security-springsecurity` 仍使用 `@ComponentScan`，其为 Spring Security 专属适配模块，保留暂不迁移。
+    - `isass-adapter-springboot` 的 `IsassSpringBootAutoConfiguration` 仍使用 `@ComponentScan(basePackages = "vip.isass.framework.common")`，需确认该包是否还有需要 auto-scan 的组件。
 
 ### 1.2 配置、构建与部署
 

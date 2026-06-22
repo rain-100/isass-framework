@@ -174,8 +174,6 @@ import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.TypeUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import vip.isass.framework.common.converter.ConvertUtil;
 import vip.isass.framework.net.core.handler.OnAnyMessageEventHandler;
 import vip.isass.framework.net.core.handler.OnConnectEventHandler;
@@ -199,40 +197,44 @@ import java.util.Map;
  * @author Rain
  */
 @Slf4j
-@Component
 public class EventManager implements IEventManager {
 
-    @Autowired
-    private ISessionService sessionService;
+    private final ISessionService sessionService;
 
-    @Autowired(required = false)
-    private List<OnConnectEventHandler> onConnectEventHandlers;
+    private final List<OnConnectEventHandler> onConnectEventHandlers;
 
-    @Autowired(required = false)
-    private List<OnDisconnectEventHandler> onDisconnectEventHandlers;
+    private final List<OnDisconnectEventHandler> onDisconnectEventHandlers;
 
-    @Autowired(required = false)
-    private List<OnErrorEventHandler> onErrorEventHandlers;
+    private final List<OnErrorEventHandler> onErrorEventHandlers;
 
-    @Autowired(required = false)
-    private List<OnAnyMessageEventHandler<?>> onAnyMessageEventHandlers;
+    private final List<OnAnyMessageEventHandler<?>> onAnyMessageEventHandlers;
 
-    private List<OnMessageEventHandler<?>> onMessageEventHandlers;
+    private final List<OnMessageEventHandler<?>> onMessageEventHandlers;
 
-    private Map<String, List<OnMessageEventHandler<?>>> onMessageEventHandlerMap = Collections.emptyMap();
+    private final Map<String, List<OnMessageEventHandler<?>>> onMessageEventHandlerMap;
 
-    @Autowired(required = false)
-    public void onMessageEventHandlers(@Autowired(required = false) List<OnMessageEventHandler<?>> onMessageEventHandlers) {
+    public EventManager(ISessionService sessionService,
+                        List<OnConnectEventHandler> onConnectEventHandlers,
+                        List<OnDisconnectEventHandler> onDisconnectEventHandlers,
+                        List<OnErrorEventHandler> onErrorEventHandlers,
+                        List<OnAnyMessageEventHandler<?>> onAnyMessageEventHandlers,
+                        List<OnMessageEventHandler<?>> onMessageEventHandlers) {
+        this.sessionService = sessionService;
+        this.onConnectEventHandlers = onConnectEventHandlers;
+        this.onDisconnectEventHandlers = onDisconnectEventHandlers;
+        this.onErrorEventHandlers = onErrorEventHandlers;
+        this.onAnyMessageEventHandlers = onAnyMessageEventHandlers;
         this.onMessageEventHandlers = onMessageEventHandlers;
-        if (onMessageEventHandlers == null) {
-            return;
-        }
 
-        onMessageEventHandlerMap = MapUtil.newHashMap(onMessageEventHandlers.size());
-        onMessageEventHandlers
-                .forEach(h -> onMessageEventHandlerMap
-                        .computeIfAbsent(StrUtil.nullToEmpty(h.getCmd()), s -> new ArrayList<>())
-                        .add(h));
+        if (onMessageEventHandlers == null) {
+            this.onMessageEventHandlerMap = Collections.emptyMap();
+        } else {
+            this.onMessageEventHandlerMap = MapUtil.newHashMap(onMessageEventHandlers.size());
+            onMessageEventHandlers
+                    .forEach(h -> onMessageEventHandlerMap
+                            .computeIfAbsent(StrUtil.nullToEmpty(h.getCmd()), s -> new ArrayList<>())
+                            .add(h));
+        }
     }
 
     @Override

@@ -169,24 +169,24 @@
 package vip.isass.framework.cache.redis;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.stereotype.Component;
 
 import jakarta.annotation.PreDestroy;
-import jakarta.annotation.Resource;
 import java.util.List;
 
 @Slf4j
-@Component
 public class RedisStreamConsumerCleaner {
 
-    @Resource
-    private RedisTemplate<String, ?> redisTemplate;
+    private final RedisTemplate<String, ?> redisTemplate;
 
-    @Autowired(required = false)
-    private List<IRedisStreamListener<?>> listeners;
+    private final List<IRedisStreamListener<?>> listeners;
+
+    public RedisStreamConsumerCleaner(RedisTemplate<String, ?> redisTemplate,
+                                      List<IRedisStreamListener<?>> listeners) {
+        this.redisTemplate = redisTemplate;
+        this.listeners = listeners;
+    }
 
     @PreDestroy
     public <T> void destroy() {

@@ -169,38 +169,42 @@
 
 package vip.isass.framework.net.socketio;
 
+
 import cn.hutool.core.util.StrUtil;
 import com.corundumstudio.socketio.SocketConfig;
 import com.corundumstudio.socketio.SocketIOServer;
 import com.corundumstudio.socketio.annotation.SpringAnnotationScanner;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.core.io.DefaultResourceLoader;
+import vip.isass.framework.net.socketio.allocator.SocketIoLocalNodeAllocatorService;
+import vip.isass.framework.net.socketio.allocator.SocketioNodeAllocatorConfiguration;
+import vip.isass.framework.net.socketio.handler.OnSocketIoConnectListener;
+import vip.isass.framework.net.socketio.handler.OnSocketIoDisconnectListener;
 import vip.isass.framework.net.socketio.handler.OnSocketIoErrorListener;
 
-import jakarta.annotation.Resource;
-
-/**
- * @author Rain
- */
 @Slf4j
-@ComponentScan
-@Configuration
+@AutoConfiguration
+@Import({
+        SocketIoProperties.class,
+        SocketIoServer.class,
+        SocketIoEventHandlerRegister.class,
+        OnSocketIoConnectListener.class,
+        OnSocketIoDisconnectListener.class,
+        OnSocketIoErrorListener.class,
+        SocketioNodeAllocatorConfiguration.class,
+        SocketIoLocalNodeAllocatorService.class,
+        SocketioForwardController.class
+})
 @ConditionalOnProperty(name = {"kernel.net.enabled", "kernel.net.socketio.enabled"}, havingValue = "true")
 public class SocketIoAutoConfiguration {
 
-    @Resource
-    private SocketIoProperties socketIoProperties;
-
-    @Autowired
-    private OnSocketIoErrorListener onErrorListener;
-
     @Bean
-    public SocketIOServer socketIOServer() {
+    public SocketIOServer socketIOServer(SocketIoProperties socketIoProperties,
+                                          OnSocketIoErrorListener onErrorListener) {
         com.corundumstudio.socketio.Configuration config = new com.corundumstudio.socketio.Configuration();
         config.setHostname(socketIoProperties.getHostName());
         config.setPort(socketIoProperties.getPort());
@@ -226,7 +230,6 @@ public class SocketIoAutoConfiguration {
         }
 
         SocketConfig sockConfig = new SocketConfig();
-        // 解决SOCKET服务端重启"Address already in use"异常
         sockConfig.setReuseAddress(true);
         sockConfig.setTcpKeepAlive(false);
         config.setSocketConfig(sockConfig);

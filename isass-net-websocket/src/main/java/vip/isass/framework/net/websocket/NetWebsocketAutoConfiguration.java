@@ -169,16 +169,25 @@
 
 package vip.isass.framework.net.websocket;
 
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.context.annotation.Import;
+import vip.isass.framework.net.websocket.allocator.WebsocketLocalNodeAllocatorService;
+import vip.isass.framework.net.websocket.allocator.WebsocketNodeAllocatorConfiguration;
+import vip.isass.framework.net.websocket.websocket.WebsocketChannelInboundHandler;
+import vip.isass.framework.net.websocket.websocket.WebsocketChannelInitializerHandler;
+import vip.isass.framework.net.websocket.websocket.WebsocketServer;
 
-/**
- * @author Rain
- */
-@ComponentScan
-@Configuration
+@AutoConfiguration
+@Import({
+        WebsocketProperties.class,
+        WebsocketChannelInboundHandler.class,
+        WebsocketChannelInitializerHandler.class,
+        WebsocketServer.class,
+        WebsocketEventHandlerRegister.class,
+        WebsocketLocalNodeAllocatorService.class,
+        WebsocketNodeAllocatorConfiguration.class
+})
 @ConditionalOnProperty(name = {"kernel.net.enabled", "kernel.net.websocket.enabled"}, havingValue = "true")
 public class NetWebsocketAutoConfiguration {
 }

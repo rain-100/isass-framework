@@ -170,31 +170,31 @@ package vip.isass.framework.cache.redis;
 
 import com.baomidou.lock.annotation.Lock4j;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
 import vip.isass.framework.common.support.LocalDateTimeUtil;
 
-import jakarta.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
-@Component
 public class RedisStreamMessageCleaner {
 
     private static final String REMOVE_MESSAGE_LUA_SCRIPT = "return redis.call('XTRIM', KEYS[1], 'MINID', '~', ARGV[1])";
     private static final DefaultRedisScript<Long> REDIS_SCRIPT = new DefaultRedisScript<>(REMOVE_MESSAGE_LUA_SCRIPT, Long.class);
 
-    @Resource
-    private RedisTemplate<String, ?> redisTemplate;
+    private final RedisTemplate<String, ?> redisTemplate;
 
-    @Autowired(required = false)
-    private List<IRemovableStreamMessageProvider> providers;
+    private final List<IRemovableStreamMessageProvider> providers;
+
+    public RedisStreamMessageCleaner(RedisTemplate<String, ?> redisTemplate,
+                                      List<IRemovableStreamMessageProvider> providers) {
+        this.redisTemplate = redisTemplate;
+        this.providers = providers;
+    }
 
     /**
      * 每隔5分钟删除一次5分钟前的旧消息
