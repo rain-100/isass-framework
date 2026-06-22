@@ -314,6 +314,7 @@
         <!-- 安全权限加解密 -->
         <jjwt.version>0.13.0</jjwt.version>
         <jasypt.version>3.0.5</jasypt.version>
+        <jasypt-core.version>1.9.3</jasypt-core.version>
 
         <!-- rpc -->
         <okhttp.version>5.3.2</okhttp.version>
@@ -734,6 +735,12 @@
                 <groupId>com.xuxueli</groupId>
                 <artifactId>xxl-job-core</artifactId>
                 <version>${xxl-job.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.jasypt</groupId>
+                <artifactId>jasypt</artifactId>
+                <version>${jasypt-core.version}</version>
             </dependency>
 
             <dependency>

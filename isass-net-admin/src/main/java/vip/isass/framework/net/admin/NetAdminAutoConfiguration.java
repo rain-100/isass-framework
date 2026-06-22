@@ -166,17 +166,20 @@
  *  Library.
  *
  */
-
 package vip.isass.framework.net.admin;
 
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.context.annotation.Bean;
+import vip.isass.framework.net.admin.controller.NetAdminController;
+import vip.isass.framework.net.core.session.ISessionService;
 
-/**
- * @author Rain
- */
-@ComponentScan
-@Configuration
+@AutoConfiguration
 public class NetAdminAutoConfiguration {
 
+    @Bean
+    @ConditionalOnMissingBean
+    public NetAdminController netAdminController(ISessionService sessionService) {
+        return new NetAdminController(sessionService);
+    }
 }

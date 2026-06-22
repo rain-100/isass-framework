@@ -178,7 +178,6 @@ import vip.isass.framework.net.admin.model.vo.OnlineEquipmentVo;
 import vip.isass.framework.net.core.session.ISessionService;
 import vip.isass.framework.net.core.session.SessionInfoCollection;
 
-import jakarta.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -192,8 +191,11 @@ import java.util.List;
 @RequestMapping("/${spring.application.name}/net/admin/session")
 public class NetAdminController {
 
-    @Resource
-    private ISessionService sessionService;
+    private final ISessionService sessionService;
+
+    public NetAdminController(ISessionService sessionService) {
+        this.sessionService = sessionService;
+    }
 
     /**
      * 获取所有会话信息(用于调试)
