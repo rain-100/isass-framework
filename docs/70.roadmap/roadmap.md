@@ -303,9 +303,10 @@
     - `NocodeSpringMvcQueryCriteriaParser` 解析 HTTP query 参数。
     - `NocodeSpringMvcCrudRequestFactory` 把 path/query/body 转换为 `NocodeAccessRequest`。
     - `NocodeSpringMvcCrudEndpointInvoker` 将请求交给 `NocodeAccessHandler` 执行。
+    - `NocodeCrudController` @RestController 已实现，6 个 CRUD 端点映射 `/nocode/{entityName}` 路径模式；`WebAutoConfiguration` 注册 `NocodeOperationExecutor`/`NocodeAccessHandler`/`NocodeSpringMvcCrudEndpointInvoker`/`NocodeSpringMvcQueryCriteriaParser`/`NocodeCrudController` 全链路 Bean。
+    - 新增 `NocodeCrudControllerTest`（3 测试）：context 启动验证 + findById 调用验证 + list 调用验证。
+    - 新增 `NocodeCrudControllerMockMvcTest`（5 测试）：standalone MockMvc 验证 GET findById / GET list / GET page / POST save / DELETE deleteById 全部路由命中。验证：`mvn -pl isass-web-springmvc -am test -Dmaven.javadoc.skip=true -Dsurefire.failIfNoSpecifiedTests=false`。
   - 下一步：
-    - 设计 Spring MVC 动态注册点，优先考虑 `RequestMappingHandlerMapping` 注册 handler method。
-    - 编写最小可运行测试：注册 GET `/nocode/{entityName}/{id}`，请求后命中测试 provider。
     - 决定 API 文档展示方式：默认一个通用 controller，还是按实体生成虚拟分组。
     - 把动态 endpoint 纳入 attachment 单体启动验证。
 

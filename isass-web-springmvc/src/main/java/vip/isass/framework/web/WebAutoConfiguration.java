@@ -171,6 +171,7 @@ package vip.isass.framework.web;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
@@ -187,6 +188,9 @@ import vip.isass.framework.web.exception.WebStatusMapping;
 import vip.isass.framework.web.interceptor.RestTemplateInterceptor;
 import vip.isass.framework.web.interceptor.TraceIdInterceptor;
 import vip.isass.framework.web.interceptor.UriMappingInterceptor;
+import vip.isass.framework.web.nocode.NocodeCrudController;
+import vip.isass.framework.web.nocode.NocodeSpringMvcCrudEndpointInvoker;
+import vip.isass.framework.web.nocode.NocodeSpringMvcQueryCriteriaParser;
 import vip.isass.framework.web.response.ResponseAdvice;
 import vip.isass.framework.web.servicedocs.ServiceDocsController;
 import vip.isass.framework.web.servicedocs.ServiceDocsScanner;
@@ -253,6 +257,46 @@ public class WebAutoConfiguration {
     public RestTemplateInterceptor restTemplateInterceptor(
             @Autowired(required = false) List<AdditionalRequestHeaderProvider> additionalHeaderProviders) {
         return new RestTemplateInterceptor(additionalHeaderProviders);
+    }
+
+    // ==================== Nocode v3 CRUD ====================
+
+    @Bean
+    @ConditionalOnMissingBean
+    public vip.isass.framework.nocode.v3.operation.NocodeOperationExecutor nocodeOperationExecutor(
+            @Autowired(required = false) List<vip.isass.framework.nocode.v3.routing.NocodeOperationProvider<?>> providers,
+            @Autowired(required = false) List<vip.isass.framework.nocode.v3.operation.NocodeOperationInterceptor> interceptors) {
+        return new vip.isass.framework.nocode.v3.operation.NocodeOperationExecutor(
+                providers == null ? List.of() : providers,
+                interceptors == null ? List.of() : interceptors);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public vip.isass.framework.nocode.v3.access.NocodeAccessHandler nocodeAccessHandler(
+            vip.isass.framework.nocode.v3.operation.NocodeOperationExecutor executor) {
+        return new vip.isass.framework.nocode.v3.access.NocodeAccessHandler(executor);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public NocodeSpringMvcCrudEndpointInvoker nocodeSpringMvcCrudEndpointInvoker(
+            vip.isass.framework.nocode.v3.access.NocodeAccessHandler accessHandler) {
+        return new NocodeSpringMvcCrudEndpointInvoker(accessHandler);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public NocodeSpringMvcQueryCriteriaParser nocodeSpringMvcQueryCriteriaParser() {
+        return new NocodeSpringMvcQueryCriteriaParser();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public NocodeCrudController nocodeCrudController(
+            NocodeSpringMvcCrudEndpointInvoker invoker,
+            NocodeSpringMvcQueryCriteriaParser queryCriteriaParser) {
+        return new NocodeCrudController(invoker, queryCriteriaParser);
     }
 
 }
