@@ -20,6 +20,8 @@ import vip.isass.framework.common.log.slf4j.LogLevelManager;
 import vip.isass.framework.common.selectoption.ISelectOptionService;
 import vip.isass.framework.common.selectoption.SelectOption;
 import vip.isass.framework.common.selectoption.SelectOptionServiceManager;
+import vip.isass.framework.nocode.DictTranslationProviderUtil;
+import vip.isass.framework.nocode.IDictTranslationProvider;
 import vip.isass.framework.nocode.v2.entity.V2DbEntityConvert;
 import vip.isass.framework.common.support.BeanProvider;
 import vip.isass.framework.common.support.BeanProviderUtil;
@@ -172,23 +174,16 @@ class IsassSpringBootAutoConfigurationTest {
     }
 
     @Test
-    void bridgesDictTranslationProvidersToCoreHolders() {
+    void bridgesDictTranslationProviderToCoreHolder() {
         new ApplicationContextRunner()
                 .withConfiguration(AutoConfigurations.of(IsassSpringBootAutoConfiguration.class))
-                .withBean("commonDictTranslationProvider",
-                        vip.isass.framework.common.structure.IDictTranslationProvider.class,
-                        () -> (typeCode, optionCode) -> "common:" + typeCode + ":" + optionCode)
-                .withBean("nocodeDictTranslationProvider",
-                        vip.isass.framework.nocode.IDictTranslationProvider.class,
+                .withBean("dictTranslationProvider",
+                        IDictTranslationProvider.class,
                         () -> (typeCode, optionCode) -> "nocode:" + typeCode + ":" + optionCode)
                 .run(context -> {
                     assertThat(context).hasSingleBean(BeanProvider.class);
-                    assertThat(context).hasSingleBean(vip.isass.framework.common.structure.IDictTranslationProvider.class);
-                    assertThat(context).hasSingleBean(vip.isass.framework.nocode.IDictTranslationProvider.class);
-                    assertThat(vip.isass.framework.common.structure.DictTranslationProviderUtil.getProvider()
-                            .translate("status", "1"))
-                            .isEqualTo("common:status:1");
-                    assertThat(vip.isass.framework.nocode.DictTranslationProviderUtil.getProvider()
+                    assertThat(context).hasSingleBean(IDictTranslationProvider.class);
+                    assertThat(DictTranslationProviderUtil.getProvider()
                             .translate("status", "1"))
                             .isEqualTo("nocode:status:1");
                 });

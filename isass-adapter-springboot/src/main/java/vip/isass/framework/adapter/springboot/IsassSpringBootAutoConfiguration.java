@@ -5,29 +5,30 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.logging.LoggingSystem;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.Bean;
 import vip.isass.framework.adapter.springboot.converter.IsassSpringConverterAdapter;
 import vip.isass.framework.adapter.springboot.destroy.AutoDestroyManager;
 import vip.isass.framework.adapter.springboot.log.SpringBootLogLevelManager;
 import vip.isass.framework.adapter.springboot.support.SpringBeanProvider;
 import vip.isass.framework.common.entity.DbEntityConvert;
 import vip.isass.framework.common.exception.BuildInCoreExceptionMapping;
-import vip.isass.framework.common.login.LoginUserService;
-import vip.isass.framework.common.login.LoginUserUtil;
 import vip.isass.framework.common.log.slf4j.LogLevelManager;
 import vip.isass.framework.common.log.slf4j.LogUtil;
+import vip.isass.framework.common.login.LoginUserService;
+import vip.isass.framework.common.login.LoginUserUtil;
 import vip.isass.framework.common.selectoption.ISelectOptionService;
 import vip.isass.framework.common.selectoption.SelectOptionServiceManager;
 import vip.isass.framework.common.sequence.Sequence;
 import vip.isass.framework.common.sequence.impl.LongSequence;
-import vip.isass.framework.nocode.v2.entity.V2DbEntityConvert;
 import vip.isass.framework.common.support.BeanProvider;
-import vip.isass.framework.common.support.Converter;
 import vip.isass.framework.common.support.BeanProviderUtil;
+import vip.isass.framework.common.support.Converter;
 import vip.isass.framework.common.support.ISystemClock;
 import vip.isass.framework.common.support.IsassServiceLoader;
 import vip.isass.framework.common.support.SystemClock;
+import vip.isass.framework.nocode.IDictTranslationProvider;
+import vip.isass.framework.nocode.v2.entity.V2DbEntityConvert;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -75,15 +76,12 @@ public class IsassSpringBootAutoConfiguration {
                                      ObjectProvider<LoginUserService> loginUserServiceProvider,
                                      ObjectProvider<ISystemClock> systemClockProvider,
                                      ObjectProvider<Sequence<?>> sequenceProvider,
-                                     ObjectProvider<vip.isass.framework.common.structure.IDictTranslationProvider> commonDictTranslationProvider,
-                                     ObjectProvider<vip.isass.framework.nocode.IDictTranslationProvider> nocodeDictTranslationProvider) {
+                                     ObjectProvider<IDictTranslationProvider> nocodeDictTranslationProvider) {
         BeanProvider beanProvider = new SpringBeanProvider(applicationContext);
         BeanProviderUtil.setBeanProvider(beanProvider);
         LoginUserUtil.setLoginUserServiceProvider(loginUserServiceProvider::getIfAvailable);
         SystemClock.setSystemClockProvider(systemClockProvider::getIfAvailable);
         LongSequence.setSequenceProvider(() -> getLongSequence(sequenceProvider));
-        vip.isass.framework.common.structure.DictTranslationProviderUtil.setProviderSupplier(
-                commonDictTranslationProvider::getIfAvailable);
         vip.isass.framework.nocode.DictTranslationProviderUtil.setProviderSupplier(
                 nocodeDictTranslationProvider::getIfAvailable);
         return beanProvider;
@@ -91,11 +89,9 @@ public class IsassSpringBootAutoConfiguration {
 
     @SuppressWarnings("unchecked")
     private Sequence<Long> getLongSequence(ObjectProvider<Sequence<?>> sequenceProvider) {
-        return sequenceProvider.orderedStream()
-            .filter(sequence -> sequence.support(Long.class))
-            .findFirst()
-            .map(sequence -> (Sequence<Long>) sequence)
-            .orElse(null);
+        return (Sequence<Long>) sequenceProvider.orderedStream()
+                .filter(sequence -> sequence.support(Long.class))
+                .findFirst().orElse(null);
     }
 
     @Bean
