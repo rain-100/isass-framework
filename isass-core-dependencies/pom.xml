@@ -200,6 +200,7 @@
         <git-commit-id-plugin.version>4.9.10</git-commit-id-plugin.version>
         <maven-assembly-plugin.version>3.7.1</maven-assembly-plugin.version>
         <maven-release-plugin.version>3.3.1</maven-release-plugin.version>
+        <smart-doc.version>3.1.2</smart-doc.version>
 
         <!-- endregion -->
 
@@ -798,12 +799,12 @@
                 <groupId>com.baomidou</groupId>
                 <artifactId>lock4j-redisson-spring-boot-starter</artifactId>
                 <version>${lock4j-redisson.version}</version>
-               <!-- <exclusions> -->
-               <!--     <exclusion> -->
-               <!--         <groupId>org.redisson</groupId> -->
-               <!--         <artifactId>redisson-spring-boot-starter</artifactId> -->
-               <!--     </exclusion> -->
-               <!-- </exclusions> -->
+                <!-- <exclusions> -->
+                <!--     <exclusion> -->
+                <!--         <groupId>org.redisson</groupId> -->
+                <!--         <artifactId>redisson-spring-boot-starter</artifactId> -->
+                <!--     </exclusion> -->
+                <!-- </exclusions> -->
             </dependency>
 
             <!-- alipay -->
@@ -1024,6 +1025,25 @@
                             git.build.host,git.remote.origin.url,git.build.version,git.branch,git.commit.time,git.commit.id.abbrev
                         </includeOnlyProperties>
                     </configuration>
+                </plugin>
+
+                <plugin>
+                    <groupId>com.ly.smart-doc</groupId>
+                    <artifactId>smart-doc-maven-plugin</artifactId>
+                    <version>${smart-doc.version}</version>
+                    <configuration>
+                        <configFile>${project.basedir}/src/main/resources/smart-doc.json</configFile>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <!--如果不需要在执行编译时启动smart-doc，则将phase注释掉-->
+                            <phase>compile</phase>
+                            <goals>
+                                <!--smart-doc提供了html、openapi、markdown等goal，可按需配置-->
+                                <goal>openapi</goal>
+                            </goals>
+                        </execution>
+                    </executions>
                 </plugin>
 
                 <plugin>

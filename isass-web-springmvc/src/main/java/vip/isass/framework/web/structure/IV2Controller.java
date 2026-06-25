@@ -188,6 +188,23 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 
+/**
+ * v2 通用 CRUD Controller 接口。
+ * <p>
+ * 业务模块实现此接口后可直接以 {@code @RequestMapping} 暴露标准 CRUD RESTful 端点，
+ * 无需重复编写增删改查方法。
+ * </p>
+ * <p>
+ * smart-doc 通过扫描 JavaDoc 生成 OpenAPI 文档，
+ * 业务 Controller 可在实现类上使用 {@code @tag} 指定分组。
+ * </p>
+ * <p>端点约定：{@code /{entityPath}/} + 操作路径（如 {@code add}、{@code updateById}）。</p>
+ *
+ * @param <E> 实体类型，必须实现 {@link IV2Entity}
+ * @param <C> 查询条件类型，必须实现 {@link IV2Criteria}
+ * @author Rain
+ * @tag 通用CRUD
+ */
 public interface IV2Controller<
         E extends IV2Entity<E>,
         C extends IV2Criteria<E, C>
@@ -202,6 +219,13 @@ public interface IV2Controller<
 
     // region 增
 
+    /**
+     * 新增实体
+     *
+     * @param entity 待新增的实体对象
+     * @return 新增后的实体（含自增主键等回填字段）
+     * @apiNote POST 请求，body 为实体 JSON。
+     */
     @Override
     @PostMapping(ADD_URI_SECOND_PART)
     default E add(@RequestBody E entity) {
@@ -269,6 +293,13 @@ public interface IV2Controller<
 
     //  region 删
 
+    /**
+     * 根据主键删除
+     *
+     * @param id 主键值
+     * @return 是否删除成功
+     * @apiNote DELETE 请求。
+     */
     @Override
     @DeleteMapping(DELETE_BY_ID_URI_SECOND_PART)
     default Boolean deleteById(@PathVariable("id") Serializable id) {
@@ -291,6 +322,13 @@ public interface IV2Controller<
 
     // region 改
 
+    /**
+     * 根据主键更新（仅更新非 null 字段）
+     *
+     * @param entity 待更新的实体（主键必须存在）
+     * @return 是否更新成功
+     * @apiNote PUT 请求，body 为实体 JSON。
+     */
     @Override
     @PutMapping(UPDATE_BY_ID_URI_SECOND_PART)
     default Boolean updateById(@RequestBody E entity) {
@@ -331,6 +369,13 @@ public interface IV2Controller<
 
     //  region 查
 
+    /**
+     * 根据主键查询
+     *
+     * @param id 主键值
+     * @return 实体对象，不存在则返回 {@code null}
+     * @apiNote GET 请求。
+     */
     @Override
     @GetMapping(GET_BY_ID_URI_SECOND_PART)
     default E getById(@PathVariable("id") Serializable id) {
@@ -361,12 +406,26 @@ public interface IV2Controller<
         return getService().getByCriteriaOrException(criteria);
     }
 
+    /**
+     * 根据条件查询列表
+     *
+     * @param criteria 查询条件对象，字段非空值作为等值过滤条件
+     * @return 实体列表
+     * @apiNote GET 请求，查询条件通过 query string 传递。
+     */
     @Override
     @GetMapping(FIND_BY_CRITERIA_URI_SECOND_PART)
     default List<E> findByCriteria(@ModelAttribute C criteria) {
         return getService().findByCriteria(criteria);
     }
 
+    /**
+     * 根据条件分页查询
+     *
+     * @param criteria 查询条件对象，支持排序、分页参数
+     * @return MyBatis Plus {@link IPage} 分页结果
+     * @apiNote GET 请求，条件通过 query string 传递，分页参数为 {@code page}（或 {@code pageNumber}）、{@code size}（或 {@code pageSize}）。
+     */
     @Override
     @GetMapping(FIND_PAGE_BY_CRITERIA_URI_SECOND_PART)
     default IPage<E> findPageByCriteria(@ModelAttribute C criteria) {

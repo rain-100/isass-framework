@@ -45,21 +45,50 @@ src/main/resources/service-docs/database/
 
 自动化构建只打包已经提交到仓库的 Markdown 文件，不主动连接数据库生成文档。
 
-## smart-doc 生成离线 API 文档
+## smart-doc 生成 API 文档
 
-smart-doc 适合根据 JavaDoc 生成 API Markdown、OpenAPI、Postman 等产物。isass v4 推荐：
+isass v4 已将 smart-doc 的 `openapi` goal 绑定到 `compile` 阶段，继承 `isass-core-dependencies` 的微服务在编译时自动生成 `service-docs/api/openapi.json`，无需手动执行命令。
+
+### 运行时暴露
 
 - zyplayer-doc 在线调试使用 smart-doc 生成的 `service-docs/api/openapi.json`。
-- 框架的 `/{spring.application.name}/v3/api-docs` 也直接读取并返回 `service-docs/api/openapi.json`，用于单体调试或外部工具读取。
-- 开发期 OpenAPI、Postman、AI 训练材料可以使用 smart-doc 生成，并保存到 `service-docs/api/`。
-- 业务说明、鉴权说明、数据库说明统一放入 `service-docs/`。
+- 框架的 `/{spring.application.name}/v3/api-docs` 直接读取并返回 `service-docs/api/openapi.json`，用于单体调试或外部工具读取。
+- `service-docs/api/*.md` 默认不上传 zyplayer-doc。
 
-`service-docs/api/*.md` 默认不上传 zyplayer-doc。需要在线调试时，先生成 `service-docs/api/openapi.json`，由 `isass-apidoc-zyplayer` 转换为 zyplayer API 接口页面；运行时 `/{spring.application.name}/v3/api-docs` 返回同一个 JSON 文件。
+### 微服务配置
 
-示例：
+每个微服务在 `src/main/resources/smart-doc.json` 提供 smart-doc 配置，例如：
+
+```json
+{
+  "serverUrl": "http://127.0.0.1:20320",
+  "outPath": "src/main/resources/service-docs/api",
+  "projectName": "attachment-service"
+}
+```
+
+- `outPath` 固定指向 `src/main/resources/service-docs/api`，产物随源码提交。
+- 其他 smart-doc 配置项（`requestHeaders`、`apiObjectReplacements` 等）按需添加。
+
+### 执行方式
+
+编译时自动触发，无需额外命令：
 
 ```bash
-mvn -pl isass-service-attachment-service -Psmart-doc generate-resources
+mvn compile
+```
+
+禁用自动生成时，注释 `isass-core-dependencies` 中 smart-doc 插件的 `<phase>compile</phase>`，或临时跳过：
+
+```bash
+mvn compile -Dsmart-doc.skip=true
+```
+
+单独生成其他产物（Markdown、Postman 等）：
+
+```bash
+mvn smart-doc:markdown
+mvn smart-doc:postman
 ```
 
 ## 推荐 Javadoc 写法

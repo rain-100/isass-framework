@@ -173,16 +173,15 @@
   - 后续记录：
     - “同一个 404 何时返回 HTTP HTML/空响应，何时返回 Resp”的完整场景矩阵已记录到设计文档，后续如修改错误链路需先更新该文档。
 
-- [~] **重构异常模块，优化异常抛出接口**
-  - 已完成步骤：
+- [x] **重构异常模块，优化异常抛出接口**
+  - 完成记录：
     - `Resp.detailMessage` 与 `ExceptionAdvice` 双字段错误信息已落地。
     - `IsassErrorController` 已有 HTML/JSON 错误响应策略。
     - `UnifiedException` 作为统一异常基类已在 core-common，实现 `IStatusMessage` 携带状态码。
     - `IExceptionMapping` 接口 + SPI 发现机制已在 core-common 抽象层；Spring Web `ExceptionAdvice` 通过 `IsassServiceLoader` 合并 SPI 映射与 Spring Bean 映射。
     - 新增 `BuildInCoreExceptionMappingTest`（10 个测试）：覆盖 参数校验（IllegalArgumentException/ValidateException）、404 类（AbsentException/FileNotFoundException）、业务异常（AlreadyPresentException）、不支持操作（UnsupportedOperationException）、IO 异常、日期异常、未知异常。验证：`mvn -pl isass-core-common test -Dtest=BuildInCoreExceptionMappingTest -Dmaven.javadoc.skip=true`。
-  - 下一步：
-    - 评估是否需要进一步拆分/统一异常码枚举 `StatusMessageEnum`，使其同时承载模块标识和业务语义。
-    - 补充 `ExceptionAdvice` 集成测试覆盖所有已映射异常类型。
+    - 2026-06-23：`ExceptionAdvice` 集成测试扩展至 19 个用例，覆盖 UnifiedException（有/无 status、有/无 cause）、core 映射（IllegalArgumentException/AbsentException/AlreadyPresentException/UnsupportedOperationException/IOException/FileNotFoundException/DateTimeException）、未映射异常回退 UNDEFINED、showDetailError 开关控制。验证：`mvn -pl isass-web-springmvc -am test -Dtest=ExceptionAdviceTest -Dmaven.javadoc.skip=true`。
+    - 2026-06-23：`StatusMessageEnum` 评估结论——JWT_TOKEN_ERROR/UN_LOGIN/TOKEN_EXPIRED/TOKEN_ILLEGAL 因 core-common（JwtUtil/LoginUserUtil）和 web-springmvc（IsassErrorController）跨模块引用保留，符合 `docs/design/exception-code-architecture.md` 设计约束，无需拆分。
 
 - [x] **异常码按模块分类**
   - 完成记录：

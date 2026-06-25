@@ -2,6 +2,9 @@ package vip.isass.framework.adapter.springboot.database;
 
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.liquibase.autoconfigure.LiquibaseProperties;
 import org.springframework.context.annotation.Bean;
 import vip.isass.framework.adapter.springboot.condition.ConditionalOnIsassFeature;
 import vip.isass.framework.adapter.springboot.condition.IsassFeature;
@@ -12,6 +15,7 @@ import vip.isass.framework.common.exception.IExceptionMapping;
  */
 @AutoConfiguration
 @ConditionalOnIsassFeature(IsassFeature.DATABASE_CORE)
+@EnableConfigurationProperties(LiquibaseProperties.class)
 public class IsassDatabaseSpringBootAutoConfiguration {
 
     private static final String DATABASE_EXCEPTION_MAPPING_CLASS =
