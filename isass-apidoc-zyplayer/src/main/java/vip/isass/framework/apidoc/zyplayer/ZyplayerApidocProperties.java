@@ -25,8 +25,6 @@ public class ZyplayerApidocProperties {
 
     private boolean failOnError;
 
-    private String version = "4.0.0-SNAPSHOT";
-
     private boolean openApiEnabled = true;
 
     private String openApiDocsPath;
@@ -97,14 +95,6 @@ public class ZyplayerApidocProperties {
 
     public void setFailOnError(boolean failOnError) {
         this.failOnError = failOnError;
-    }
-
-    public String getVersion() {
-        return version;
-    }
-
-    public void setVersion(String version) {
-        this.version = version;
     }
 
     public boolean isOpenApiEnabled() {

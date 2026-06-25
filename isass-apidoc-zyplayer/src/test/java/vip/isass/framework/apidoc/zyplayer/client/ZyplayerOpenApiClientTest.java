@@ -71,9 +71,9 @@ class ZyplayerOpenApiClientTest {
         KeyPair keyPair = createKeyPair();
         server = HttpServer.create(new InetSocketAddress(0), 0);
         server.createContext("/openApi/v1/space/page/list", exchange -> {
-            byte[] response = """
-                    {"errCode":200,"data":{"total":1,"records":[{"id":12,"spaceId":7,"name":"Token 使用说明","editorType":2,"editVersion":3}]}}
-                    """.getBytes(StandardCharsets.UTF_8);
+                byte[] response = """
+                        {"errCode":200,"data":{"total":1,"records":[{"id":12,"spaceId":7,"name":"Token 使用说明","editorType":2}]}}
+                        """.getBytes(StandardCharsets.UTF_8);
             exchange.getResponseHeaders().add("Content-Type", "application/json;charset=UTF-8");
             exchange.sendResponseHeaders(200, response.length);
             exchange.getResponseBody().write(response);
@@ -99,9 +99,9 @@ class ZyplayerOpenApiClientTest {
         KeyPair keyPair = createKeyPair();
         server = HttpServer.create(new InetSocketAddress(0), 0);
         server.createContext("/openApi/v1/space/page/list", exchange -> {
-            byte[] response = """
-                    {"errCode":200,"data":{"pageTree":[{"id":13,"spaceId":7,"name":"数据库文档","editorType":2,"editVersion":1}]}}
-                    """.getBytes(StandardCharsets.UTF_8);
+                byte[] response = """
+                        {"errCode":200,"data":{"pageTree":[{"id":13,"spaceId":7,"name":"数据库文档","editorType":2}]}}
+                        """.getBytes(StandardCharsets.UTF_8);
             exchange.getResponseHeaders().add("Content-Type", "application/json;charset=UTF-8");
             exchange.sendResponseHeaders(200, response.length);
             exchange.getResponseBody().write(response);

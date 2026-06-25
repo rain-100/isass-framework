@@ -37,11 +37,7 @@ public class ZyplayerApidocAutoConfiguration {
             ZyplayerApidocProperties properties) {
         String applicationName = environment.getProperty("spring.application.name", "application");
         String serviceNameCn = environment.getProperty("info.service-name-cn", applicationName);
-        String version = firstText(
-                environment.getProperty("info.version"),
-                environment.getProperty("git.build.version"),
-                properties.getVersion());
-        return new ZyplayerServiceDescriptor(applicationName, serviceNameCn, version, properties.getGroupName());
+        return new ZyplayerServiceDescriptor(applicationName, serviceNameCn, properties.getGroupName());
     }
 
     @Bean

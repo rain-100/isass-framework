@@ -60,3 +60,7 @@
 #### docs
 
 - 在 README 中补充模块命名规范，明确 `isass-分类-模块名` 格式。
+
+#### refactor
+
+- **`isass-apidoc-zyplayer`**：移除 zyplayer-doc 版本管理功能。删除空间创建时的 `versionControl` 参数、空间版本 API 调用（`ensureSpaceVersion`）、页面更新时的 `editVersion` 乐观锁及重试逻辑，简化同步流程。

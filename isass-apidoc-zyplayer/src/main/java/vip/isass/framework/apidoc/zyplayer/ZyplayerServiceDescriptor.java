@@ -9,19 +9,17 @@ import java.time.format.DateTimeFormatter;
 public record ZyplayerServiceDescriptor(
         String applicationName,
         String serviceNameCn,
-        String version,
         String groupName
 ) {
 
     public ZyplayerServiceDescriptor {
         applicationName = ZyplayerText.trimToDefault(applicationName, "application");
         serviceNameCn = ZyplayerText.trimToDefault(serviceNameCn, applicationName);
-        version = ZyplayerVersion.normalize(version);
         groupName = ZyplayerText.trimToDefault(groupName, "isass");
     }
 
-    public ZyplayerServiceDescriptor(String applicationName, String serviceNameCn, String version) {
-        this(applicationName, serviceNameCn, version, "isass");
+    public ZyplayerServiceDescriptor(String applicationName, String serviceNameCn) {
+        this(applicationName, serviceNameCn, "isass");
     }
 
     private static final DateTimeFormatter SPACE_UUID_TIMESTAMP = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS");

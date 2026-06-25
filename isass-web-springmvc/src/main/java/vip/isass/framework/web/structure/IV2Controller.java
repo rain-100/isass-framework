@@ -232,12 +232,27 @@ public interface IV2Controller<
         return getService().add(entity);
     }
 
+    /**
+     * 批量新增实体
+     *
+     * @param entities 待新增的实体集合
+     * @return 新增后的实体集合（含自增主键等回填字段）
+     * @apiNote POST 请求，body 为实体 JSON 数组。
+     */
     @Override
     @PostMapping(ADD_BATCH_URI_SECOND_PART)
     default Collection<E> addBatch(@RequestBody Collection<E> entities) {
         return getService().addBatch(entities);
     }
 
+    /**
+     * 分批新增实体，每批指定数量
+     *
+     * @param entities  待新增的实体集合
+     * @param batchSize 每批数量
+     * @return 新增后的实体集合（含自增主键等回填字段）
+     * @apiNote POST 请求，body 为实体 JSON 数组，批次大小通过路径参数传递。
+     */
     @Override
     @PostMapping(ADD_BATCH_BY_BATCH_SIZE_URI_SECOND_PART)
     default Collection<E> addBatchByBatchSize(@RequestBody Collection<E> entities,
@@ -245,24 +260,56 @@ public interface IV2Controller<
         return getService().addBatchByBatchSize(entities, batchSize);
     }
 
+    /**
+     * 当条件不存在时新增实体，若条件已存在则不操作
+     *
+     * @param entity   待新增的实体对象
+     * @param criteria 查询条件，用于判断记录是否已存在
+     * @return 新增后的实体（含自增主键等回填字段），若已存在则返回已存在的实体
+     * @apiNote POST 请求，body 为实体 JSON，条件通过 query string 传递。
+     */
     @Override
     @PostMapping(ADD_IF_ABSENT_BY_CRITERIA_URI_SECOND_PART)
     default E addIfAbsentByCriteria(@RequestBody E entity, @ModelAttribute C criteria) {
         return getService().addIfAbsentByCriteria(entity, criteria);
     }
 
+    /**
+     * 当唯一列组合不存在时新增实体，若已存在则不操作
+     *
+     * @param entity        待新增的实体对象
+     * @param uniqueColumns 唯一列名称列表，用于检查唯一性约束
+     * @return 新增后的实体（含自增主键等回填字段），若已存在则返回已存在的实体
+     * @apiNote POST 请求，body 为实体 JSON，唯一列通过路径参数传递。
+     */
     @Override
     @PostMapping(ADD_IF_ABSENT_BY_COLUMNS_URI_SECOND_PART)
     default E addIfAbsentByColumns(@RequestBody E entity, @PathVariable("uniqueColumns") List<String> uniqueColumns) {
         return getService().addIfAbsentByColumns(entity, uniqueColumns);
     }
 
+    /**
+     * 批量按条件不存在时新增，跳过条件已存在的实体
+     *
+     * @param entities 待新增的实体列表
+     * @param criteria 查询条件，用于判断记录是否已存在
+     * @return 影响行数，即实际新增的记录数
+     * @apiNote POST 请求，body 为实体 JSON 数组，条件通过 query string 传递。
+     */
     @Override
     @PostMapping(ADD_BATCH_IF_ABSENT_BY_CRITERIA_URI_SECOND_PART)
     default Integer addBatchIfAbsentByCriteria(@RequestBody List<E> entities, @ModelAttribute C criteria) {
         return getService().addBatchIfAbsentByCriteria(entities, criteria);
     }
 
+    /**
+     * 批量按唯一列不存在时新增，跳过唯一列已存在的实体
+     *
+     * @param entities      待新增的实体列表
+     * @param uniqueColumns 唯一列名称列表，用于检查唯一性约束
+     * @return 影响行数，即实际新增的记录数
+     * @apiNote POST 请求，body 为实体 JSON 数组，唯一列通过路径参数传递。
+     */
     @Override
     @PostMapping(ADD_BATCH_IF_ABSENT_BY_COLUMNS_URI_SECOND_PART)
     default Integer addBatchIfAbsentByColumns(@RequestBody List<E> entities,
@@ -270,18 +317,42 @@ public interface IV2Controller<
         return getService().addBatchIfAbsentByColumns(entities, uniqueColumns);
     }
 
+    /**
+     * 存在则更新，不存在则新增
+     *
+     * @param entity   待新增或更新的实体对象
+     * @param criteria 查询条件，用于判断记录是否存在
+     * @return 操作结果，{@code true} 表示执行成功
+     * @apiNote POST 请求，body 为实体 JSON，条件通过 query string 传递。
+     */
     @Override
     @PostMapping(ADD_OR_UPDATE_BY_CRITERIA_URI_SECOND_PART)
     default Boolean addOrUpdateByCriteria(@RequestBody E entity, @ModelAttribute C criteria) {
         return getService().addOrUpdateByCriteria(entity, criteria);
     }
 
+    /**
+     * 按唯一列判断：存在则更新，不存在则新增
+     *
+     * @param entity        待新增或更新的实体对象
+     * @param uniqueColumns 唯一列名称列表
+     * @return 新增或更新后的实体
+     * @apiNote POST 请求，body 为实体 JSON，唯一列通过路径参数传递。
+     */
     @Override
     @PostMapping(ADD_OR_UPDATE_BY_COLUMNS_URI_SECOND_PART)
     default E addOrUpdateByColumns(@RequestBody E entity, @PathVariable("uniqueColumns") List<String> uniqueColumns) {
         return getService().addOrUpdateByColumns(entity, uniqueColumns);
     }
 
+    /**
+     * 批量按唯一列新增或更新：已存在的更新，不存在的插入
+     *
+     * @param entities      待新增或更新的实体列表
+     * @param uniqueColumns 唯一列名称列表
+     * @return 影响行数
+     * @apiNote POST 请求，body 为实体 JSON 数组，唯一列通过路径参数传递。
+     */
     @Override
     @PostMapping(ADD_OR_UPDATE_BATCH_BY_COLUMNS_URI_SECOND_PART)
     default Integer addOrUpdateBatchByColumns(@RequestBody List<E> entities,
@@ -306,12 +377,26 @@ public interface IV2Controller<
         return getService().deleteById(id);
     }
 
+    /**
+     * 批量根据主键删除
+     *
+     * @param ids 主键值集合
+     * @return 是否删除成功
+     * @apiNote DELETE 请求。
+     */
     @Override
     @DeleteMapping(DELETE_BY_IDS_URI_SECOND_PART)
     default Boolean deleteByIds(@PathVariable("ids") Collection<Serializable> ids) {
         return getService().deleteByIds(ids);
     }
 
+    /**
+     * 根据条件删除
+     *
+     * @param criteria 删除条件对象
+     * @return 是否删除成功
+     * @apiNote DELETE 请求，条件通过 query string 传递。
+     */
     @Override
     @DeleteMapping(DELETE_BY_CRITERIA_URI_SECOND_PART)
     default Boolean deleteByCriteria(@ModelAttribute C criteria) {
@@ -335,30 +420,64 @@ public interface IV2Controller<
         return getService().updateById(entity);
     }
 
+    /**
+     * 根据主键更新所有字段（含 null 值字段）
+     *
+     * @param entity 待更新的实体（主键必须存在，null 字段也会被更新）
+     * @return 是否更新成功
+     * @apiNote PUT 请求，body 为实体 JSON。
+     */
     @Override
     @PutMapping(UPDATE_ALL_COLUMNS_BY_ID_URI_SECOND_PART)
     default Boolean updateAllColumnsById(@RequestBody E entity) {
         return getService().updateAllColumnsById(entity);
     }
 
+    /**
+     * 根据主键更新，不存在则抛异常
+     *
+     * @param entity 待更新的实体（主键必须存在）
+     * @apiNote PUT 请求，body 为实体 JSON。若主键对应的记录不存在则抛出异常。
+     */
     @Override
     @PutMapping(UPDATE_BY_ID_OR_EXCEPTION_URI_SECOND_PART)
     default void updateByIdOrException(@RequestBody E entity) {
         getService().updateByIdOrException(entity);
     }
 
+    /**
+     * 根据条件更新（仅更新非 null 字段）
+     *
+     * @param entity   包含待更新字段的实体（null 字段不会被更新）
+     * @param criteria 更新条件
+     * @return 是否更新成功
+     * @apiNote PUT 请求，body 为实体 JSON，条件通过 query string 传递。
+     */
     @Override
     @PutMapping(UPDATE_BY_CRITERIA_URI_SECOND_PART)
     default Boolean updateByCriteria(@RequestBody E entity, @ModelAttribute C criteria) {
         return getService().updateByCriteria(entity, criteria);
     }
 
+    /**
+     * 根据条件更新，不存在则抛异常
+     *
+     * @param entity   包含待更新字段的实体
+     * @param criteria 更新条件
+     * @apiNote PUT 请求，body 为实体 JSON，条件通过 query string 传递。若无符合条件的记录则抛出异常。
+     */
     @Override
     @PutMapping(UPDATE_BY_CRITERIA_OR_EXCEPTION_URI_SECOND_PART)
     default void updateByCriteriaOrException(@RequestBody E entity, @ModelAttribute C criteria) {
         getService().updateByCriteriaOrException(entity, criteria);
     }
 
+    /**
+     * 批量新增/更新/删除
+     *
+     * @param batchSave 批量操作对象，包含新增、更新、删除的实体列表及操作类型
+     * @apiNote POST 请求，body 为 {@link BatchSave} JSON 对象。
+     */
     @Override
     @PostMapping(BATCH_SAVE_URI_SECOND_PART)
     default void batchSave(@RequestBody BatchSave<E> batchSave) {
@@ -382,24 +501,52 @@ public interface IV2Controller<
         return getService().getById(id);
     }
 
+    /**
+     * 根据主键查询，不存在则抛异常
+     *
+     * @param id 主键值
+     * @return 实体对象
+     * @apiNote GET 请求。若主键对应的记录不存在则抛出异常。
+     */
     @Override
     @GetMapping(GET_BY_ID_OR_EXCEPTION_URI_SECOND_PART)
     default E getByIdOrException(@PathVariable("id") Serializable id) {
         return getService().getByIdOrException(id);
     }
 
+    /**
+     * 根据条件查询单条记录
+     *
+     * @param criteria 查询条件对象
+     * @return 实体对象，不存在则返回 {@code null}，存在多条时返回第一条
+     * @apiNote GET 请求，条件通过 query string 传递。
+     */
     @Override
     @GetMapping(GET_BY_CRITERIA_URI_SECOND_PART)
     default E getByCriteria(@ModelAttribute C criteria) {
         return getService().getByCriteria(criteria);
     }
 
+    /**
+     * 根据条件查询单条记录，存在多条时输出 warn 日志
+     *
+     * @param criteria 查询条件对象
+     * @return 实体对象，不存在则返回 {@code null}，存在多条时返回第一条并输出 warn 日志
+     * @apiNote GET 请求，条件通过 query string 传递。
+     */
     @Override
     @GetMapping(GET_BY_CRITERIA_OR_WARN_URI_SECOND_PART)
     default E getByCriteriaOrWarn(@ModelAttribute C criteria) {
         return getService().getByCriteriaOrWarn(criteria);
     }
 
+    /**
+     * 根据条件查询单条记录，不存在或存在多条时抛异常
+     *
+     * @param criteria 查询条件对象
+     * @return 唯一的实体对象
+     * @apiNote GET 请求，条件通过 query string 传递。若不存在或存在多条记录则抛出异常。
+     */
     @Override
     @GetMapping(GET_BY_CRITERIA_OR_EXCEPTION_URI_SECOND_PART)
     default E getByCriteriaOrException(@ModelAttribute C criteria) {
@@ -432,30 +579,64 @@ public interface IV2Controller<
         return getService().findPageByCriteria(criteria);
     }
 
+    /**
+     * 查询全部记录
+     *
+     * @return 实体列表
+     * @apiNote GET 请求。注意：当数据量大时可能引起性能问题。
+     */
     @Override
     @GetMapping(FIND_ALL_URI_SECOND_PART)
     default List<E> findAll() {
         return getService().findAll();
     }
 
+    /**
+     * 根据条件统计数量
+     *
+     * @param criteria 查询条件对象
+     * @return 符合条件的记录数量
+     * @apiNote GET 请求，条件通过 query string 传递。
+     */
     @Override
     @GetMapping(COUNT_BY_CRITERIA_URI_SECOND_PART)
     default Integer countByCriteria(@ModelAttribute C criteria) {
         return getService().countByCriteria(criteria);
     }
 
+    /**
+     * 统计总记录数
+     *
+     * @return 总记录数
+     * @apiNote GET 请求。
+     */
     @Override
     @GetMapping(COUNT_ALL_URI_SECOND_PART)
     default Integer countAll() {
         return getService().countAll();
     }
 
+    /**
+     * 根据主键判断记录是否存在
+     *
+     * @param id 主键值
+     * @return {@code true} 表示存在，{@code false} 表示不存在
+     * @apiNote GET 请求。
+     */
     @Override
     @GetMapping(IS_PRESENT_BY_ID_URI_SECOND_PART)
     default Boolean isPresentById(@PathVariable("id") Serializable id) {
         return getService().isPresentById(id);
     }
 
+    /**
+     * 根据列值判断记录是否存在
+     *
+     * @param columnName 列名
+     * @param value      列值
+     * @return {@code true} 表示存在，{@code false} 表示不存在
+     * @apiNote GET 请求，列名和值通过路径参数传递。
+     */
     @Override
     @GetMapping(IS_PRESENT_BY_COLUMN_URI_SECOND_PART)
     default Boolean isPresentByColumn(@PathVariable("columnName") String columnName,
@@ -463,12 +644,27 @@ public interface IV2Controller<
         return getService().isPresentByColumn(columnName, value);
     }
 
+    /**
+     * 根据条件判断记录是否存在
+     *
+     * @param criteria 查询条件对象
+     * @return {@code true} 表示存在，{@code false} 表示不存在
+     * @apiNote GET 请求，条件通过 query string 传递。
+     */
     @Override
     @GetMapping(IS_PRESENT_BY_CRITERIA_URI_SECOND_PART)
     default Boolean isPresentByCriteria(@ModelAttribute C criteria) {
         return getService().isPresentByCriteria(criteria);
     }
 
+    /**
+     * 根据列值判断记录是否不存在
+     *
+     * @param columnName 列名
+     * @param value      列值
+     * @return {@code true} 表示不存在，{@code false} 表示存在
+     * @apiNote GET 请求，列名和值通过路径参数传递。
+     */
     @Override
     @GetMapping(IS_ABSENT_BY_COLUMN_URI_SECOND_PART)
     default Boolean isAbsentByColumn(@PathVariable("columnName") String columnName,
@@ -476,18 +672,37 @@ public interface IV2Controller<
         return getService().isAbsentByColumn(columnName, value);
     }
 
+    /**
+     * 根据条件判断记录是否不存在
+     *
+     * @param criteria 查询条件对象
+     * @return {@code true} 表示不存在，{@code false} 表示存在
+     * @apiNote GET 请求，条件通过 query string 传递。
+     */
     @Override
     @GetMapping(IS_ABSENT_BY_CRITERIA_URI_SECOND_PART)
     default Boolean isAbsentByCriteria(@ModelAttribute C criteria) {
         return getService().isAbsentByCriteria(criteria);
     }
 
+    /**
+     * 条件存在时抛异常
+     *
+     * @param criteria 查询条件对象
+     * @apiNote GET 请求，条件通过 query string 传递。若存在符合条件的记录则抛出异常。
+     */
     @Override
     @GetMapping(EXCEPTION_IF_PRESENT_BY_CRITERIA_URI_SECOND_PART)
     default void exceptionIfPresentByCriteria(@ModelAttribute C criteria) {
         getService().exceptionIfPresentByCriteria(criteria);
     }
 
+    /**
+     * 条件不存在时抛异常
+     *
+     * @param criteria 查询条件对象
+     * @apiNote GET 请求，条件通过 query string 传递。若不存在符合条件的记录则抛出异常。
+     */
     @Override
     @GetMapping(EXCEPTION_IF_ABSENT_BY_CRITERIA_URI_SECOND_PART)
     default void exceptionIfAbsentByCriteria(@ModelAttribute C criteria) {

@@ -8,7 +8,6 @@ public record ZyplayerSpace(
         String name,
         Integer type,
         String spaceExplain,
-        String uuid,
-        Integer versionControl
+        String uuid
 ) {
 }

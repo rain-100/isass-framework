@@ -11,7 +11,7 @@ public record ZyplayerPage(
         String name,
         Long parentId,
         Integer editorType,
-        Integer editVersion,
+        Long editVersion,
         List<ZyplayerPage> children
 ) {
 }

@@ -10,7 +10,6 @@ import vip.isass.framework.apidoc.zyplayer.client.ZyplayerPage;
 import vip.isass.framework.apidoc.zyplayer.client.ZyplayerPageContent;
 import vip.isass.framework.apidoc.zyplayer.client.ZyplayerSpace;
 import vip.isass.framework.apidoc.zyplayer.client.ZyplayerSpaceGroup;
-import vip.isass.framework.apidoc.zyplayer.client.ZyplayerSpaceVersion;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -82,7 +81,7 @@ public class ZyplayerDocSyncService {
                 skippedPages++;
                 continue;
             }
-            ZyplayerPage savedPage = upsertPageWithRetry(spaceState.space().id(), parentId, descriptor, document, remotePage, hash);
+            ZyplayerPage savedPage = upsertPage(spaceState.space().id(), parentId, descriptor, document, remotePage, hash);
             if (remotePage == null) {
                 createdPages++;
             } else {
@@ -103,7 +102,6 @@ public class ZyplayerDocSyncService {
             }
             deletedPages += deleteEmptyObsoleteFolders(spaceState.space().id(), documents);
         }
-        ensureSpaceVersion(spaceState.space(), descriptor, !spaceState.created());
         return new ZyplayerSyncResult(spaceState.created() ? 1 : 0, createdPages, updatedPages, skippedPages, deletedPages);
     }
 
@@ -214,34 +212,6 @@ public class ZyplayerDocSyncService {
         return names.reversed();
     }
 
-    private ZyplayerPage upsertPageWithRetry(
-            Long spaceId,
-            Long parentId,
-            ZyplayerServiceDescriptor descriptor,
-            ZyplayerSyncDocument document,
-            PageState remotePage,
-            String hash) {
-        try {
-            return upsertPage(spaceId, parentId, descriptor, document, remotePage, hash);
-        } catch (ZyplayerOpenApiException e) {
-            if (!isStaleEditVersion(e)) {
-                throw e;
-            }
-            PageState latestPage = loadPageStates(spaceId).stream()
-                    .filter(page -> page.marker() != null)
-                    .filter(page -> descriptor.applicationName().equals(page.marker().service()))
-                    .filter(page -> document.id().equals(page.marker().id()))
-                    .findFirst()
-                    .orElseThrow(() -> e);
-            return upsertPage(spaceId, parentId, descriptor, document, latestPage, hash);
-        }
-    }
-
-    private boolean isStaleEditVersion(ZyplayerOpenApiException e) {
-        String message = e.getMessage();
-        return message != null && (message.contains("版本已过期") || message.contains("已被更新"));
-    }
-
     private Long ensureFolderPath(
             Long spaceId,
             List<String> folderPath,
@@ -286,7 +256,6 @@ public class ZyplayerDocSyncService {
         payload.put("uuid", descriptor.spaceUuid());
         payload.put("type", 1);
         payload.put("spaceExplain", descriptor.applicationName() + " API docs synced by isass");
-        payload.put("versionControl", 1);
         if (groupId != null) {
             payload.put("groupId", groupId);
         }
@@ -350,45 +319,6 @@ public class ZyplayerDocSyncService {
             LOGGER.warn("zyplayer space group sync skipped: {}", e.getMessage());
             return null;
         }
-    }
-
-    private Long ensureSpaceVersion(ZyplayerSpace space, ZyplayerServiceDescriptor descriptor, boolean existingSpace) {
-        if (space == null) {
-            return null;
-        }
-        if (existingSpace) {
-            try {
-                Optional<ZyplayerSpaceVersion> existingVersion = client.listSpaceVersions(space.id()).stream()
-                        .filter(item -> descriptor.version().equals(item.versionName()))
-                        .findFirst();
-                if (existingVersion.isPresent()) {
-                    return existingVersion.get().id();
-                }
-            } catch (ZyplayerOpenApiException e) {
-                LOGGER.warn("zyplayer space version query failed, skip creating version for existing space to avoid duplicates: {}",
-                        e.getMessage());
-                return null;
-            }
-        }
-        try {
-            Map<String, Object> payload = new LinkedHashMap<>();
-            payload.put("spaceId", space.id());
-            payload.put("versionName", descriptor.version());
-            ZyplayerSpaceVersion version = client.createSpaceVersion(payload);
-            return version == null ? null : version.id();
-        } catch (ZyplayerOpenApiException e) {
-            if (isDuplicateVersion(e)) {
-                LOGGER.info("zyplayer space version already exists: {}", descriptor.version());
-                return null;
-            }
-            LOGGER.warn("zyplayer space version sync skipped: {}", e.getMessage());
-            return null;
-        }
-    }
-
-    private boolean isDuplicateVersion(ZyplayerOpenApiException e) {
-        String message = e.getMessage();
-        return message != null && (message.contains("已存在") || message.contains("重复") || message.contains("duplicate"));
     }
 
     private boolean isDuplicateSpaceUuid(ZyplayerOpenApiException e) {
