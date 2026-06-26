@@ -57,13 +57,14 @@ V2 架构是 isass-framework-v4 提供的"无代码（NoCode）"快速 CRUD 开�
 
 ### 1.3 核心模块职责
 
+> **nocode 设计原则**：`isass-nocode-core` 是 nocode 的整合层，同时依赖 Spring Web MVC 和 MyBatis-Plus，将两者封装为无代码编程体验。业务微服务只需依赖 `isass-nocode-core` 即可获得完整的 nocode 能力（Controller + Service + Repository + ORM），无需单独依赖 `isass-web-springmvc` 或 `isass-database-mybatisplus`。
+
 | 模块 | 包路径 | 职责 |
 |------|--------|------|
-| `isass-nocode-core` | `vip.isass.framework.nocode.v2` | 定义所有 V2 接口：Service、ServiceManager、LocalService、Repository、Entity、Criteria |
-| `isass-core-common` | `vip.isass.framework.common.structure` | 与 nocode-core 平行的接口副本，供 core-common 包内使用 |
-| `isass-web-springmvc` | `vip.isass.framework.web.structure.IV2Controller` | 将 V2 接口映射为 Spring MVC REST 端点 |
-| `isass-database-mybatisplus` | `vip.isass.framework.database.mybatisplus.plus` | 提供 MyBatis-Plus 实现的 IV2Repository |
-| `isass-service-attachment` | `vip.isass.attachment.api` + `.service` + `.controller` | 附件微服务的 V2 完整实现示例 |
+| `isass-nocode-core` | `vip.isass.framework.nocode.v2` | **nocode 整合层**：定义 V2 全部接口和实现（Service/ServiceManager/LocalService/Repository/Entity/Criteria），同时包含 Spring MVC Controller 和 MyBatis-Plus ORM 实现，业务只需依赖此模块 |
+| `isass-web-springmvc` | `vip.isass.framework.web` | 提供底层 Spring MVC 能力（WebMvcConfigurer、拦截器、异常处理等），作为 nocode 的 MVC 基础设施 |
+| `isass-database-mybatisplus` | `vip.isass.framework.database.mybatisplus` | 提供底层 MyBatis-Plus 能力（Mapper、TypeHandler、配置等），作为 nocode 的 ORM 基础设施 |
+| `isass-service-attachment` | `vip.isass.attachment` | 附件微服务的 V2 完整实现示例 |
 
 ---
 
