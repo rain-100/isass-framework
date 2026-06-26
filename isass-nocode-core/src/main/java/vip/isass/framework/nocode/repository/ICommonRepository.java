@@ -169,7 +169,7 @@
 
 package vip.isass.framework.nocode.repository;
 
-import vip.isass.framework.common.entity.IdEntity;
+import vip.isass.framework.nocode.v2.entity.IV2IdEntity;
 
 import java.io.Serializable;
 import java.util.List;
@@ -188,7 +188,7 @@ public interface ICommonRepository {
      * @param <E>                实体类型
      * @return
      */
-    <PK extends Serializable, E extends IdEntity<PK, E>>
+    <PK extends Serializable, E extends IV2IdEntity<PK, E>>
     List<E> findAllSubRecords(Class<E> entityClass,
                               String idColumnName,
                               String parentIdColumnName,

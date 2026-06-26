@@ -175,7 +175,6 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.AbstractWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
-import vip.isass.framework.common.criteria.IPageCriteria;
 import vip.isass.framework.nocode.v2.criteria.IV2Criteria;
 import vip.isass.framework.nocode.v2.criteria.V2WhereCondition;
 import vip.isass.framework.nocode.v2.criteria.type.IV2OrderByCriteria;
@@ -319,9 +318,9 @@ public class V2WrapperUtil {
                     wrapper.orderByAsc(orderByColumnArr[0]);
                     break;
                 case 2:
-                    if (IPageCriteria.ASC.equalsIgnoreCase(orderByColumnArr[1])) {
+                    if (IV2OrderByCriteria.ASC.equalsIgnoreCase(orderByColumnArr[1])) {
                         wrapper.orderByAsc(orderByColumnArr[0]);
-                    } else if (IPageCriteria.DESC.equalsIgnoreCase(orderByColumnArr[1])) {
+                    } else if (IV2OrderByCriteria.DESC.equalsIgnoreCase(orderByColumnArr[1])) {
                         wrapper.orderByDesc(orderByColumnArr[0]);
                     } else {
                         throw new IllegalArgumentException("orderBy 参数错误：" + orderByColumn);

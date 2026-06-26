@@ -13,7 +13,6 @@ import vip.isass.framework.adapter.springboot.database.IsassDatabaseSpringBootAu
 import vip.isass.framework.adapter.springboot.converter.IsassSpringConverterAdapter;
 import vip.isass.framework.adapter.springboot.destroy.AutoDestroyManager;
 import vip.isass.framework.adapter.springboot.mq.IsassMqSpringBootAutoConfiguration;
-import vip.isass.framework.common.entity.DbEntityConvert;
 import vip.isass.framework.common.exception.BuildInCoreExceptionMapping;
 import vip.isass.framework.common.exception.IExceptionMapping;
 import vip.isass.framework.common.log.slf4j.LogLevelManager;
@@ -190,15 +189,12 @@ class IsassSpringBootAutoConfigurationTest {
     }
 
     @Test
-    void registersDbEntityConvertersWithConfiguredPackageName() {
+    void registersV2DbEntityConverterWithConfiguredPackageName() {
         new ApplicationContextRunner()
                 .withConfiguration(AutoConfigurations.of(IsassSpringBootAutoConfiguration.class))
                 .withPropertyValues("info.package=vip.isass.test")
                 .run(context -> {
-                    assertThat(context).hasSingleBean(DbEntityConvert.class);
                     assertThat(context).hasSingleBean(V2DbEntityConvert.class);
-                    assertThat(ReflectionTestUtils.getField(DbEntityConvert.class, "packageName"))
-                            .isEqualTo("vip.isass.test");
                     assertThat(ReflectionTestUtils.getField(V2DbEntityConvert.class, "packageName"))
                             .isEqualTo("vip.isass.test");
                 });

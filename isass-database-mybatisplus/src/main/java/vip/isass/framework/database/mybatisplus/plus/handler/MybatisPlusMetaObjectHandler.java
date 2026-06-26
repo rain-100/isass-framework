@@ -172,10 +172,9 @@ package vip.isass.framework.database.mybatisplus.plus.handler;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
 import org.apache.ibatis.reflection.MetaObject;
-import vip.isass.framework.common.entity.LogicDeleteEntity;
-import vip.isass.framework.common.entity.TimeTracedEntity;
-import vip.isass.framework.common.entity.UserTracedEntity;
-import vip.isass.framework.common.entity.VersionEntity;
+import vip.isass.framework.nocode.v2.entity.IV2LogicDeleteEntity;
+import vip.isass.framework.nocode.v2.entity.IV2TraceEntity;
+import vip.isass.framework.nocode.v2.entity.IV2VersionEntity;
 import vip.isass.framework.common.login.LoginUser;
 import vip.isass.framework.common.login.LoginUserUtil;
 import vip.isass.framework.common.support.LocalDateTimeUtil;
@@ -188,9 +187,9 @@ public class MybatisPlusMetaObjectHandler implements MetaObjectHandler {
     @Override
     public void insertFill(MetaObject metaObject) {
         // version
-        Object version = getFieldValByName(VersionEntity.VERSION, metaObject);
+        Object version = getFieldValByName(IV2VersionEntity.VERSION_PROPERTY_NAME, metaObject);
         if (version == null) {
-            setFieldValByName(VersionEntity.VERSION, VersionEntity.DEFAULT_VERSION, metaObject);
+            setFieldValByName(IV2VersionEntity.VERSION_PROPERTY_NAME, IV2VersionEntity.DEFAULT_VERSION, metaObject);
         }
 
         LoginUser loginUser = LoginUserUtil.getLoginUser();
@@ -211,7 +210,7 @@ public class MybatisPlusMetaObjectHandler implements MetaObjectHandler {
 
         // createUserId
         setFieldValByName(
-                UserTracedEntity.CREATE_USER_ID_PROPERTY,
+                IV2TraceEntity.CREATE_USER_ID_PROPERTY_NAME,
                 loginUser == null
                         ? ""
                         : StrUtil.nullToEmpty(loginUser.getUserId()),
@@ -219,37 +218,37 @@ public class MybatisPlusMetaObjectHandler implements MetaObjectHandler {
 
         // createUserName
         setFieldValByName(
-                UserTracedEntity.CREATE_USER_NAME_PROPERTY,
+                IV2TraceEntity.CREATE_USER_NAME_PROPERTY_NAME,
                 loginUser == null
                         ? StrUtil.subPre(Thread.currentThread().getName(), 32)
                         : StrUtil.nullToEmpty(StrUtil.subPre(loginUser.getNickName(), 32)),
                 metaObject);
 
         // modifyUserId
-        setFieldValByName(UserTracedEntity.MODIFY_USER_ID_PROPERTY,
+        setFieldValByName(IV2TraceEntity.MODIFY_USER_ID_PROPERTY_NAME,
                 loginUser == null
                         ? ""
                         : StrUtil.nullToEmpty(loginUser.getUserId()),
                 metaObject);
 
         // modifyUserName
-        setFieldValByName(UserTracedEntity.MODIFY_USER_NAME_PROPERTY,
+        setFieldValByName(IV2TraceEntity.MODIFY_USER_NAME_PROPERTY_NAME,
                 loginUser == null
                         ? StrUtil.subPre(Thread.currentThread().getName(), 32)
                         : StrUtil.nullToEmpty(StrUtil.subPre(loginUser.getNickName(), 32)),
                 metaObject);
 
         // createTime
-        Object createTime = getFieldValByName(TimeTracedEntity.CREATED_TIME_PROPERTY, metaObject);
+        Object createTime = getFieldValByName(IV2TraceEntity.CREATED_TIME_PROPERTY_NAME, metaObject);
         if (createTime == null) {
-            setFieldValByName(TimeTracedEntity.CREATED_TIME_PROPERTY, LocalDateTimeUtil.now(), metaObject);
+            setFieldValByName(IV2TraceEntity.CREATED_TIME_PROPERTY_NAME, LocalDateTimeUtil.now(), metaObject);
         }
 
         // modifyTime
-        setFieldValByName(TimeTracedEntity.MODIFY_TIME_PROPERTY, LocalDateTimeUtil.now(), metaObject);
+        setFieldValByName(IV2TraceEntity.MODIFY_TIME_PROPERTY_NAME, LocalDateTimeUtil.now(), metaObject);
 
         // delete_flag
-        setFieldValByName(LogicDeleteEntity.DELETE_FLAG_PROPERTY, LogicDeleteEntity.DEFAULT_DELETE_FLAG, metaObject);
+        setFieldValByName(IV2LogicDeleteEntity.DELETE_FLAG_PROPERTY_NAME, IV2LogicDeleteEntity.DEFAULT_DELETE_FLAG_VALUE, metaObject);
 
     }
 
@@ -258,21 +257,21 @@ public class MybatisPlusMetaObjectHandler implements MetaObjectHandler {
         LoginUser loginUser = LoginUserUtil.getLoginUser();
 
         // modifyUserId
-        setFieldValByName(UserTracedEntity.MODIFY_USER_ID_PROPERTY,
+        setFieldValByName(IV2TraceEntity.MODIFY_USER_ID_PROPERTY_NAME,
                 loginUser == null
                         ? ""
                         : StrUtil.nullToEmpty(loginUser.getUserId()),
                 metaObject);
 
         // modifyUserName
-        setFieldValByName(UserTracedEntity.MODIFY_USER_NAME_PROPERTY,
+        setFieldValByName(IV2TraceEntity.MODIFY_USER_NAME_PROPERTY_NAME,
                 loginUser == null
                         ? StrUtil.subPre(Thread.currentThread().getName(), 32)
                         : StrUtil.nullToEmpty(loginUser.getNickName()),
                 metaObject);
 
         // modifyTime
-        setFieldValByName(TimeTracedEntity.MODIFY_TIME_PROPERTY, LocalDateTimeUtil.now(), metaObject);
+        setFieldValByName(IV2TraceEntity.MODIFY_TIME_PROPERTY_NAME, LocalDateTimeUtil.now(), metaObject);
 
     }
 }

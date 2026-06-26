@@ -170,7 +170,7 @@
 package vip.isass.framework.nocode.repository;
 
 import cn.hutool.core.lang.Assert;
-import vip.isass.framework.common.entity.IdEntity;
+import vip.isass.framework.nocode.v2.entity.IV2IdEntity;
 import vip.isass.framework.nocode.repository.ICommonRepository;
 
 import java.io.Serializable;
@@ -189,7 +189,7 @@ public class CommonServiceImpl implements ICommonService {
     }
 
     @Override
-    public <PK extends Serializable, E extends IdEntity<PK, E>> List<E> findAllSubRecords(Class<E> entityClass,
+    public <PK extends Serializable, E extends IV2IdEntity<PK, E>> List<E> findAllSubRecords(Class<E> entityClass,
                                                                                           String idColumnName,
                                                                                           String parentIdColumnName,
                                                                                           PK id,

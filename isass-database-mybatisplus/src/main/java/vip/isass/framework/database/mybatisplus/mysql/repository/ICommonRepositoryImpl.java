@@ -175,8 +175,8 @@ import com.baomidou.mybatisplus.core.metadata.TableFieldInfo;
 import com.baomidou.mybatisplus.core.metadata.TableInfo;
 import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
 import vip.isass.framework.database.mybatisplus.mysql.mapper.ICommonMapper;
-import vip.isass.framework.common.entity.DbEntityConvert;
-import vip.isass.framework.common.entity.IdEntity;
+import vip.isass.framework.nocode.v2.entity.IV2IdEntity;
+import vip.isass.framework.nocode.v2.entity.V2DbEntityConvert;
 import vip.isass.framework.nocode.repository.ICommonRepository;
 
 import java.io.Serializable;
@@ -194,13 +194,13 @@ public class ICommonRepositoryImpl implements ICommonRepository {
 
 
     @Override
-    public <PK extends Serializable, E extends IdEntity<PK, E>> List<E>
+    public <PK extends Serializable, E extends IV2IdEntity<PK, E>> List<E>
     findAllSubRecords(Class<E> entityClass,
                       String idColumnName,
                       String parentIdColumnName,
                       PK id,
                       boolean returnIdRecord) {
-        Class<?> edbClass = DbEntityConvert.getDbEntityClass(entityClass);
+        Class<?> edbClass = V2DbEntityConvert.getDbEntityClass(entityClass);
         TableInfo tableInfo = TableInfoHelper.getTableInfo(edbClass);
         String logicDeleteSql = tableInfo.getLogicDeleteSql(false, true);
         Assert.notNull(tableInfo, "解析不到[{}]的tableInfo", entityClass.getName());

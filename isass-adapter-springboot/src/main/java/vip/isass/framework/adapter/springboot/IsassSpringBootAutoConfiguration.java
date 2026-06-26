@@ -11,7 +11,6 @@ import vip.isass.framework.adapter.springboot.converter.IsassSpringConverterAdap
 import vip.isass.framework.adapter.springboot.destroy.AutoDestroyManager;
 import vip.isass.framework.adapter.springboot.log.SpringBootLogLevelManager;
 import vip.isass.framework.adapter.springboot.support.SpringBeanProvider;
-import vip.isass.framework.common.entity.DbEntityConvert;
 import vip.isass.framework.common.exception.BuildInCoreExceptionMapping;
 import vip.isass.framework.common.log.slf4j.LogLevelManager;
 import vip.isass.framework.common.log.slf4j.LogUtil;
@@ -46,14 +45,6 @@ public class IsassSpringBootAutoConfiguration {
     @ConditionalOnMissingBean
     public AutoDestroyManager autoDestroyManager() {
         return new AutoDestroyManager();
-    }
-
-    @Bean
-    @ConditionalOnMissingBean
-    public DbEntityConvert dbEntityConvert(@Value("${info.package:}") String packageName) {
-        DbEntityConvert converter = new DbEntityConvert();
-        converter.setPackageName(packageName);
-        return converter;
     }
 
     @Bean

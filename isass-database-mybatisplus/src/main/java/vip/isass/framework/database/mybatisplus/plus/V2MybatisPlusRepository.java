@@ -188,7 +188,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import vip.isass.framework.database.mybatisplus.mapper.IMapper;
-import vip.isass.framework.common.entity.SensitiveDataProperty;
+import vip.isass.framework.nocode.SensitiveDataProperty;
 import vip.isass.framework.common.exception.AbsentException;
 import vip.isass.framework.common.exception.AlreadyPresentException;
 import vip.isass.framework.common.exception.code.StatusMessageEnum;
