@@ -167,86 +167,48 @@
  *
  */
 
-package vip.isass.framework.nocode.v3.entity;
+package vip.isass.framework.nocode.v3.generator;
 
-import cn.hutool.core.util.RandomUtil;
-import vip.isass.framework.common.support.LocalDateTimeUtil;
-import vip.isass.framework.common.support.SystemClock;
-
-import java.io.Serializable;
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.concurrent.ThreadLocalRandom;
+import com.baomidou.mybatisplus.generator.config.rules.IColumnType;
+import lombok.Getter;
 
 /**
  * @author Rain
  */
-public interface IV3Entity<E extends IV3Entity<E>> extends Serializable, IAnyJsonEntity {
+public enum ExtDbColumnType implements IColumnType {
 
-    long serialVersionUID = 1L;
-
-    /**
-     * 数据库表名。非空时直接使用，为空时由框架按规则拼接。
-     * 例如不规则命名：{@code override tableName() { return "t_app_icon"; }}
-     */
-    default String tableName() {
-        return "";
-    }
-
-    default String randomString() {
-        return RandomUtil.randomString(6);
-    }
-
-    default Byte randomByte() {
-        return (byte) RandomUtil.randomInt(Byte.MAX_VALUE);
-    }
-
-    default Boolean randomBoolean() {
-        return RandomUtil.randomBoolean();
-    }
-
-    default Integer randomInteger() {
-        return RandomUtil.randomInt();
-    }
-
-    default Long randomLong() {
-        return RandomUtil.randomLong();
-    }
-
-    default Float randomFloat() {
-        return ThreadLocalRandom.current().nextFloat();
-    }
-
-    default Double randomDouble() {
-        return RandomUtil.randomDouble();
-    }
-
-    default BigDecimal randomBigDecimal() {
-        return RandomUtil.randomBigDecimal(BigDecimal.TEN);
-    }
-
-    default LocalDateTime randomLocalDateTime() {
-        return LocalDateTimeUtil.now();
-    }
-
-    default LocalDate randomLocalDate() {
-        return LocalDateTimeUtil.nowLocalDate();
-    }
-
-    default LocalTime randomLocalTime() {
-        return LocalDateTimeUtil.nowLocalTime();
-    }
-
-    default Long randomLongTimestamp() {
-        return SystemClock.now() - randomInteger();
-    }
+    SHORT_ARRAY("Short[]", null),
+    INTEGER_ARRAY("Integer[]", null),
+    LONG_ARRAY("Long[]", null),
+    BIG_DECIMAL_ARRAY("BigDecimal[]", null),
+    BOOLEAN_ARRAY("Boolean[]", null),
+    STRING_ARRAY("String[]", null),
+    STRING_COLLECTION("Collection<String>", null),
+    DATE_ARRAY("Date[]", null),
+    DATE_SQL_ARRAY("Date[]", "java.sql.Date"),
+    LOCAL_DATE_ARRAY("LocalDate[]", "java.time.LocalDate"),
+    TIMESTAMP_ARRAY("Timestamp[]", "java.sql.Timestamp"),
+    LOCAL_DATE_TIME_ARRAY("LocalDateTime[]", "java.time.LocalDateTime"),
+    TIME_ARRAY("Time[]", "java.sql.Time"),
+    LOCAL_TIME_ARRAY("LocalTime[]", "java.time.LocalTime"),
+    JSON("JsonNode", "com.fasterxml.jackson.databind.JsonNode"),
+    JSON_ARRAY("JsonNode[]", "com.fasterxml.jackson.databind.JsonNode");
 
     /**
-     * 生成随机的entity
-     * 所有字段都随机赋值
+     * 类型
      */
-    E randomEntity();
+    @Getter
+    private final String type;
+
+    /**
+     * 包路径
+     */
+    @Getter
+    private final String pkg;
+
+    ExtDbColumnType(final String type, final String pkg) {
+        this.type = type;
+        this.pkg = pkg;
+    }
 
 }

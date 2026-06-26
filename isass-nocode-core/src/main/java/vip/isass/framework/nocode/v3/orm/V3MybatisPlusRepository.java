@@ -194,15 +194,8 @@ import vip.isass.framework.common.exception.AlreadyPresentException;
 import vip.isass.framework.common.exception.code.StatusMessageEnum;
 import vip.isass.framework.nocode.v3.criteria.IV3Criteria;
 import vip.isass.framework.nocode.v3.criteria.type.IV3PageCriteria;
-import vip.isass.framework.nocode.v3.entity.IV3DbEntity;
 import vip.isass.framework.nocode.v3.entity.IV3Entity;
 import vip.isass.framework.nocode.v3.entity.IV3IdEntity;
-import vip.isass.framework.nocode.v3.entity.IV3LogicDeleteEntity;
-import vip.isass.framework.nocode.v3.entity.IV3ParentIdEntity;
-import vip.isass.framework.nocode.v3.entity.IV3TenantEntity;
-import vip.isass.framework.nocode.v3.entity.IV3TraceEntity;
-import vip.isass.framework.nocode.v3.entity.IV3VersionEntity;
-import vip.isass.framework.nocode.v3.entity.V3DbEntityConvert;
 import vip.isass.framework.nocode.v3.repository.IV3Repository;
 
 import java.io.Serializable;
@@ -212,7 +205,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * @author Rain
@@ -220,24 +212,21 @@ import java.util.stream.Collectors;
 @Slf4j
 public abstract class V3MybatisPlusRepository<
         E extends IV3Entity<E>,
-        EDB extends IV3DbEntity<E, EDB>,
         C extends IV3Criteria<E, C>,
-        M extends BaseMapper<EDB>
+        M extends BaseMapper<E>
         >
-        extends ServiceImpl<M, EDB>
+        extends ServiceImpl<M, E>
         implements IV3Repository<E, C> {
 
     @SuppressWarnings("unchecked")
-    protected Class<EDB> currentModelClass() {
-        return (Class<EDB>) GenericTypeUtils.resolveTypeArguments(getClass(), V3MybatisPlusRepository.class)[1];
+    protected Class<E> currentEntityClass() {
+        return (Class<E>) GenericTypeUtils.resolveTypeArguments(getClass(), V3MybatisPlusRepository.class)[0];
     }
 
     // ****************************** 增 start ******************************
     @Override
     public boolean add(E entity) {
-        EDB edb = V3DbEntityConvert.convertToDbEntity(entity);
-        super.save(edb);
-        fillV3EntityProperties(entity, edb);
+        super.save(entity);
         return true;
     }
 
@@ -251,59 +240,8 @@ public abstract class V3MybatisPlusRepository<
         if (CollUtil.isEmpty(entities)) {
             return false;
         }
-        List<EDB> edbs = V3DbEntityConvert.convertToEdbEntities(entities);
-        super.saveBatch(edbs, batchSize);
-
-        int i = 0;
-        for (E entity : entities) {
-            fillV3EntityProperties(entity, edbs.get(i));
-            i++;
-        }
-
+        super.saveBatch(entities, batchSize);
         return true;
-    }
-
-    /**
-     * 保存到数据库后，自动赋值的字段，被赋值在 edb 中，需要复制到 entity 中
-     *
-     * @param entity entity
-     * @param edb    edb
-     */
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    private void fillV3EntityProperties(E entity, EDB edb) {
-        if (entity instanceof IV3IdEntity) {
-            ((IV3IdEntity) entity).setId(((IV3IdEntity) edb).getId());
-        }
-        if (entity instanceof IV3TraceEntity) {
-            IV3TraceEntity traceEntity = (IV3TraceEntity) entity;
-            IV3TraceEntity traceDbEntity = (IV3TraceEntity) edb;
-            traceEntity.setCreateTime(traceDbEntity.getCreateTime());
-            traceEntity.setCreateUserId(traceDbEntity.getCreateUserId());
-            traceEntity.setCreateUserName(traceDbEntity.getCreateUserName());
-            traceEntity.setModifyTime(traceDbEntity.getModifyTime());
-            traceEntity.setModifyUserId(traceDbEntity.getModifyUserId());
-            traceEntity.setModifyUserName(traceDbEntity.getModifyUserName());
-        }
-        if (entity instanceof IV3ParentIdEntity) {
-            IV3ParentIdEntity parentIdEntity = (IV3ParentIdEntity) entity;
-            IV3ParentIdEntity parentIdDbEntity = (IV3ParentIdEntity) edb;
-            parentIdEntity.setParentId(parentIdDbEntity.getParentId());
-        }
-        if (entity instanceof IV3LogicDeleteEntity) {
-            IV3LogicDeleteEntity logicDeleteEntity = (IV3LogicDeleteEntity) entity;
-            IV3LogicDeleteEntity logicDeleteDbEntity = (IV3LogicDeleteEntity) edb;
-            logicDeleteEntity.setDeleteFlag(logicDeleteDbEntity.getDeleteFlag());
-        }
-        if (entity instanceof IV3VersionEntity) {
-            IV3VersionEntity versionEntity = (IV3VersionEntity) entity;
-            IV3VersionEntity versionDbEntity = (IV3VersionEntity) edb;
-            versionEntity.setVersion(versionDbEntity.getVersion());
-        }
-        if (entity instanceof IV3TenantEntity) {
-            IV3TenantEntity tenantEntity = (IV3TenantEntity) entity;
-            IV3TenantEntity tenantDbEntity = (IV3TenantEntity) edb;
-            tenantEntity.setTenantId(tenantDbEntity.getTenantId());
-        }
     }
 
     @Override
@@ -318,7 +256,7 @@ public abstract class V3MybatisPlusRepository<
     @Override
     public E addOrUpdate(E entity, List<String> uniqueColumns) {
         Assert.notEmpty(uniqueColumns, "uniqueColumns");
-        QueryWrapper<EDB> wrapper = new QueryWrapper<>();
+        QueryWrapper<E> wrapper = new QueryWrapper<>();
         Map<String, Object> map = BeanUtil.beanToMap(
                 entity,
                 new HashMap<>(16),
@@ -344,7 +282,7 @@ public abstract class V3MybatisPlusRepository<
 
     public boolean addIfAbsentByColumns(E entity, List<String> uniqueColumns) {
         Assert.notEmpty(uniqueColumns, "uniqueColumns");
-        QueryWrapper<EDB> wrapper = new QueryWrapper<>();
+        QueryWrapper<E> wrapper = new QueryWrapper<>();
         Map<String, Object> map = BeanUtil.beanToMap(entity);
         for (String uniqueColumn : uniqueColumns) {
             Object value = map.get(StrUtil.toCamelCase(uniqueColumn));
@@ -363,9 +301,9 @@ public abstract class V3MybatisPlusRepository<
 
     @Override
     public boolean deleteById(Serializable id) {
-        Class<EDB> edbClass = currentModelClass();
+        Class<E> entityClass = currentEntityClass();
         Serializable realId = id;
-        TableInfo tableInfo = TableInfoHelper.getTableInfo(edbClass);
+        TableInfo tableInfo = TableInfoHelper.getTableInfo(entityClass);
         if (tableInfo != null && Number.class.isAssignableFrom(tableInfo.getKeyType())) {
             try {
                 realId = Long.parseLong(id.toString());
@@ -381,9 +319,9 @@ public abstract class V3MybatisPlusRepository<
     @Override
     @SuppressWarnings({"unchecked", "rawtypes"})
     public boolean deleteByIds(Collection<? extends Serializable> ids) {
-        Class<EDB> edbClass = currentModelClass();
+        Class<E> entityClass = currentEntityClass();
         Collection realId = ids;
-        TableInfo tableInfo = TableInfoHelper.getTableInfo(edbClass);
+        TableInfo tableInfo = TableInfoHelper.getTableInfo(entityClass);
         if (tableInfo != null && Number.class.isAssignableFrom(tableInfo.getKeyType())) {
             try {
                 if (!(CollUtil.getFirst(ids) instanceof Number)) {
@@ -403,14 +341,14 @@ public abstract class V3MybatisPlusRepository<
         return super.removeByIds(realId);
     }
 
-    public boolean deleteByWrapper(Wrapper<EDB> wrapper) {
+    public boolean deleteByWrapper(Wrapper<E> wrapper) {
         Assert.isTrue(!wrapper.isEmptyOfNormal(), "删除失败，删除条件不能为空");
         return super.remove(wrapper);
     }
 
     @Override
     public boolean deleteByCriteria(IV3Criteria<E, C> criteria) {
-        return this.deleteByWrapper(V3WrapperUtil.getEdbQueryWrapper(criteria));
+        return this.deleteByWrapper(V3WrapperUtil.getQueryWrapper(criteria));
     }
 
     //****************************** 改 start ******************************
@@ -424,20 +362,10 @@ public abstract class V3MybatisPlusRepository<
         if (id instanceof String) {
             Assert.notBlank((String) id, "id 不能为空");
         }
-        EDB edb = V3DbEntityConvert.convertToDbEntity(entity);
-
         String idColumnName = idEntity.getIdColumnName();
-        boolean b = IV3IdEntity.ID_COLUMN_NAME.equalsIgnoreCase(idColumnName)
-                ? super.updateById(edb)
-                : super.update(edb, new UpdateWrapper<EDB>().eq(idColumnName, idEntity.getId()));
-
-        // 回写版本字段到 entity
-        if (entity instanceof IV3VersionEntity) {
-            IV3VersionEntity versionEntity = (IV3VersionEntity) entity;
-            IV3VersionEntity versionDbEntity = (IV3VersionEntity) edb;
-            versionEntity.setVersion(versionDbEntity.getVersion());
-        }
-        return b;
+        return IV3IdEntity.ID_COLUMN_NAME.equalsIgnoreCase(idColumnName)
+                ? super.updateById(entity)
+                : super.update(entity, new UpdateWrapper<E>().eq(idColumnName, idEntity.getId()));
     }
 
     @Override
@@ -450,12 +378,11 @@ public abstract class V3MybatisPlusRepository<
             Assert.notBlank((String) id, "id 不能为空");
         }
 
-        UpdateWrapper<EDB> updateWrapper = new UpdateWrapper<EDB>()
+        UpdateWrapper<E> updateWrapper = new UpdateWrapper<E>()
                 .eq(idEntity.getIdColumnName(), idEntity.getId());
-        EDB edb = V3DbEntityConvert.convertToDbEntity(entity);
 
-        Class<EDB> edbClass = currentModelClass();
-        TableInfo tableInfo = TableInfoHelper.getTableInfo(edbClass);
+        Class<E> entityClass = currentEntityClass();
+        TableInfo tableInfo = TableInfoHelper.getTableInfo(entityClass);
         Map<String, Object> map = BeanUtil.beanToMap(entity);
         for (TableFieldInfo tableFieldInfo : tableInfo.getFieldList()) {
             Object value = map.get(tableFieldInfo.getProperty());
@@ -470,21 +397,12 @@ public abstract class V3MybatisPlusRepository<
             updateWrapper.set(tableFieldInfo.getColumn(), null);
         }
 
-        // updateByWrapper不能走填充策略，只有entity才能填充
-        // 参考连接 https://www.shangmayuan.com/a/3a4189a6a4424846aa96eb61.html
-        return super.update(edb, updateWrapper);
+        return super.update(entity, updateWrapper);
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    public boolean updateByWrapper(E entity, Wrapper wrapper) {
-        EDB edb = V3DbEntityConvert.convertToDbEntity(entity);
-        boolean b = this.update(edb, wrapper);
-        if (entity instanceof IV3VersionEntity) {
-            IV3VersionEntity versionEntity = (IV3VersionEntity) entity;
-            IV3VersionEntity versionDbEntity = (IV3VersionEntity) edb;
-            versionEntity.setVersion(versionDbEntity.getVersion());
-        }
-        return b;
+    public boolean updateByWrapper(E entity, Wrapper<E> wrapper) {
+        return this.update(entity, wrapper);
     }
 
     @Override
@@ -496,9 +414,9 @@ public abstract class V3MybatisPlusRepository<
 
     @Override
     public E getEntityById(Serializable id) {
-        Class<EDB> edbClass = currentModelClass();
+        Class<E> entityClass = currentEntityClass();
         Serializable realId = id;
-        TableInfo tableInfo = TableInfoHelper.getTableInfo(edbClass);
+        TableInfo tableInfo = TableInfoHelper.getTableInfo(entityClass);
         if (tableInfo != null && Number.class.isAssignableFrom(tableInfo.getKeyType())) {
             try {
                 realId = Long.parseLong(id.toString());
@@ -508,14 +426,13 @@ public abstract class V3MybatisPlusRepository<
             }
         }
 
-        if (IV3IdEntity.class.isAssignableFrom(edbClass)) {
-            String IdColumnName = getIdColumnName(edbClass);
+        if (IV3IdEntity.class.isAssignableFrom(entityClass)) {
+            String IdColumnName = getIdColumnName(entityClass);
             if (StrUtil.isNotBlank(IdColumnName)) {
-                return getByWrapper(new QueryWrapper<EDB>().eq(IdColumnName, realId));
+                return getByWrapper(new QueryWrapper<E>().eq(IdColumnName, realId));
             }
         }
-        EDB edb = super.getById(realId);
-        return edb == null ? null : edb.convertToEntity();
+        return super.getById(realId);
     }
 
     @Override
@@ -527,23 +444,23 @@ public abstract class V3MybatisPlusRepository<
         return t;
     }
 
-    public E getByWrapper(Wrapper<EDB> wrapper) {
+    public E getByWrapper(Wrapper<E> wrapper) {
         IPage<E> page = findPageByWrapper(new Page<E>(1, 1).setSearchCount(false), wrapper);
         return page.getRecords().isEmpty() ? null : page.getRecords().get(0);
     }
 
     @Override
     public E getByCriteria(IV3Criteria<E, C> criteria) {
-        return getByWrapper(V3WrapperUtil.getEdbQueryWrapper(criteria));
+        return getByWrapper(V3WrapperUtil.getQueryWrapper(criteria));
     }
 
-    public E getOrWarnByWrapper(Wrapper<EDB> wrapper) {
+    public E getOrWarnByWrapper(Wrapper<E> wrapper) {
         E t = getByWrapper(wrapper);
         if (t == null) {
             log.warn(
                     "{}: {}: {}",
                     StatusMessageEnum.ABSENT.getMsg(),
-                    currentModelClass().getSimpleName(),
+                    currentEntityClass().getSimpleName(),
                     wrapper.getSqlSegment());
         }
         return t;
@@ -551,15 +468,15 @@ public abstract class V3MybatisPlusRepository<
 
     @Override
     public E getByCriteriaOrWarn(IV3Criteria<E, C> criteria) {
-        return getOrWarnByWrapper(V3WrapperUtil.getEdbQueryWrapper(criteria));
+        return getOrWarnByWrapper(V3WrapperUtil.getQueryWrapper(criteria));
     }
 
-    public E getByWrapperOrException(Wrapper<EDB> wrapper) {
+    public E getByWrapperOrException(Wrapper<E> wrapper) {
         E entity = getByWrapper(wrapper);
         if (entity == null) {
             String values = wrapper == null
                     ? ""
-                    : CollUtil.join(((QueryWrapper<EDB>) wrapper).getParamNameValuePairs().values(), ",");
+                    : CollUtil.join(((QueryWrapper<E>) wrapper).getParamNameValuePairs().values(), ",");
             throw new AbsentException(values);
         }
         return entity;
@@ -567,43 +484,41 @@ public abstract class V3MybatisPlusRepository<
 
     @Override
     public E getByCriteriaOrException(IV3Criteria<E, C> criteria) {
-        return getByWrapperOrException(V3WrapperUtil.getEdbQueryWrapper(criteria));
+        return getByWrapperOrException(V3WrapperUtil.getQueryWrapper(criteria));
     }
 
-    public List<E> findByWrapper(Wrapper<EDB> wrapper) {
-        // 如果没有设置 select 条件，则过滤掉敏感字段
+    public List<E> findByWrapper(Wrapper<E> wrapper) {
         if (wrapper != null
                 && !Optional.ofNullable(wrapper.getSqlSelect()).isPresent()
                 && wrapper instanceof QueryWrapper) {
-            ((QueryWrapper<EDB>) wrapper).select(
-                    currentModelClass(),
+            ((QueryWrapper<E>) wrapper).select(
+                    currentEntityClass(),
                     i -> !SensitiveDataProperty.PROPERTIES.contains(i.getProperty()));
         }
-        return this.list(wrapper).stream().map(V3DbEntityConvert::convertToEntity).collect(Collectors.toList());
+        return this.list(wrapper);
     }
 
     @Override
     public List<E> findByCriteria(IV3Criteria<E, C> criteria) {
-        return this.findByWrapper(V3WrapperUtil.getEdbQueryWrapper(criteria));
+        return this.findByWrapper(V3WrapperUtil.getQueryWrapper(criteria));
     }
 
-    public IPage<E> findPageByWrapper(long pageNum, long pageSize, boolean searchCountFlag, Wrapper<EDB> wrapper) {
+    public IPage<E> findPageByWrapper(long pageNum, long pageSize, boolean searchCountFlag, Wrapper<E> wrapper) {
         return this.findPageByWrapper(new Page<>(pageNum, pageSize, searchCountFlag), wrapper);
     }
 
-    public IPage<E> findPageByWrapper(IPage<E> page, Wrapper<EDB> wrapper) {
+    public IPage<E> findPageByWrapper(IPage<E> page, Wrapper<E> wrapper) {
         if (wrapper != null
                 && !Optional.ofNullable(wrapper.getSqlSelect()).isPresent()
                 && wrapper instanceof QueryWrapper) {
-            ((QueryWrapper<EDB>) wrapper).select(
-                    currentModelClass(),
+            ((QueryWrapper<E>) wrapper).select(
+                    currentEntityClass(),
                     i -> !SensitiveDataProperty.PROPERTIES.contains(i.getProperty()));
         }
         return this.page(
-                        new Page<EDB>(page.getCurrent(), page.getSize(), page.searchCount())
+                        new Page<E>(page.getCurrent(), page.getSize(), page.searchCount())
                                 .setOptimizeCountSql(page.optimizeCountSql()),
-                        wrapper)
-                .convert(V3DbEntityConvert::convertToEntity);
+                        wrapper);
     }
 
     @Override
@@ -614,7 +529,7 @@ public abstract class V3MybatisPlusRepository<
                 pageCriteria.getPageNum(),
                 pageCriteria.getPageSize(),
                 pageCriteria.getSearchCountFlag(),
-                V3WrapperUtil.getEdbQueryWrapper(criteria));
+                V3WrapperUtil.getQueryWrapper(criteria));
     }
 
     @Override
@@ -622,13 +537,13 @@ public abstract class V3MybatisPlusRepository<
         return this.findByWrapper(null);
     }
 
-    public Integer countByWrapper(Wrapper<EDB> wrapper) {
+    public Integer countByWrapper(Wrapper<E> wrapper) {
         return (int) this.count(wrapper);
     }
 
     @Override
     public Integer countByCriteria(IV3Criteria<E, C> criteria) {
-        return this.countByWrapper(V3WrapperUtil.getEdbQueryWrapper(criteria));
+        return this.countByWrapper(V3WrapperUtil.getQueryWrapper(criteria));
     }
 
     @Override
@@ -643,51 +558,51 @@ public abstract class V3MybatisPlusRepository<
             Assert.notBlank((String) id, "id");
         }
 
-        return isPresentByWrapper(Wrappers.<EDB>query().eq(IV3IdEntity.ID_COLUMN_NAME, id).last("limit 1"));
+        return isPresentByWrapper(Wrappers.<E>query().eq(IV3IdEntity.ID_COLUMN_NAME, id).last("limit 1"));
     }
 
     @Override
     public boolean isPresentByColumn(String columnName, Object value) {
         Assert.notBlank(columnName);
         Assert.notNull(value, "value");
-        return isPresentByWrapper(Wrappers.<EDB>query().eq(columnName, value));
+        return isPresentByWrapper(Wrappers.<E>query().eq(columnName, value));
     }
 
-    public boolean isPresentByWrapper(Wrapper<EDB> wrapper) {
+    public boolean isPresentByWrapper(Wrapper<E> wrapper) {
         return this.countByWrapper(wrapper) > 0;
     }
 
     @Override
     public boolean isPresentByCriteria(IV3Criteria<E, C> criteria) {
-        return this.isPresentByWrapper(V3WrapperUtil.getEdbQueryWrapper(criteria));
+        return this.isPresentByWrapper(V3WrapperUtil.getQueryWrapper(criteria));
     }
 
-    public void exceptionIfPresentByWrapper(Wrapper<EDB> wrapper) {
+    public void exceptionIfPresentByWrapper(Wrapper<E> wrapper) {
         if (isPresentByWrapper(wrapper)) {
             String values = wrapper == null
                     ? ""
-                    : CollUtil.join(((QueryWrapper<EDB>) wrapper).getParamNameValuePairs().values(), ",");
+                    : CollUtil.join(((QueryWrapper<E>) wrapper).getParamNameValuePairs().values(), ",");
             throw new AlreadyPresentException(values);
         }
     }
 
     @Override
     public void exceptionIfPresentByCriteria(IV3Criteria<E, C> criteria) {
-        exceptionIfPresentByWrapper(V3WrapperUtil.getEdbQueryWrapper(criteria));
+        exceptionIfPresentByWrapper(V3WrapperUtil.getQueryWrapper(criteria));
     }
 
-    public void exceptionIfAbsentByWrapper(Wrapper<EDB> wrapper) {
+    public void exceptionIfAbsentByWrapper(Wrapper<E> wrapper) {
         if (!isPresentByWrapper(wrapper)) {
             String values = wrapper == null
                     ? ""
-                    : CollUtil.join(((QueryWrapper<EDB>) wrapper).getParamNameValuePairs().values(), ",");
+                    : CollUtil.join(((QueryWrapper<E>) wrapper).getParamNameValuePairs().values(), ",");
             throw new AbsentException(values);
         }
     }
 
     @Override
     public void exceptionIfAbsentByCriteria(IV3Criteria<E, C> criteria) {
-        exceptionIfAbsentByWrapper(V3WrapperUtil.getEdbQueryWrapper(criteria));
+        exceptionIfAbsentByWrapper(V3WrapperUtil.getQueryWrapper(criteria));
     }
 
 }

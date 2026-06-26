@@ -75,7 +75,7 @@
  *    covered by this License.
  *
  *    b) Accompany the object code with a copy of the GNU GPL and this license
- *    document.
+ *    documentypeName.
  *
  *   4. Combined Works.
  *
@@ -90,12 +90,12 @@
  *    covered by this License.
  *
  *    b) Accompany the Combined Work with a copy of the GNU GPL and this license
- *    document.
+ *    documentypeName.
  *
  *    c) For a Combined Work that displays copyright notices during
  *    execution, include the copyright notice for the Library among
  *    these notices, as well as a reference directing the user to the
- *    copies of the GNU GPL and this license document.
+ *    copies of the GNU GPL and this license documentypeName.
  *
  *    d) Do one of the following:
  *
@@ -164,89 +164,83 @@
  * apply, that proxy's public statement of acceptance of any version is
  * permanent authorization for you to choose that version for the
  * Library.
- *
  */
 
-package vip.isass.framework.nocode.v3.entity;
+package vip.isass.framework.nocode.v3.generator;
 
-import cn.hutool.core.util.RandomUtil;
-import vip.isass.framework.common.support.LocalDateTimeUtil;
-import vip.isass.framework.common.support.SystemClock;
+import com.baomidou.mybatisplus.generator.config.GlobalConfig;
+import com.baomidou.mybatisplus.generator.config.po.TableField;
+import com.baomidou.mybatisplus.generator.config.rules.DbColumnType;
+import com.baomidou.mybatisplus.generator.config.rules.IColumnType;
+import com.baomidou.mybatisplus.generator.type.ITypeConvertHandler;
+import com.baomidou.mybatisplus.generator.type.TypeRegistry;
 
-import java.io.Serializable;
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.concurrent.ThreadLocalRandom;
+public class TypeConvertHandler implements ITypeConvertHandler {
+    @Override
+    public IColumnType convert(GlobalConfig globalConfig, TypeRegistry typeRegistry, TableField.MetaInfo metaInfo) {
+        String typeName = metaInfo.getTypeName().toLowerCase();
 
-/**
- * @author Rain
- */
-public interface IV3Entity<E extends IV3Entity<E>> extends Serializable, IAnyJsonEntity {
+        // 数字类型
+        if (typeName.equals("smallint[]")) {
+            return ExtDbColumnType.SHORT_ARRAY;
+        } else if (typeName.equals("tinyint")) {
+            return DbColumnType.INTEGER;
+        } else if (typeName.equals("tinyint[]") || typeName.equals("integer[]")) {
+            return ExtDbColumnType.INTEGER_ARRAY;
+        } else if (typeName.equals("bigint[]")) {
+            return ExtDbColumnType.LONG_ARRAY;
+        } else if (typeName.startsWith("numeric") && typeName.endsWith("[]")) {
+            return ExtDbColumnType.BIG_DECIMAL_ARRAY;
+        }
 
-    long serialVersionUID = 1L;
+        // 布尔
+        else if (typeName.equals("boolean[]")) {
+            return ExtDbColumnType.BOOLEAN_ARRAY;
+        }
 
-    /**
-     * 数据库表名。非空时直接使用，为空时由框架按规则拼接。
-     * 例如不规则命名：{@code override tableName() { return "t_app_icon"; }}
-     */
-    default String tableName() {
-        return "";
+        // 字符串
+        else if (typeName.startsWith("character") && typeName.endsWith("[]")) {
+            return ExtDbColumnType.STRING_COLLECTION;
+        } else if (typeName.equals("text[]")) {
+            return ExtDbColumnType.STRING_COLLECTION;
+        }
+
+        // 日期时间类型
+        else if (typeName.equals("data[]")) {
+            switch (globalConfig.getDateType()) {
+                case ONLY_DATE:
+                    return ExtDbColumnType.DATE_ARRAY;
+                case SQL_PACK:
+                    return ExtDbColumnType.DATE_SQL_ARRAY;
+                case TIME_PACK:
+                    return ExtDbColumnType.LOCAL_DATE_ARRAY;
+            }
+        } else if (typeName.startsWith("timestamp") && typeName.endsWith("[]")) {
+            switch (globalConfig.getDateType()) {
+                case ONLY_DATE:
+                    return ExtDbColumnType.DATE_ARRAY;
+                case SQL_PACK:
+                    return ExtDbColumnType.TIMESTAMP_ARRAY;
+                case TIME_PACK:
+                    return ExtDbColumnType.LOCAL_DATE_TIME_ARRAY;
+            }
+        } else if (typeName.startsWith("time") && typeName.endsWith("[]")) {
+            switch (globalConfig.getDateType()) {
+                case ONLY_DATE:
+                    return ExtDbColumnType.DATE_ARRAY;
+                case SQL_PACK:
+                    return ExtDbColumnType.TIME_ARRAY;
+                case TIME_PACK:
+                    return ExtDbColumnType.LOCAL_TIME_ARRAY;
+            }
+        }
+
+        // json 类型
+        else if (typeName.equals("json") || typeName.equals("jsonb")) {
+            return ExtDbColumnType.JSON;
+        } else if (typeName.equals("json[]") || typeName.equals("jsonb[]")) {
+            return ExtDbColumnType.JSON_ARRAY;
+        }
+        return typeRegistry.getColumnType(metaInfo);
     }
-
-    default String randomString() {
-        return RandomUtil.randomString(6);
-    }
-
-    default Byte randomByte() {
-        return (byte) RandomUtil.randomInt(Byte.MAX_VALUE);
-    }
-
-    default Boolean randomBoolean() {
-        return RandomUtil.randomBoolean();
-    }
-
-    default Integer randomInteger() {
-        return RandomUtil.randomInt();
-    }
-
-    default Long randomLong() {
-        return RandomUtil.randomLong();
-    }
-
-    default Float randomFloat() {
-        return ThreadLocalRandom.current().nextFloat();
-    }
-
-    default Double randomDouble() {
-        return RandomUtil.randomDouble();
-    }
-
-    default BigDecimal randomBigDecimal() {
-        return RandomUtil.randomBigDecimal(BigDecimal.TEN);
-    }
-
-    default LocalDateTime randomLocalDateTime() {
-        return LocalDateTimeUtil.now();
-    }
-
-    default LocalDate randomLocalDate() {
-        return LocalDateTimeUtil.nowLocalDate();
-    }
-
-    default LocalTime randomLocalTime() {
-        return LocalDateTimeUtil.nowLocalTime();
-    }
-
-    default Long randomLongTimestamp() {
-        return SystemClock.now() - randomInteger();
-    }
-
-    /**
-     * 生成随机的entity
-     * 所有字段都随机赋值
-     */
-    E randomEntity();
-
 }

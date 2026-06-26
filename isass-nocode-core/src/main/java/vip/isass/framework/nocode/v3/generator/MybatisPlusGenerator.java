@@ -167,86 +167,36 @@
  *
  */
 
-package vip.isass.framework.nocode.v3.entity;
+package vip.isass.framework.nocode.v3.generator;
 
-import cn.hutool.core.util.RandomUtil;
-import vip.isass.framework.common.support.LocalDateTimeUtil;
-import vip.isass.framework.common.support.SystemClock;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 
-import java.io.Serializable;
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.regex.Pattern;
 
-/**
- * @author Rain
- */
-public interface IV3Entity<E extends IV3Entity<E>> extends Serializable, IAnyJsonEntity {
+@Slf4j
+public class MybatisPlusGenerator {
 
-    long serialVersionUID = 1L;
+    private static final String PREFIX = "v1";
 
     /**
-     * 数据库表名。非空时直接使用，为空时由框架按规则拼接。
-     * 例如不规则命名：{@code override tableName() { return "t_app_icon"; }}
+     * 需要覆盖的文件
      */
-    default String tableName() {
-        return "";
+    public static final Pattern[] FILE_OVERRIDE_PATTERNS = new Pattern[]{
+            Pattern.compile(".*V1\\w*Controller.java$"),
+            Pattern.compile(".*V1\\w*Service.java$"),
+            Pattern.compile(".*V1\\w*Repository.java$"),
+            Pattern.compile(".*V1\\w*Mapper.java$"),
+            Pattern.compile(".*V1\\w*Mapper.xml$"),
+            Pattern.compile(".*/api\\wentity\\w.*"),
+            Pattern.compile(".*/api/criteria.*"),
+            Pattern.compile(".*V1\\w*ServiceTest.java$"),
+            Pattern.compile(".*V1\\w*TestSuite.java$"),
+            Pattern.compile(".*/initDb.sql$")
+    };
+
+    @SneakyThrows
+    public static void generate(MybatisPlusGeneratorMeta meta) {
+        throw new UnsupportedOperationException("v1代码生成器已废弃");
     }
-
-    default String randomString() {
-        return RandomUtil.randomString(6);
-    }
-
-    default Byte randomByte() {
-        return (byte) RandomUtil.randomInt(Byte.MAX_VALUE);
-    }
-
-    default Boolean randomBoolean() {
-        return RandomUtil.randomBoolean();
-    }
-
-    default Integer randomInteger() {
-        return RandomUtil.randomInt();
-    }
-
-    default Long randomLong() {
-        return RandomUtil.randomLong();
-    }
-
-    default Float randomFloat() {
-        return ThreadLocalRandom.current().nextFloat();
-    }
-
-    default Double randomDouble() {
-        return RandomUtil.randomDouble();
-    }
-
-    default BigDecimal randomBigDecimal() {
-        return RandomUtil.randomBigDecimal(BigDecimal.TEN);
-    }
-
-    default LocalDateTime randomLocalDateTime() {
-        return LocalDateTimeUtil.now();
-    }
-
-    default LocalDate randomLocalDate() {
-        return LocalDateTimeUtil.nowLocalDate();
-    }
-
-    default LocalTime randomLocalTime() {
-        return LocalDateTimeUtil.nowLocalTime();
-    }
-
-    default Long randomLongTimestamp() {
-        return SystemClock.now() - randomInteger();
-    }
-
-    /**
-     * 生成随机的entity
-     * 所有字段都随机赋值
-     */
-    E randomEntity();
-
 }

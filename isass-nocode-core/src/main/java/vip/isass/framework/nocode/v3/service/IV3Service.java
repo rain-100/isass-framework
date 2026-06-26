@@ -176,6 +176,8 @@ import vip.isass.framework.nocode.v3.entity.BatchSave;
 import vip.isass.framework.nocode.v3.entity.IV3Entity;
 
 import java.io.Serializable;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.List;
 
@@ -185,127 +187,163 @@ public interface IV3Service<E extends IV3Entity<E>, C extends IV3Criteria<E, C>>
         return IsassOrderUtil.LOWEST_PRECEDENCE;
     }
 
+    // region 元数据（从泛型参数 + 包路径推断）
+
+    private Type[] serviceTypeArgs() {
+        for (Type iface : this.getClass().getGenericInterfaces()) {
+            if (iface instanceof ParameterizedType pt
+                    && pt.getRawType() instanceof Class<?> rawClass
+                    && IV3Service.class.isAssignableFrom(rawClass)) {
+                return pt.getActualTypeArguments();
+            }
+        }
+        throw new IllegalStateException("Cannot resolve IV3Service type parameters: " + this.getClass().getName());
+    }
+
+    @SuppressWarnings("unchecked")
+    default Class<E> entityClass() {
+        return (Class<E>) serviceTypeArgs()[0];
+    }
+
+    @SuppressWarnings("unchecked")
+    default Class<C> criteriaClass() {
+        return (Class<C>) serviceTypeArgs()[1];
+    }
+
+    default String entityName() {
+        String name = entityClass().getSimpleName().replace("V3", "");
+        return Character.toLowerCase(name.charAt(0)) + name.substring(1);
+    }
+
+    default String serviceName() {
+        String pkg = entityClass().getPackageName();
+        String[] parts = pkg.split("\\.");
+        return parts.length >= 3 ? parts[2] + "-service" : "unknown";
+    }
+
+    // endregion
+
     // region 增
 
     String ADD_OPERATOR = "POST";
-    String ADD_URI_SECOND_PART = "/v2";
+    String ADD_URI_SECOND_PART = "/v3";
 
     String ADD_BATCH_OPERATOR = "POST";
-    String ADD_BATCH_URI_SECOND_PART = "/v2/batch";
+    String ADD_BATCH_URI_SECOND_PART = "/v3/batch";
 
     String ADD_BATCH_BY_BATCH_SIZE_OPERATOR = "POST";
-    String ADD_BATCH_BY_BATCH_SIZE_URI_SECOND_PART = "/v2/batch/batchSize/{batchSize}";
+    String ADD_BATCH_BY_BATCH_SIZE_URI_SECOND_PART = "/v3/batch/batchSize/{batchSize}";
 
     String ADD_IF_ABSENT_BY_CRITERIA_OPERATOR = "POST";
-    String ADD_IF_ABSENT_BY_CRITERIA_URI_SECOND_PART = "/v2/absent/criteria";
+    String ADD_IF_ABSENT_BY_CRITERIA_URI_SECOND_PART = "/v3/absent/criteria";
 
     String ADD_IF_ABSENT_BY_COLUMNS_OPERATOR = "POST";
-    String ADD_IF_ABSENT_BY_COLUMNS_URI_SECOND_PART = "/v2/absent/{uniqueColumns}";
+    String ADD_IF_ABSENT_BY_COLUMNS_URI_SECOND_PART = "/v3/absent/{uniqueColumns}";
 
     String ADD_BATCH_IF_ABSENT_BY_COLUMNS_OPERATOR = "POST";
-    String ADD_BATCH_IF_ABSENT_BY_COLUMNS_URI_SECOND_PART = "/v2/batch/absent/{uniqueColumns}";
+    String ADD_BATCH_IF_ABSENT_BY_COLUMNS_URI_SECOND_PART = "/v3/batch/absent/{uniqueColumns}";
 
     String ADD_BATCH_IF_ABSENT_BY_CRITERIA_OPERATOR = "POST";
-    String ADD_BATCH_IF_ABSENT_BY_CRITERIA_URI_SECOND_PART = "/v2/batch/absent/criteria";
+    String ADD_BATCH_IF_ABSENT_BY_CRITERIA_URI_SECOND_PART = "/v3/batch/absent/criteria";
 
     String ADD_OR_UPDATE_BY_CRITERIA_OPERATOR = "POST";
-    String ADD_OR_UPDATE_BY_CRITERIA_URI_SECOND_PART = "/v2/add-update/criteria";
+    String ADD_OR_UPDATE_BY_CRITERIA_URI_SECOND_PART = "/v3/add-update/criteria";
 
     String ADD_OR_UPDATE_BY_COLUMNS_OPERATOR = "POST";
-    String ADD_OR_UPDATE_BY_COLUMNS_URI_SECOND_PART = "/v2/add-update/{uniqueColumns}";
+    String ADD_OR_UPDATE_BY_COLUMNS_URI_SECOND_PART = "/v3/add-update/{uniqueColumns}";
 
     String ADD_OR_UPDATE_BATCH_BY_COLUMNS_OPERATOR = "POST";
-    String ADD_OR_UPDATE_BATCH_BY_COLUMNS_URI_SECOND_PART = "/v2/add-update/batch/{uniqueColumns}";
+    String ADD_OR_UPDATE_BATCH_BY_COLUMNS_URI_SECOND_PART = "/v3/add-update/batch/{uniqueColumns}";
 
     // endregion
 
     //  region 删
 
     String DELETE_BY_ID_OPERATOR = "DELETE";
-    String DELETE_BY_ID_URI_SECOND_PART = "/v2/id/{id}";
+    String DELETE_BY_ID_URI_SECOND_PART = "/v3/id/{id}";
 
     String DELETE_BY_IDS_OPERATOR = "DELETE";
-    String DELETE_BY_IDS_URI_SECOND_PART = "/v2/{ids}";
+    String DELETE_BY_IDS_URI_SECOND_PART = "/v3/{ids}";
 
     String DELETE_BY_CRITERIA_OPERATOR = "DELETE";
-    String DELETE_BY_CRITERIA_URI_SECOND_PART = "/v2/criteria";
+    String DELETE_BY_CRITERIA_URI_SECOND_PART = "/v3/criteria";
 
     // endregion
 
     // region 改
 
     String UPDATE_BY_ID_OPERATOR = "PUT";
-    String UPDATE_BY_ID_URI_SECOND_PART = "/v2";
+    String UPDATE_BY_ID_URI_SECOND_PART = "/v3";
 
 
     String UPDATE_ALL_COLUMNS_BY_ID_OPERATOR = "PUT";
-    String UPDATE_ALL_COLUMNS_BY_ID_URI_SECOND_PART = "/v2/allColumns";
+    String UPDATE_ALL_COLUMNS_BY_ID_URI_SECOND_PART = "/v3/allColumns";
 
     String UPDATE_BY_ID_OR_EXCEPTION_OPERATOR = "PUT";
-    String UPDATE_BY_ID_OR_EXCEPTION_URI_SECOND_PART = "/v2/exception";
+    String UPDATE_BY_ID_OR_EXCEPTION_URI_SECOND_PART = "/v3/exception";
 
     String UPDATE_BY_CRITERIA_OPERATOR = "PUT";
-    String UPDATE_BY_CRITERIA_URI_SECOND_PART = "/v2/criteria";
+    String UPDATE_BY_CRITERIA_URI_SECOND_PART = "/v3/criteria";
 
     String UPDATE_BY_CRITERIA_OR_EXCEPTION_OPERATOR = "PUT";
-    String UPDATE_BY_CRITERIA_OR_EXCEPTION_URI_SECOND_PART = "/v2/criteria/exception";
+    String UPDATE_BY_CRITERIA_OR_EXCEPTION_URI_SECOND_PART = "/v3/criteria/exception";
 
-    String BATCH_SAVE_URI_SECOND_PART = "/v2/batchSave";
+    String BATCH_SAVE_URI_SECOND_PART = "/v3/batchSave";
 
     // endregion
 
     //  region 查
 
     String GET_BY_ID_OPERATOR = "GET";
-    String GET_BY_ID_URI_SECOND_PART = "/v2/{id}";
+    String GET_BY_ID_URI_SECOND_PART = "/v3/{id}";
 
     String GET_BY_ID_OR_EXCEPTION_OPERATOR = "GET";
-    String GET_BY_ID_OR_EXCEPTION_URI_SECOND_PART = "/v2/exception/{id}";
+    String GET_BY_ID_OR_EXCEPTION_URI_SECOND_PART = "/v3/exception/{id}";
 
     String GET_BY_CRITERIA_OPERATOR = "GET";
-    String GET_BY_CRITERIA_URI_SECOND_PART = "/v2/1/criteria";
+    String GET_BY_CRITERIA_URI_SECOND_PART = "/v3/1/criteria";
 
     String GET_BY_CRITERIA_OR_WARN_OPERATOR = "GET";
-    String GET_BY_CRITERIA_OR_WARN_URI_SECOND_PART = "/v2/warn/criteria";
+    String GET_BY_CRITERIA_OR_WARN_URI_SECOND_PART = "/v3/warn/criteria";
 
     String GET_BY_CRITERIA_OR_EXCEPTION_OPERATOR = "GET";
-    String GET_BY_CRITERIA_OR_EXCEPTION_URI_SECOND_PART = "/v2/exception/criteria";
+    String GET_BY_CRITERIA_OR_EXCEPTION_URI_SECOND_PART = "/v3/exception/criteria";
 
     String FIND_BY_CRITERIA_OPERATOR = "GET";
-    String FIND_BY_CRITERIA_URI_SECOND_PART = "/v2/criteria";
+    String FIND_BY_CRITERIA_URI_SECOND_PART = "/v3/criteria";
 
     String FIND_PAGE_BY_CRITERIA_OPERATOR = "GET";
-    String FIND_PAGE_BY_CRITERIA_URI_SECOND_PART = "/v2/page";
+    String FIND_PAGE_BY_CRITERIA_URI_SECOND_PART = "/v3/page";
 
     String FIND_ALL_OPERATOR = "GET";
-    String FIND_ALL_URI_SECOND_PART = "/v2/all";
+    String FIND_ALL_URI_SECOND_PART = "/v3/all";
 
     String COUNT_BY_CRITERIA_OPERATOR = "GET";
-    String COUNT_BY_CRITERIA_URI_SECOND_PART = "/v2/count/criteria";
+    String COUNT_BY_CRITERIA_URI_SECOND_PART = "/v3/count/criteria";
 
     String COUNT_ALL_OPERATOR = "GET";
-    String COUNT_ALL_URI_SECOND_PART = "/v2/count/all";
+    String COUNT_ALL_URI_SECOND_PART = "/v3/count/all";
 
     String IS_PRESENT_BY_ID_OPERATOR = "GET";
-    String IS_PRESENT_BY_ID_URI_SECOND_PART = "/v2/present/{id}";
+    String IS_PRESENT_BY_ID_URI_SECOND_PART = "/v3/present/{id}";
 
     String IS_PRESENT_BY_COLUMN_OPERATOR = "GET";
-    String IS_PRESENT_BY_COLUMN_URI_SECOND_PART = "/v2/present/{columnName}/{value}";
+    String IS_PRESENT_BY_COLUMN_URI_SECOND_PART = "/v3/present/{columnName}/{value}";
 
     String IS_PRESENT_BY_CRITERIA_OPERATOR = "GET";
-    String IS_PRESENT_BY_CRITERIA_URI_SECOND_PART = "/v2/present/criteria";
+    String IS_PRESENT_BY_CRITERIA_URI_SECOND_PART = "/v3/present/criteria";
 
     String IS_ABSENT_BY_COLUMN_OPERATOR = "GET";
-    String IS_ABSENT_BY_COLUMN_URI_SECOND_PART = "/v2/absent/{columnName}/{value}";
+    String IS_ABSENT_BY_COLUMN_URI_SECOND_PART = "/v3/absent/{columnName}/{value}";
 
     String IS_ABSENT_BY_CRITERIA_OPERATOR = "GET";
-    String IS_ABSENT_BY_CRITERIA_URI_SECOND_PART = "/v2/absent/criteria";
+    String IS_ABSENT_BY_CRITERIA_URI_SECOND_PART = "/v3/absent/criteria";
 
     String EXCEPTION_IF_PRESENT_BY_CRITERIA_OPERATOR = "GET";
-    String EXCEPTION_IF_PRESENT_BY_CRITERIA_URI_SECOND_PART = "/v2/exception-if-present/criteria";
+    String EXCEPTION_IF_PRESENT_BY_CRITERIA_URI_SECOND_PART = "/v3/exception-if-present/criteria";
 
     String EXCEPTION_IF_ABSENT_BY_CRITERIA_OPERATOR = "GET";
-    String EXCEPTION_IF_ABSENT_BY_CRITERIA_URI_SECOND_PART = "/v2/exception-if-absent/criteria";
+    String EXCEPTION_IF_ABSENT_BY_CRITERIA_URI_SECOND_PART = "/v3/exception-if-absent/criteria";
 
     // endregion
 

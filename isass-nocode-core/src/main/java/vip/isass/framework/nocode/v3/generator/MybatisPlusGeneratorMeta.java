@@ -167,86 +167,44 @@
  *
  */
 
-package vip.isass.framework.nocode.v3.entity;
+package vip.isass.framework.nocode.v3.generator;
 
-import cn.hutool.core.util.RandomUtil;
-import vip.isass.framework.common.support.LocalDateTimeUtil;
-import vip.isass.framework.common.support.SystemClock;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 
-import java.io.Serializable;
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.concurrent.ThreadLocalRandom;
+import com.baomidou.mybatisplus.annotation.DbType;
 
 /**
  * @author Rain
  */
-public interface IV3Entity<E extends IV3Entity<E>> extends Serializable, IAnyJsonEntity {
+@Getter
+@Setter
+@Accessors(chain = true)
+public class MybatisPlusGeneratorMeta {
 
-    long serialVersionUID = 1L;
+    private DbType dbType;
 
-    /**
-     * 数据库表名。非空时直接使用，为空时由框架按规则拼接。
-     * 例如不规则命名：{@code override tableName() { return "t_app_icon"; }}
-     */
-    default String tableName() {
-        return "";
-    }
+    private String dataSourceUserName;
 
-    default String randomString() {
-        return RandomUtil.randomString(6);
-    }
+    private String dataSourcePassword;
 
-    default Byte randomByte() {
-        return (byte) RandomUtil.randomInt(Byte.MAX_VALUE);
-    }
+    private String dataSourceUrl;
 
-    default Boolean randomBoolean() {
-        return RandomUtil.randomBoolean();
-    }
+    private String schemaName;
 
-    default Integer randomInteger() {
-        return RandomUtil.randomInt();
-    }
+    private String outputDir;
 
-    default Long randomLong() {
-        return RandomUtil.randomLong();
-    }
+    private String moduleName;
 
-    default Float randomFloat() {
-        return ThreadLocalRandom.current().nextFloat();
-    }
+    private String packageName;
 
-    default Double randomDouble() {
-        return RandomUtil.randomDouble();
-    }
+    private String[] tablePrefix;
 
-    default BigDecimal randomBigDecimal() {
-        return RandomUtil.randomBigDecimal(BigDecimal.TEN);
-    }
+    private String[] includeTables;
 
-    default LocalDateTime randomLocalDateTime() {
-        return LocalDateTimeUtil.now();
-    }
+    private String[] excludeTables;
 
-    default LocalDate randomLocalDate() {
-        return LocalDateTimeUtil.nowLocalDate();
-    }
-
-    default LocalTime randomLocalTime() {
-        return LocalDateTimeUtil.nowLocalTime();
-    }
-
-    default Long randomLongTimestamp() {
-        return SystemClock.now() - randomInteger();
-    }
-
-    /**
-     * 生成随机的entity
-     * 所有字段都随机赋值
-     */
-    E randomEntity();
+    private String controllerPrefix;
 
 }
