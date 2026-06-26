@@ -57,18 +57,29 @@ isass v4 已将 smart-doc 的 `openapi` goal 绑定到 `compile` 阶段，继承
 
 ### 微服务配置
 
-每个微服务在 `src/main/resources/smart-doc.json` 提供 smart-doc 配置，例如：
+每个微服务在 `src/main/resources/smart-doc.json` 提供 smart-doc 配置。推荐模板：
 
 ```json
 {
   "serverUrl": "http://127.0.0.1:20320",
   "outPath": "src/main/resources/service-docs/api",
-  "projectName": "attachment-service"
+  "projectName": "your-service-name",
+  "allInOne": true,
+  "coverOld": true,
+  "packageFilters": "vip.isass.your.controller.*",
+  "requestFieldToUnderline": false,
+  "responseFieldToUnderline": false,
+  "inlineEnum": true,
+  "displayActualType": true,
+  "isStrict": false
 }
 ```
 
 - `outPath` 固定指向 `src/main/resources/service-docs/api`，产物随源码提交。
-- 其他 smart-doc 配置项（`requestHeaders`、`apiObjectReplacements` 等）按需添加。
+- `requestFieldToUnderline` / `responseFieldToUnderline` 必须设为 `false`，避免 smart-doc 将驼峰字段名转为下划线格式（如 `pageNumber` → `page_number`）。
+- `allInOne` 设为 `true`，生成单个 `openapi.json` 文件，供 zyplayer-doc 和运行时 `/v3/api-docs` 统一读取。
+- `packageFilters` 限定扫描的 Controller 包名，避免扫描框架内部或测试类。
+- 其他配置项按需添加。
 
 ### 执行方式
 
@@ -90,6 +101,12 @@ mvn compile -Dsmart-doc.skip=true
 mvn smart-doc:markdown
 mvn smart-doc:postman
 ```
+
+### 常见问题
+
+**Q: 生成的 OpenAPI 中 query 参数名是下划线格式（`page_number`），但接口实际接收驼峰格式（`pageNumber`）？**
+
+A: 检查 `smart-doc.json` 中 `requestFieldToUnderline` 和 `responseFieldToUnderline`，必须设为 `false`。该配置**不支持** Maven 插件级覆盖，必须在每个项目的 JSON 文件中单独设置。
 
 ## 推荐 Javadoc 写法
 
