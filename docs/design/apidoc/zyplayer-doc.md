@@ -15,26 +15,24 @@ isass 对 zyplayer-doc 的组织约定如下：
 | 分组 | 项目 | `isass` |
 | 空间 | 微服务中文名 | `附件管理服务` |
 | 空间 UUID | 微服务应用名 + 创建时间戳 | `attachment-service@20260620091415999` |
-| 空间版本 | 微服务主版本 | `v4.x` |
 | 页面 | API 接口文档、Markdown 文档或文件夹 | `文件浏览服务/文件列表` |
 
 `group-name` 默认是 `isass`，框架会先调用 `/openApi/v1/spaceGroup/list` 查询分组，找不到时调用 `/openApi/v1/spaceGroup/update` 创建分组。
 
-空间名使用 `info.service-name-cn`。空间 UUID 使用 `{spring.application.name}@{yyyyMMddHHmmssSSS}`，例如 `attachment-service@20260620091415999`。zyplayer-doc 回收站彻底删除空间后仍会保留唯一编码占位，因此 isass 不使用固定 UUID；查询空间时只匹配带时间戳后缀的新规则，并选择同一微服务下时间戳最新的空间，不兼容旧的 `spring.application.name` 固定值。空间不再拼接版本号，服务版本通过 zyplayer-doc 的空间版本功能管理。框架把 `4.0.0-SNAPSHOT`、`4.1.2` 等服务版本归一化为 `v4.x` 这样的主版本；已有空间会先查询版本是否存在，新空间直接创建当前主版本。
+空间名使用 `info.service-name-cn`。空间 UUID 使用 `{spring.application.name}@{yyyyMMddHHmmssSSS}`，例如 `attachment-service@20260620091415999`。zyplayer-doc 回收站彻底删除空间后仍会保留唯一编码占位，因此 isass 不使用固定 UUID；查询空间时只匹配带时间戳后缀的新规则，并选择同一微服务下时间戳最新的空间，不兼容旧的 `spring.application.name` 固定值。
 
 ## 同步流程
 
 `isass-apidoc-zyplayer` 启动同步时执行：
 
 1. 查询或创建 zyplayer 分组。
-2. 查询或创建微服务空间，并开启空间版本控制。
-3. 查询或创建当前微服务版本。
-4. 采集运行时 OpenAPI，转换为 zyplayer `editorType=6` 的 API 接口文档。
-5. 采集 `src/main/resources/service-docs/**/*.md`，转换为 zyplayer `editorType=2` 的 Markdown 文档。
-6. 按目录策略创建文件夹。
-7. 对比远端页面上的 `isass-doc-sync` 标记和内容 hash，新增、更新或跳过页面。
-8. `delete-missing=true` 时，只删除带有 isass 同步标记且本地已不存在的页面。
-9. `release=true` 时，同步后发布页面。
+2. 查询或创建微服务空间。
+3. 采集运行时 OpenAPI，转换为 zyplayer `editorType=6` 的 API 接口文档。
+4. 采集 `src/main/resources/service-docs/**/*.md`，转换为 zyplayer `editorType=2` 的 Markdown 文档。
+5. 按目录策略创建文件夹。
+6. 对比远端页面上的 `isass-doc-sync` 标记和内容 hash，新增、更新或跳过页面。
+7. `delete-missing=true` 时，只删除带有 isass 同步标记且本地已不存在的页面。
+8. `release=true` 时，同步后发布页面。
 
 ## 目录策略
 
@@ -108,5 +106,4 @@ exclude-path-patterns:
 ## 后续功能
 
 - 支持非 Spring 项目从 Maven `pom.xml` 的 `service-name-cn` 属性读取中文服务名。
-- 通过 zyplayer 官方 OpenAPI 补全空间版本列表接口的路径兼容矩阵。
 - 扩展更多 zyplayer 文档类型，例如表格、draw.io、思维导图和附件文件。

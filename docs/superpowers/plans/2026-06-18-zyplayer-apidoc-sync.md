@@ -64,3 +64,5 @@
 - [ ] Replace attachment's apidoc-service dependency with `isass-apidoc-zyplayer`.
 - [ ] Document zyplayer-doc V3 deployment, config, versioned space names, and future `pom service-name-cn` support.
 - [ ] Run framework and attachment compile checks.
+
+> **2026-06-26**: Version management has been removed. `ZyplayerVersion`、`ZyplayerSpaceVersion`、`versionControl`、`ensureSpaceVersion`、`editVersion` are no longer used.

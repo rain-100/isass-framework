@@ -45,7 +45,7 @@
 
 - [ ] Change space name to service Chinese name and keep a stable space uuid.
 - [ ] Add `groupName` configuration, defaulting to `isass`.
-- [ ] Enable zyplayer space version control metadata and pass the cleaned service version for page sync where the OpenAPI supports it.
+- [ ] ~~Enable zyplayer space version control metadata and pass the cleaned service version for page sync where the OpenAPI supports it.~~ (2026-06-26: removed)
 
 ### Task 4: Improve Attachment Javadocs
 

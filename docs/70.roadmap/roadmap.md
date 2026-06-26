@@ -124,7 +124,7 @@
     - `isass-core-dependencies` 已删除 `knife4j-dependencies` BOM 和 `isass-web-swagger` 版本管理。
     - 框架源码里的 `io.swagger.annotations` 已移除。
     - 接口文档改为 smart-doc 生成 OpenAPI/Markdown，zyplayer-doc 展示与在线调试。
-    - `isass-apidoc-zyplayer` 已实现对接 zyplayer-doc 的空间、版本、目录、API 文档和 Markdown 文档同步。
+    - `isass-apidoc-zyplayer` 已实现对接 zyplayer-doc 的空间、目录、API 文档和 Markdown 文档同步。
     - attachment 已作为首个适配项目验证 `service-docs/api`、`service-docs/database`、`service-docs/guide`、`service-docs/design` 目录约定。
 
 - [x] **集成数据库文档生成工具 screw**
@@ -137,15 +137,14 @@
 - [~] **zyplayer-doc 同步稳定性**
   - 已完成步骤：
     - 空间名改为微服务中文名。
-    - 空间版本改为主版本格式，如 `v4.x`。
     - 空间唯一标识改为 `applicationName + 时间戳后缀`，避免 zyplayer-doc 回收站软删除导致固定 uuid 冲突。
     - 一级目录顺序约定为：`api接口`、`使用文档`、`设计文档`、`数据库文档`。
     - 支持按 controller `@Tag` 中文名分组 API，接口名使用 smart-doc/Javadoc 注释。
     - 支持 `exclude-paths`、`exclude-path-patterns` 过滤 `url` 或 `METHOD url`。
+    - 移除 zyplayer-doc 空间版本管理功能（`versionControl`、`ensureSpaceVersion`、`editVersion`）。
   - 下一步：
-    - 深入确认 zyplayer-doc “实时版本”和具体版本的数据落点、editVersion 冲突控制和已有文档改版本规则。
-    - 为版本查询、版本创建、目录查重、文档查重补充自动化测试。
-    - 在 attachment 重启两次验证空间、版本、一级目录、API 文档不重复创建。
+    - 为目录查重、文档查重补充自动化测试。
+    - 在 attachment 重启两次验证空间、一级目录、API 文档不重复创建。
 
 - [x] **服务文档暴露协议固化**
   - 完成记录：
