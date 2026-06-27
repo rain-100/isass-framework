@@ -28,7 +28,7 @@ public interface IV3${entity}Service extends IV3Service<V3${entity}, V3${entity}
 
     @Primary
     @Service
-    class V3${entity}ServiceManager implements
+    static class V3${entity}ServiceManager implements
             IV3${entity}Service,
             IV3ServiceManager<V3${entity}, V3${entity}Criteria, IV3${entity}Service> {
 

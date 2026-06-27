@@ -190,12 +190,16 @@ public interface IV3Service<E extends IV3Entity<E>, C extends IV3Criteria<E, C>>
     // region 元数据（从泛型参数 + 包路径推断）
 
     private Type[] serviceTypeArgs() {
-        for (Type iface : this.getClass().getGenericInterfaces()) {
-            if (iface instanceof ParameterizedType pt
-                    && pt.getRawType() instanceof Class<?> rawClass
-                    && IV3Service.class.isAssignableFrom(rawClass)) {
-                return pt.getActualTypeArguments();
+        Class<?> currentClass = this.getClass();
+        while (currentClass != null && currentClass != Object.class) {
+            for (Type iface : currentClass.getGenericInterfaces()) {
+                if (iface instanceof ParameterizedType pt
+                        && pt.getRawType() instanceof Class<?> rawClass
+                        && IV3Service.class.isAssignableFrom(rawClass)) {
+                    return pt.getActualTypeArguments();
+                }
             }
+            currentClass = currentClass.getSuperclass();
         }
         throw new IllegalStateException("Cannot resolve IV3Service type parameters: " + this.getClass().getName());
     }

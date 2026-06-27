@@ -199,8 +199,6 @@ public interface IV3LocalService<
 
     IV3Repository<E, C> getRepository();
 
-    IV3Service<E, C> getService();
-
     @Override
     default int getOrder() {
         return ApiOrder.LOCAL_SERVICE;

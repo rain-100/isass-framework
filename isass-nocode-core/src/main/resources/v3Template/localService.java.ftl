@@ -25,10 +25,6 @@ public class V3${entity}Service implements IV3${entity}Service, IV3LocalService<
 
     @Getter
     @Autowired
-    private V3${entity}Service service;
-
-    @Getter
-    @Autowired
     private V3${entity}Repository repository;
 
 }
