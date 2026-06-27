@@ -1,5 +1,6 @@
 package vip.isass.framework.web.servicedocs;
 
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -24,8 +25,14 @@ public class ServiceDocsController {
 
     private final ServiceDocsScanner serviceDocsScanner;
 
-    public ServiceDocsController(ServiceDocsScanner serviceDocsScanner) {
+    private final ObjectProvider<OpenApiEnhancerSpi> openApiEnhancerProvider;
+
+    public ServiceDocsController(
+            ServiceDocsScanner serviceDocsScanner,
+            ObjectProvider<OpenApiEnhancerSpi> openApiEnhancerProvider
+    ) {
         this.serviceDocsScanner = serviceDocsScanner;
+        this.openApiEnhancerProvider = openApiEnhancerProvider;
     }
 
     @GetMapping({"/service-docs", "/${spring.application.name}/service-docs"})
@@ -36,7 +43,11 @@ public class ServiceDocsController {
     @GetMapping({"/v3/api-docs", "/${spring.application.name}/v3/api-docs"})
     public ResponseEntity<String> openApi() {
         try {
-            return ResponseEntity.ok().contentType(APPLICATION_JSON_UTF8).body(serviceDocsScanner.readOpenApiJson());
+            OpenApiEnhancerSpi enhancer = openApiEnhancerProvider.getIfAvailable();
+            String body = enhancer == null
+                    ? serviceDocsScanner.readOpenApiJson()
+                    : enhancer.getEnhancedOpenApiJson();
+            return ResponseEntity.ok().contentType(APPLICATION_JSON_UTF8).body(body);
         } catch (NoSuchElementException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage(), e);
         }

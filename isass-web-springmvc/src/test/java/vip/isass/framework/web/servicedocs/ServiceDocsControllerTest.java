@@ -1,6 +1,7 @@
 package vip.isass.framework.web.servicedocs;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,13 +12,16 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class ServiceDocsControllerTest {
 
     @Test
     void returnsServiceDocIndexAndMarkdownContent() {
         ServiceDocsController controller = new ServiceDocsController(
-                new ServiceDocsScanner(new PathMatchingResourcePatternResolver()));
+                new ServiceDocsScanner(new PathMatchingResourcePatternResolver()),
+                emptyEnhancerProvider());
         MockHttpServletRequest request = new MockHttpServletRequest("GET", "/attachment-service/service-docs/database/attachment-db");
         request.setContextPath("/attachment-service");
 
@@ -32,7 +36,8 @@ class ServiceDocsControllerTest {
     @Test
     void returnsGeneratedOpenApiJsonFromServiceDocsApiDirectory() {
         ServiceDocsController controller = new ServiceDocsController(
-                new ServiceDocsScanner(new PathMatchingResourcePatternResolver()));
+                new ServiceDocsScanner(new PathMatchingResourcePatternResolver()),
+                emptyEnhancerProvider());
 
         ResponseEntity<String> response = controller.openApi();
 
@@ -42,9 +47,24 @@ class ServiceDocsControllerTest {
     }
 
     @Test
+    void returnsEnhancedOpenApiJsonWhenEnhancerIsAvailable() {
+        OpenApiEnhancerSpi enhancer = () -> "{\"enhanced\":true}";
+        ObjectProvider<OpenApiEnhancerSpi> provider = mock(ObjectProvider.class);
+        when(provider.getIfAvailable()).thenReturn(enhancer);
+        ServiceDocsController controller = new ServiceDocsController(
+                new ServiceDocsScanner(new PathMatchingResourcePatternResolver()),
+                provider);
+
+        ResponseEntity<String> response = controller.openApi();
+
+        assertThat(response.getBody()).isEqualTo("{\"enhanced\":true}");
+    }
+
+    @Test
     void rejectsInvalidDocIdWithBadRequest() {
         ServiceDocsController controller = new ServiceDocsController(
-                new ServiceDocsScanner(new PathMatchingResourcePatternResolver()));
+                new ServiceDocsScanner(new PathMatchingResourcePatternResolver()),
+                emptyEnhancerProvider());
         MockHttpServletRequest request = new MockHttpServletRequest("GET", "/attachment-service/service-docs/../application.yml");
         request.setContextPath("/attachment-service");
 
@@ -52,5 +72,10 @@ class ServiceDocsControllerTest {
                 .isInstanceOf(ResponseStatusException.class)
                 .satisfies(e -> assertThat(((ResponseStatusException) e).getStatusCode())
                         .isEqualTo(HttpStatus.BAD_REQUEST));
+    }
+
+    @SuppressWarnings("unchecked")
+    private ObjectProvider<OpenApiEnhancerSpi> emptyEnhancerProvider() {
+        return mock(ObjectProvider.class);
     }
 }
