@@ -189,8 +189,13 @@ public interface IV3Service<E extends IV3Entity<E>, C extends IV3Criteria<E, C>>
 
     // region 元数据（从泛型参数 + 包路径推断）
 
-    private Type[] serviceTypeArgs() {
-        Class<?> currentClass = this.getClass();
+    /**
+     * 解析目标类型（可为 {@code @Service} 实现 Class）的 IV3Service 泛型实参。
+     * 不要求传入实例，便于在 Spring BeanDefinition 后置处理阶段复用。
+     * 与 {@link #serviceTypeArgs()} 走相同的反射逻辑，但接受 Class 参数。
+     */
+    public static Type[] resolveServiceTypeArgs(Class<?> beanClass) {
+        Class<?> currentClass = beanClass;
         while (currentClass != null && currentClass != Object.class) {
             for (Type iface : currentClass.getGenericInterfaces()) {
                 if (iface instanceof ParameterizedType pt
@@ -201,7 +206,11 @@ public interface IV3Service<E extends IV3Entity<E>, C extends IV3Criteria<E, C>>
             }
             currentClass = currentClass.getSuperclass();
         }
-        throw new IllegalStateException("Cannot resolve IV3Service type parameters: " + this.getClass().getName());
+        throw new IllegalStateException("Cannot resolve IV3Service type parameters: " + beanClass.getName());
+    }
+
+    private Type[] serviceTypeArgs() {
+        return resolveServiceTypeArgs(this.getClass());
     }
 
     @SuppressWarnings("unchecked")

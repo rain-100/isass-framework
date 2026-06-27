@@ -189,13 +189,23 @@ public class V3MybatisPlusGenerator {
 
     @SneakyThrows
     public static void generate(MybatisPlusGeneratorMeta meta) {
+        generateApiFiles(meta);
+        generateServiceFiles(meta);
+    }
+
+    @SneakyThrows
+    private static void generateApiFiles(MybatisPlusGeneratorMeta meta) {
+        String outputDir = meta.getApiOutputDir() != null
+                ? meta.getApiOutputDir() + "/src/main/java"
+                : meta.getOutputDir() + "/src/main/java";
+        String basePackage = meta.getPackageName() + "." + meta.getModuleName();
         BeansWrapper wrapper = new BeansWrapperBuilder(new Version("2.3.28")).build();
         TemplateHashModel staticModels = wrapper.getStaticModels();
 
         FastAutoGenerator.create(meta.getDataSourceUrl(), meta.getDataSourceUserName(), meta.getDataSourcePassword())
                 .globalConfig(builder -> builder
                         .author("isass")
-                        .outputDir(meta.getOutputDir() + "/src/main/java")
+                        .outputDir(outputDir)
                         .commentDate("yyyy-MM-dd")
                         .disableOpenDir()
                         .dateType(DateType.TIME_PACK))
@@ -205,39 +215,25 @@ public class V3MybatisPlusGenerator {
                 .strategyConfig(builder -> builder
                         // 是否跳过视图
                         .enableSkipView()
-
                         // 是否大写命名
                         .enableCapitalMode()
-
                         // 表前缀
                         .addTablePrefix(meta.getTablePrefix())
-
                         // 需要包含的表名，允许正则表达式（与exclude二选一配置）
                         .addInclude(meta.getIncludeTables() == null ? new String[0] : meta.getIncludeTables())
-
                         // 需要排除的表名，允许正则表达式
                         .addExclude(meta.getExcludeTables() == null ? new String[0] : meta.getExcludeTables())
-
                         // 取消内置的 controller 模板
-                        .controllerBuilder()
-                        .disable()
-
+                        .controllerBuilder().disable()
                         // 取消内置的 service 模板
-                        .serviceBuilder()
-                        .disable()
-
+                        .serviceBuilder().disable()
                         // 取消内置的 mapper 模板
-                        .mapperBuilder()
-                        .disable()
-
+                        .mapperBuilder().disable()
                         // 取消内置的 entity 模板
-                        .entityBuilder()
-                        .disable()
-
+                        .entityBuilder().disable()
                         // 乐观锁名称
                         .versionPropertyName(IV3VersionEntity.VERSION_PROPERTY_NAME)
                         .versionColumnName(IV3VersionEntity.VERSION_COLUMN_NAME)
-
                         // 逻辑删除名称
                         .logicDeletePropertyName(IV3LogicDeleteEntity.DELETE_FLAG_PROPERTY_NAME)
                         .logicDeleteColumnName(IV3LogicDeleteEntity.DELETE_FLAG_COLUMN_NAME))
@@ -251,11 +247,16 @@ public class V3MybatisPlusGenerator {
                                         .put("moduleName", meta.getModuleName())
                                         .put("controllerPrefix", meta.getControllerPrefix())
                                         .put("package", meta.getPackageName())
-                                        .put("entityPackageName", meta.getPackageName() + "." + meta.getModuleName() + ".api.model.entity")
-                                        .put("criteriaPackageName", meta.getPackageName() + "." + meta.getModuleName() + ".api.model.criteria")
-                                        .put("mapperPackageName", meta.getPackageName() + "." + meta.getModuleName() + ".db.mapper")
-                                        .put("servicePackageName", meta.getPackageName() + "." + meta.getModuleName() + ".service")
-                                        .put("feignPackage", meta.getPackageName() + "." + meta.getModuleName() + ".api.feign")
+                                        .put("entityPackageName", basePackage + ".api.nocode.model.entity")
+                                        .put("criteriaPackageName", basePackage + ".api.nocode.model.criteria")
+                                        .put("mapperPackageName", basePackage + ".nocode.db.mapper")
+                                        .put("servicePackageName", basePackage + ".api.nocode.service")
+                                        .put("nocodeEntityPackageName", basePackage + ".api.nocode.model.entity")
+                                        .put("nocodeCriteriaPackageName", basePackage + ".api.nocode.model.criteria")
+                                        .put("nocodeServicePackageName", basePackage + ".api.nocode.service")
+                                        .put("nocodeMapperPackageName", basePackage + ".nocode.db.mapper")
+                                        .put("nocodeRepositoryPackageName", basePackage + ".nocode.db.repository")
+                                        .put("nocodeLocalServicePackageName", basePackage + ".nocode.service")
                                         .put("tablePrefix", meta.getTablePrefix())
 
                                         .put("idEntity", staticModels.get("vip.isass.framework.nocode.v3.entity.IV3IdEntity"))
@@ -269,57 +270,134 @@ public class V3MybatisPlusGenerator {
                                 .customFile(CollUtil.newArrayList(
                                         new CustomFile.Builder()
                                                 .templatePath("/v3Template/entity.java.ftl")
-                                                .packageName("api.model.entity")
+                                                .packageName("api.nocode.model.entity")
                                                 .fileName(".java")
                                                 .formatNameFunction(tableInfo -> "V3" + tableInfo.getEntityName())
                                                 .enableFileOverride()
                                                 .build(),
                                         new CustomFile.Builder()
                                                 .templatePath("/v3Template/criteria.java.ftl")
-                                                .packageName("api.model.criteria")
+                                                .packageName("api.nocode.model.criteria")
                                                 .fileName("Criteria.java")
                                                 .formatNameFunction(tableInfo -> "V3" + tableInfo.getEntityName())
                                                 .enableFileOverride()
                                                 .build(),
                                         new CustomFile.Builder()
+                                                .templatePath("/v3Template/IService.java.ftl")
+                                                .packageName("api.nocode.service")
+                                                .fileName("Service.java")
+                                                .formatNameFunction(tableInfo -> "IV3" + tableInfo.getEntityName())
+                                                .enableFileOverride()
+                                                .build()
+                                ));
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+                .templateEngine(new FreemarkerTemplateEngine())
+                .execute();
+    }
+
+    @SneakyThrows
+    private static void generateServiceFiles(MybatisPlusGeneratorMeta meta) {
+        String outputDir = meta.getServiceOutputDir() != null
+                ? meta.getServiceOutputDir() + "/src/main/java"
+                : meta.getOutputDir() + "/src/main/java";
+        String basePackage = meta.getPackageName() + "." + meta.getModuleName();
+        BeansWrapper wrapper = new BeansWrapperBuilder(new Version("2.3.28")).build();
+        TemplateHashModel staticModels = wrapper.getStaticModels();
+
+        FastAutoGenerator.create(meta.getDataSourceUrl(), meta.getDataSourceUserName(), meta.getDataSourcePassword())
+                .globalConfig(builder -> builder
+                        .author("isass")
+                        .outputDir(outputDir)
+                        .commentDate("yyyy-MM-dd")
+                        .disableOpenDir()
+                        .dateType(DateType.TIME_PACK))
+                .dataSourceConfig(builder -> builder
+                        .schema(meta.getSchemaName())
+                        .typeConvertHandler(new TypeConvertHandler()))
+                .strategyConfig(builder -> builder
+                        // 是否跳过视图
+                        .enableSkipView()
+                        // 是否大写命名
+                        .enableCapitalMode()
+                        // 表前缀
+                        .addTablePrefix(meta.getTablePrefix())
+                        // 需要包含的表名，允许正则表达式（与exclude二选一配置）
+                        .addInclude(meta.getIncludeTables() == null ? new String[0] : meta.getIncludeTables())
+                        // 需要排除的表名，允许正则表达式
+                        .addExclude(meta.getExcludeTables() == null ? new String[0] : meta.getExcludeTables())
+                        // 取消内置的 controller 模板
+                        .controllerBuilder().disable()
+                        // 取消内置的 service 模板
+                        .serviceBuilder().disable()
+                        // 取消内置的 mapper 模板
+                        .mapperBuilder().disable()
+                        // 取消内置的 entity 模板
+                        .entityBuilder().disable()
+                        // 乐观锁名称
+                        .versionPropertyName(IV3VersionEntity.VERSION_PROPERTY_NAME)
+                        .versionColumnName(IV3VersionEntity.VERSION_COLUMN_NAME)
+                        // 逻辑删除名称
+                        .logicDeletePropertyName(IV3LogicDeleteEntity.DELETE_FLAG_PROPERTY_NAME)
+                        .logicDeleteColumnName(IV3LogicDeleteEntity.DELETE_FLAG_COLUMN_NAME))
+                .packageConfig(builder -> builder
+                        .parent(meta.getPackageName())
+                        .moduleName(meta.getModuleName()))
+                .injectionConfig(builder -> {
+                    try {
+                        builder
+                                .customMap(MapUtil.<String, Object>builder()
+                                        .put("moduleName", meta.getModuleName())
+                                        .put("controllerPrefix", meta.getControllerPrefix())
+                                        .put("package", meta.getPackageName())
+                                        .put("entityPackageName", basePackage + ".api.nocode.model.entity")
+                                        .put("criteriaPackageName", basePackage + ".api.nocode.model.criteria")
+                                        .put("mapperPackageName", basePackage + ".nocode.db.mapper")
+                                        .put("servicePackageName", basePackage + ".api.nocode.service")
+                                        .put("nocodeEntityPackageName", basePackage + ".api.nocode.model.entity")
+                                        .put("nocodeCriteriaPackageName", basePackage + ".api.nocode.model.criteria")
+                                        .put("nocodeServicePackageName", basePackage + ".api.nocode.service")
+                                        .put("nocodeMapperPackageName", basePackage + ".nocode.db.mapper")
+                                        .put("nocodeRepositoryPackageName", basePackage + ".nocode.db.repository")
+                                        .put("nocodeLocalServicePackageName", basePackage + ".nocode.service")
+                                        .put("tablePrefix", meta.getTablePrefix())
+
+                                        .put("idEntity", staticModels.get("vip.isass.framework.nocode.v3.entity.IV3IdEntity"))
+                                        .put("parentIdEntity", staticModels.get("vip.isass.framework.nocode.v3.entity.IV3ParentIdEntity"))
+                                        .put("logicDeleteEntity", staticModels.get("vip.isass.framework.nocode.v3.entity.IV3LogicDeleteEntity"))
+                                        .put("tenantEntity", staticModels.get("vip.isass.framework.nocode.v3.entity.IV3TenantEntity"))
+                                        .put("traceEntity", staticModels.get("vip.isass.framework.nocode.v3.entity.IV3TraceEntity"))
+                                        .put("versionEntity", staticModels.get("vip.isass.framework.nocode.v3.entity.IV3VersionEntity"))
+                                        .build()
+                                )
+                                .customFile(CollUtil.newArrayList(
+                                        new CustomFile.Builder()
                                                 .templatePath("/v3Template/mapper.java.ftl")
-                                                .packageName("db.mapper")
+                                                .packageName("nocode.db.mapper")
                                                 .fileName("Mapper.java")
                                                 .formatNameFunction(tableInfo -> "V3" + tableInfo.getEntityName())
                                                 .enableFileOverride()
                                                 .build(),
                                         new CustomFile.Builder()
                                                 .templatePath("/v3Template/mapper.xml.ftl")
-                                                .packageName("db.mapper.xml")
+                                                .packageName("nocode.db.mapper.xml")
                                                 .fileName("Mapper.xml")
                                                 .formatNameFunction(tableInfo -> "V3" + tableInfo.getEntityName())
                                                 .enableFileOverride()
                                                 .build(),
                                         new CustomFile.Builder()
                                                 .templatePath("/v3Template/repository.java.ftl")
-                                                .packageName("db.repository")
+                                                .packageName("nocode.db.repository")
                                                 .fileName("Repository.java")
                                                 .formatNameFunction(tableInfo -> "V3" + tableInfo.getEntityName())
                                                 .enableFileOverride()
                                                 .build(),
                                         new CustomFile.Builder()
-                                                .templatePath("/v3Template/IService.java.ftl")
-                                                .packageName("api.service")
-                                                .fileName("Service.java")
-                                                .formatNameFunction(tableInfo -> "IV3" + tableInfo.getEntityName())
-                                                .enableFileOverride()
-                                                .build(),
-                                        new CustomFile.Builder()
                                                 .templatePath("/v3Template/localService.java.ftl")
-                                                .packageName("service")
+                                                .packageName("nocode.service")
                                                 .fileName("Service.java")
-                                                .formatNameFunction(tableInfo -> "V3" + tableInfo.getEntityName())
-                                                .enableFileOverride()
-                                                .build(),
-                                        new CustomFile.Builder()
-                                                .templatePath("/v3Template/feignService.java.ftl")
-                                                .packageName("api.feign")
-                                                .fileName("FeignService.java")
                                                 .formatNameFunction(tableInfo -> "V3" + tableInfo.getEntityName())
                                                 .enableFileOverride()
                                                 .build()

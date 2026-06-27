@@ -64,3 +64,12 @@
 #### refactor
 
 - **`isass-apidoc-zyplayer`**：移除 zyplayer-doc 版本管理功能。删除空间创建时的 `versionControl` 参数、空间版本 API 调用（`ensureSpaceVersion`）、页面更新时的 `editVersion` 乐观锁及重试逻辑，简化同步流程。
+
+#### fix
+
+- **V3 表元数据注册时机修正**：`V3TableMetaRegistrar` 的 `populate()` 仅在 `v3ServiceRegistry` Bean 构造时联动触发，与 MyBatis-Plus `SqlSessionFactory` 构建 `TableInfo` 的顺序无任何约束，导致 MP 实际查询时回调 `postTableInfo` 的 `metaMap` 仍为空，最终实体类名直接转表名（如 `V3Icon` → `v3_icon`），抛出 `Table 'attachment.v3_icon' doesn't exist`。
+  - `V3TableMetaRegistrar` 改为实现 `BeanDefinitionRegistryPostProcessor`，在 BDRPP 阶段（任何业务 Bean 实例化之前）通过 `ClassPathScanningCandidateComponentProvider` + `AssignableTypeFilter(IV3Entity.class)` 扫描 `vip.isass` 包下所有 `IV3Entity` 实现类，按接口契约（`IV3IdEntity`/`IV3TraceEntity`/`IV3LogicDeleteEntity`/`IV3VersionEntity`/`IV3TenantEntity`/`IV3ParentIdEntity`）镜像出表元数据，保证 MP `TableInfo` 构建时元数据已就绪。
+  - 表名解析优先级调整为：1) 实体类上的 `@TableName`；2) 实体覆盖的 `IV3Entity#tableName()`；3) `V3TablePrefixUtil` 注册前缀 + `StrUtil.toUnderlineCase(entityName)`（兜底，并修复多词实体名 `iconGroup` 之前未转 `icon_group` 的隐患）。
+  - `entity.java.ftl` 模板新增 `@Override tableName()` 返回 `${table.name}` 字面量，api 模块实体无需任何 MyBatis-Plus 注解即可被 MP 正确识别。
+  - `V3AutoConfiguration` 移除 `V3TableMetaRegistrar.populate(registry)` 静态联动调用，避免与 `SqlSessionFactory` 创建时序耦合。
+  - 同步手工补全 `isass-service-attachment` 的现有 `V3Icon` / `V3IconGroup` 实体的 `tableName()` 覆盖（重新跑生成器时由新模板自动生成）。

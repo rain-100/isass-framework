@@ -1,15 +1,15 @@
 <#include "./segment/copyright.ftl">
 
-package ${cfg.servicePackageName};
+package ${cfg.nocodeLocalServicePackageName};
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ${cfg.criteriaPackageName}.V3${entity}Criteria;
-import ${cfg.entityPackageName}.V3${entity};
-import ${cfg.package}.${cfg.moduleName}.api.service.IV3${entity}Service;
-import ${cfg.package}.${cfg.moduleName}.db.repository.V3${entity}Repository;
+import ${cfg.nocodeCriteriaPackageName}.V3${entity}Criteria;
+import ${cfg.nocodeEntityPackageName}.V3${entity};
+import ${cfg.nocodeServicePackageName}.IV3${entity}Service;
+import ${cfg.nocodeRepositoryPackageName}.V3${entity}Repository;
 import vip.isass.framework.nocode.v3.service.IV3LocalService;
 
 /**

@@ -271,6 +271,13 @@ public class V3${entity} implements
     }
 
 <#---------- END 添加Entity的randomEntity方法 ---------->
+<#---------- START 添加Entity的tableName方法，避免依赖 MyBatis-Plus 注解而从 iv3Entity 接口契约中推断元数据 ---------->
+    @Override
+    public String tableName() {
+        return "${table.name}";
+    }
+
+<#---------- END 添加Entity的tableName方法 ---------->
     public static void main(String[] args) {
         System.out.println(new V3${entity}().randomEntity());
     }

@@ -1,8 +1,8 @@
 <#include "./segment/copyright.ftl">
 
-package ${cfg.mapperPackageName};
+package ${cfg.nocodeMapperPackageName};
 
-import ${cfg.entityPackageName}.V3${entity};
+import ${cfg.nocodeEntityPackageName}.V3${entity};
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
 /**

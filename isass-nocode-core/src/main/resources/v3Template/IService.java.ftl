@@ -1,6 +1,6 @@
 <#include "./segment/copyright.ftl">
 
-package ${cfg.package}.${cfg.moduleName}.api.service;
+package ${cfg.nocodeServicePackageName};
 
 import ${cfg.criteriaPackageName}.V3${entity}Criteria;
 import ${cfg.entityPackageName}.V3${entity};
