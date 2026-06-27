@@ -223,7 +223,6 @@
 
         <!-- web -->
         <subproject>isass-web-springmvc</subproject>
-        <subproject>isass-apidoc-zyplayer</subproject>
 
         <!-- adapter -->
         <subproject>isass-adapter-springboot</subproject>

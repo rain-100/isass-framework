@@ -64,6 +64,7 @@
 #### refactor
 
 - **`isass-apidoc-zyplayer`**：移除 zyplayer-doc 版本管理功能。删除空间创建时的 `versionControl` 参数、空间版本 API 调用（`ensureSpaceVersion`）、页面更新时的 `editVersion` 乐观锁及重试逻辑，简化同步流程。
+- **接口文档迁移至 knife4j（一）**：删除 `isass-apidoc-zyplayer` 模块（含其全部实现、客户端、同步服务与测试用例），并清理 `isass-core-dependencies/pom.xml` 与聚合根 `pom.xml` 中相关的 `dependencyManagement` 与模块声明，作为由 zyplayer-doc 迁移至 knife4j 的第一个步骤。
 
 #### fix
 

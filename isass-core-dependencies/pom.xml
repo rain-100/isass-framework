@@ -436,12 +436,6 @@
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>isass-apidoc-zyplayer</artifactId>
-                <version>${isass.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>vip.isass</groupId>
                 <artifactId>isass-adapter-springboot</artifactId>
                 <version>${isass.version}</version>
             </dependency>
