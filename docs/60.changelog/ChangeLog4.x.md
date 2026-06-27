@@ -65,6 +65,11 @@
 
 #### refactor
 
+- **API Documentation 链路重构**：移除 zyplayer-doc 同步链路并引入 `knife4j-openapi3-ui` 4.5.0；`isass-service-apidoc-service` 支持嵌入业务服务与独立文档中心两种模式。
+  - 运行时反射 `V3ServiceRegistry` 的实体字段生成 OpenAPI schema，内嵌枚举按 `@JsonValue` 映射，并将 V3 通用 endpoint 的 request body 改写为实体 `oneOf`，同时清理 smart-doc MD5 占位 schema。
+  - 增强结果以双检锁懒加载缓存；`ServiceDocsController` 通过 `OpenApiEnhancerSpi` 可选接入，未安装文档服务时保持原始输出。
+  - 新增 `/v3/api-docs/swagger-config` 双模式分组，以及 `/doc.html`、`/services/{serviceName}/doc.html` Knife4j UI 路由。
+  - attachment 服务改为依赖 `isass-service-apidoc-service` 获得嵌入模式能力，smart-doc 继续产出固定数量的通用 V3 endpoint。
 - **`isass-apidoc-zyplayer`**：移除 zyplayer-doc 版本管理功能。删除空间创建时的 `versionControl` 参数、空间版本 API 调用（`ensureSpaceVersion`）、页面更新时的 `editVersion` 乐观锁及重试逻辑，简化同步流程。
 - **接口文档迁移至 knife4j（一）**：删除 `isass-apidoc-zyplayer` 模块（含其全部实现、客户端、同步服务与测试用例），并清理 `isass-core-dependencies/pom.xml` 与聚合根 `pom.xml` 中相关的 `dependencyManagement` 与模块声明，作为由 zyplayer-doc 迁移至 knife4j 的第一个步骤。
 
