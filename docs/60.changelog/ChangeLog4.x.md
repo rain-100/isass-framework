@@ -6,6 +6,7 @@
 
 #### feat
 
+- **依赖管理**：在 `isass-core-dependencies` 中新增 `knife4j-openapi3-ui:4.5.0` 依赖管理（zyplayer→knife4j 迁移步骤 2/3）。
 - **架构升级**：支持 Maven 4 风格构建，引入 `root="true"` 属性和 `modelVersion 4.1.0`。
 - **模块重构**：新增 `isass-framework-dependencies` (BOM) 和 `isass-framework-parent` (Parent POM)，提供更加灵活的项目继承与依赖管理方式。
 - **包名重构**：全量迁移包名，从 `vip.isass.core` 和 `vip.isass.kernel` 统一变更为 `vip.isass.framework`，保持与框架命名的统一。
