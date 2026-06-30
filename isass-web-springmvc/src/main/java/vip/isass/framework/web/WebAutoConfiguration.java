@@ -190,7 +190,6 @@ import vip.isass.framework.web.interceptor.TraceIdInterceptor;
 import vip.isass.framework.web.interceptor.UriMappingInterceptor;
 import vip.isass.framework.web.response.ResponseAdvice;
 import vip.isass.framework.web.servicedocs.ServiceDocsController;
-import vip.isass.framework.web.servicedocs.ServiceDocsScanner;
 import vip.isass.framework.web.uri.UriPrefixProvider;
 
 import java.awt.image.BufferedImage;
@@ -227,12 +226,6 @@ public class WebAutoConfiguration {
     @Bean
     public HttpMessageConverter<BufferedImage> bufferedImageHttpMessageConverter() {
         return new BufferedImageHttpMessageConverter();
-    }
-
-    @Bean
-    public ServiceDocsScanner serviceDocsScanner(
-            org.springframework.core.io.support.ResourcePatternResolver resourcePatternResolver) {
-        return new ServiceDocsScanner(resourcePatternResolver);
     }
 
     @Bean

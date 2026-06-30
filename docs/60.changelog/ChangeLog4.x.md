@@ -65,6 +65,7 @@
 
 #### refactor
 
+- **OpenAPI 资源目录硬切换**：删除 `ServiceDocsScanner`、Markdown `service-docs` 模型与 HTTP 接口；`/v3/api-docs` 直接读取并缓存 `classpath:/openapi3/openapi.json`，增强 SPI 改为仅转换传入的原始 JSON，不兼容旧 `service-docs/api/openapi.json` 路径。
 - **API Documentation 链路重构**：移除 zyplayer-doc 同步链路并引入 `knife4j-openapi3-ui` 4.5.0；`isass-service-apidoc-service` 支持嵌入业务服务与独立文档中心两种模式。
   - 运行时反射 `V3ServiceRegistry` 的实体字段生成 OpenAPI schema，内嵌枚举按 `@JsonValue` 映射，并将 V3 通用 endpoint 的 request body 改写为实体 `oneOf`，同时清理 smart-doc MD5 占位 schema。
   - 增强结果以双检锁懒加载缓存；`ServiceDocsController` 通过 `OpenApiEnhancerSpi` 可选接入，未安装文档服务时保持原始输出。
