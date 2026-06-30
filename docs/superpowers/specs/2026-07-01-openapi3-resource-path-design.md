@@ -12,14 +12,19 @@
 
 ### isass-framework-v4
 
-- `ServiceDocsScanner` 使用的 OpenAPI classpath 路径改为
-  `openapi3/openapi.json`。
+- 删除 `ServiceDocsScanner`、`ServiceDoc` 及 Markdown 服务文档接口
+  `/service-docs`、`/service-docs/**`。
+- `ServiceDocsController` 仅保留 `/v3/api-docs`，并直接读取
+  `classpath:/openapi3/openapi.json`。
+- Controller 对最终响应使用 `volatile` + 双检锁进行懒加载缓存；读取或增强失败时
+  不写入缓存，后续请求可以重试。
+- `OpenApiEnhancerSpi` 改为 `String enhance(String rawOpenApiJson)`，只负责转换传入的
+  OpenAPI JSON，不负责资源读取或缓存。
 - 相关测试 fixture 从 `service-docs/api/openapi.json` 迁移到
   `openapi3/openapi.json`。
 - 更新 smart-doc 使用指南、当前 README/设计说明和 ChangeLog 中仍作为现行约定的路径。
 - 历史实施计划和历史记录保留原文，不追溯改写。
 - `/v3/api-docs` HTTP 路由保持不变。
-- Markdown `service-docs` 扫描能力本身保持不变，避免扩大为无关框架删除。
 
 ### isass-service-attachment
 
@@ -34,9 +39,13 @@
 
 ### isass-service-apidoc
 
-- 保持通过框架 `ServiceDocsScanner` 获取原始 OpenAPI 的调用方式。
+- `V3OpenApiEnhancer` 继续负责 V3 schema 注入与 request body 改写。
+- 删除当前依赖 `ServiceDocsScanner` 并自行缓存的 `OpenApiEnhancer` 包装逻辑，或将其
+  精简为实现新 SPI 的纯增强适配器。
+- `ApidocAutoConfiguration` 不再注入 `ServiceDocsScanner`。
 - 更新涉及资源路径的测试、配置或文档；若没有直接硬编码，则不做无意义改动。
-- Knife4j、V3 schema 增强、缓存和 swagger-config 行为保持不变。
+- Knife4j、V3 schema 增强和 swagger-config 行为保持不变；最终文档缓存移至框架
+  Controller。
 
 ## 数据流
 
@@ -44,8 +53,9 @@
 smart-doc
   -> src/main/resources/openapi3/openapi.json
   -> classpath:/openapi3/openapi.json
-  -> ServiceDocsScanner.readOpenApiJson()
-  -> OpenApiEnhancer
+  -> ServiceDocsController
+  -> OpenApiEnhancerSpi.enhance(rawOpenApiJson)
+  -> ServiceDocsController final-result cache
   -> GET /v3/api-docs
   -> Knife4j
 ```
@@ -54,15 +64,18 @@ smart-doc
 
 - 这是一次硬切换。
 - 旧的 `service-docs/api/openapi.json` 不再生成、不再读取。
+- `/service-docs` 与 `/service-docs/**` 不再提供。
 - 旧路径缺失时不做兼容处理。
-- 新路径缺失时沿用当前 `ServiceDocsScanner` 的未找到异常行为。
+- 新路径缺失时 `/v3/api-docs` 返回 404。
+- 资源读取或增强异常不会污染缓存。
 
 ## 测试与验证
 
-- 先修改框架测试，使其只在 `openapi3/openapi.json` 下提供 fixture，并确认旧实现测试失败。
-- 修改框架路径常量后确认 scanner/controller 测试通过。
+- 先修改框架 controller 测试，使其只在 `openapi3/openapi.json` 下提供 fixture，并确认
+  旧实现测试失败。
+- 增加缓存只构建一次、构建失败后可重试、增强器存在与缺失两条路径的测试。
+- 删除 scanner、Markdown controller 与路径工具的专用测试。
 - 运行 apidoc 全量测试，确认增强与 e2e 路由继续通过。
 - 编译 attachment，确认 smart-doc 在新目录生成 `openapi.json`。
 - 验证 attachment 的 `service-docs/` 已删除，screw 配置未变化。
 - 按 R1 → R2 → R3 顺序执行 Maven 安装验证。
-
