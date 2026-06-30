@@ -1,68 +1,36 @@
-# smart-doc 与服务文档使用指南
+# smart-doc 与 OpenAPI 3 使用指南
 
-## 服务内 Markdown 文档
+## 生成目录
 
-业务微服务把随服务发布的 Markdown 文档放在：
-
-```text
-src/main/resources/service-docs/
-```
-
-运行时推荐暴露：
+isass v4 使用 smart-doc 在编译阶段生成 OpenAPI 3 文档，固定产物为：
 
 ```text
-GET /{spring.application.name}/service-docs
-GET /{spring.application.name}/service-docs/{docId}
+src/main/resources/openapi3/openapi.json
 ```
 
-`service-docs` 可以包含鉴权说明、使用指南、设计说明、数据库说明和开发期 API 生成物。其中 `guide`、`design`、`database` 下的 Markdown 会被 `isass-apidoc-zyplayer` 同步到 zyplayer-doc；`api` 目录不作为 Markdown 上传，在线调试接口由 smart-doc 生成的 OpenAPI 转换生成。
+该目录只存放 OpenAPI 3 产物，不再放入历史 `service-docs` 复合文档目录。
+旧的 `service-docs/api/openapi.json` 不再生成，也不会被框架读取。
 
-推荐目录：
+## 运行时接口
+
+框架提供：
 
 ```text
-service-docs/
-  api/        # API 生成物，例如 openapi.json，不上传 Markdown
-  guide/      # 使用文档
-  design/     # 设计文档
-  database/   # 数据库文档
+GET /v3/api-docs
+GET /{spring.application.name}/v3/api-docs
 ```
 
-## screw 生成数据库文档
+接口直接读取 `classpath:/openapi3/openapi.json`，在可用时调用
+`OpenApiEnhancerSpi` 增强内容，并缓存最终结果。Knife4j 使用该接口展示和调试 API。
 
-screw 需要在生成阶段通过 JDBC 连接数据库，读取真实表结构后才能输出 Markdown、HTML 或 Word 文档。因此不建议把 screw 绑定到默认构建流程，否则 CI/CD 没有数据库环境时会失败。
+## 微服务配置
 
-推荐放在默认不启用的 Maven profile 中，由开发人员本地按需执行：
-
-```bash
-mvn -pl isass-service-attachment-service -Pdb-doc generate-resources
-```
-
-输出目录建议固定为：
-
-```text
-src/main/resources/service-docs/database/
-```
-
-自动化构建只打包已经提交到仓库的 Markdown 文件，不主动连接数据库生成文档。
-
-## smart-doc 生成 API 文档
-
-isass v4 已将 smart-doc 的 `openapi` goal 绑定到 `compile` 阶段，继承 `isass-core-dependencies` 的微服务在编译时自动生成 `service-docs/api/openapi.json`，无需手动执行命令。
-
-### 运行时暴露
-
-- zyplayer-doc 在线调试使用 smart-doc 生成的 `service-docs/api/openapi.json`。
-- 框架的 `/{spring.application.name}/v3/api-docs` 直接读取并返回 `service-docs/api/openapi.json`，用于单体调试或外部工具读取。
-- `service-docs/api/*.md` 默认不上传 zyplayer-doc。
-
-### 微服务配置
-
-每个微服务在 `src/main/resources/smart-doc.json` 提供 smart-doc 配置。推荐模板：
+每个微服务在 `src/main/resources/smart-doc.json` 提供 smart-doc 配置：
 
 ```json
 {
   "serverUrl": "http://127.0.0.1:20320",
-  "outPath": "src/main/resources/service-docs/api",
+  "outPath": "src/main/resources/openapi3",
   "projectName": "your-service-name",
   "allInOne": true,
   "coverOld": true,
@@ -75,80 +43,55 @@ isass v4 已将 smart-doc 的 `openapi` goal 绑定到 `compile` 阶段，继承
 }
 ```
 
-- `outPath` 固定指向 `src/main/resources/service-docs/api`，产物随源码提交。
-- `requestFieldToUnderline` / `responseFieldToUnderline` 必须设为 `false`，避免 smart-doc 将驼峰字段名转为下划线格式（如 `pageNumber` → `page_number`）。
-- `allInOne` 设为 `true`，生成单个 `openapi.json` 文件，供 zyplayer-doc 和运行时 `/v3/api-docs` 统一读取。
-- `packageFilters` 限定扫描的 Controller 包名，避免扫描框架内部或测试类。
-- 其他配置项按需添加。
+- `outPath` 固定为 `src/main/resources/openapi3`。
+- `allInOne` 必须为 `true`，生成单个 `openapi.json`。
+- `requestFieldToUnderline` 与 `responseFieldToUnderline` 必须为 `false`，
+  避免把实际的驼峰参数名错误转换成下划线格式。
+- `packageFilters` 应限制到业务 Controller 和需要输出的 V3 通用 Controller。
 
-### 执行方式
-
-编译时自动触发，无需额外命令：
+编译时会自动生成：
 
 ```bash
 mvn compile
 ```
 
-禁用自动生成时，注释 `isass-core-dependencies` 中 smart-doc 插件的 `<phase>compile</phase>`，或临时跳过：
+临时跳过生成：
 
 ```bash
 mvn compile -Dsmart-doc.skip=true
 ```
 
-单独生成其他产物（Markdown、Postman 等）：
+## screw 数据库文档
+
+screw 保留为手工、按需使用的数据库文档工具，不属于 Knife4j API 文档运行时。
+它需要连接真实数据库，因此不应绑定到默认构建。
+
+例如：
 
 ```bash
-mvn smart-doc:markdown
-mvn smart-doc:postman
+mvn -pl isass-service-attachment-service -Pdb-doc generate-resources
 ```
 
-### 常见问题
+attachment 当前仍配置为输出到：
 
-**Q: 生成的 OpenAPI 中 query 参数名是下划线格式（`page_number`），但接口实际接收驼峰格式（`pageNumber`）？**
+```text
+src/main/resources/service-docs/database/
+```
 
-A: 检查 `smart-doc.json` 中 `requestFieldToUnderline` 和 `responseFieldToUnderline`，必须设为 `false`。该配置**不支持** Maven 插件级覆盖，必须在每个项目的 JSON 文件中单独设置。
+这个目录默认不存在；只有手工运行 screw 时才会重新创建。框架不再扫描或暴露其中内容。
 
-## 推荐 Javadoc 写法
+## Javadoc 要求
 
-smart-doc 会读取类、方法、参数和实体字段的 Javadoc。Controller 方法上应写清楚接口意图、参数中文说明和返回值；自定义 DTO、VO、Entity 的字段也应写 Javadoc，smart-doc 会在解析复杂参数或返回对象时读取字段说明。
-
-常用标签：
+smart-doc 会读取 Controller、参数、返回值和 DTO/Entity 字段的 Javadoc。常用标签：
 
 | 标签 | 作用 |
 | --- | --- |
 | `@apiNote` | 方法详细说明 |
-| `@param 参数名 描述\|示例值` | 参数说明和示例值 |
+| `@param` | 参数说明与示例 |
 | `@return` | 返回值说明 |
-| `@download` | 标记文件下载接口 |
+| `@download` | 标记文件下载 |
 | `@ignore` | 忽略类或方法 |
 | `@ignoreParams` | 忽略指定请求参数 |
 | `@response` | 补充响应字段说明 |
-| `@tag` | 接口分组，可把不同 controller 的接口归入同一分类 |
+| `@tag` | 接口分组 |
 | `@extension` | 扩展自定义元数据 |
-
-示例：
-
-```java
-/**
- * 上传附件
- *
- * @apiNote 接收浏览器上传的文件，保存后返回附件 ID 和访问地址。
- * @tag 附件文件
- * @param file 上传文件|avatar.png
- * @param param 上传参数
- * @return 上传结果
- */
-```
-
-实体字段示例：
-
-```java
-/**
- * 业务类型，用于隔离不同业务模块的附件。
- */
-private String bizType;
-```
-
-## API 分组
-
-zyplayer-doc 的 API 接口目录默认使用 OpenAPI operation 的 `tags`。如果一个业务场景跨多个 controller，建议使用 smart-doc 的 `@tag` 写同一个分组名，让生成结果保持业务视角一致。

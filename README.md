@@ -94,16 +94,13 @@ subject是commit目的的简短描述，不超过50个字符。
 
 ## API 文档
 
-isass v4 的 API 文档能力由框架模块 `isass-apidoc-zyplayer`、业务服务内的 `service-docs` Markdown、运行时 OpenAPI 和独立部署的 zyplayer-doc 共同组成。
+isass v4 使用 smart-doc 生成 `openapi3/openapi.json`，由 `/v3/api-docs` 读取并增强，
+再通过 Knife4j 展示和调试 API。
 
-- 设计说明：请查看 [docs/design/apidoc/zyplayer-doc.md](docs/design/apidoc/zyplayer-doc.md)。
-- smart-doc、screw 和业务服务文档编写方式：请查看 [docs/usage/apidoc/smart-doc.md](docs/usage/apidoc/smart-doc.md)。
-- 微服务接入 zyplayer-doc 的配置方式：请查看 [docs/usage/apidoc/zyplayer-doc.md](docs/usage/apidoc/zyplayer-doc.md)。
+- smart-doc、OpenAPI 3 与 screw 使用方式：请查看 [docs/usage/apidoc/smart-doc.md](docs/usage/apidoc/smart-doc.md)。
 
-业务服务默认推荐暴露：
+业务服务暴露：
 
 ```text
 GET /{spring.application.name}/v3/api-docs
-GET /{spring.application.name}/service-docs
-GET /{spring.application.name}/service-docs/{docId}
 ```
