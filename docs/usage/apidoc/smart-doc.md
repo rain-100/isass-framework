@@ -1,31 +1,21 @@
-# smart-doc 与 OpenAPI 3 使用指南
+# Smart-Doc、OpenAPI 3 与 Knife4j
 
-## 生成目录
-
-isass v4 使用 smart-doc 在编译阶段生成 OpenAPI 3 文档，固定产物为：
+## 文档链路
 
 ```text
-src/main/resources/openapi3/openapi.json
+强类型 Controller + 实体 Javadoc
+  -> Smart-Doc
+  -> classpath:/openapi3/openapi.json
+  -> OpenApiEnhancerSpi
+  -> GET /v3/api-docs
+  -> Knife4j /doc.html
 ```
 
-该目录只存放 OpenAPI 3 产物，不再放入历史 `service-docs` 复合文档目录。
-旧的 `service-docs/api/openapi.json` 不再生成，也不会被框架读取。
+Smart-Doc 负责解析 Java 类型和 Javadoc；OpenAPI 增强器只做 V3 路径折叠和 `oneOf` 组合；Knife4j 负责展示与在线调试。
 
-## 运行时接口
+## Smart-Doc 配置
 
-框架提供：
-
-```text
-GET /v3/api-docs
-GET /{spring.application.name}/v3/api-docs
-```
-
-接口直接读取 `classpath:/openapi3/openapi.json`，在可用时调用
-`OpenApiEnhancerSpi` 增强内容，并缓存最终结果。Knife4j 使用该接口展示和调试 API。
-
-## 微服务配置
-
-每个微服务在 `src/main/resources/smart-doc.json` 提供 smart-doc 配置：
+每个微服务在 `src/main/resources/smart-doc.json` 配置：
 
 ```json
 {
@@ -34,6 +24,7 @@ GET /{spring.application.name}/v3/api-docs
   "projectName": "your-service-name",
   "allInOne": true,
   "coverOld": true,
+  "componentType": "NORMAL",
   "packageFilters": "vip.isass.your.controller.*",
   "requestFieldToUnderline": false,
   "responseFieldToUnderline": false,
@@ -43,46 +34,38 @@ GET /{spring.application.name}/v3/api-docs
 }
 ```
 
+关键项：
+
 - `outPath` 固定为 `src/main/resources/openapi3`。
-- `allInOne` 必须为 `true`，生成单个 `openapi.json`。
-- `requestFieldToUnderline` 与 `responseFieldToUnderline` 必须为 `false`，
-  避免把实际的驼峰参数名错误转换成下划线格式。
-- `packageFilters` 应限制到业务 Controller 和需要输出的 V3 通用 Controller。
+- `allInOne` 生成单个 `openapi.json`。
+- `componentType: NORMAL` 生成稳定、可读的命名 Schema。
+- 请求和响应字段不转换为下划线。
+- `packageFilters` 必须覆盖业务 Controller 和生成的 V3 实体 Controller。
 
-编译时会自动生成：
-
-```bash
-mvn compile
-```
-
-临时跳过生成：
+生成命令：
 
 ```bash
-mvn compile -Dsmart-doc.skip=true
+mvn -Psmart-doc smart-doc:openapi
 ```
 
-## screw 数据库文档
-
-screw 保留为手工、按需使用的数据库文档工具，不属于 Knife4j API 文档运行时。
-它需要连接真实数据库，因此不应绑定到默认构建。
-
-例如：
-
-```bash
-mvn -pl isass-service-attachment-service -Pdb-doc generate-resources
-```
-
-attachment 当前仍配置为输出到：
+## 运行时接口
 
 ```text
-src/main/resources/service-docs/database/
+GET /v3/api-docs
+GET /{spring.application.name}/v3/api-docs
+GET /v3/api-docs/swagger-config
+GET /doc.html
 ```
 
-这个目录默认不存在；只有手工运行 screw 时才会重新创建。框架不再扫描或暴露其中内容。
+服务从 `classpath:/openapi3/openapi.json` 读取原始文档，调用 `OpenApiEnhancerSpi` 后缓存最终结果。
 
-## Javadoc 要求
+## Javadoc
 
-smart-doc 会读取 Controller、参数、返回值和 DTO/Entity 字段的 Javadoc。常用标签：
+Smart-Doc 直接读取 Controller、参数、返回值和实体字段的 Javadoc。实体字段无需增加 Swagger、Schema 或自定义运行时描述注解。
+
+V3 实体模板会把数据库字段注释写入字段 Javadoc。重新生成实体后，Smart-Doc 将其写入命名 Schema 的 `description`。
+
+常用标签：
 
 | 标签 | 作用 |
 | --- | --- |
@@ -95,3 +78,23 @@ smart-doc 会读取 Controller、参数、返回值和 DTO/Entity 字段的 Java
 | `@response` | 补充响应字段说明 |
 | `@tag` | 接口分组 |
 | `@extension` | 扩展自定义元数据 |
+
+## V3 文档
+
+每个 V3 实体生成一个强类型 Controller。Smart-Doc 首先输出完整的实体路径、命名请求 Schema 和 `Resp<T>` 响应 Schema。
+
+`V3OpenApiEnhancer` 再把实体路径折叠为：
+
+```text
+/{serviceName}/{entityName}/v3/**
+```
+
+请求体和响应通过 `oneOf` 保留各实体类型；Criteria 参数从实体 Schema 属性生成，只展示等值字段和允许的通用字段。分页参数只出现在分页查询接口。
+
+## 数据库文档
+
+screw 仅作为手工数据库文档工具，不属于 API 文档运行时：
+
+```bash
+mvn -pl isass-service-attachment-service -Pdb-doc generate-resources
+```

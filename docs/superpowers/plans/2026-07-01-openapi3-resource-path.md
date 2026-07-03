@@ -231,7 +231,6 @@ git commit -m "refactor: move generated OpenAPI to openapi3 resource"
 - [ ] **Step 1: Update current documentation**
 
 Describe `openapi3/openapi.json` as the only generated API document path. Remove current
-instructions that advertise zyplayer or `/service-docs`. Do not rewrite dated historical plans.
 State explicitly that screw remains opt-in and may recreate `service-docs/database`.
 
 - [ ] **Step 2: Scan for active old references**
@@ -243,8 +242,7 @@ rg -n "service-docs/api|ServiceDocsScanner|GET .*/service-docs" \
   README.md docs/usage docs/design isass-web-springmvc/src
 ```
 
-Expected: no active implementation/usage references; historical zyplayer design documents may
-remain only when clearly historical.
+Expected: no active implementation or usage references to the removed document pipeline.
 
 - [ ] **Step 3: Install in dependency order**
 
@@ -260,4 +258,3 @@ Expected: all three builds succeed.
 
 Verify R1 and R2 are clean after commits. Verify R3 contains only the user's pre-existing POM
 changes after the scoped resource commit. Record final HEADs and test counts.
-

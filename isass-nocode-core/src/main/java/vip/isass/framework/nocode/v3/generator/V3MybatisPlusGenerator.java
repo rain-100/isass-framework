@@ -400,6 +400,13 @@ public class V3MybatisPlusGenerator {
                                                 .fileName("Service.java")
                                                 .formatNameFunction(tableInfo -> "V3" + tableInfo.getEntityName())
                                                 .enableFileOverride()
+                                                .build(),
+                                        new CustomFile.Builder()
+                                                .templatePath("/v3Template/controller.java.ftl")
+                                                .packageName("controller")
+                                                .fileName("Controller.java")
+                                                .formatNameFunction(tableInfo -> "V3" + tableInfo.getEntityName())
+                                                .enableFileOverride()
                                                 .build()
                                 ));
                     } catch (Exception e) {

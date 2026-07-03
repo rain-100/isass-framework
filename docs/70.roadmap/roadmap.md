@@ -54,10 +54,6 @@
     - 2026-06-21：新增 `IsassServiceLoader` 作为 Java SPI 发现工具；`isass-core-common` 和 `isass-nocode-core` 通过 `META-INF/services` 暴露默认 `Converter`；Spring Boot adapter 改为合并 Spring Bean converter 与 SPI converter，非 Spring 运行时可复用同一套 ServiceLoader 发现机制。验证：`mvn -pl isass-adapter-springboot -am test -Dmaven.javadoc.skip=true -Dsurefire.failIfNoSpecifiedTests=false`。
     - 2026-06-21：`IExceptionMapping` 已接入 Java SPI；core-common、web-springmvc、database-core、database-mybatisplus 通过 `META-INF/services` 暴露内置异常映射；`ExceptionAdvice` 改为合并 Spring Bean 映射与 SPI 映射，并移除 Web 内置异常映射的 `@Component`。验证：`mvn -pl isass-core-common,isass-web-springmvc -am test -Dmaven.javadoc.skip=true -Dsurefire.failIfNoSpecifiedTests=false`、`mvn -pl isass-adapter-springboot -am test -Dmaven.javadoc.skip=true -Dsurefire.failIfNoSpecifiedTests=false`、`mvn -pl isass-database-mybatisplus -am test -Dmaven.javadoc.skip=true -Dsurefire.failIfNoSpecifiedTests=false`。
     - 2026-06-21：`IsassServiceLoader` 已新增 `loadFirst`；`BeanProviderUtil` 和 `LogUtil` 已新增显式 `set*FromServiceLoader` 初始化方法，非 Spring runtime 可通过 Java SPI 提供 no-arg `BeanProvider` / `LogLevelManager` 或继续主动调用 setter 注入上下文对象。验证：`mvn -pl isass-core-common test -Dmaven.javadoc.skip=true -Dsurefire.failIfNoSpecifiedTests=false`。
-    - 2026-06-21：`isass-apidoc-zyplayer` 已新增纯 Java `ZyplayerText`，替换 `ZyplayerVersion`、`ZyplayerServiceDescriptor`、OpenAPI 过滤/采集/转换和 OpenAPI client 中仅用于判空的 Spring `StringUtils`；保留 RestClient、Environment、ResourceLoader、AntPathMatcher 等真实 Spring/Web 边界后续再拆。验证：`mvn -pl isass-apidoc-zyplayer -am test -Dmaven.javadoc.skip=true -Dsurefire.failIfNoSpecifiedTests=false`。
-    - 2026-06-21：`isass-apidoc-zyplayer` 已移除 OpenAPI 排除规则中的 Spring `AntPathMatcher`，改用模块内纯 Java Ant 风格路径匹配，支持 `**`、`*`、`?` 和 `/**` 匹配目录本身。验证：`mvn -pl isass-apidoc-zyplayer -am test -Dmaven.javadoc.skip=true -Dsurefire.failIfNoSpecifiedTests=false`。
-    - 2026-06-21：`ZyplayerOpenApiClient` 已从 Spring `RestClient` / `MediaType` / `MultiValueMap` 改为 JDK `HttpClient`、`HttpRequest` 和 `URLEncoder`，OpenAPI client 本体不再依赖 Spring HTTP 客户端。验证：`mvn -pl isass-apidoc-zyplayer -am test -Dmaven.javadoc.skip=true -Dsurefire.failIfNoSpecifiedTests=false`。
-    - 2026-06-21：`ZyplayerOpenApiDocsCollector` 已移除对 Spring `Environment`、`ResourceLoader` 和 `RestClient` 的直接依赖，改为接收端口 `Supplier`、资源读取 `Function` 和 JDK `HttpClient`；Spring Boot auto-config 仅负责把 Spring 环境桥接为这些纯 Java 入参。验证：`mvn -pl isass-apidoc-zyplayer -am test -Dmaven.javadoc.skip=true -Dsurefire.failIfNoSpecifiedTests=false`。
     - 2026-06-21：`isass-mq-core` 已移除 `MqManager`、`EventPublisher`、`MqConsumerAutoConfiguration`、`DynamicMqProperties`、`EventListener` 中的 Spring 类型/注解，并删除模块内 Spring Boot auto-configuration imports；`isass-adapter-springboot` 新增 MQ Spring Boot 自动装配和 `SmartLifecycle` 桥，按 `isass-mq-core` classpath 条件激活；`isass-mq-springevent`、`isass-mq-kafka011` 已补齐自身显式 Spring 编译依赖，不再依赖 mq-core 传递 Spring。验证：`mvn -pl isass-mq-core,isass-adapter-springboot -am test -Dmaven.javadoc.skip=true -Dsurefire.failIfNoSpecifiedTests=false`、`mvn -pl isass-mq-kafka011,isass-mq-springevent,isass-mq-redisstream,isass-mq-redispubsub -am test -Dmaven.javadoc.skip=true -Dsurefire.failIfNoSpecifiedTests=false`。
     - 2026-06-21：`isass-mq-redisstream`、`isass-mq-redispubsub` 已移除 factory 上的 Spring `@Component` 和 auto-config 的 `@ComponentScan`，改为显式 `@Bean` 注册；producer 参数校验从 Spring `Assert` 改为 JDK `Objects.requireNonNull` + `IllegalArgumentException`。验证：`mvn -pl isass-mq-redisstream,isass-mq-redispubsub -am test -Dmaven.javadoc.skip=true -Dsurefire.failIfNoSpecifiedTests=false`。
     - 2026-06-22：`isass-encryption` 已从 `jasypt-spring-boot-starter` 切换为 `org.jasypt:jasypt`，模块 main 源码继续只使用 Jasypt core `BasicTextEncryptor`；新增加解密闭环测试。验证：`mvn -pl isass-adapter-springboot,isass-encryption,isass-net-admin -am test -Dmaven.javadoc.skip=true -Dsurefire.failIfNoSpecifiedTests=false`、`mvn -pl isass-encryption dependency:tree -Dincludes=org.springframework -Dscope=compile -Dmaven.javadoc.skip=true`。
@@ -110,50 +106,34 @@
     - 反射、资源扫描、动态代理入口有可枚举的配置。
   - 执行步骤：
     - 先选 `isass-service-attachment` 作为 native smoke test 项目。
-    - 梳理 Jackson、MyBatis Plus、smart-doc、zyplayer、ServiceLoader 的 native hint。
     - 先跑 JVM 构建绿灯，再加 native 构建 profile。
     - 把失败项拆成反射配置、资源配置、动态代理配置三类修复。
 
 ## 二、API 文档与服务文档
 
-### 2.1 Swagger/Knife4j 替换
+### 2.1 Smart-Doc 与 Knife4j
 
-- [x] **删除 Swagger/Knife4j，集成 smart-doc + zyplayer-doc**
+- [x] **Smart-Doc 生成 OpenAPI，Knife4j 展示与调试**
   - 完成记录：
-    - `isass-web-swagger` 旧模块已移除。
-    - `isass-core-dependencies` 已删除 `knife4j-dependencies` BOM 和 `isass-web-swagger` 版本管理。
-    - 框架源码里的 `io.swagger.annotations` 已移除。
-    - 接口文档改为 smart-doc 生成 OpenAPI/Markdown，zyplayer-doc 展示与在线调试。
-    - `isass-apidoc-zyplayer` 已实现对接 zyplayer-doc 的空间、目录、API 文档和 Markdown 文档同步。
-    - attachment 已作为首个适配项目验证 `service-docs/api`、`service-docs/database`、`service-docs/guide`、`service-docs/design` 目录约定。
+    - API 文档固定生成到 `openapi3/openapi.json`。
+    - `componentType: NORMAL` 生成稳定命名 Schema。
+    - V3 强类型 Controller 让 Smart-Doc 直接读取实体与 Criteria Javadoc。
+    - OpenAPI 增强器把实体专用 V3 paths 折叠为统一接口。
+    - `isass-apidoc-openapi3` 支持服务、实体、请求体和 Criteria 联动。
 
 - [x] **集成数据库文档生成工具 screw**
   - 完成记录：
     - 框架文档已说明开发阶段通过 Maven 主动生成数据库 Markdown 文档，避免自动化构建阶段强依赖数据库环境。
-    - 生成文档放入 `resources/service-docs/database` 后可被 service-docs 接口暴露，并同步到 zyplayer-doc。
 
-### 2.2 API 文档后续增强
+### 2.2 API 文档增强
 
-- [~] **zyplayer-doc 同步稳定性**
-  - 已完成步骤：
-    - 空间名改为微服务中文名。
-    - 空间唯一标识改为 `applicationName + 时间戳后缀`，避免 zyplayer-doc 回收站软删除导致固定 uuid 冲突。
-    - 一级目录顺序约定为：`api接口`、`使用文档`、`设计文档`、`数据库文档`。
-    - 支持按 controller `@Tag` 中文名分组 API，接口名使用 smart-doc/Javadoc 注释。
-    - 支持 `exclude-paths`、`exclude-path-patterns` 过滤 `url` 或 `METHOD url`。
-    - 移除 zyplayer-doc 空间版本管理功能（`versionControl`、`ensureSpaceVersion`、`editVersion`）。
-  - 下一步：
-    - 为目录查重、文档查重补充自动化测试。
-    - 在 attachment 重启两次验证空间、一级目录、API 文档不重复创建。
-
-- [x] **服务文档暴露协议固化**
+- [x] **V3 文档精简与调试增强**
   - 完成记录：
-    - 微服务统一暴露 `/{service-name}/service-docs`，同时保留无服务名前缀的 `/service-docs` 便于单体和本地调试。
-    - API JSON 统一暴露 `/{service-name}/v3/api-docs`，同时保留无服务名前缀的 `/v3/api-docs`。
-    - `v3/api-docs` 数据源来自 `service-docs/api/openapi.json`，由 smart-doc 在开发阶段生成，不依赖 SpringDoc 运行时生成链路。
-    - `ServiceDocsScanner` 负责扫描 `service-docs/**/*.md` 与读取 `service-docs/api/openapi.json`；`ServiceDocsController` 负责 HTTP 暴露。
-    - attachment 已约定 OpenAPI JSON 地址为 `http://127.0.0.1:20320/attachment-service/v3/api-docs`，Markdown 服务文档地址为 `http://127.0.0.1:20320/attachment-service/service-docs`。
-    - 验证：`mvn -pl isass-web-springmvc -am test -Dmaven.javadoc.skip=true -Dsurefire.failIfNoSpecifiedTests=false`。
+    - 统一 V3 文档只展示一套折叠后的接口。
+    - Criteria 只展示实体等值字段和允许的通用参数。
+    - 分页参数只出现在分页接口。
+    - Curl 与浏览器实际请求使用同一 URL 和 query 参数。
+    - API JSON 同时暴露 `/v3/api-docs` 和带服务名前缀的路径。
 
 ## 三、异常体系
 
@@ -308,13 +288,10 @@
     - 决定 API 文档展示方式：默认一个通用 controller，还是按实体生成虚拟分组。
     - 把动态 endpoint 纳入 attachment 单体启动验证。
 
-- [ ] **级联 controller 分组方式**
-  - 目标：
-    - 支持 API 文档中按实体、领域或 controller tag 分组展示通用接口。
-  - 执行步骤：
-    - 先确定 v3 通用 controller 是单 controller 还是按实体虚拟 controller。
-    - 如果只使用一个 controller，实体路径参数需要在 API 文档中提供可选枚举或说明。
-    - smart-doc/zyplayer-doc 同步时生成更符合前端阅读的分组结构。
+- [x] **V3 Controller 与文档分组**
+  - 完成记录：
+    - 运行时保持每实体一个强类型 Controller。
+    - 文档层折叠为统一 V3 接口，并提供实体枚举和 Schema 映射。
 
 ### 4.4 v3 ORM adapter 与增强功能
 
@@ -392,12 +369,6 @@
     - 当前优先级低于框架核心解耦、低代码 v3 和 API 文档闭环。
   - 重启条件：
     - API 文档、service-docs、框架设计文档路径稳定后，再统一改造文档站。
-
-- [-] **文档项目自动同步具体项目 Markdown**
-  - 暂不实施原因：
-    - 当前已通过 `service-docs` 和 zyplayer-doc 同步微服务文档，独立文档站同步暂缓。
-  - 重启条件：
-    - 明确框架文档站与 zyplayer-doc 的边界后，再设计同步机制。
 
 ## 六、暂不实施任务
 

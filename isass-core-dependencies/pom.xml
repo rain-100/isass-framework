@@ -200,7 +200,6 @@
         <git-commit-id-plugin.version>4.9.10</git-commit-id-plugin.version>
         <maven-assembly-plugin.version>3.7.1</maven-assembly-plugin.version>
         <maven-release-plugin.version>3.3.1</maven-release-plugin.version>
-        <knife4j.version>4.5.0</knife4j.version>
         <smart-doc.version>3.1.2</smart-doc.version>
 
         <!-- endregion -->
@@ -436,9 +435,9 @@
             </dependency>
 
             <dependency>
-                <groupId>com.github.xiaoymin</groupId>
-                <artifactId>knife4j-openapi3-ui</artifactId>
-                <version>${knife4j.version}</version>
+                <groupId>vip.isass</groupId>
+                <artifactId>isass-apidoc-openapi3</artifactId>
+                <version>${isass.version}</version>
             </dependency>
 
             <dependency>

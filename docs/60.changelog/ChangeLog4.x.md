@@ -6,7 +6,6 @@
 
 #### feat
 
-- **依赖管理**：在 `isass-core-dependencies` 中新增 `knife4j-openapi3-ui:4.5.0` 依赖管理（zyplayer→knife4j 迁移步骤 2/3）。
 - **OpenAPI 增强 SPI**：`isass-web-springmvc` 新增 `OpenApiEnhancerSpi`，`ServiceDocsController` 在增强器存在时输出运行时增强文档，不存在时保持原始 smart-doc 输出。
 - **架构升级**：支持 Maven 4 风格构建，引入 `root="true"` 属性和 `modelVersion 4.1.0`。
 - **模块重构**：新增 `isass-framework-dependencies` (BOM) 和 `isass-framework-parent` (Parent POM)，提供更加灵活的项目继承与依赖管理方式。
@@ -65,14 +64,11 @@
 
 #### refactor
 
-- **OpenAPI 资源目录硬切换**：删除 `ServiceDocsScanner`、Markdown `service-docs` 模型与 HTTP 接口；`/v3/api-docs` 直接读取并缓存 `classpath:/openapi3/openapi.json`，增强 SPI 改为仅转换传入的原始 JSON，不兼容旧 `service-docs/api/openapi.json` 路径。
-- **API Documentation 链路重构**：移除 zyplayer-doc 同步链路并引入 `knife4j-openapi3-ui` 4.5.0；`isass-service-apidoc-service` 支持嵌入业务服务与独立文档中心两种模式。
-  - 运行时反射 `V3ServiceRegistry` 的实体字段生成 OpenAPI schema，内嵌枚举按 `@JsonValue` 映射，并将 V3 通用 endpoint 的 request body 改写为实体 `oneOf`，同时清理 smart-doc MD5 占位 schema。
+- **OpenAPI 资源目录与 V3 文档链路**：`/v3/api-docs` 读取并缓存 `classpath:/openapi3/openapi.json`；V3 使用每实体一个强类型 `IV3Controller`，Smart-Doc 生成命名 Schema 和 Javadoc 描述，增强器再把实体路径折叠为统一 endpoint。
+  - 请求体、响应和 Criteria 使用 Smart-Doc Schema 组合 `oneOf` 与实体映射，不反射补造字段 Schema。
   - 增强结果以双检锁懒加载缓存；`ServiceDocsController` 通过 `OpenApiEnhancerSpi` 可选接入，未安装文档服务时保持原始输出。
   - 新增 `/v3/api-docs/swagger-config` 双模式分组，以及 `/doc.html`、`/services/{serviceName}/doc.html` Knife4j UI 路由。
-  - attachment 服务改为依赖 `isass-service-apidoc-service` 获得嵌入模式能力，smart-doc 继续产出固定数量的通用 V3 endpoint。
-- **`isass-apidoc-zyplayer`**：移除 zyplayer-doc 版本管理功能。删除空间创建时的 `versionControl` 参数、空间版本 API 调用（`ensureSpaceVersion`）、页面更新时的 `editVersion` 乐观锁及重试逻辑，简化同步流程。
-- **接口文档迁移至 knife4j（一）**：删除 `isass-apidoc-zyplayer` 模块（含其全部实现、客户端、同步服务与测试用例），并清理 `isass-core-dependencies/pom.xml` 与聚合根 `pom.xml` 中相关的 `dependencyManagement` 与模块声明，作为由 zyplayer-doc 迁移至 knife4j 的第一个步骤。
+  - attachment 服务使用生成的 `V3IconController`、`V3IconGroupController`，运行时直接访问具体静态实体路径。
 
 #### fix
 

@@ -27,9 +27,4 @@ public class V3AutoConfiguration {
     public V3TableMetaRegistrar v3TableMetaRegistrar() {
         return new V3TableMetaRegistrar();
     }
-
-    @Bean
-    public V3CriteriaMapper v3CriteriaMapper() {
-        return new V3CriteriaMapper();
-    }
 }

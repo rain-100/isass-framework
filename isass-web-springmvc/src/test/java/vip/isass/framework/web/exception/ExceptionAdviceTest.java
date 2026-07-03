@@ -177,7 +177,7 @@ class ExceptionAdviceTest {
 
         assertThat(resp.getMessage()).contains("系统繁忙，请稍后重试");
         assertThat(resp.getMessage()).doesNotContain("secret detail");
-        assertThat(resp.getDetailMessage()).contains("secret detail");
+        assertThat(resp.getDetailMessage()).isNull();
     }
 
     @Test
@@ -187,6 +187,29 @@ class ExceptionAdviceTest {
         Resp<?> resp = advice.createRespByException(new RuntimeException("错误详情"));
 
         assertThat(resp.getMessage()).contains("错误详情");
+    }
+
+    @Test
+    void showDetailIncludesConciseCauseChainAndBusinessFrames() {
+        Exception cause = new IllegalArgumentException("inner");
+        cause.setStackTrace(new StackTraceElement[]{
+                new StackTraceElement("org.springframework.Proxy", "call", "Proxy.java", 1),
+                new StackTraceElement("vip.isass.demo.Service", "load", "Service.java", 42)
+        });
+        Exception outer = new RuntimeException("outer", cause);
+        outer.setStackTrace(new StackTraceElement[]{
+                new StackTraceElement("vip.isass.demo.Controller", "query", "Controller.java", 18)
+        });
+
+        Resp<?> resp = new ExceptionAdvice(true, "系统繁忙").createRespByException(outer);
+
+        assertThat(resp.getDetailMessage())
+                .contains("RuntimeException: outer")
+                .contains("Caused by: IllegalArgumentException: inner")
+                .contains("vip.isass.demo.Service.load(Service.java:42)")
+                .doesNotContain("org.springframework.Proxy");
+        assertThat(resp.getDetailMessage().lines().count()).isLessThanOrEqualTo(30);
+        assertThat(resp.getDetailMessage().length()).isLessThanOrEqualTo(8192);
     }
 
     @Test

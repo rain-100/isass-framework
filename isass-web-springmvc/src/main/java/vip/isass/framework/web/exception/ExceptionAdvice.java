@@ -190,6 +190,7 @@ import vip.isass.framework.common.web.Resp;
 
 // import javax.annotation.Resource;
 import java.util.List;
+import java.util.ArrayList;
 
 /**
  * 所有异常转换成 Resp
@@ -257,6 +258,7 @@ public class ExceptionAdvice {
 
     public Resp<?> createRespByException(Exception e) {
         Resp<?> resp = null;
+        boolean mapped = e instanceof UnifiedException;
         if (e instanceof UnifiedException) {
             UnifiedException exception = (UnifiedException) e;
 
@@ -265,29 +267,65 @@ public class ExceptionAdvice {
                 resp = createRespByExceptionFromExceptionMappings(cause);
             }
 
-            return resp == null
+            resp = resp == null
                     ? new Resp<>()
                     .setSuccess(false)
                     .setStatus(ObjectUtil.defaultIfNull(exception.getStatus(), StatusMessageEnum.UNDEFINED.getStatus()))
                     .setMessage(ObjectUtil.defaultIfNull(exception.getMsg(), defaultMessage(exception)))
                     : resp;
+        } else {
+            resp = createRespByExceptionFromExceptionMappings(e);
+            mapped = resp != null;
         }
-
-        resp = createRespByExceptionFromExceptionMappings(e);
         if (resp == null) {
-            ProcessedErrorMessage processedMessage = processErrorMessageResult(defaultMessage(ExceptionUtil.unwrap(e)));
             resp = new Resp<>()
                     .setSuccess(Boolean.FALSE)
                     .setStatus(StatusMessageEnum.UNDEFINED.getStatus())
-                    .setMessage(processedMessage.message())
-                    .setDetailMessage(processedMessage.detailMessage());
+                    .setMessage(defaultMessage(ExceptionUtil.unwrap(e)));
         }
-        if (resp.getMessage() != null && resp.getMessage().length() > 40) {
-            ProcessedErrorMessage processedMessage = processErrorMessageResult(resp.getMessage());
-            resp.setMessage(processedMessage.message());
-            resp.setDetailMessage(processedMessage.detailMessage());
+        String traceId = LongSequence.get().toString();
+        if (showDetailError) {
+            resp.setDetailMessage("[" + traceId + "]\n" + conciseStackTrace(ExceptionUtil.unwrap(e)));
+        } else {
+            if (!mapped) {
+                resp.setMessage("[" + traceId + "] " + prodUnifiedMessage);
+            }
+            resp.setDetailMessage(null);
         }
         return resp;
+    }
+
+    private String conciseStackTrace(Throwable throwable) {
+        List<String> lines = new ArrayList<>();
+        Throwable current = throwable;
+        for (int causeIndex = 0; current != null && causeIndex < 3 && lines.size() < 30; causeIndex++) {
+            lines.add((causeIndex == 0 ? "" : "Caused by: ")
+                    + current.getClass().getSimpleName()
+                    + (current.getMessage() == null ? "" : ": " + current.getMessage()));
+            List<StackTraceElement> businessFrames = java.util.Arrays.stream(current.getStackTrace())
+                    .filter(frame -> frame.getClassName().startsWith("vip.isass."))
+                    .limit(8)
+                    .toList();
+            List<StackTraceElement> frames = businessFrames.isEmpty()
+                    ? java.util.Arrays.stream(current.getStackTrace()).limit(5).toList()
+                    : businessFrames;
+            for (StackTraceElement frame : frames) {
+                if (lines.size() >= 29) {
+                    lines.add("... truncated");
+                    break;
+                }
+                lines.add("\tat " + frame);
+            }
+            current = current.getCause();
+        }
+        if (current != null && lines.size() < 30) {
+            lines.add("... truncated");
+        }
+        String result = String.join("\n", lines);
+        if (result.length() > 8192) {
+            return result.substring(0, 8178) + "\n... truncated";
+        }
+        return result;
     }
 
     private Resp<?> createRespByExceptionFromExceptionMappings(Exception e) {

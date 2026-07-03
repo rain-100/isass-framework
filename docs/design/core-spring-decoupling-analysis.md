@@ -65,7 +65,7 @@
 - `isass-web-springmvc`、`isass-database-core`、`isass-database-mybatisplus`、`isass-adapter-springboot` 和 `isass-service-attachment` 已迁到 `vip.isass.framework.nocode.v2`，`common.structure` 暂时只作为历史兼容包保留。
 - `StringToV2WhereConditionConverter` 已从 core-common 迁到 nocode v2，`SensitiveDataProperty` 已移除对历史 v2 entity 的引用；core-common 外部已无 `common.structure` 引用。
 - `V2MybatisPlusGenerator` 的模板变量和 nocode MyBatis XML namespace 已迁到 `vip.isass.framework.nocode` 包名。
-- `isass-web-swagger` 旧 Swagger/Knife4j 模块已移除，`isass-core-dependencies` 也已删除 `knife4j-dependencies` BOM 和 `isass-web-swagger` 版本管理；框架源码里的 `io.swagger.annotations` 已移除，接口文档后续走 smart-doc 生成 + zyplayer-doc 展示/调试。
+- API 文档由 Smart-Doc 生成标准 OpenAPI，`OpenApiEnhancerSpi` 在 Web 边界完成 V3 路径折叠，Knife4j UI 位于独立的 `isass-apidoc-openapi3` 模块。
 - `isass-core-common` 已显式声明 `slf4j-api`，不再依赖 Swagger/Knife4j 或其他传递依赖间接提供日志 API。
 - `isass-nocode-core` 已新增 v3 operation pipeline、provider router、cache facade/cache operation 等纯 Java 基础抽象，用于替代 v1/v2 的 service 排序链承载缓存/事件等增强的旧模式。
 - `isass-nocode-core` 中整文件注释的旧 lowcode MyBatis Plus 源码和未引用的 nocode `ICommonMapper`/XML 已删除；可运行的 MyBatis Plus 实现保留在 `isass-database-mybatisplus`。
@@ -80,7 +80,6 @@
 - `IsassServiceLoader` 已作为第一阶段 Java SPI 发现工具落地；`isass-core-common` 和 `isass-nocode-core` 通过 `META-INF/services/vip.isass.framework.common.support.Converter` 暴露默认 converter，Spring Boot adapter 合并 Spring Bean converter 与 SPI converter。
 - `IExceptionMapping` 已接入 Java SPI；core-common、web-springmvc、database-core、database-mybatisplus 通过 `META-INF/services` 暴露内置异常映射，`ExceptionAdvice` 合并 Spring Bean 映射和 SPI 映射，业务自定义 Bean 优先于同 class 的 SPI 默认实现。
 - `BeanProviderUtil` 和 `LogUtil` 已提供显式 `set*FromServiceLoader` 初始化入口；非 Spring runtime 可以通过 Java SPI 提供 no-arg 实现，也可以在 adapter 启动时继续主动调用 setter 注入带运行时上下文的实现。
-- `isass-apidoc-zyplayer` 已将仅用于文本判空/默认值的 Spring `StringUtils` 替换为纯 Java `ZyplayerText`，OpenAPI 排除规则中的 Spring `AntPathMatcher` 已替换为模块内纯 Java Ant 风格路径匹配；`ZyplayerOpenApiClient` 和 `ZyplayerOpenApiDocsCollector` 已从 Spring `RestClient` 改为 JDK `HttpClient`；OpenAPI 采集器通过端口 `Supplier` 和资源读取 `Function` 接收运行时能力，Spring `Environment` / `ResourceLoader` 仅保留在自动装配桥接层。
 - `isass-mq-core` 已移除 Spring Boot 自动配置入口和 `SmartLifecycle` / stereotype / `@ConfigurationProperties` 直接依赖；MQ Spring Boot 装配迁到 `isass-adapter-springboot`，通过 `IsassFeature.MQ_CORE` 按 classpath 条件注册 `DynamicMqProperties`、`MqManager`、旧 producer/consumer initializer 以及 `SmartLifecycle` 桥；SpringEvent/Kafka011 provider 模块改为显式声明自身 Spring 依赖，不再从 mq-core 传递获得。
 - `isass-mq-redisstream`、`isass-mq-redispubsub` 的 factory 和 producer 主体已去掉 Spring stereotype / `Assert` 工具依赖；Spring 只保留在各自 auto-config 的显式 `@Bean` 装配边界。
 
