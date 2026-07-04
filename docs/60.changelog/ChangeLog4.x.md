@@ -64,11 +64,11 @@
 
 #### refactor
 
-- **OpenAPI 资源目录与 V3 文档链路**：`/v3/api-docs` 读取并缓存 `classpath:/openapi3/openapi.json`；V3 使用每实体一个强类型 `IV3Controller`，Smart-Doc 生成命名 Schema 和 Javadoc 描述，增强器再把实体路径折叠为统一 endpoint。
-  - 请求体、响应和 Criteria 使用 Smart-Doc Schema 组合 `oneOf` 与实体映射，不反射补造字段 Schema。
+- **动态 V3 transport 与文档链路**：`IV3XxxService` 是唯一业务契约；构建期生成 `v3-contract.json` 和 proto，运行时由单个 HTTP/gRPC 适配器暴露全部接口，不再生成实体 V3 Controller。
+  - OpenAPI 增强器根据契约生成命名 Schema、Javadoc 字段描述、统一 path、请求/响应 `oneOf` 和 Criteria 映射。
+  - 业务调用优先级为本地实现、gRPC、HTTP；非幂等请求发出后禁止跨协议重试。
   - 增强结果以双检锁懒加载缓存；`ServiceDocsController` 通过 `OpenApiEnhancerSpi` 可选接入，未安装文档服务时保持原始输出。
   - 新增 `/v3/api-docs/swagger-config` 双模式分组，以及 `/doc.html`、`/services/{serviceName}/doc.html` Knife4j UI 路由。
-  - attachment 服务使用生成的 `V3IconController`、`V3IconGroupController`，运行时直接访问具体静态实体路径。
 
 #### fix
 

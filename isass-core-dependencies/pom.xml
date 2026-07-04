@@ -264,6 +264,7 @@
         <!-- 序列化 -->
         <protobuf-java.version>4.33.0</protobuf-java.version>
         <protobuf-java-format.version>1.4</protobuf-java-format.version>
+        <grpc.version>1.80.0</grpc.version>
         <fastjson.version>2.0.61</fastjson.version>
 
         <!-- 工具 -->
@@ -373,6 +374,14 @@
             </dependency>
 
             <dependency>
+                <groupId>io.grpc</groupId>
+                <artifactId>grpc-bom</artifactId>
+                <version>${grpc.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
                 <version>${spring-boot.version}</version>
@@ -425,6 +434,24 @@
             <dependency>
                 <groupId>vip.isass</groupId>
                 <artifactId>isass-nocode-core</artifactId>
+                <version>${isass.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>vip.isass</groupId>
+                <artifactId>isass-nocode-generator</artifactId>
+                <version>${isass.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>vip.isass</groupId>
+                <artifactId>isass-nocode-http</artifactId>
+                <version>${isass.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>vip.isass</groupId>
+                <artifactId>isass-nocode-grpc</artifactId>
                 <version>${isass.version}</version>
             </dependency>
 

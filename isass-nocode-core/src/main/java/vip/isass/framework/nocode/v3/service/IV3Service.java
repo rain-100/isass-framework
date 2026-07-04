@@ -301,6 +301,7 @@ public interface IV3Service<E extends IV3Entity<E>, C extends IV3Criteria<E, C>>
     String UPDATE_BY_CRITERIA_OR_EXCEPTION_OPERATOR = "PUT";
     String UPDATE_BY_CRITERIA_OR_EXCEPTION_URI_SECOND_PART = "/v3/criteria/exception";
 
+    String BATCH_SAVE_OPERATOR = "POST";
     String BATCH_SAVE_URI_SECOND_PART = "/v3/batchSave";
 
     // endregion

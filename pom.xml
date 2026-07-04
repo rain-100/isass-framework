@@ -189,6 +189,9 @@
         <subproject>isass-core-dependencies</subproject>
         <subproject>isass-core-parent</subproject>
         <subproject>isass-nocode-core</subproject>
+        <subproject>isass-nocode-generator</subproject>
+        <subproject>isass-nocode-http</subproject>
+        <subproject>isass-nocode-grpc</subproject>
 
         <!-- database -->
         <subproject>isass-database-core</subproject>

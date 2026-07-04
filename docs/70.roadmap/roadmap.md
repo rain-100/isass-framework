@@ -117,8 +117,8 @@
   - 完成记录：
     - API 文档固定生成到 `openapi3/openapi.json`。
     - `componentType: NORMAL` 生成稳定命名 Schema。
-    - V3 强类型 Controller 让 Smart-Doc 直接读取实体与 Criteria Javadoc。
-    - OpenAPI 增强器把实体专用 V3 paths 折叠为统一接口。
+    - V3 构建期契约直接读取实体字段 Javadoc，并生成稳定命名 Schema。
+    - OpenAPI 增强器根据契约生成统一 V3 paths，不依赖实体 Controller。
     - `isass-apidoc-openapi3` 支持服务、实体、请求体和 Criteria 联动。
 
 - [x] **集成数据库文档生成工具 screw**
@@ -258,7 +258,7 @@
     - screw 数据库文档生成时保留这些关系描述。
     - v3 元数据 provider 解析关系并生成 `NocodeEntityRelation`。
 
-### 4.3 access 接入层与动态 Controller
+### 4.3 access 接入层与动态 transport
 
 - [~] **新增 access 接入层**
   - 目标：
@@ -275,7 +275,7 @@
     - 对接 `NocodeAccessHandler`，验证 list/page/find/save/update/delete。
     - 再评估 socketio、kafka、定时任务 adapter 的最小公共参数模型。
 
-- [~] **v3 通用 Controller 动态生成**
+- [x] **V3 动态 HTTP 与 gRPC transport**
   - 已完成步骤：
     - `NocodeSpringMvcCrudRoute` 定义默认 HTTP method/path descriptor。
     - `NocodeSpringMvcQueryCriteriaParser` 解析 HTTP query 参数。
@@ -284,14 +284,10 @@
     - `NocodeCrudController` @RestController 已实现，6 个 CRUD 端点映射 `/nocode/{entityName}` 路径模式；`WebAutoConfiguration` 注册 `NocodeOperationExecutor`/`NocodeAccessHandler`/`NocodeSpringMvcCrudEndpointInvoker`/`NocodeSpringMvcQueryCriteriaParser`/`NocodeCrudController` 全链路 Bean。
     - 新增 `NocodeCrudControllerTest`（3 测试）：context 启动验证 + findById 调用验证 + list 调用验证。
     - 新增 `NocodeCrudControllerMockMvcTest`（5 测试）：standalone MockMvc 验证 GET findById / GET list / GET page / POST save / DELETE deleteById 全部路由命中。验证：`mvn -pl isass-web-springmvc -am test -Dmaven.javadoc.skip=true -Dsurefire.failIfNoSpecifiedTests=false`。
-  - 下一步：
-    - 决定 API 文档展示方式：默认一个通用 controller，还是按实体生成虚拟分组。
-    - 把动态 endpoint 纳入 attachment 单体启动验证。
-
-- [x] **V3 Controller 与文档分组**
-  - 完成记录：
-    - 运行时保持每实体一个强类型 Controller。
-    - 文档层折叠为统一 V3 接口，并提供实体枚举和 Schema 映射。
+    - `IV3XxxService` 作为唯一业务契约，调用优先级为本地、gRPC、HTTP。
+    - 构建期生成契约和 proto，不再生成实体 V3 Controller。
+    - HTTP 与 gRPC 各使用一个运行时适配器；gRPC 保留每个逻辑接口的原生方法名。
+    - OpenAPI 根据契约生成统一 V3 接口、实体枚举、命名 Schema 和字段 Javadoc。
 
 ### 4.4 v3 ORM adapter 与增强功能
 

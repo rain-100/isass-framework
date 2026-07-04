@@ -54,7 +54,7 @@ import vip.isass.framework.nocode.v3.entity.IV3VersionEntity;
 || field.propertyType == "LocalDateTime")
 && field.name?lower_case != cfg.traceEntity.CREATED_TIME_COLUMN_NAME
 && field.name?lower_case != cfg.traceEntity.MODIFY_TIME_COLUMN_NAME>
-import vip.isass.core.support.LocalDateTimeUtil;
+import vip.isass.framework.common.support.LocalDateTimeUtil;
 <#break>
 </#if>
 </#list>
@@ -150,7 +150,7 @@ public class V3${entity} implements
      */
 <#if field.propertyName!?ends_with("Id") && field.propertyType == "Long">
     @JsonSerialize(using = ToStringSerializer.class)</#if>
-    private <#if field.comment!?contains("${enumStart}")>${field.propertyName?cap_first}<#elseif field.propertyType == "JsonNode">JsonNode<#else>${field.propertyType}</#if> ${field.propertyName};
+    private <#if field.propertyName == cfg.logicDeleteEntity.DELETE_FLAG_PROPERTY_NAME>Boolean<#elseif field.comment!?contains("${enumStart}")>${field.propertyName?cap_first}<#elseif field.propertyType == "JsonNode">JsonNode<#else>${field.propertyType}</#if> ${field.propertyName};
 
 </#list>
 <#---------- END 定义字段 ---------->
