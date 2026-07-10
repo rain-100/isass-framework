@@ -19,7 +19,7 @@ src/main/resources/openapi3/openapi.json
 
 ## V3 文档来源
 
-V3 不依赖实体 Controller。API 模块在 Maven `generate-resources` 阶段由 `isass-nocode-generator` 生成：
+V3 标准接口不依赖实体 Controller。API 模块在 Maven `generate-resources` 阶段由 `isass-nocode-generator` 生成：
 
 ```text
 META-INF/isass/v3-contract.json
@@ -27,6 +27,8 @@ proto/<application>-v3.proto
 ```
 
 契约生成器直接读取 `IV3XxxService`、实体源码及 Javadoc。实体字段无需增加 Swagger、Schema 或自定义描述注解。
+
+每个实体可生成一个轻量 `V3XxxController` 作为手写 Spring MVC 扩展入口。它不实现 `IV3Controller`，不暴露标准 CRUD；仅用业务微服务自定义的业务接口。Smart-Doc 会扫描这些手写接口并保留其普通 OpenAPI path。
 
 文档服务通过 `OpenApiEnhancerSpi`：
 

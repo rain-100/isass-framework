@@ -257,6 +257,7 @@ public class V3MybatisPlusGenerator {
                                         .put("nocodeMapperPackageName", basePackage + ".db.mapper")
                                         .put("nocodeRepositoryPackageName", basePackage + ".db.repository")
                                         .put("nocodeLocalServicePackageName", basePackage + ".service")
+                                        .put("nocodeControllerPackageName", basePackage + ".controller")
                                         .put("tablePrefix", meta.getTablePrefix())
 
                                         .put("idEntity", staticModels.get("vip.isass.framework.nocode.v3.entity.IV3IdEntity"))
@@ -393,7 +394,13 @@ public class V3MybatisPlusGenerator {
                                                 .packageName("service")
                                                 .fileName("Service.java")
                                                 .formatNameFunction(tableInfo -> "V3" + tableInfo.getEntityName()),
-                                                meta.isLocalServiceFileOverride())
+                                                meta.isLocalServiceFileOverride()),
+                                        customFile(new CustomFile.Builder()
+                                                .templatePath("/v3Template/controller.java.ftl")
+                                                .packageName("controller")
+                                                .fileName("Controller.java")
+                                                .formatNameFunction(tableInfo -> "V3" + tableInfo.getEntityName()),
+                                                meta.isControllerFileOverride())
                                 ));
                     } catch (Exception e) {
                         throw new RuntimeException(e);

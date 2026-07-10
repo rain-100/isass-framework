@@ -18,6 +18,7 @@ db/mapper/V3XxxMapper.java
 db/mapper/xml/V3XxxMapper.xml
 db/repository/V3XxxRepository.java
 service/V3XxxService.java
+controller/V3XxxController.java
 ```
 
 ## 示例
@@ -75,7 +76,7 @@ public class V3AttachmentMybatisPlusGenerator {
 | `tablePrefix` | 数据库表前缀，例如 `att_`，生成 Java 类名时会移除 |
 | `packageName` | 根包名，例如 `vip.isass` |
 | `moduleName` | 业务模块名，例如 `attachment`，最终包名为 `vip.isass.attachment...` |
-| `controllerPrefix` | 历史兼容配置；V3 当前不生成实体 Controller |
+| `controllerPrefix` | 标准 V3 动态 HTTP 路由前缀配置；生成的实体 Controller 仅作为手写 Spring MVC 扩展外壳 |
 | `includeTables` | 只生成指定表，适合局部重新生成 |
 | `excludeTables` | 排除不参与生成的表 |
 
@@ -122,7 +123,7 @@ auth_DATABASECHANGELOGLOCK
 | Repository | 是 |
 | Service 接口 | 是 |
 | 本地 Service 实现 | 是 |
-| Controller | 是 |
+| Controller | 否 |
 
 数据库新增字段后，如果需要重新生成实体或 Criteria，可以显式打开：
 
@@ -131,4 +132,12 @@ meta.setEntityFileOverride(true)
     .setCriteriaFileOverride(true);
 ```
 
-如果业务已经在某些生成文件里手写逻辑，可以把对应文件类型设置为不覆盖。
+生成的 `V3XxxController` 不实现 `IV3Controller`，也不承载标准 CRUD。标准 V3 接口和 `IV3XxxService` 契约方法由统一动态 Adapter 暴露；`V3XxxController` 只用于业务手写 Spring MVC 接口。
+
+因为 Controller 常承载手写接口，默认不覆盖。如果确认要重置 Controller 外壳，可以显式打开：
+
+```java
+meta.setControllerFileOverride(true);
+```
+
+如果业务已经在其他生成文件里手写逻辑，也可以把对应文件类型设置为不覆盖。

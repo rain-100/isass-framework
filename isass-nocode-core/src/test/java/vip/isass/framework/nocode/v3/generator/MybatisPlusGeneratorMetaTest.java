@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class MybatisPlusGeneratorMetaTest {
 
     @Test
-    void defaultsOnlyKeepEntityAndCriteriaFromBeingOverwritten() {
+    void defaultsKeepEntityCriteriaAndControllerFromBeingOverwritten() {
         MybatisPlusGeneratorMeta meta = new MybatisPlusGeneratorMeta();
 
         assertFalse(meta.isEntityFileOverride());
@@ -18,6 +18,6 @@ class MybatisPlusGeneratorMetaTest {
         assertTrue(meta.isRepositoryFileOverride());
         assertTrue(meta.isServiceInterfaceFileOverride());
         assertTrue(meta.isLocalServiceFileOverride());
-        assertTrue(meta.isControllerFileOverride());
+        assertFalse(meta.isControllerFileOverride());
     }
 }

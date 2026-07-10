@@ -225,6 +225,6 @@ public class MybatisPlusGeneratorMeta {
 
     private boolean localServiceFileOverride = true;
 
-    private boolean controllerFileOverride = true;
+    private boolean controllerFileOverride = false;
 
 }

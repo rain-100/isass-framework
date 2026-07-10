@@ -2,7 +2,6 @@
 
 package ${cfg.nocodeLocalServicePackageName};
 
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -23,8 +22,12 @@ import vip.isass.framework.nocode.v3.service.IV3LocalService;
 @Service
 public class V3${entity}Service implements IV3${entity}Service, IV3LocalService<V3${entity}, V3${entity}Criteria> {
 
-    @Getter
     @Autowired
     private V3${entity}Repository repository;
+
+    @Override
+    public V3${entity}Repository getRepository() {
+        return repository;
+    }
 
 }
