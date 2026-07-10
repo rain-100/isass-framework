@@ -69,4 +69,41 @@ class V3ContractGeneratorTest {
         assertTrue(proto.contains("service IconService"));
         assertTrue(proto.contains("service GroupService"));
     }
+
+    @Test
+    void generatesContractFromGeneratedV3PackageLayout() throws Exception {
+        Path source = temp.resolve("generated-layout-src");
+        Path output = temp.resolve("generated-layout-out");
+        Files.createDirectories(source.resolve("vip/isass/attachment/api/model/entity"));
+        Files.createDirectories(source.resolve("vip/isass/attachment/api/model/criteria"));
+        Files.createDirectories(source.resolve("vip/isass/attachment/api/service"));
+        Files.writeString(source.resolve("vip/isass/attachment/api/model/entity/V3Attachment.java"), """
+                package vip.isass.attachment.api.model.entity;
+                public class V3Attachment {
+                    /** 原始文件名 */
+                    String originalFileName;
+                }
+                """);
+        Files.writeString(source.resolve("vip/isass/attachment/api/model/criteria/V3AttachmentCriteria.java"), """
+                package vip.isass.attachment.api.model.criteria;
+                public class V3AttachmentCriteria {}
+                """);
+        Files.writeString(source.resolve("vip/isass/attachment/api/service/IV3AttachmentService.java"), """
+                package vip.isass.attachment.api.service;
+                import vip.isass.attachment.api.model.criteria.V3AttachmentCriteria;
+                import vip.isass.attachment.api.model.entity.V3Attachment;
+                interface IV3Service<E,C> {}
+                public interface IV3AttachmentService extends IV3Service<V3Attachment, V3AttachmentCriteria> {}
+                """);
+
+        new V3ContractGenerator(new ObjectMapper()).generate(source, output);
+
+        V3ContractDocument document = new ObjectMapper().readValue(
+                output.resolve("META-INF/isass/v3-contract.json").toFile(),
+                V3ContractDocument.class);
+        assertEquals(1, document.services().size());
+        assertEquals("attachment", document.services().getFirst().entityName());
+        assertEquals("V3Attachment", document.types().getFirst().schemaName());
+        assertEquals("原始文件名", document.types().getFirst().properties().getFirst().description());
+    }
 }

@@ -178,8 +178,13 @@ import org.apache.catalina.connector.ClientAbortException;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.bind.Bindable;
+import org.springframework.boot.context.properties.bind.Binder;
+import org.springframework.core.env.Environment;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 import vip.isass.framework.common.exception.IExceptionMapping;
 import vip.isass.framework.common.exception.UnifiedException;
 import vip.isass.framework.common.exception.code.IStatusMessage;
@@ -191,6 +196,8 @@ import vip.isass.framework.common.web.Resp;
 // import javax.annotation.Resource;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 /**
  * 所有异常转换成 Resp
@@ -208,16 +215,20 @@ public class ExceptionAdvice {
 
     private final String prodUnifiedMessage;
 
+    private final Set<String> silentNotFoundUrls;
+
     /**
      * 配置项：是否显示详细错误信息（生产环境建议关闭，开发环境建议开启）
      * 配置项：生产环境统一错误提示语
      */
     @Autowired
     public ExceptionAdvice(ObjectProvider<IExceptionMapping> exceptionMappings,
-                           @Value("${app.exception.show-detail-error:true}") boolean showDetailError,
-                           @Value("${app.exception.prod-unified-message:系统繁忙，请稍后重试}") String prodUnifiedMessage) {
+                           @Value("${isass.framework.web.exception.show-detail-error:true}") boolean showDetailError,
+                           @Value("${isass.framework.web.exception.prod-unified-message:系统繁忙，请稍后重试}") String prodUnifiedMessage,
+                           Environment environment) {
         this.showDetailError = showDetailError;
         this.prodUnifiedMessage = prodUnifiedMessage;
+        this.silentNotFoundUrls = silentNotFoundUrls(loadSilentNotFoundUrls(environment));
         this.exceptionMappings = IsassServiceLoader.mergeByClass(
                 exceptionMappings.orderedStream().toList(),
                 IsassServiceLoader.load(IExceptionMapping.class)
@@ -225,8 +236,13 @@ public class ExceptionAdvice {
     }
 
     ExceptionAdvice(boolean showDetailError, String prodUnifiedMessage) {
+        this(showDetailError, prodUnifiedMessage, List.of());
+    }
+
+    ExceptionAdvice(boolean showDetailError, String prodUnifiedMessage, List<String> silentNotFoundUrls) {
         this.showDetailError = showDetailError;
         this.prodUnifiedMessage = prodUnifiedMessage;
+        this.silentNotFoundUrls = silentNotFoundUrls(silentNotFoundUrls);
         this.exceptionMappings = IsassServiceLoader.load(IExceptionMapping.class);
     }
 
@@ -234,7 +250,10 @@ public class ExceptionAdvice {
      * 处理 controller 抛出的异常
      */
     @ExceptionHandler(Exception.class)
-    private Resp<?> exceptionHandler(Exception e) {
+    Object exceptionHandler(Exception e) {
+        if (isSilentNotFound(e)) {
+            return ResponseEntity.notFound().build();
+        }
         if (e instanceof UnifiedException) {
             log.debug(e.getMessage(), e);
         } else if (ExceptionUtil.isCausedBy(e, ClientAbortException.class)) {
@@ -244,6 +263,43 @@ public class ExceptionAdvice {
             log.error(e.getMessage(), e);
         }
         return createRespByException(e);
+    }
+
+    private boolean isSilentNotFound(Exception e) {
+        if (!(e instanceof NoResourceFoundException noResourceFoundException)) {
+            return false;
+        }
+        return silentNotFoundUrls.contains(normalizeUrl(noResourceFoundException.getResourcePath()));
+    }
+
+    private Set<String> silentNotFoundUrls(List<String> configuredUrls) {
+        Set<String> urls = new LinkedHashSet<>();
+        urls.add("/favicon.ico");
+        urls.add("/.well-known/appspecific/com.chrome.devtools.json");
+        if (configuredUrls != null) {
+            configuredUrls.stream()
+                    .filter(url -> url != null && !url.isBlank())
+                    .map(this::normalizeUrl)
+                    .forEach(urls::add);
+        }
+        return Set.copyOf(urls);
+    }
+
+    private List<String> loadSilentNotFoundUrls(Environment environment) {
+        if (environment == null) {
+            return List.of();
+        }
+        return Binder.get(environment)
+                .bind("isass.framework.web.exception.silent-not-found-urls", Bindable.listOf(String.class))
+                .orElse(List.of());
+    }
+
+    private String normalizeUrl(String url) {
+        if (url == null || url.isBlank()) {
+            return "";
+        }
+        String normalized = url.trim();
+        return normalized.startsWith("/") ? normalized : "/" + normalized;
     }
 
     /**

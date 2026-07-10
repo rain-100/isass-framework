@@ -20,9 +20,14 @@ import vip.isass.framework.nocode.v3.service.IV3Service;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Single dynamic HTTP entry point for all V3 service contracts.
@@ -147,7 +152,7 @@ public class V3HttpServerAdapter {
                 case PATH -> pathVariables.get(parameter.name());
                 case QUERY -> isSimple(parameter.javaType())
                         ? query.getFirst(parameter.name())
-                        : query.toSingleValueMap();
+                        : bindQueryObject(query, parameter.javaType());
                 case BODY -> bodyParameterCount > 1 && body != null
                         ? body.get(parameter.name())
                         : body;
@@ -155,6 +160,95 @@ public class V3HttpServerAdapter {
             arguments.add(convert(value, parameter.javaType()));
         }
         return arguments;
+    }
+
+    private Object bindQueryObject(MultiValueMap<String, String> query, String javaType) {
+        try {
+            tools.jackson.databind.JavaType type =
+                    objectMapper.getTypeFactory().constructFromCanonical(javaType);
+            Object target = type.getRawClass().getDeclaredConstructor().newInstance();
+            for (Map.Entry<String, List<String>> entry : query.entrySet()) {
+                if (entry.getValue() == null || entry.getValue().isEmpty()) {
+                    continue;
+                }
+                Optional<Method> setter = findSetter(type.getRawClass(), entry.getKey());
+                if (setter.isEmpty()) {
+                    continue;
+                }
+                Method method = setter.get();
+                Object rawValue = Collection.class.isAssignableFrom(method.getParameterTypes()[0])
+                        ? entry.getValue()
+                        : entry.getValue().getFirst();
+                Object converted = objectMapper.convertValue(rawValue,
+                        objectMapper.getTypeFactory().constructType(resolveSetterParameterType(method, type.getRawClass())));
+                method.invoke(target, new Object[]{converted});
+            }
+            return target;
+        } catch (ReflectiveOperationException exception) {
+            throw new IllegalArgumentException("Cannot bind V3 query parameter to " + javaType, exception);
+        }
+    }
+
+    private Type resolveSetterParameterType(Method method, Class<?> targetClass) {
+        Type parameterType = method.getGenericParameterTypes()[0];
+        if (!(parameterType instanceof TypeVariable<?> variable)) {
+            return parameterType;
+        }
+        return resolveTypeVariable(targetClass, method.getDeclaringClass(), variable)
+                .orElse(parameterType);
+    }
+
+    private Optional<Type> resolveTypeVariable(
+            Class<?> targetClass,
+            Class<?> declaringClass,
+            TypeVariable<?> variable
+    ) {
+        for (Type type : targetClass.getGenericInterfaces()) {
+            Optional<Type> resolved = resolveTypeVariable(type, declaringClass, variable);
+            if (resolved.isPresent()) {
+                return resolved;
+            }
+        }
+        Class<?> superclass = targetClass.getSuperclass();
+        if (superclass == null || superclass == Object.class) {
+            return Optional.empty();
+        }
+        return resolveTypeVariable(superclass, declaringClass, variable);
+    }
+
+    private Optional<Type> resolveTypeVariable(
+            Type candidate,
+            Class<?> declaringClass,
+            TypeVariable<?> variable
+    ) {
+        if (!(candidate instanceof ParameterizedType parameterizedType)
+                || !(parameterizedType.getRawType() instanceof Class<?> rawType)) {
+            return Optional.empty();
+        }
+        if (rawType == declaringClass) {
+            TypeVariable<?>[] variables = rawType.getTypeParameters();
+            Type[] arguments = parameterizedType.getActualTypeArguments();
+            for (int index = 0; index < variables.length; index++) {
+                if (variables[index].getName().equals(variable.getName())) {
+                    return Optional.of(arguments[index]);
+                }
+            }
+        }
+        for (Type type : rawType.getGenericInterfaces()) {
+            Optional<Type> resolved = resolveTypeVariable(type, declaringClass, variable);
+            if (resolved.isPresent()) {
+                return resolved;
+            }
+        }
+        return Optional.empty();
+    }
+
+    private Optional<Method> findSetter(Class<?> targetClass, String propertyName) {
+        String setterName = "set" + Character.toUpperCase(propertyName.charAt(0)) + propertyName.substring(1);
+        return java.util.Arrays.stream(targetClass.getMethods())
+                .filter(method -> method.getName().equals(setterName))
+                .filter(method -> method.getParameterCount() == 1)
+                .findFirst();
     }
 
     private Object convert(Object value, String javaType) {

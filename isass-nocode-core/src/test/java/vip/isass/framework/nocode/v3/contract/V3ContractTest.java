@@ -54,6 +54,23 @@ class V3ContractTest {
         assertEquals("deleteById", operations.get(33).name());
     }
 
+    @Test
+    void registryPrefersStaticRouteOverEarlierPathVariableRoute() {
+        V3ContractRegistry registry = new V3ContractRegistry(List.of(new V3ServiceContract(
+                "attachment-service",
+                "iconGroup",
+                "example.IV3IconGroupService",
+                "example.V3IconGroup",
+                "example.V3IconGroupCriteria",
+                V3StandardContractFactory.operations("example.V3IconGroup", "example.V3IconGroupCriteria")
+        )));
+
+        V3OperationContract operation = registry.requireOperation(
+                "attachment-service", "iconGroup", V3HttpMethod.GET, "/criteria");
+
+        assertEquals("findByCriteria", operation.name());
+    }
+
     private V3OperationContract operation(String name, String path) {
         return new V3OperationContract(
                 name, V3HttpMethod.GET, path, 501, true,

@@ -1,5 +1,6 @@
 package vip.isass.framework.nocode.v3.contract;
 
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,9 +42,42 @@ public class V3ContractRegistry {
         return requireService(serviceName, entityName).operations().stream()
                 .filter(operation -> operation.httpMethod() == method)
                 .filter(operation -> V3RouteMatcher.matches(operation.path(), normalized))
+                .sorted(Comparator
+                        .comparingInt(V3ContractRegistry::staticSegmentCount).reversed()
+                        .thenComparingInt(V3ContractRegistry::variableSegmentCount)
+                        .thenComparingInt(V3OperationContract::order))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Unknown V3 operation: " + method + " " + normalized));
+    }
+
+    private static int staticSegmentCount(V3OperationContract operation) {
+        int count = 0;
+        for (String segment : segments(operation.path())) {
+            if (!isVariableSegment(segment)) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    private static int variableSegmentCount(V3OperationContract operation) {
+        int count = 0;
+        for (String segment : segments(operation.path())) {
+            if (isVariableSegment(segment)) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    private static boolean isVariableSegment(String segment) {
+        return segment.startsWith("{") && segment.endsWith("}");
+    }
+
+    private static List<String> segments(String path) {
+        String trimmed = path.replaceAll("^/+|/+$", "");
+        return trimmed.isEmpty() ? List.of() : List.of(trimmed.split("/"));
     }
 
     private String key(String serviceName, String entityName) {

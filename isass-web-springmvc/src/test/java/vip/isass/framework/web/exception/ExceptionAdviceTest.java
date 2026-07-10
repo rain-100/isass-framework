@@ -2,8 +2,15 @@ package vip.isass.framework.web.exception;
 
 import cn.hutool.core.exceptions.ValidateException;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.mock.env.MockEnvironment;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 import vip.isass.framework.common.exception.AbsentException;
 import vip.isass.framework.common.exception.AlreadyPresentException;
+import vip.isass.framework.common.exception.IExceptionMapping;
 import vip.isass.framework.common.exception.UnifiedException;
 import vip.isass.framework.common.exception.code.StatusMessageEnum;
 import vip.isass.framework.common.web.Resp;
@@ -11,8 +18,12 @@ import vip.isass.framework.common.web.Resp;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.time.DateTimeException;
+import java.util.List;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class ExceptionAdviceTest {
 
@@ -152,6 +163,63 @@ class ExceptionAdviceTest {
 
         Resp<?> resp = advice.createRespByException(new RuntimeException("未知异常"));
 
+        assertThat(resp.getSuccess()).isFalse();
+        assertThat(resp.getStatus()).isEqualTo(StatusMessageEnum.UNDEFINED.getStatus());
+    }
+
+    @Test
+    void faviconNoResourceReturnsPlain404WithoutRespBody() {
+        ExceptionAdvice advice = new ExceptionAdvice(true, "系统繁忙");
+
+        Object response = advice.exceptionHandler(
+                new NoResourceFoundException(HttpMethod.GET, "favicon.ico", "/favicon.ico"));
+
+        assertThat(response).isInstanceOf(ResponseEntity.class);
+        ResponseEntity<?> entity = (ResponseEntity<?>) response;
+        assertThat(entity.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(entity.getBody()).isNull();
+    }
+
+    @Test
+    void configuredNoResourceUrlReturnsPlain404WithoutRespBody() {
+        ExceptionAdvice advice = new ExceptionAdvice(true, "系统繁忙", List.of("/robots.txt"));
+
+        Object response = advice.exceptionHandler(
+                new NoResourceFoundException(HttpMethod.GET, "robots.txt", "/robots.txt"));
+
+        assertThat(response).isInstanceOf(ResponseEntity.class);
+        ResponseEntity<?> entity = (ResponseEntity<?>) response;
+        assertThat(entity.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(entity.getBody()).isNull();
+    }
+
+    @Test
+    void configuredNoResourceUrlCanBindFromEnvironmentProperty() {
+        MockEnvironment environment = new MockEnvironment()
+                .withProperty("isass.framework.web.exception.silent-not-found-urls", "/robots.txt,/apple-touch-icon.png");
+        @SuppressWarnings("unchecked")
+        ObjectProvider<IExceptionMapping> provider = mock(ObjectProvider.class);
+        when(provider.orderedStream()).thenReturn(Stream.empty());
+        ExceptionAdvice advice = new ExceptionAdvice(provider, true, "系统繁忙", environment);
+
+        Object response = advice.exceptionHandler(
+                new NoResourceFoundException(HttpMethod.GET, "apple-touch-icon.png", "/apple-touch-icon.png"));
+
+        assertThat(response).isInstanceOf(ResponseEntity.class);
+        ResponseEntity<?> entity = (ResponseEntity<?>) response;
+        assertThat(entity.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(entity.getBody()).isNull();
+    }
+
+    @Test
+    void otherNoResourceStillUsesUnifiedErrorBody() {
+        ExceptionAdvice advice = new ExceptionAdvice(true, "系统繁忙");
+
+        Object response = advice.exceptionHandler(
+                new NoResourceFoundException(HttpMethod.GET, "missing.js", "/missing.js"));
+
+        assertThat(response).isInstanceOf(Resp.class);
+        Resp<?> resp = (Resp<?>) response;
         assertThat(resp.getSuccess()).isFalse();
         assertThat(resp.getStatus()).isEqualTo(StatusMessageEnum.UNDEFINED.getStatus());
     }

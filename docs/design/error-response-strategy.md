@@ -21,9 +21,41 @@ Spring Boot 会把未命中路由、静态资源不存在、Filter 或框架层�
 ## 实现约定
 
 - `IsassErrorController` 保持 `/error` JSON 处理能力，但在 `Accept: text/html` 且未请求 JSON 时只设置 HTTP 状态并返回空 body
+- `ExceptionAdvice` 对进入 controller 后抛出的静态资源不存在异常，支持配置静默 404 URL：命中后直接返回 HTTP 404 空 body，不打印异常日志，也不包装 `Resp`
+- `/favicon.ico` 是框架内置静默 404 URL，不需要业务项目额外配置
 - `IStatusMapping` 通过构造器注入，缺失时退化为空列表，不应因为没有映射 Bean 产生 NPE
 - `ErrorAttributes` 缺失 `status` 时，优先使用 `HttpServletResponse` 当前状态，仍缺失则按 500 兜底
 - `message` 保持面向用户或调用方的简要信息，`detailMessage` 保留给异常详情链路，不在普通网页 404 场景中生成
+
+## 静默 404 URL 配置
+
+框架 Web 异常配置统一使用 `isass.framework.web.exception` 前缀。
+
+- `show-detail-error`：是否在错误响应中输出详细异常信息，默认 `true`
+- `prod-unified-message`：关闭详细异常信息时的统一提示语，默认 `系统繁忙，请稍后重试`
+- `silent-not-found-urls`：静默返回 404 的静态资源 URL 列表，框架内置 `/favicon.ico`
+
+完整配置示例：
+
+```yaml
+isass:
+  framework:
+    web:
+      exception:
+        show-detail-error: true
+        prod-unified-message: 系统繁忙，请稍后重试
+        silent-not-found-urls:
+          - /robots.txt
+          - /assets/missing-logo.png
+```
+
+`silent-not-found-urls` 也可以使用逗号分隔的 properties 形式：
+
+```properties
+isass.framework.web.exception.silent-not-found-urls=/robots.txt,/assets/missing-logo.png
+```
+
+未命中该列表的静态资源不存在异常，仍然按普通异常处理并打印明确日志，便于开发人员发现真实资源路径错误。
 
 ## 后续优化
 
