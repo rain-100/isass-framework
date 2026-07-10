@@ -211,4 +211,20 @@ public class MybatisPlusGeneratorMeta {
 
     private String controllerPrefix;
 
+    private boolean entityFileOverride = false;
+
+    private boolean criteriaFileOverride = false;
+
+    private boolean mapperFileOverride = true;
+
+    private boolean mapperXmlFileOverride = true;
+
+    private boolean repositoryFileOverride = true;
+
+    private boolean serviceInterfaceFileOverride = true;
+
+    private boolean localServiceFileOverride = true;
+
+    private boolean controllerFileOverride = true;
+
 }

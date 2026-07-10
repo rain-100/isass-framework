@@ -247,16 +247,16 @@ public class V3MybatisPlusGenerator {
                                         .put("moduleName", meta.getModuleName())
                                         .put("controllerPrefix", meta.getControllerPrefix())
                                         .put("package", meta.getPackageName())
-                                        .put("entityPackageName", basePackage + ".api.nocode.model.entity")
-                                        .put("criteriaPackageName", basePackage + ".api.nocode.model.criteria")
-                                        .put("mapperPackageName", basePackage + ".nocode.db.mapper")
-                                        .put("servicePackageName", basePackage + ".api.nocode.service")
-                                        .put("nocodeEntityPackageName", basePackage + ".api.nocode.model.entity")
-                                        .put("nocodeCriteriaPackageName", basePackage + ".api.nocode.model.criteria")
-                                        .put("nocodeServicePackageName", basePackage + ".api.nocode.service")
-                                        .put("nocodeMapperPackageName", basePackage + ".nocode.db.mapper")
-                                        .put("nocodeRepositoryPackageName", basePackage + ".nocode.db.repository")
-                                        .put("nocodeLocalServicePackageName", basePackage + ".nocode.service")
+                                        .put("entityPackageName", basePackage + ".api.model.entity")
+                                        .put("criteriaPackageName", basePackage + ".api.model.criteria")
+                                        .put("mapperPackageName", basePackage + ".db.mapper")
+                                        .put("servicePackageName", basePackage + ".api.service")
+                                        .put("nocodeEntityPackageName", basePackage + ".api.model.entity")
+                                        .put("nocodeCriteriaPackageName", basePackage + ".api.model.criteria")
+                                        .put("nocodeServicePackageName", basePackage + ".api.service")
+                                        .put("nocodeMapperPackageName", basePackage + ".db.mapper")
+                                        .put("nocodeRepositoryPackageName", basePackage + ".db.repository")
+                                        .put("nocodeLocalServicePackageName", basePackage + ".service")
                                         .put("tablePrefix", meta.getTablePrefix())
 
                                         .put("idEntity", staticModels.get("vip.isass.framework.nocode.v3.entity.IV3IdEntity"))
@@ -268,27 +268,24 @@ public class V3MybatisPlusGenerator {
                                         .build()
                                 )
                                 .customFile(CollUtil.newArrayList(
-                                        new CustomFile.Builder()
+                                        customFile(new CustomFile.Builder()
                                                 .templatePath("/v3Template/entity.java.ftl")
-                                                .packageName("api.nocode.model.entity")
+                                                .packageName("api.model.entity")
                                                 .fileName(".java")
-                                                .formatNameFunction(tableInfo -> "V3" + tableInfo.getEntityName())
-                                                .enableFileOverride()
-                                                .build(),
-                                        new CustomFile.Builder()
+                                                .formatNameFunction(tableInfo -> "V3" + tableInfo.getEntityName()),
+                                                meta.isEntityFileOverride()),
+                                        customFile(new CustomFile.Builder()
                                                 .templatePath("/v3Template/criteria.java.ftl")
-                                                .packageName("api.nocode.model.criteria")
+                                                .packageName("api.model.criteria")
                                                 .fileName("Criteria.java")
-                                                .formatNameFunction(tableInfo -> "V3" + tableInfo.getEntityName())
-                                                .enableFileOverride()
-                                                .build(),
-                                        new CustomFile.Builder()
+                                                .formatNameFunction(tableInfo -> "V3" + tableInfo.getEntityName()),
+                                                meta.isCriteriaFileOverride()),
+                                        customFile(new CustomFile.Builder()
                                                 .templatePath("/v3Template/IService.java.ftl")
-                                                .packageName("api.nocode.service")
+                                                .packageName("api.service")
                                                 .fileName("Service.java")
-                                                .formatNameFunction(tableInfo -> "IV3" + tableInfo.getEntityName())
-                                                .enableFileOverride()
-                                                .build()
+                                                .formatNameFunction(tableInfo -> "IV3" + tableInfo.getEntityName()),
+                                                meta.isServiceInterfaceFileOverride())
                                 ));
                     } catch (Exception e) {
                         throw new RuntimeException(e);
@@ -352,16 +349,16 @@ public class V3MybatisPlusGenerator {
                                         .put("moduleName", meta.getModuleName())
                                         .put("controllerPrefix", meta.getControllerPrefix())
                                         .put("package", meta.getPackageName())
-                                        .put("entityPackageName", basePackage + ".api.nocode.model.entity")
-                                        .put("criteriaPackageName", basePackage + ".api.nocode.model.criteria")
-                                        .put("mapperPackageName", basePackage + ".nocode.db.mapper")
-                                        .put("servicePackageName", basePackage + ".api.nocode.service")
-                                        .put("nocodeEntityPackageName", basePackage + ".api.nocode.model.entity")
-                                        .put("nocodeCriteriaPackageName", basePackage + ".api.nocode.model.criteria")
-                                        .put("nocodeServicePackageName", basePackage + ".api.nocode.service")
-                                        .put("nocodeMapperPackageName", basePackage + ".nocode.db.mapper")
-                                        .put("nocodeRepositoryPackageName", basePackage + ".nocode.db.repository")
-                                        .put("nocodeLocalServicePackageName", basePackage + ".nocode.service")
+                                        .put("entityPackageName", basePackage + ".api.model.entity")
+                                        .put("criteriaPackageName", basePackage + ".api.model.criteria")
+                                        .put("mapperPackageName", basePackage + ".db.mapper")
+                                        .put("servicePackageName", basePackage + ".api.service")
+                                        .put("nocodeEntityPackageName", basePackage + ".api.model.entity")
+                                        .put("nocodeCriteriaPackageName", basePackage + ".api.model.criteria")
+                                        .put("nocodeServicePackageName", basePackage + ".api.service")
+                                        .put("nocodeMapperPackageName", basePackage + ".db.mapper")
+                                        .put("nocodeRepositoryPackageName", basePackage + ".db.repository")
+                                        .put("nocodeLocalServicePackageName", basePackage + ".service")
                                         .put("tablePrefix", meta.getTablePrefix())
 
                                         .put("idEntity", staticModels.get("vip.isass.framework.nocode.v3.entity.IV3IdEntity"))
@@ -373,34 +370,30 @@ public class V3MybatisPlusGenerator {
                                         .build()
                                 )
                                 .customFile(CollUtil.newArrayList(
-                                        new CustomFile.Builder()
+                                        customFile(new CustomFile.Builder()
                                                 .templatePath("/v3Template/mapper.java.ftl")
-                                                .packageName("nocode.db.mapper")
+                                                .packageName("db.mapper")
                                                 .fileName("Mapper.java")
-                                                .formatNameFunction(tableInfo -> "V3" + tableInfo.getEntityName())
-                                                .enableFileOverride()
-                                                .build(),
-                                        new CustomFile.Builder()
+                                                .formatNameFunction(tableInfo -> "V3" + tableInfo.getEntityName()),
+                                                meta.isMapperFileOverride()),
+                                        customFile(new CustomFile.Builder()
                                                 .templatePath("/v3Template/mapper.xml.ftl")
-                                                .packageName("nocode.db.mapper.xml")
+                                                .packageName("db.mapper.xml")
                                                 .fileName("Mapper.xml")
-                                                .formatNameFunction(tableInfo -> "V3" + tableInfo.getEntityName())
-                                                .enableFileOverride()
-                                                .build(),
-                                        new CustomFile.Builder()
+                                                .formatNameFunction(tableInfo -> "V3" + tableInfo.getEntityName()),
+                                                meta.isMapperXmlFileOverride()),
+                                        customFile(new CustomFile.Builder()
                                                 .templatePath("/v3Template/repository.java.ftl")
-                                                .packageName("nocode.db.repository")
+                                                .packageName("db.repository")
                                                 .fileName("Repository.java")
-                                                .formatNameFunction(tableInfo -> "V3" + tableInfo.getEntityName())
-                                                .enableFileOverride()
-                                                .build(),
-                                        new CustomFile.Builder()
+                                                .formatNameFunction(tableInfo -> "V3" + tableInfo.getEntityName()),
+                                                meta.isRepositoryFileOverride()),
+                                        customFile(new CustomFile.Builder()
                                                 .templatePath("/v3Template/localService.java.ftl")
-                                                .packageName("nocode.service")
+                                                .packageName("service")
                                                 .fileName("Service.java")
-                                                .formatNameFunction(tableInfo -> "V3" + tableInfo.getEntityName())
-                                                .enableFileOverride()
-                                                .build()
+                                                .formatNameFunction(tableInfo -> "V3" + tableInfo.getEntityName()),
+                                                meta.isLocalServiceFileOverride())
                                 ));
                     } catch (Exception e) {
                         throw new RuntimeException(e);
@@ -408,6 +401,13 @@ public class V3MybatisPlusGenerator {
                 })
                 .templateEngine(new FreemarkerTemplateEngine())
                 .execute();
+    }
+
+    private static CustomFile customFile(CustomFile.Builder builder, boolean fileOverride) {
+        if (fileOverride) {
+            builder.enableFileOverride();
+        }
+        return builder.build();
     }
 
 }

@@ -19,10 +19,10 @@
 
 ### 1.1 创建 Liquibase 配置类
 
-在服务模块中创建 `vip.isass.xxx.liquibase` 包，添加配置类：
+在服务模块中创建 `vip.isass.xxx.db.liquibase` 包，添加配置类：
 
 ```java
-package vip.isass.attachment.liquibase;
+package vip.isass.attachment.db.liquibase;
 
 import liquibase.integration.spring.SpringLiquibase;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
