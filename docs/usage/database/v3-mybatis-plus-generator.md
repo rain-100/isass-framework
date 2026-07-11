@@ -47,10 +47,10 @@ public class V3AttachmentMybatisPlusGenerator {
                 .setDataSourceUrl("jdbc:mysql://127.0.0.1:3306/attachment?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai")
                 .setDataSourceUserName("root")
                 .setDataSourcePassword("your-password")
-                .setTablePrefix(new String[]{"att_"})
-                .setPackageName("vip.isass")
-                .setModuleName("attachment")
-                .setControllerPrefix("/attachment-service")
+                .setTablePrefix(new String[]{ModuleInfo.TABLE_PREFIX})
+                .setPackageName(ModuleInfo.GROUP_ID)
+                .setModuleName(ModuleInfo.SERVICE_NAME)
+                .setControllerPrefix(ModuleInfo.SERVICE_URL_PREFIX)
                 .setExcludeTables(new String[]{
                         "(?i)(.*_)?DATABASECHANGELOG",
                         "(?i)(.*_)?DATABASECHANGELOGLOCK"
@@ -116,20 +116,20 @@ auth_DATABASECHANGELOGLOCK
 
 | 文件类型 | 默认覆盖 |
 | --- | --- |
-| Entity | 否 |
-| Criteria | 否 |
-| Mapper Java | 是 |
-| Mapper XML | 是 |
-| Repository | 是 |
-| Service 接口 | 是 |
-| 本地 Service 实现 | 是 |
+| Entity | 是 |
+| Criteria | 是 |
+| Mapper Java | 否 |
+| Mapper XML | 否 |
+| Repository | 否 |
+| Service 接口 | 否 |
+| 本地 Service 实现 | 否 |
 | Controller | 否 |
 
-数据库新增字段后，如果需要重新生成实体或 Criteria，可以显式打开：
+数据库新增字段后，Entity 和 Criteria 会默认重新生成。若需要保留其中的手写修改，可以显式关闭：
 
 ```java
-meta.setEntityFileOverride(true)
-    .setCriteriaFileOverride(true);
+meta.setEntityFileOverride(false)
+    .setCriteriaFileOverride(false);
 ```
 
 生成的 `V3XxxController` 不实现 `IV3Controller`，也不承载标准 CRUD。标准 V3 接口和 `IV3XxxService` 契约方法由统一动态 Adapter 暴露；`V3XxxController` 只用于业务手写 Spring MVC 接口。
@@ -140,4 +140,4 @@ meta.setEntityFileOverride(true)
 meta.setControllerFileOverride(true);
 ```
 
-如果业务已经在其他生成文件里手写逻辑，也可以把对应文件类型设置为不覆盖。
+Mapper、Repository、Service 和 Controller 默认保留已有文件；如果需要按最新模板重建，可显式打开对应的 `*FileOverride`。

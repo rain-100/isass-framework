@@ -8,16 +8,16 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class MybatisPlusGeneratorMetaTest {
 
     @Test
-    void defaultsKeepEntityCriteriaAndControllerFromBeingOverwritten() {
+    void defaultsOverwriteOnlyEntityAndCriteria() {
         MybatisPlusGeneratorMeta meta = new MybatisPlusGeneratorMeta();
 
-        assertFalse(meta.isEntityFileOverride());
-        assertFalse(meta.isCriteriaFileOverride());
-        assertTrue(meta.isMapperFileOverride());
-        assertTrue(meta.isMapperXmlFileOverride());
-        assertTrue(meta.isRepositoryFileOverride());
-        assertTrue(meta.isServiceInterfaceFileOverride());
-        assertTrue(meta.isLocalServiceFileOverride());
+        assertTrue(meta.isEntityFileOverride());
+        assertTrue(meta.isCriteriaFileOverride());
+        assertFalse(meta.isMapperFileOverride());
+        assertFalse(meta.isMapperXmlFileOverride());
+        assertFalse(meta.isRepositoryFileOverride());
+        assertFalse(meta.isServiceInterfaceFileOverride());
+        assertFalse(meta.isLocalServiceFileOverride());
         assertFalse(meta.isControllerFileOverride());
     }
 }

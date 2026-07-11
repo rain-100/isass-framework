@@ -1,11 +1,13 @@
 <#include "./segment/copyright.ftl">
 
-package ${cfg.nocodeControllerPackageName};
+package ${cfg.package}.${cfg.moduleName}.controller;
 
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import ${cfg.nocodeLocalServicePackageName}.V3${entity}Service;
+import ${cfg.package}.${cfg.moduleName}.api.ModuleInfo;
+import ${cfg.package}.${cfg.moduleName}.service.V3${entity}Service;
 
 /**
  * <p>
@@ -18,6 +20,7 @@ import ${cfg.nocodeLocalServicePackageName}.V3${entity}Service;
  */
 @Slf4j
 @RestController
+@RequestMapping(ModuleInfo.SERVICE_URL_PREFIX)
 public class V3${entity}Controller {
 
     @Resource

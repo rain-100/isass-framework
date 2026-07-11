@@ -126,10 +126,10 @@ MybatisPlusGeneratorMeta meta = new MybatisPlusGeneratorMeta()
     .setDataSourceUrl("jdbc:mysql://host:3306/attachment?...")
     .setDataSourceUserName("root")
     .setDataSourcePassword("password")
-    .setTablePrefix(new String[]{"att_"})        // 表前缀 att_icon -> 类名 Icon
-    .setPackageName("vip.isass")
-    .setModuleName("attachment")
-    .setControllerPrefix("/attachment-service")
+    .setTablePrefix(new String[]{ModuleInfo.TABLE_PREFIX})        // 表前缀 att_icon -> 类名 Icon
+    .setPackageName(ModuleInfo.GROUP_ID)
+    .setModuleName(ModuleInfo.SERVICE_NAME)
+    .setControllerPrefix(ModuleInfo.SERVICE_URL_PREFIX)
     .setIncludeTables(new String[]{"att_icon", "att_icon_group"});
 
 V2MybatisPlusGenerator.generate(meta);

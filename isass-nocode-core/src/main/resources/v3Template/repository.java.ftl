@@ -1,12 +1,12 @@
 <#include "./segment/copyright.ftl">
 
-package ${cfg.nocodeRepositoryPackageName};
+package ${cfg.package}.${cfg.moduleName}.db.repository;
 
 import org.springframework.stereotype.Repository;
 import vip.isass.framework.nocode.v3.orm.V3MybatisPlusRepository;
-import ${cfg.nocodeCriteriaPackageName}.V3${entity}Criteria;
-import ${cfg.nocodeEntityPackageName}.V3${entity};
-import ${cfg.nocodeMapperPackageName}.V3${entity}Mapper;
+import ${cfg.package}.${cfg.moduleName}.api.model.criteria.V3${entity}Criteria;
+import ${cfg.package}.${cfg.moduleName}.api.model.entity.V3${entity};
+import ${cfg.package}.${cfg.moduleName}.db.mapper.V3${entity}Mapper;
 
 /**
  * <p>
