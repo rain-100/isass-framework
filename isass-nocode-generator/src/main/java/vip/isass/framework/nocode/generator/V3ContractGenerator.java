@@ -111,7 +111,7 @@ public class V3ContractGenerator {
         List<V3OperationContract> operations = new ArrayList<>(
                 V3StandardContractFactory.operations(entityType, criteriaType));
         operations.addAll(type.getMethods().stream()
-                .map(this::toOperation)
+                .map(method -> toOperation(type, method))
                 .toList());
         return new V3ServiceContract(
                 applicationName,
@@ -119,11 +119,17 @@ public class V3ContractGenerator {
                 type.getFullyQualifiedName(),
                 entityType,
                 criteriaType,
+                stringTag(type, "tag", type.getSimpleName()),
                 operations);
     }
 
-    private V3OperationContract toOperation(JavaMethod method) {
-        HttpTag http = parseHttp(method);
+    private String stringTag(JavaClass type, String name, String defaultValue) {
+        DocletTag tag = type.getTagByName(name);
+        return tag == null || tag.getValue().isBlank() ? defaultValue : tag.getValue().trim();
+    }
+
+    private V3OperationContract toOperation(JavaClass serviceType, JavaMethod method) {
+        HttpTag http = parseHttp(serviceType, method);
         List<V3ParameterContract> parameters = new ArrayList<>();
         for (JavaParameter parameter : method.getParameters()) {
             V3ParameterSource source = parameterSource(http, parameter.getName());
@@ -146,10 +152,11 @@ public class V3ContractGenerator {
                 method.getComment());
     }
 
-    private HttpTag parseHttp(JavaMethod method) {
+    private HttpTag parseHttp(JavaClass serviceType, JavaMethod method) {
         DocletTag tag = method.getTagByName("http");
         if (tag == null || tag.getValue().isBlank()) {
-            return new HttpTag(V3HttpMethod.POST, "/action/" + method.getName());
+            throw new IllegalArgumentException("Custom V3 method requires @http METHOD /path: "
+                    + serviceType.getFullyQualifiedName() + "#" + method.getName());
         }
         String[] parts = tag.getValue().trim().split("\\s+", 2);
         if (parts.length != 2) {

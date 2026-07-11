@@ -238,213 +238,124 @@ public interface IV3Service<E extends IV3Entity<E>, C extends IV3Criteria<E, C>>
 
     // region 增
 
-    String ADD_OPERATOR = "POST";
-    String ADD_URI_SECOND_PART = "/v3";
-
-    String ADD_BATCH_OPERATOR = "POST";
-    String ADD_BATCH_URI_SECOND_PART = "/v3/batch";
-
-    String ADD_BATCH_BY_BATCH_SIZE_OPERATOR = "POST";
-    String ADD_BATCH_BY_BATCH_SIZE_URI_SECOND_PART = "/v3/batch/batchSize/{batchSize}";
-
-    String ADD_IF_ABSENT_BY_CRITERIA_OPERATOR = "POST";
-    String ADD_IF_ABSENT_BY_CRITERIA_URI_SECOND_PART = "/v3/absent/criteria";
-
-    String ADD_IF_ABSENT_BY_COLUMNS_OPERATOR = "POST";
-    String ADD_IF_ABSENT_BY_COLUMNS_URI_SECOND_PART = "/v3/absent/{uniqueColumns}";
-
-    String ADD_BATCH_IF_ABSENT_BY_COLUMNS_OPERATOR = "POST";
-    String ADD_BATCH_IF_ABSENT_BY_COLUMNS_URI_SECOND_PART = "/v3/batch/absent/{uniqueColumns}";
-
-    String ADD_BATCH_IF_ABSENT_BY_CRITERIA_OPERATOR = "POST";
-    String ADD_BATCH_IF_ABSENT_BY_CRITERIA_URI_SECOND_PART = "/v3/batch/absent/criteria";
-
-    String ADD_OR_UPDATE_BY_CRITERIA_OPERATOR = "POST";
-    String ADD_OR_UPDATE_BY_CRITERIA_URI_SECOND_PART = "/v3/add-update/criteria";
-
-    String ADD_OR_UPDATE_BY_COLUMNS_OPERATOR = "POST";
-    String ADD_OR_UPDATE_BY_COLUMNS_URI_SECOND_PART = "/v3/add-update/{uniqueColumns}";
-
-    String ADD_OR_UPDATE_BATCH_BY_COLUMNS_OPERATOR = "POST";
-    String ADD_OR_UPDATE_BATCH_BY_COLUMNS_URI_SECOND_PART = "/v3/add-update/batch/{uniqueColumns}";
-
-    // endregion
-
-    //  region 删
-
-    String DELETE_BY_ID_OPERATOR = "DELETE";
-    String DELETE_BY_ID_URI_SECOND_PART = "/v3/id/{id}";
-
-    String DELETE_BY_IDS_OPERATOR = "DELETE";
-    String DELETE_BY_IDS_URI_SECOND_PART = "/v3/{ids}";
-
-    String DELETE_BY_CRITERIA_OPERATOR = "DELETE";
-    String DELETE_BY_CRITERIA_URI_SECOND_PART = "/v3/criteria";
-
-    // endregion
-
-    // region 改
-
-    String UPDATE_BY_ID_OPERATOR = "PUT";
-    String UPDATE_BY_ID_URI_SECOND_PART = "/v3";
-
-
-    String UPDATE_ALL_COLUMNS_BY_ID_OPERATOR = "PUT";
-    String UPDATE_ALL_COLUMNS_BY_ID_URI_SECOND_PART = "/v3/allColumns";
-
-    String UPDATE_BY_ID_OR_EXCEPTION_OPERATOR = "PUT";
-    String UPDATE_BY_ID_OR_EXCEPTION_URI_SECOND_PART = "/v3/exception";
-
-    String UPDATE_BY_CRITERIA_OPERATOR = "PUT";
-    String UPDATE_BY_CRITERIA_URI_SECOND_PART = "/v3/criteria";
-
-    String UPDATE_BY_CRITERIA_OR_EXCEPTION_OPERATOR = "PUT";
-    String UPDATE_BY_CRITERIA_OR_EXCEPTION_URI_SECOND_PART = "/v3/criteria/exception";
-
-    String BATCH_SAVE_OPERATOR = "POST";
-    String BATCH_SAVE_URI_SECOND_PART = "/v3/batchSave";
-
-    // endregion
-
-    //  region 查
-
-    String GET_BY_ID_OPERATOR = "GET";
-    String GET_BY_ID_URI_SECOND_PART = "/v3/{id}";
-
-    String GET_BY_ID_OR_EXCEPTION_OPERATOR = "GET";
-    String GET_BY_ID_OR_EXCEPTION_URI_SECOND_PART = "/v3/exception/{id}";
-
-    String GET_BY_CRITERIA_OPERATOR = "GET";
-    String GET_BY_CRITERIA_URI_SECOND_PART = "/v3/1/criteria";
-
-    String GET_BY_CRITERIA_OR_WARN_OPERATOR = "GET";
-    String GET_BY_CRITERIA_OR_WARN_URI_SECOND_PART = "/v3/warn/criteria";
-
-    String GET_BY_CRITERIA_OR_EXCEPTION_OPERATOR = "GET";
-    String GET_BY_CRITERIA_OR_EXCEPTION_URI_SECOND_PART = "/v3/exception/criteria";
-
-    String FIND_BY_CRITERIA_OPERATOR = "GET";
-    String FIND_BY_CRITERIA_URI_SECOND_PART = "/v3/criteria";
-
-    String FIND_PAGE_BY_CRITERIA_OPERATOR = "GET";
-    String FIND_PAGE_BY_CRITERIA_URI_SECOND_PART = "/v3/page";
-
-    String FIND_ALL_OPERATOR = "GET";
-    String FIND_ALL_URI_SECOND_PART = "/v3/all";
-
-    String COUNT_BY_CRITERIA_OPERATOR = "GET";
-    String COUNT_BY_CRITERIA_URI_SECOND_PART = "/v3/count/criteria";
-
-    String COUNT_ALL_OPERATOR = "GET";
-    String COUNT_ALL_URI_SECOND_PART = "/v3/count/all";
-
-    String IS_PRESENT_BY_ID_OPERATOR = "GET";
-    String IS_PRESENT_BY_ID_URI_SECOND_PART = "/v3/present/{id}";
-
-    String IS_PRESENT_BY_COLUMN_OPERATOR = "GET";
-    String IS_PRESENT_BY_COLUMN_URI_SECOND_PART = "/v3/present/{columnName}/{value}";
-
-    String IS_PRESENT_BY_CRITERIA_OPERATOR = "GET";
-    String IS_PRESENT_BY_CRITERIA_URI_SECOND_PART = "/v3/present/criteria";
-
-    String IS_ABSENT_BY_COLUMN_OPERATOR = "GET";
-    String IS_ABSENT_BY_COLUMN_URI_SECOND_PART = "/v3/absent/{columnName}/{value}";
-
-    String IS_ABSENT_BY_CRITERIA_OPERATOR = "GET";
-    String IS_ABSENT_BY_CRITERIA_URI_SECOND_PART = "/v3/absent/criteria";
-
-    String EXCEPTION_IF_PRESENT_BY_CRITERIA_OPERATOR = "GET";
-    String EXCEPTION_IF_PRESENT_BY_CRITERIA_URI_SECOND_PART = "/v3/exception-if-present/criteria";
-
-    String EXCEPTION_IF_ABSENT_BY_CRITERIA_OPERATOR = "GET";
-    String EXCEPTION_IF_ABSENT_BY_CRITERIA_URI_SECOND_PART = "/v3/exception-if-absent/criteria";
-
-    // endregion
-
-    // region 增
-
+    /** @http POST / */
     E add(E entity);
 
+    /** @http POST /batch */
     Collection<E> addBatch(Collection<E> entities);
 
+    /** @http POST /batch/batchSize/{batchSize} */
     Collection<E> addBatchByBatchSize(Collection<E> entities, int batchSize);
 
+    /** @http POST /absent/criteria */
     E addIfAbsentByCriteria(E entity, C criteria);
 
+    /** @http POST /absent/{uniqueColumns} */
     E addIfAbsentByColumns(E entity, List<String> uniqueColumns);
 
+    /** @http POST /batch/absent/criteria */
     Integer addBatchIfAbsentByCriteria(List<E> entities, C criteria);
 
+    /** @http POST /batch/absent/{uniqueColumns} */
     Integer addBatchIfAbsentByColumns(List<E> entities, List<String> uniqueColumns);
 
+    /** @http POST /add-update/criteria */
     Boolean addOrUpdateByCriteria(E entity, C criteria);
 
+    /** @http POST /add-update/{uniqueColumns} */
     E addOrUpdateByColumns(E entity, List<String> uniqueColumns);
 
+    /** @http POST /add-update/batch/{uniqueColumns} */
     Integer addOrUpdateBatchByColumns(List<E> entities, List<String> uniqueColumns);
 
     // endregion
 
     //  region 删
 
+    /** @http DELETE /id/{id} */
     Boolean deleteById(Serializable id);
 
+    /** @http DELETE /{ids} */
     Boolean deleteByIds(Collection<Serializable> ids);
 
+    /** @http DELETE /criteria */
     Boolean deleteByCriteria(C criteria);
 
     // endregion
 
     // region 改
 
+    /** @http PUT / */
     Boolean updateById(E entity);
 
+    /** @http PUT /allColumns */
     Boolean updateAllColumnsById(E entity);
 
+    /** @http PUT /exception */
     void updateByIdOrException(E entity);
 
+    /** @http PUT /criteria */
     Boolean updateByCriteria(E entity, C criteria);
 
+    /** @http PUT /criteria/exception */
     void updateByCriteriaOrException(E entity, C criteria);
 
+    /** @http POST /batchSave */
     void batchSave(BatchSave<E> batchSave);
 
     // endregion
 
     //  region 查
 
+    /** @http GET /{id} */
     E getById(Serializable id);
 
+    /** @http GET /exception/{id} */
     E getByIdOrException(Serializable id);
 
+    /** @http GET /1/criteria */
     E getByCriteria(C criteria);
 
+    /** @http GET /warn/criteria */
     E getByCriteriaOrWarn(C criteria);
 
+    /** @http GET /exception/criteria */
     E getByCriteriaOrException(C criteria);
 
+    /** @http GET /criteria */
     List<E> findByCriteria(C criteria);
 
+    /** @http GET /page */
     IPage<E> findPageByCriteria(C criteria);
 
+    /** @http GET /all */
     List<E> findAll();
 
+    /** @http GET /count/criteria */
     Integer countByCriteria(C criteria);
 
+    /** @http GET /count/all */
     Integer countAll();
 
+    /** @http GET /present/{id} */
     Boolean isPresentById(Serializable id);
 
+    /** @http GET /present/{columnName}/{value} */
     Boolean isPresentByColumn(String columnName, Object value);
 
+    /** @http GET /present/criteria */
     Boolean isPresentByCriteria(C criteria);
 
+    /** @http GET /absent/{columnName}/{value} */
     Boolean isAbsentByColumn(String columnName, Object value);
 
+    /** @http GET /absent/criteria */
     Boolean isAbsentByCriteria(C criteria);
 
+    /** @http GET /exception-if-present/criteria */
     void exceptionIfPresentByCriteria(C criteria);
 
+    /** @http GET /exception-if-absent/criteria */
     void exceptionIfAbsentByCriteria(C criteria);
 
     // endregion

@@ -2,13 +2,10 @@ package vip.isass.framework.nocode.v3.contract;
 
 import vip.isass.framework.nocode.v3.service.IV3Service;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +28,30 @@ public final class V3StandardContractFactory {
             "exceptionIfPresentByCriteria", "exceptionIfAbsentByCriteria",
             "deleteById", "deleteByIds", "deleteByCriteria"
     );
+    private static final Map<String, HttpRoute> ROUTES = Map.ofEntries(
+            route("add", "POST", "/"), route("addBatch", "POST", "/batch"),
+            route("addBatchByBatchSize", "POST", "/batch/batchSize/{batchSize}"),
+            route("addIfAbsentByCriteria", "POST", "/absent/criteria"),
+            route("addIfAbsentByColumns", "POST", "/absent/{uniqueColumns}"),
+            route("addBatchIfAbsentByCriteria", "POST", "/batch/absent/criteria"),
+            route("addBatchIfAbsentByColumns", "POST", "/batch/absent/{uniqueColumns}"),
+            route("addOrUpdateByCriteria", "POST", "/add-update/criteria"),
+            route("addOrUpdateByColumns", "POST", "/add-update/{uniqueColumns}"),
+            route("addOrUpdateBatchByColumns", "POST", "/add-update/batch/{uniqueColumns}"),
+            route("updateById", "PUT", "/"), route("updateAllColumnsById", "PUT", "/allColumns"),
+            route("updateByIdOrException", "PUT", "/exception"), route("updateByCriteria", "PUT", "/criteria"),
+            route("updateByCriteriaOrException", "PUT", "/criteria/exception"), route("batchSave", "POST", "/batchSave"),
+            route("getById", "GET", "/{id}"), route("getByIdOrException", "GET", "/exception/{id}"),
+            route("getByCriteria", "GET", "/1/criteria"), route("getByCriteriaOrWarn", "GET", "/warn/criteria"),
+            route("getByCriteriaOrException", "GET", "/exception/criteria"), route("findByCriteria", "GET", "/criteria"),
+            route("findPageByCriteria", "GET", "/page"), route("findAll", "GET", "/all"),
+            route("countByCriteria", "GET", "/count/criteria"), route("countAll", "GET", "/count/all"),
+            route("isPresentById", "GET", "/present/{id}"), route("isPresentByColumn", "GET", "/present/{columnName}/{value}"),
+            route("isPresentByCriteria", "GET", "/present/criteria"), route("isAbsentByColumn", "GET", "/absent/{columnName}/{value}"),
+            route("isAbsentByCriteria", "GET", "/absent/criteria"), route("exceptionIfPresentByCriteria", "GET", "/exception-if-present/criteria"),
+            route("exceptionIfAbsentByCriteria", "GET", "/exception-if-absent/criteria"),
+            route("deleteById", "DELETE", "/id/{id}"), route("deleteByIds", "DELETE", "/{ids}"), route("deleteByCriteria", "DELETE", "/criteria")
+    );
 
     private V3StandardContractFactory() {
     }
@@ -41,8 +62,7 @@ public final class V3StandardContractFactory {
     ) {
         Map<String, Method> methods = new LinkedHashMap<>();
         for (Method method : IV3Service.class.getMethods()) {
-            String prefix = constantPrefix(method.getName());
-            if (hasField(prefix + "_OPERATOR") && hasField(prefix + "_URI_SECOND_PART")) {
+            if (ROUTES.containsKey(method.getName())) {
                 methods.put(method.getName(), method);
             }
         }
@@ -62,12 +82,9 @@ public final class V3StandardContractFactory {
             String entityJavaType,
             String criteriaJavaType
     ) {
-        String prefix = constantPrefix(method.getName());
-        V3HttpMethod httpMethod = V3HttpMethod.valueOf(stringField(prefix + "_OPERATOR"));
-        String path = stringField(prefix + "_URI_SECOND_PART").replaceFirst("^/v3", "");
-        if (path.isEmpty()) {
-            path = "/";
-        }
+        HttpRoute route = ROUTES.get(method.getName());
+        V3HttpMethod httpMethod = route.method();
+        String path = route.path();
         List<V3ParameterContract> parameters = new ArrayList<>();
         Parameter[] methodParameters = method.getParameters();
         Type[] types = method.getGenericParameterTypes();
@@ -118,20 +135,9 @@ public final class V3StandardContractFactory {
                 .replaceAll("(?<![\\w.])C(?![\\w])", criteria);
     }
 
-    private static String constantPrefix(String methodName) {
-        return methodName.replaceAll("([a-z0-9])([A-Z])", "$1_$2").toUpperCase();
+    private static Map.Entry<String, HttpRoute> route(String operation, String method, String path) {
+        return Map.entry(operation, new HttpRoute(V3HttpMethod.valueOf(method), path));
     }
 
-    private static boolean hasField(String name) {
-        return Arrays.stream(IV3Service.class.getFields()).anyMatch(field -> field.getName().equals(name));
-    }
-
-    private static String stringField(String name) {
-        try {
-            Field field = IV3Service.class.getField(name);
-            return (String) field.get(null);
-        } catch (ReflectiveOperationException exception) {
-            throw new IllegalStateException("Cannot read IV3Service metadata: " + name, exception);
-        }
-    }
+    private record HttpRoute(V3HttpMethod method, String path) {}
 }

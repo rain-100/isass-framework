@@ -11,6 +11,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class V3ContractGeneratorTest {
@@ -105,5 +106,25 @@ class V3ContractGeneratorTest {
         assertEquals("attachment", document.services().getFirst().entityName());
         assertEquals("V3Attachment", document.types().getFirst().schemaName());
         assertEquals("原始文件名", document.types().getFirst().properties().getFirst().description());
+    }
+
+    @Test
+    void rejectsCustomServiceMethodWithoutHttpTag() throws Exception {
+        Path source = temp.resolve("missing-http-src");
+        Files.createDirectories(source.resolve("vip/isass/attachment/api"));
+        Files.writeString(source.resolve("vip/isass/attachment/api/IV3IconService.java"), """
+                package vip.isass.attachment.api;
+                class V3Icon {}
+                class V3IconCriteria {}
+                interface IV3Service<E,C> {}
+                public interface IV3IconService extends IV3Service<V3Icon,V3IconCriteria> {
+                    V3Icon findAvailableIcon();
+                }
+                """);
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> new V3ContractGenerator(new ObjectMapper()).generate(source, temp.resolve("missing-http-out")));
+        assertEquals("Custom V3 method requires @http METHOD /path: vip.isass.attachment.api.IV3IconService#findAvailableIcon",
+                exception.getMessage());
     }
 }

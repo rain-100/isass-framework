@@ -10,6 +10,7 @@ public record V3ServiceContract(
         String serviceInterface,
         String entityJavaType,
         String criteriaJavaType,
+        String tag,
         List<V3OperationContract> operations
 ) {
     public V3ServiceContract {
@@ -18,8 +19,16 @@ public record V3ServiceContract(
         serviceInterface = requireText(serviceInterface, "serviceInterface");
         entityJavaType = requireText(entityJavaType, "entityJavaType");
         criteriaJavaType = requireText(criteriaJavaType, "criteriaJavaType");
+        tag = tag == null || tag.isBlank() ? serviceInterface : tag;
         operations = List.copyOf(operations == null ? List.of() : operations);
         validateUniqueOperations(operations);
+    }
+
+    public V3ServiceContract(String serviceName, String entityName, String serviceInterface,
+                             String entityJavaType, String criteriaJavaType,
+                             List<V3OperationContract> operations) {
+        this(serviceName, entityName, serviceInterface, entityJavaType, criteriaJavaType,
+                serviceInterface, operations);
     }
 
     private static void validateUniqueOperations(List<V3OperationContract> operations) {

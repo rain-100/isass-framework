@@ -1,11 +1,17 @@
 package vip.isass.framework.nocode.http;
 
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import vip.isass.framework.common.web.Resp;
@@ -17,12 +23,15 @@ import vip.isass.framework.nocode.v3.contract.V3ParameterContract;
 import vip.isass.framework.nocode.v3.contract.V3ParameterSource;
 import vip.isass.framework.nocode.v3.contract.V3RouteMatcher;
 import vip.isass.framework.nocode.v3.service.IV3Service;
+import vip.isass.framework.nocode.v3.stream.V3FileStream;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -50,35 +59,32 @@ public class V3HttpServerAdapter {
     }
 
     @RequestMapping("/{serviceName}/{entityName}/v3")
-    public Resp<?> invokeRoot(
+    public Object invokeRoot(
             @PathVariable String serviceName,
             @PathVariable String entityName,
             @RequestParam MultiValueMap<String, String> query,
-            @RequestBody(required = false) JsonNode body,
-            org.springframework.web.context.request.WebRequest request
+            org.springframework.web.context.request.ServletWebRequest request
     ) {
-        return invokeInternal(serviceName, entityName, "/", query, body, request);
+        return invokeInternal(serviceName, entityName, "/", query, request);
     }
 
     @RequestMapping("/{serviceName}/{entityName}/v3/{*operationPath}")
-    public Resp<?> invoke(
+    public Object invoke(
             @PathVariable String serviceName,
             @PathVariable String entityName,
             @PathVariable String operationPath,
             @RequestParam MultiValueMap<String, String> query,
-            @RequestBody(required = false) JsonNode body,
-            org.springframework.web.context.request.WebRequest request
+            org.springframework.web.context.request.ServletWebRequest request
     ) {
-        return invokeInternal(serviceName, entityName, operationPath, query, body, request);
+        return invokeInternal(serviceName, entityName, operationPath, query, request);
     }
 
-    private Resp<?> invokeInternal(
+    private Object invokeInternal(
             String serviceName,
             String entityName,
             String operationPath,
             MultiValueMap<String, String> query,
-            JsonNode body,
-            org.springframework.web.context.request.WebRequest request
+            org.springframework.web.context.request.ServletWebRequest request
     ) {
         V3HttpMethod httpMethod = V3HttpMethod.valueOf(
                 request.getHeader("X-HTTP-Method-Override") == null
@@ -88,8 +94,26 @@ public class V3HttpServerAdapter {
         V3OperationContract operation = contracts.requireOperation(
                 serviceName, entityName, httpMethod, relativePath);
         IV3Service<?, ?> service = services.require(serviceName, entityName);
-        Object result = invokeService(service, operation, relativePath, query, body);
+        Object result = invokeService(service, operation, relativePath, query, request);
+        if (result instanceof V3FileStream fileStream) {
+            return streamResponse(fileStream);
+        }
         return result instanceof Resp<?> response ? response : Resp.bizSuccess(result);
+    }
+
+    private ResponseEntity<InputStreamResource> streamResponse(V3FileStream fileStream) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.parseMediaType(fileStream.contentType()));
+        headers.setContentDisposition((fileStream.download()
+                ? ContentDisposition.attachment()
+                : ContentDisposition.inline())
+                .filename(fileStream.fileName())
+                .build());
+        if (fileStream.contentLength() != null) {
+            headers.setContentLength(fileStream.contentLength());
+        }
+        return new ResponseEntity<>(new InputStreamResource(fileStream.content()), headers,
+                org.springframework.http.HttpStatus.OK);
     }
 
     private String currentMethod(org.springframework.web.context.request.WebRequest request) {
@@ -110,10 +134,10 @@ public class V3HttpServerAdapter {
             V3OperationContract operation,
             String relativePath,
             MultiValueMap<String, String> query,
-            JsonNode body
+            org.springframework.web.context.request.ServletWebRequest request
     ) {
         Method method = findMethod(service, operation);
-        List<Object> arguments = bindArguments(operation, relativePath, query, body);
+        List<Object> arguments = bindArguments(operation, relativePath, query, request);
         try {
             return method.invoke(service, arguments.toArray());
         } catch (IllegalAccessException exception) {
@@ -140,26 +164,61 @@ public class V3HttpServerAdapter {
             V3OperationContract operation,
             String relativePath,
             MultiValueMap<String, String> query,
-            JsonNode body
+            org.springframework.web.context.request.ServletWebRequest request
     ) {
         Map<String, String> pathVariables =
                 V3RouteMatcher.requireVariables(operation.path(), relativePath);
         List<Object> arguments = new ArrayList<>();
         long bodyParameterCount = operation.parameters().stream()
                 .filter(parameter -> parameter.source() == V3ParameterSource.BODY).count();
+        JsonNode body = readJsonBody(request);
         for (V3ParameterContract parameter : operation.parameters()) {
             Object value = switch (parameter.source()) {
                 case PATH -> pathVariables.get(parameter.name());
                 case QUERY -> isSimple(parameter.javaType())
                         ? query.getFirst(parameter.name())
                         : bindQueryObject(query, parameter.javaType());
-                case BODY -> bodyParameterCount > 1 && body != null
-                        ? body.get(parameter.name())
-                        : body;
+                case BODY -> InputStream.class.getName().equals(parameter.javaType())
+                        ? multipartInputStream(request, parameter.name())
+                        : bodyParameterCount > 1 && body != null ? body.get(parameter.name()) : body;
             };
             arguments.add(convert(value, parameter.javaType()));
         }
         return arguments;
+    }
+
+    private JsonNode readJsonBody(org.springframework.web.context.request.ServletWebRequest request) {
+        if (request.getRequest() instanceof MultipartHttpServletRequest) {
+            return null;
+        }
+        String contentType = request.getRequest().getContentType();
+        if (contentType == null || !contentType.toLowerCase(java.util.Locale.ROOT).contains("json")) {
+            return null;
+        }
+        try {
+            return objectMapper.readTree(request.getRequest().getInputStream());
+        } catch (IOException exception) {
+            throw new IllegalArgumentException("Cannot read V3 JSON request body", exception);
+        }
+    }
+
+    private InputStream multipartInputStream(
+            org.springframework.web.context.request.ServletWebRequest request,
+            String parameterName
+    ) {
+        if (!(request.getRequest() instanceof MultipartHttpServletRequest multipart)) {
+            throw new IllegalArgumentException("V3 stream parameter '" + parameterName
+                    + "' requires multipart/form-data");
+        }
+        MultipartFile file = multipart.getFile(parameterName);
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("Required multipart file parameter is missing: " + parameterName);
+        }
+        try {
+            return file.getInputStream();
+        } catch (IOException exception) {
+            throw new IllegalArgumentException("Cannot open multipart file parameter: " + parameterName, exception);
+        }
     }
 
     private Object bindQueryObject(MultiValueMap<String, String> query, String javaType) {
@@ -254,6 +313,9 @@ public class V3HttpServerAdapter {
     private Object convert(Object value, String javaType) {
         if (value == null) {
             return null;
+        }
+        if (InputStream.class.getName().equals(javaType) && value instanceof InputStream inputStream) {
+            return inputStream;
         }
         try {
             tools.jackson.databind.JavaType type =

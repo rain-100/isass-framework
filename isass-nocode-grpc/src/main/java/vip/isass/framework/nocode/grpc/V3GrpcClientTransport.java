@@ -12,6 +12,8 @@ import vip.isass.framework.nocode.v3.transport.V3InvocationTransport;
 import vip.isass.framework.nocode.v3.transport.V3TransportInvocationException;
 import vip.isass.framework.nocode.v3.transport.V3TransportKind;
 
+import java.io.InputStream;
+
 public class V3GrpcClientTransport implements V3InvocationTransport {
 
     private final Channel channel;
@@ -33,7 +35,17 @@ public class V3GrpcClientTransport implements V3InvocationTransport {
     }
 
     public boolean available(V3Invocation invocation) {
-        return true;
+        V3ServiceContract service = contracts.requireService(
+                invocation.serviceName(), invocation.entityName());
+        V3OperationContract operation = service.operations().stream()
+                .filter(candidate -> candidate.name().equals(invocation.operationName()))
+                .findFirst().orElseThrow();
+        // 当前动态 gRPC 编解码器只承载 JSON unary 调用。流式合同必须由调用链
+        // 选择 HTTP transport，不能隐式 readAllBytes 后伪装成 unary 调用。
+        return operation.parameters().stream()
+                .noneMatch(parameter -> InputStream.class.getName().equals(parameter.javaType()))
+                && !"vip.isass.framework.nocode.v3.stream.V3FileStream"
+                .equals(operation.returnJavaType());
     }
 
     public Object invoke(V3Invocation invocation) {

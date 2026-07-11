@@ -15,13 +15,16 @@ import vip.isass.framework.nocode.v3.contract.V3ParameterContract;
 import vip.isass.framework.nocode.v3.contract.V3ParameterSource;
 import vip.isass.framework.nocode.v3.contract.V3ServiceContract;
 import vip.isass.framework.nocode.v3.service.IV3Service;
+import vip.isass.framework.nocode.v3.stream.V3FileStream;
 
+import java.io.InputStream;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -33,6 +36,12 @@ class V3HttpServerAdapterTest {
 
     public interface CriteriaApi {
         String firstCriteriaConditionValueType(TestIconCriteria criteria);
+    }
+
+    public interface StreamApi {
+        String upload(InputStream file);
+
+        V3FileStream download();
     }
 
     @Test
@@ -102,6 +111,42 @@ class V3HttpServerAdapterTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data").value(Long.class.getName()));
+    }
+
+    @Test
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    void multipartInputStreamAndFileStreamUseRawStreams() throws Exception {
+        IV3Service service = mock(IV3Service.class,
+                org.mockito.Mockito.withSettings().extraInterfaces(StreamApi.class));
+        when(service.serviceName()).thenReturn("attachment-service");
+        when(service.entityName()).thenReturn("attachment");
+        when(((StreamApi) service).upload(any(InputStream.class))).thenAnswer(invocation ->
+                new String(invocation.getArgument(0, InputStream.class).readAllBytes()));
+        when(((StreamApi) service).download()).thenReturn(new V3FileStream(
+                "test.txt", "text/plain", 4L, true,
+                new java.io.ByteArrayInputStream("data".getBytes())));
+        V3ServiceContract contract = new V3ServiceContract(
+                "attachment-service", "attachment", StreamApi.class.getName(),
+                "example.Attachment", "example.AttachmentCriteria", List.of(
+                new V3OperationContract("upload", V3HttpMethod.POST, "/upload", 101, false,
+                        List.of(new V3ParameterContract("file", InputStream.class.getName(),
+                                V3ParameterSource.BODY, false, "上传文件")),
+                        String.class.getName(), "上传"),
+                new V3OperationContract("download", V3HttpMethod.GET, "/download", 301, true,
+                        List.of(), V3FileStream.class.getName(), "下载")
+        ));
+        MockMvc mvc = MockMvcBuilders.standaloneSetup(new V3HttpServerAdapter(
+                new V3ContractRegistry(List.of(contract)), new V3ServiceRegistry(List.of(service)),
+                new ObjectMapper())).build();
+
+        mvc.perform(multipart("/attachment-service/attachment/v3/upload")
+                        .file("file", "stream-content".getBytes()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data").value("stream-content"));
+        mvc.perform(get("/attachment-service/attachment/v3/download"))
+                .andExpect(status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content()
+                        .string("data"));
     }
 
     public static class TestIcon implements IV3IdEntity<Long, TestIcon> {
