@@ -62,7 +62,7 @@ public class HttpServerAdapter {
         this.objectMapper = objectMapper;
     }
 
-    @RequestMapping("/{serviceName}/{entityName}")
+    @RequestMapping("/{serviceName:[a-zA-Z0-9-]+-service}/{entityName}")
     public Object invokeRoot(
             @PathVariable String serviceName,
             @PathVariable String entityName,
@@ -72,7 +72,7 @@ public class HttpServerAdapter {
         return invokeInternal(serviceName, entityName, "/", query, request);
     }
 
-    @RequestMapping("/{serviceName}/{entityName}/{*operationPath}")
+    @RequestMapping("/{serviceName:[a-zA-Z0-9-]+-service}/{entityName}/{*operationPath}")
     public Object invoke(
             @PathVariable String serviceName,
             @PathVariable String entityName,

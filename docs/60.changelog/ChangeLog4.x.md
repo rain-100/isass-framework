@@ -68,6 +68,7 @@
 
 - **移除旧 EDB 双实体模型**：删除未被使用的 `IDbEntity`、`DbEntityConvert` 及 `WrapperUtil` 的 EDB QueryWrapper 方法；当前 nocode 实体直接作为 MyBatis-Plus 实体持久化。
 - **代码生成器**：Controller 模板生成的本地 Service 字段改为实体小驼峰名称，例如 `iconGroupService`，不再添加 `nocode` 前缀。
+- **动态 HTTP 路由**：nocode Adapter 的服务段限制为 `*-service`，避免通配路径拦截 Knife4j `/webjars/**` 等静态资源。
 - **单一零代码体系**：移除无版本历史 nocode 与 V2 实现，将原 V3 合同、实体、Criteria、ORM、HTTP/gRPC transport、生成器统一为无版本 `isass-nocode-*` API；标准 HTTP 路由收敛为 `/{serviceName}/{entityName}`，自定义业务方法保留所属服务的确定路径。
 - **合同与文档**：构建期资源统一为 `META-INF/isass/nocode-contract.json` 与 `*-nocode.proto`；OpenAPI 投影统一使用“零代码接口”分组，不再保留 V3 路径、类型或模板命名。
 
