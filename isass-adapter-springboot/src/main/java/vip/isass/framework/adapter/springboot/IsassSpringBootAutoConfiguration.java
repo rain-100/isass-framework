@@ -27,7 +27,6 @@ import vip.isass.framework.common.support.ISystemClock;
 import vip.isass.framework.common.support.IsassServiceLoader;
 import vip.isass.framework.common.support.SystemClock;
 import vip.isass.framework.nocode.IDictTranslationProvider;
-import vip.isass.framework.nocode.v2.entity.V2DbEntityConvert;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,14 +44,6 @@ public class IsassSpringBootAutoConfiguration {
     @ConditionalOnMissingBean
     public AutoDestroyManager autoDestroyManager() {
         return new AutoDestroyManager();
-    }
-
-    @Bean
-    @ConditionalOnMissingBean
-    public V2DbEntityConvert v2DbEntityConvert(@Value("${info.package:}") String packageName) {
-        V2DbEntityConvert converter = new V2DbEntityConvert();
-        converter.setPackageName(packageName);
-        return converter;
     }
 
     @Bean

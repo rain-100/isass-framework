@@ -171,6 +171,7 @@ package vip.isass.framework.web;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
@@ -185,10 +186,10 @@ import vip.isass.framework.web.config.WebConfig;
 import vip.isass.framework.web.exception.ExceptionAdvice;
 import vip.isass.framework.web.exception.IsassErrorController;
 import vip.isass.framework.web.exception.WebStatusMapping;
+import vip.isass.framework.web.response.AdvancedFeatureResponseAdvice;
 import vip.isass.framework.web.interceptor.RestTemplateInterceptor;
 import vip.isass.framework.web.interceptor.TraceIdInterceptor;
 import vip.isass.framework.web.interceptor.UriMappingInterceptor;
-import vip.isass.framework.web.response.ResponseAdvice;
 import vip.isass.framework.web.servicedocs.ServiceDocsController;
 import vip.isass.framework.web.uri.UriPrefixProvider;
 
@@ -201,11 +202,9 @@ import java.util.List;
 @Import({
         ObjectMapperConfiguration.class,
         WebConfig.class,
-        AdvanceFeatureInterceptor.class,
         ServiceDocsController.class,
         IsassErrorController.class,
         ExceptionAdvice.class,
-        ResponseAdvice.class,
         UriPrefixProvider.class
 })
 public class WebAutoConfiguration {
@@ -231,6 +230,12 @@ public class WebAutoConfiguration {
     @Bean
     public WebStatusMapping webStatusMapping() {
         return new WebStatusMapping();
+    }
+
+    @Bean
+    @ConditionalOnBean(tools.jackson.databind.ObjectMapper.class)
+    public AdvancedFeatureResponseAdvice advancedFeatureResponseAdvice(tools.jackson.databind.ObjectMapper objectMapper) {
+        return new AdvancedFeatureResponseAdvice(objectMapper);
     }
 
     @Bean

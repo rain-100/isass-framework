@@ -49,7 +49,6 @@
 - 角色码服务管理器的 Spring 组件实现已迁到 `isass-security-springsecurity`，`isass-core-common` 只保留纯 Java 聚合管理器
 - 通用选择项服务管理器已改为 `isass-core-common` 纯 Java 聚合器，由 `isass-adapter-springboot` 自动配置负责 Spring Bean 装配
 - 启动后自动销毁临时 Bean 的 Spring 生命周期监听器已从 `isass-core-common` 迁到 `isass-adapter-springboot`，core 仅保留 `AutoDestroyable` 标记接口
-- `DbEntityConvert`、`V2DbEntityConvert` 已移除 Spring 注解，`info.package` 由 `isass-adapter-springboot` 自动配置注入
 
 ## 后续拆分原则
 

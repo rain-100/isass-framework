@@ -45,9 +45,6 @@ public final class IsassOrderUtil {
         }
         try {
             Method getOrderMethod = sourceClass.getMethod("getOrder");
-            if ("IV2Service".equals(getOrderMethod.getDeclaringClass().getSimpleName())) {
-                return null;
-            }
             Object value = getOrderMethod.invoke(source);
             return value instanceof Integer integer ? integer : null;
         } catch (ReflectiveOperationException e) {

@@ -60,9 +60,15 @@
 
 #### docs
 
+- **零代码文档校正**：`smart-doc` 使用说明改为无版本 nocode 合同、`IXxxService` 与统一动态 HTTP 路由；移除将 OpenAPI 地址 `/v3/api-docs` 误解为 nocode 接口版本的表述。
+- **前端零代码说明**：新增 `docs/usage/nocode/frontend-api-usage.md`，说明标准 CRUD 路径、参数绑定、文件流、自定义业务接口与高级响应投影。
 - 在 README 中补充模块命名规范，明确 `isass-分类-模块名` 格式。
 
 #### refactor
+
+- **移除旧 EDB 双实体模型**：删除未被使用的 `IDbEntity`、`DbEntityConvert` 及 `WrapperUtil` 的 EDB QueryWrapper 方法；当前 nocode 实体直接作为 MyBatis-Plus 实体持久化。
+- **单一零代码体系**：移除无版本历史 nocode 与 V2 实现，将原 V3 合同、实体、Criteria、ORM、HTTP/gRPC transport、生成器统一为无版本 `isass-nocode-*` API；标准 HTTP 路由收敛为 `/{serviceName}/{entityName}`，自定义业务方法保留所属服务的确定路径。
+- **合同与文档**：构建期资源统一为 `META-INF/isass/nocode-contract.json` 与 `*-nocode.proto`；OpenAPI 投影统一使用“零代码接口”分组，不再保留 V3 路径、类型或模板命名。
 
 - **V3 文件流传输重构**：`V3FileStream` 改为以 `writeTo(OutputStream)` 为主的单次消费数据源；HTTP 适配器使用 `StreamingResponseBody` 直接消费存储源流，不再通过虚拟线程与 Pipe 中转。业务代码可按需通过 `openInputStream()` 获得读取式兼容流。
   - V3 文件端点在响应提交前直接返回空响应体的 HTTP 状态：文件不存在为 `404`，参数错误为 `400`，服务器异常为 `5xx`，不再包装为 `Resp` JSON。

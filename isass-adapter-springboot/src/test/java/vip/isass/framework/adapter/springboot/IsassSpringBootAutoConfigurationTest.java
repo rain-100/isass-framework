@@ -7,7 +7,6 @@ import org.springframework.boot.context.annotation.ImportCandidates;
 import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.SmartLifecycle;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.util.ClassUtils;
 import vip.isass.framework.adapter.springboot.database.IsassDatabaseSpringBootAutoConfiguration;
 import vip.isass.framework.adapter.springboot.converter.IsassSpringConverterAdapter;
@@ -21,7 +20,6 @@ import vip.isass.framework.common.selectoption.SelectOption;
 import vip.isass.framework.common.selectoption.SelectOptionServiceManager;
 import vip.isass.framework.nocode.DictTranslationProviderUtil;
 import vip.isass.framework.nocode.IDictTranslationProvider;
-import vip.isass.framework.nocode.v2.entity.V2DbEntityConvert;
 import vip.isass.framework.common.support.BeanProvider;
 import vip.isass.framework.common.support.BeanProviderUtil;
 import vip.isass.framework.mq.core.MqManager;
@@ -185,18 +183,6 @@ class IsassSpringBootAutoConfigurationTest {
                     assertThat(DictTranslationProviderUtil.getProvider()
                             .translate("status", "1"))
                             .isEqualTo("nocode:status:1");
-                });
-    }
-
-    @Test
-    void registersV2DbEntityConverterWithConfiguredPackageName() {
-        new ApplicationContextRunner()
-                .withConfiguration(AutoConfigurations.of(IsassSpringBootAutoConfiguration.class))
-                .withPropertyValues("info.package=vip.isass.test")
-                .run(context -> {
-                    assertThat(context).hasSingleBean(V2DbEntityConvert.class);
-                    assertThat(ReflectionTestUtils.getField(V2DbEntityConvert.class, "packageName"))
-                            .isEqualTo("vip.isass.test");
                 });
     }
 

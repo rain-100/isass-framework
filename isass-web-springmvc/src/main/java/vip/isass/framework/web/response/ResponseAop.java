@@ -186,7 +186,6 @@
 //@Component
 //public class ResponseAop {
 //
-//    @Around(value = "target(vip.isass.framework.web.structure.IV2ControllerEntryPoint)")
 //    public Object requestLog(ProceedingJoinPoint joinPoint) throws Throwable {
 //        Object proceed = joinPoint.proceed();
 //

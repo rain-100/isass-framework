@@ -1,6 +1,6 @@
-# Smart-Doc 与 V3 OpenAPI
+# Smart-Doc 与零代码 OpenAPI
 
-Smart-Doc 负责业务手写 Controller，并把结果生成到：
+Smart-Doc 负责扫描业务手写 Controller，并生成：
 
 ```text
 src/main/resources/openapi3/openapi.json
@@ -15,31 +15,41 @@ src/main/resources/openapi3/openapi.json
 }
 ```
 
-`componentType: NORMAL` 让普通接口使用稳定命名 Schema。
+`/v3/api-docs` 是 OpenAPI 规范文档地址，不是零代码接口版本号。
 
-## V3 文档来源
+## 零代码文档来源
 
-V3 标准接口不依赖实体 Controller。API 模块在 Maven `generate-resources` 阶段由 `isass-nocode-generator` 生成：
+标准零代码接口不依赖实体 Controller。API 模块在 Maven `generate-resources` 阶段由 `isass-nocode-generator` 生成：
 
 ```text
-META-INF/isass/v3-contract.json
-proto/<application>-v3.proto
+META-INF/isass/nocode-contract.json
+proto/<application>-nocode.proto
 ```
 
-契约生成器直接读取 `IV3XxxService`、实体源码及 Javadoc。实体字段无需增加 Swagger、Schema 或自定义描述注解。
-
-每个实体可生成一个轻量 `V3XxxController` 作为手写 Spring MVC 扩展入口。它不实现 `IV3Controller`，不暴露标准 CRUD；仅用业务微服务自定义的业务接口。Smart-Doc 会扫描这些手写接口并保留其普通 OpenAPI path。
+契约生成器读取 `IXxxService`、实体源码和 Javadoc。实体字段无需增加 Swagger、Schema 或其他描述注解。
 
 文档服务通过 `OpenApiEnhancerSpi`：
 
-1. 读取 Smart-Doc 的普通接口文档；
-2. 从 classpath 加载 V3 契约；
-3. 添加命名实体 Schema、统一 V3 path、`oneOf` 和 Criteria 元数据；
-4. 保留普通 Controller 的 path、tag 和顺序。
+1. 读取 Smart-Doc 的手写接口文档；
+2. 从 classpath 加载 nocode 合同；
+3. 添加命名实体 Schema、标准路径、`oneOf` 和 Criteria 元数据；
+4. 保留手写 Controller 的 path、tag 和顺序。
 
-## 自定义 V3 接口
+标准接口统一路径为：
 
-在 `IV3XxxService` 方法 Javadoc 中使用：
+```text
+/{serviceName}/{entityName}
+```
+
+自定义业务接口使用所属 `IXxxService` 的完整业务路径，例如：
+
+```text
+/attachment-service/attachment/upload
+```
+
+## 自定义零代码接口
+
+在 `IXxxService` 方法 Javadoc 中声明 HTTP 合同：
 
 ```java
 /**
@@ -49,16 +59,18 @@ proto/<application>-v3.proto
  * @http GET /available/{tenantId}
  * @order 501
  */
-List<V3Icon> findAvailableIcons(Long tenantId);
+List<Icon> findAvailableIcons(Long tenantId);
 ```
 
-- `@http` 自定义 HTTP 方法和相对路径；
-- `@order` 自定义文档顺序；
+- `@http` 定义 HTTP 方法和相对于实体路径的路径；
+- `@order` 定义 API 文档顺序；
 - `@param` 提供参数说明；
-- 方法和返回类型说明使用普通 Javadoc。
+- 未声明 `@http` 的自定义业务方法会在合同生成阶段明确报错。
 
-标准 V3 接口按“增、改、查、删”排序，标题采用“动作-参数-结果”，例如“增-批量”“查-根据条件-分页列表”。
+标准接口按“增、改、查、删”排序，标题采用“动作-参数-结果”，例如“增-批量”“查-根据条件-分页列表”。
 
 ## Criteria
 
-统一文档只展示实体等值字段，并补充 `selectColumns`、`orderBy`。分页参数只出现在分页接口。增强条件字段不会展示，但服务内部仍可使用。
+统一文档只展示实体等值字段，并补充 `selectColumns`、`orderBy`。分页参数仅在分页接口展示。`Like`、`Or`、`setOr` 等内部增强条件不作为前端标准参数公开。
+
+前端调用规则、响应结构、文件接口与高级响应投影应以生成的 OpenAPI/Knife4j 文档为准。

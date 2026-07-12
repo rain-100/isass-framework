@@ -173,8 +173,6 @@ import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import vip.isass.framework.database.mybatisplus.mysql.config.MybatisPlusMysqlMapperLocationProvider;
-import vip.isass.framework.database.mybatisplus.mysql.mapper.ICommonMapper;
-import vip.isass.framework.database.mybatisplus.mysql.repository.ICommonRepositoryImpl;
 
 /**
  * @author Rain
@@ -188,9 +186,4 @@ public class DatabaseMybatisPlusMysqlAutoConfiguration {
         return new MybatisPlusMysqlMapperLocationProvider();
     }
 
-    @Bean
-    @ConditionalOnMissingBean
-    public ICommonRepositoryImpl commonRepository(ICommonMapper commonMapper) {
-        return new ICommonRepositoryImpl(commonMapper);
-    }
 }
