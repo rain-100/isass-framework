@@ -1,10 +1,9 @@
 package vip.isass.framework.nocode.http;
 
-import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,6 +11,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import vip.isass.framework.common.web.Resp;
@@ -24,6 +25,7 @@ import vip.isass.framework.nocode.v3.contract.V3ParameterSource;
 import vip.isass.framework.nocode.v3.contract.V3RouteMatcher;
 import vip.isass.framework.nocode.v3.service.IV3Service;
 import vip.isass.framework.nocode.v3.stream.V3FileStream;
+import vip.isass.framework.nocode.v3.stream.V3FileNotFoundException;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -43,6 +45,8 @@ import java.util.Optional;
  */
 @RestController
 public class V3HttpServerAdapter {
+
+    private static final Logger log = LoggerFactory.getLogger(V3HttpServerAdapter.class);
 
     private final V3ContractRegistry contracts;
     private final V3ServiceRegistry services;
@@ -94,14 +98,52 @@ public class V3HttpServerAdapter {
         V3OperationContract operation = contracts.requireOperation(
                 serviceName, entityName, httpMethod, relativePath);
         IV3Service<?, ?> service = services.require(serviceName, entityName);
-        Object result = invokeService(service, operation, relativePath, query, request);
-        if (result instanceof V3FileStream fileStream) {
-            return streamResponse(fileStream);
+        if (isFileOperation(operation)) {
+            return invokeFileOperation(service, operation, relativePath, query, request);
         }
+        Object result = invokeService(service, operation, relativePath, query, request);
         return result instanceof Resp<?> response ? response : Resp.bizSuccess(result);
     }
 
-    private ResponseEntity<InputStreamResource> streamResponse(V3FileStream fileStream) {
+    /**
+     * 文件端点不使用 Resp：下载前的资源不存在、参数错误和服务异常分别直接映射为 404、400、5xx。
+     */
+    private Object invokeFileOperation(
+            IV3Service<?, ?> service,
+            V3OperationContract operation,
+            String relativePath,
+            MultiValueMap<String, String> query,
+            org.springframework.web.context.request.ServletWebRequest request
+    ) {
+        try {
+            Object result = invokeService(service, operation, relativePath, query, request);
+            if (!(result instanceof V3FileStream fileStream)) {
+                throw new IllegalStateException("V3 文件接口未返回 V3FileStream: " + operation.name());
+            }
+            streamResponse(fileStream, request);
+            return null;
+        } catch (V3FileNotFoundException exception) {
+            return emptyFileResponse(request, HttpStatus.NOT_FOUND);
+        } catch (IllegalArgumentException exception) {
+            return emptyFileResponse(request, HttpStatus.BAD_REQUEST);
+        } catch (Exception exception) {
+            log.error("V3 文件接口执行失败: {}", operation.name(), exception);
+            return emptyFileResponse(request, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    private boolean isFileOperation(V3OperationContract operation) {
+        return V3FileStream.class.getName().equals(operation.returnJavaType());
+    }
+
+    private void streamResponse(
+            V3FileStream fileStream,
+            org.springframework.web.context.request.ServletWebRequest request
+    ) {
+        jakarta.servlet.http.HttpServletResponse response = request.getResponse();
+        if (response == null) {
+            throw new IllegalStateException("V3 文件接口缺少 HttpServletResponse");
+        }
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.parseMediaType(fileStream.contentType()));
         headers.setContentDisposition((fileStream.download()
@@ -112,8 +154,33 @@ public class V3HttpServerAdapter {
         if (fileStream.contentLength() != null) {
             headers.setContentLength(fileStream.contentLength());
         }
-        return new ResponseEntity<>(new InputStreamResource(fileStream.content()), headers,
-                org.springframework.http.HttpStatus.OK);
+        response.setStatus(HttpStatus.OK.value());
+        headers.forEach((name, values) -> response.setHeader(name, String.join(",", values)));
+        try {
+            fileStream.writeTo(response.getOutputStream());
+            response.flushBuffer();
+        } catch (IOException | RuntimeException exception) {
+            if (!response.isCommitted()) {
+                log.error("V3 文件接口传输失败: {}", fileStream.fileName(), exception);
+                emptyFileResponse(request, HttpStatus.INTERNAL_SERVER_ERROR);
+            } else {
+                // 响应已提交时 HTTP 状态无法改写；记录错误并中断连接，客户端可由 Content-Length 识别不完整文件。
+                log.error("V3 文件流传输失败，响应已提交: {}", fileStream.fileName(), exception);
+            }
+        }
+    }
+
+    private Object emptyFileResponse(
+            org.springframework.web.context.request.ServletWebRequest request,
+            HttpStatus status
+    ) {
+        jakarta.servlet.http.HttpServletResponse response = request.getResponse();
+        if (response != null && !response.isCommitted()) {
+            response.reset();
+            response.setStatus(status.value());
+            response.setContentLength(0);
+        }
+        return null;
     }
 
     private String currentMethod(org.springframework.web.context.request.WebRequest request) {
@@ -180,11 +247,67 @@ public class V3HttpServerAdapter {
                         : bindQueryObject(query, parameter.javaType());
                 case BODY -> InputStream.class.getName().equals(parameter.javaType())
                         ? multipartInputStream(request, parameter.name())
+                        : request.getRequest() instanceof MultipartHttpServletRequest multipart
+                        ? bindMultipartObject(multipart, parameter.javaType())
                         : bodyParameterCount > 1 && body != null ? body.get(parameter.name()) : body;
             };
             arguments.add(convert(value, parameter.javaType()));
         }
+        populateMultipartOriginalFileName(operation, arguments, request);
         return arguments;
+    }
+
+    private Object bindMultipartObject(MultipartHttpServletRequest multipart, String javaType) {
+        org.springframework.util.LinkedMultiValueMap<String, String> form =
+                new org.springframework.util.LinkedMultiValueMap<>();
+        multipart.getParameterMap().forEach((name, values) -> form.put(name, java.util.Arrays.asList(values)));
+        return bindQueryObject(form, javaType);
+    }
+
+    /**
+     * Keep the legacy controller convention: when a multipart DTO exposes a writable
+     * {@code fileName} but the caller omits it, use the uploaded file's original name.
+     */
+    private void populateMultipartOriginalFileName(
+            V3OperationContract operation,
+            List<Object> arguments,
+            org.springframework.web.context.request.ServletWebRequest request
+    ) {
+        if (!(request.getRequest() instanceof MultipartHttpServletRequest multipart)) {
+            return;
+        }
+        for (int index = 0; index < operation.parameters().size(); index++) {
+            V3ParameterContract parameter = operation.parameters().get(index);
+            if (!InputStream.class.getName().equals(parameter.javaType())) {
+                continue;
+            }
+            MultipartFile file = multipart.getFile(parameter.name());
+            if (file == null || file.isEmpty() || file.getOriginalFilename() == null
+                    || file.getOriginalFilename().isBlank()) {
+                continue;
+            }
+            for (Object argument : arguments) {
+                if (argument == null) {
+                    continue;
+                }
+                Optional<Method> getter = java.util.Arrays.stream(argument.getClass().getMethods())
+                        .filter(method -> method.getName().equals("getFileName"))
+                        .filter(method -> method.getParameterCount() == 0)
+                        .findFirst();
+                Optional<Method> setter = findSetter(argument.getClass(), "fileName");
+                if (getter.isEmpty() || setter.isEmpty()) {
+                    continue;
+                }
+                try {
+                    Object fileName = getter.get().invoke(argument);
+                    if (fileName == null || (fileName instanceof String text && text.isBlank())) {
+                        setter.get().invoke(argument, file.getOriginalFilename());
+                    }
+                } catch (ReflectiveOperationException exception) {
+                    throw new IllegalArgumentException("Cannot populate multipart fileName", exception);
+                }
+            }
+        }
     }
 
     private JsonNode readJsonBody(org.springframework.web.context.request.ServletWebRequest request) {

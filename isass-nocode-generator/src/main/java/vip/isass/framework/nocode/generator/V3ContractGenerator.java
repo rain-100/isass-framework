@@ -23,6 +23,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Locale;
@@ -53,9 +54,13 @@ public class V3ContractGenerator {
                 .filter(this::extendsV3Service)
                 .map(this::toService)
                 .toList();
-        List<V3TypeContract> types = services.stream()
-                .map(V3ServiceContract::entityJavaType)
-                .distinct()
+        LinkedHashSet<String> documentedTypes = new LinkedHashSet<>();
+        services.forEach(service -> {
+            documentedTypes.add(rawJavaType(service.entityJavaType()));
+            service.operations().forEach(operation -> operation.parameters()
+                    .forEach(parameter -> documentedTypes.add(rawJavaType(parameter.javaType()))));
+        });
+        List<V3TypeContract> types = documentedTypes.stream()
                 .map(builder::getClassByName)
                 .filter(java.util.Objects::nonNull)
                 .map(this::toType)
@@ -69,6 +74,11 @@ public class V3ContractGenerator {
         writeContract(outputRoot, document);
         writeProto(outputRoot, document);
         return document;
+    }
+
+    private String rawJavaType(String javaType) {
+        int generic = javaType.indexOf('<');
+        return generic < 0 ? javaType.replace("[]", "") : javaType.substring(0, generic);
     }
 
     private V3TypeContract toType(JavaClass type) {

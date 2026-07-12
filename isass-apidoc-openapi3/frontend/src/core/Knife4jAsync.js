@@ -4459,6 +4459,14 @@ SwaggerBootstrapUi.prototype.initApiInfoAsyncOAS3 = function (swpinfo) {
           for (var consume in bodyContent) {
             var consumeBody = bodyContent[consume];
             if (KUtils.checkUndefined(consumeBody) && consumeBody.hasOwnProperty('schema')) {
+              // OpenAPI 3 将请求媒体类型定义在 requestBody.content；后续的
+              // 请求表单初始化仍读取 operation.consumes，因此同步回填。
+              if (!KUtils.arrNotEmpty(apiInfo.consumes)) {
+                apiInfo.consumes = [];
+              }
+              if (!apiInfo.consumes.includes(consume)) {
+                apiInfo.consumes.push(consume);
+              }
               if (swpinfo.enterprisePlugins.orangeforms) {
                 //console.log("企业级插件orangeforms.")
                 // 此处有可能是array类型
@@ -4495,15 +4503,25 @@ SwaggerBootstrapUi.prototype.initApiInfoAsyncOAS3 = function (swpinfo) {
                   }
                   for (var prop in requestProperties) {
                     var parameterInfo = requestProperties[prop];
-                    //该properties可能是类结构
-                    let _propScheObject = that.bodyParameterResolverSchema(parameterInfo, swpinfo.oas2);
-                    if (KUtils.checkUndefined(_propScheObject)) {
-                      that.assembleParameterOAS3(_propScheObject, swpinfo, []);
-                    } else {
-                      parameterInfo['name'] = prop;
-                      parameterInfo['in'] = 'query';
-                      that.assembleParameterOAS3(parameterInfo, swpinfo, requireArray);
+                    // 内联 primitive 属性不是 OpenAPI 模型引用。旧逻辑会把
+                    // string / boolean 误建为同名 body 模型，进而按类型合并。
+                    // multipart 属性统一作为 form-data，以便文件字段可被调试页选择。
+                    var isRefProperty = parameterInfo.hasOwnProperty('$ref')
+                      || (parameterInfo['type'] == 'array'
+                        && KUtils.checkUndefined(parameterInfo['items'])
+                        && parameterInfo['items'].hasOwnProperty('$ref'));
+                    if (isRefProperty) {
+                      let _propScheObject = that.bodyParameterResolverSchema(parameterInfo, swpinfo.oas2);
+                      if (KUtils.checkUndefined(_propScheObject)) {
+                        that.assembleParameterOAS3(_propScheObject, swpinfo, []);
+                        continue;
+                      }
                     }
+                    var inlineParameter = Object.assign({}, parameterInfo, {
+                      'name': prop,
+                      'in': consume.indexOf('multipart/form-data') >= 0 ? 'formData' : 'query'
+                    });
+                    that.assembleParameterOAS3(inlineParameter, swpinfo, requireArray);
                   }
                 } else {
                   // 此处有可能是array类型

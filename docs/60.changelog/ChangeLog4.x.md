@@ -64,6 +64,10 @@
 
 #### refactor
 
+- **V3 文件流传输重构**：`V3FileStream` 改为以 `writeTo(OutputStream)` 为主的单次消费数据源；HTTP 适配器使用 `StreamingResponseBody` 直接消费存储源流，不再通过虚拟线程与 Pipe 中转。业务代码可按需通过 `openInputStream()` 获得读取式兼容流。
+  - V3 文件端点在响应提交前直接返回空响应体的 HTTP 状态：文件不存在为 `404`，参数错误为 `400`，服务器异常为 `5xx`，不再包装为 `Resp` JSON。
+  - 新增 `V3FileNotFoundException` 作为传输无关的文件资源不存在语义；传输已开始后的异常保留服务端日志并中断响应，避免写入无效 JSON。
+  - `isass-nocode-grpc` 新增 V3 文件 server-streaming：首帧传输文件元数据，后续以 64 KiB 原始字节块发送；客户端恢复为 `V3FileStream`，避免文件内容聚合为 `byte[]` 或 JSON/Base64。
 - **动态 V3 transport 与文档链路**：`IV3XxxService` 是唯一业务契约；构建期生成 `v3-contract.json` 和 proto，运行时由单个 HTTP/gRPC 适配器暴露全部接口，不再生成实体 V3 Controller。
   - OpenAPI 增强器根据契约生成命名 Schema、Javadoc 字段描述、统一 path、请求/响应 `oneOf` 和 Criteria 映射。
   - 业务调用优先级为本地实现、gRPC、HTTP；非幂等请求发出后禁止跨协议重试。
@@ -72,6 +76,7 @@
 
 #### fix
 
+- **V3 逻辑删除元数据修正**：`V3TableMetaRegistrar` 运行时识别逻辑删除字段后，补齐 MyBatis-Plus `TableFieldInfo` 的逻辑删除标记及未删除/已删除值 `0/1`，避免查询错误生成 `delete_flag = null`。
 - **V3 表元数据注册时机修正**：`V3TableMetaRegistrar` 的 `populate()` 仅在 `v3ServiceRegistry` Bean 构造时联动触发，与 MyBatis-Plus `SqlSessionFactory` 构建 `TableInfo` 的顺序无任何约束，导致 MP 实际查询时回调 `postTableInfo` 的 `metaMap` 仍为空，最终实体类名直接转表名（如 `V3Icon` → `v3_icon`），抛出 `Table 'attachment.v3_icon' doesn't exist`。
   - `V3TableMetaRegistrar` 改为实现 `BeanDefinitionRegistryPostProcessor`，在 BDRPP 阶段（任何业务 Bean 实例化之前）通过 `ClassPathScanningCandidateComponentProvider` + `AssignableTypeFilter(IV3Entity.class)` 扫描 `vip.isass` 包下所有 `IV3Entity` 实现类，按接口契约（`IV3IdEntity`/`IV3TraceEntity`/`IV3LogicDeleteEntity`/`IV3VersionEntity`/`IV3TenantEntity`/`IV3ParentIdEntity`）镜像出表元数据，保证 MP `TableInfo` 构建时元数据已就绪。
   - 表名解析优先级调整为：1) 实体类上的 `@TableName`；2) 实体覆盖的 `IV3Entity#tableName()`；3) `V3TablePrefixUtil` 注册前缀 + `StrUtil.toUnderlineCase(entityName)`（兜底，并修复多词实体名 `iconGroup` 之前未转 `icon_group` 的隐患）。

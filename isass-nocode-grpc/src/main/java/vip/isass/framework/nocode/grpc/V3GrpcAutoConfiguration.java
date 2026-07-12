@@ -40,8 +40,9 @@ public class V3GrpcAutoConfiguration {
     @ConditionalOnMissingBean
     public V3GrpcServerAdapter v3GrpcServerAdapter(
             V3ContractRegistry contracts,
-            V3GrpcInvocationHandler invocationHandler
+            V3GrpcInvocationHandler invocationHandler,
+            ObjectMapper objectMapper
     ) {
-        return new V3GrpcServerAdapter(contracts.contracts(), invocationHandler);
+        return new V3GrpcServerAdapter(contracts.contracts(), invocationHandler, objectMapper);
     }
 }

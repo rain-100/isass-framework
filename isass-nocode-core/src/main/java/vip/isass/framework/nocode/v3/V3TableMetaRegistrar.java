@@ -165,6 +165,11 @@ public class V3TableMetaRegistrar
             for (TableFieldInfo fi : tableInfo.getFieldList()) {
                 if (lf.equals(fi.getProperty())) {
                     setTableInfoField(tableInfo, "logicDeleteFieldInfo", fi);
+                    setTableFieldInfoField(fi, "logicDelete", Boolean.TRUE);
+                    setTableFieldInfoField(fi, "logicNotDeleteValue",
+                            IV3LogicDeleteEntity.NOT_DELETED_VALUE);
+                    setTableFieldInfoField(fi, "logicDeleteValue",
+                            IV3LogicDeleteEntity.DELETED_VALUE);
                     break;
                 }
             }
@@ -236,6 +241,15 @@ public class V3TableMetaRegistrar
             Field wu = TableFieldInfo.class.getDeclaredField("withUpdateFill");
             wu.setAccessible(true);
             wu.set(fieldInfo, withUpdate);
+        } catch (Exception ignored) {
+        }
+    }
+
+    private static void setTableFieldInfoField(TableFieldInfo fieldInfo, String fieldName, Object value) {
+        try {
+            Field field = TableFieldInfo.class.getDeclaredField(fieldName);
+            field.setAccessible(true);
+            field.set(fieldInfo, value);
         } catch (Exception ignored) {
         }
     }

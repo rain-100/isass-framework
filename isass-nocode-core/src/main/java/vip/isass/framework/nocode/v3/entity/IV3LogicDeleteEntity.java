@@ -184,6 +184,12 @@ public interface IV3LogicDeleteEntity<E extends IV3LogicDeleteEntity<E>> extends
 
     Boolean DEFAULT_DELETE_FLAG_VALUE = Boolean.FALSE;
 
+    /** MyBatis-Plus 中未删除记录的数据库值。 */
+    String NOT_DELETED_VALUE = "0";
+
+    /** MyBatis-Plus 中已删除记录的数据库值。 */
+    String DELETED_VALUE = "1";
+
     /**
      * 获取删除标识
      *

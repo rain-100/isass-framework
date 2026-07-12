@@ -4,6 +4,7 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.CacheControl;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -45,6 +46,7 @@ public class ServiceDocsController {
     public ResponseEntity<String> openApi() {
         return ResponseEntity.ok()
                 .contentType(APPLICATION_JSON_UTF8)
+                .cacheControl(CacheControl.noStore())
                 .body(getOpenApiJson());
     }
 

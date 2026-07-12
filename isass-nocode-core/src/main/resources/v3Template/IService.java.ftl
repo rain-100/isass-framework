@@ -13,6 +13,7 @@ import vip.isass.framework.nocode.v3.service.IV3Service;
  * </p>
  *
  * @author ${author}
+ * @tag <#if table.comment?trim?length gt 0>${table.comment}<#else>${entity}</#if>
  */
 public interface IV3${entity}Service extends IV3Service<V3${entity}, V3${entity}Criteria> {
 

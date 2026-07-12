@@ -11,8 +11,12 @@ import vip.isass.framework.nocode.v3.transport.V3Invocation;
 import vip.isass.framework.nocode.v3.transport.V3InvocationTransport;
 import vip.isass.framework.nocode.v3.transport.V3TransportInvocationException;
 import vip.isass.framework.nocode.v3.transport.V3TransportKind;
+import vip.isass.framework.nocode.v3.stream.V3FileStream;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Iterator;
 
 public class V3GrpcClientTransport implements V3InvocationTransport {
 
@@ -40,12 +44,9 @@ public class V3GrpcClientTransport implements V3InvocationTransport {
         V3OperationContract operation = service.operations().stream()
                 .filter(candidate -> candidate.name().equals(invocation.operationName()))
                 .findFirst().orElseThrow();
-        // 当前动态 gRPC 编解码器只承载 JSON unary 调用。流式合同必须由调用链
-        // 选择 HTTP transport，不能隐式 readAllBytes 后伪装成 unary 调用。
+        // 上传流仍由 HTTP transport 承载；文件下载使用 gRPC server-streaming。
         return operation.parameters().stream()
-                .noneMatch(parameter -> InputStream.class.getName().equals(parameter.javaType()))
-                && !"vip.isass.framework.nocode.v3.stream.V3FileStream"
-                .equals(operation.returnJavaType());
+                .noneMatch(parameter -> InputStream.class.getName().equals(parameter.javaType()));
     }
 
     public Object invoke(V3Invocation invocation) {
@@ -57,6 +58,9 @@ public class V3GrpcClientTransport implements V3InvocationTransport {
                 .orElseThrow();
         try {
             byte[] request = objectMapper.writeValueAsBytes(invocation.arguments());
+            if (V3FileStream.class.getName().equals(operation.returnJavaType())) {
+                return invokeFile(service, operation, request);
+            }
             byte[] response = ClientCalls.blockingUnaryCall(
                     channel, V3GrpcDescriptors.method(service, operation), CallOptions.DEFAULT, request);
             return objectMapper.readValue(
@@ -64,6 +68,28 @@ public class V3GrpcClientTransport implements V3InvocationTransport {
         } catch (RuntimeException exception) {
             throw new V3TransportInvocationException(
                     "V3 gRPC invocation failed: " + invocation.operationName(), true, exception);
+        }
+    }
+
+    private V3FileStream invokeFile(
+            V3ServiceContract service,
+            V3OperationContract operation,
+            byte[] request
+    ) {
+        Iterator<byte[]> frames = ClientCalls.blockingServerStreamingCall(
+                channel, V3GrpcDescriptors.fileStreamMethod(service, operation), CallOptions.DEFAULT, request);
+        if (!frames.hasNext()) {
+            throw new V3TransportInvocationException(
+                    "V3 gRPC file response has no metadata: " + operation.name(), true, null);
+        }
+        V3GrpcFileFrames.Metadata metadata = V3GrpcFileFrames.parseMetadata(frames.next(), objectMapper);
+        return new V3FileStream(metadata.fileName(), metadata.contentType(), metadata.contentLength(),
+                metadata.download(), output -> copyFrames(frames, output));
+    }
+
+    private void copyFrames(Iterator<byte[]> frames, OutputStream output) throws IOException {
+        while (frames.hasNext()) {
+            output.write(V3GrpcFileFrames.parseContent(frames.next()));
         }
     }
 }
