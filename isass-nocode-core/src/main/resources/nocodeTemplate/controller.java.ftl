@@ -24,6 +24,6 @@ import ${cfg.package}.${cfg.moduleName}.service.${entity}Service;
 public class ${entity}Controller {
 
     @Resource
-    private ${entity}Service nocode${entity}Service;
+    private ${entity}Service ${entity?uncap_first}Service;
 
 }

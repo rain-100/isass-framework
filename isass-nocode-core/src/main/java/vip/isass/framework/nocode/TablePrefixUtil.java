@@ -12,7 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * // AttachmentDbAutoConfiguration
  * @PostConstruct
  * void registerTablePrefix() {
- *     TablePrefixUtil.register("attachment-service", "att_");
+ *     TablePrefixUtil.register(ModuleInfo.SERVICE_FULL_NAME, ModuleInfo.TABLE_PREFIX));
  * }
  * }</pre>
  */
