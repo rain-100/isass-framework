@@ -64,7 +64,6 @@
 | nps             | web:30070 bridge:30071 http_proxy:30072 https_proxy:30073 |
 | node_exporter   | 30080                                                     |
 | nexus3          | 30090                                                     |
-| kurento         | http/ws:30100 upd:40000-49999                             |
 | stun            | tcp/udp 30101                                             |
 | prometheus      | 30210                                                     |
 | alertManager    | 30211                                                     |
