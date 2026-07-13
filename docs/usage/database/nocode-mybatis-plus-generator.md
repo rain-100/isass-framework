@@ -2,29 +2,29 @@
 
 业务微服务可以在 `service` 模块的 `src/test/java` 下放置一个本地执行的代码生成器类，用于从数据库表结构生成 NoCode 零代码 相关代码。
 
-以 attachment 服务为例，推荐位置：
+以任意微服务为例，推荐在 `{microservice}-service` 模块放置：
 
 ```text
-isass-service-attachment-service/src/test/java/vip/isass/attachment/generator/AttachmentMybatisPlusGenerator.java
+{microservice}-service/src/test/java/vip/isass/{microservice}/{context}/generator/XxxMybatisPlusGenerator.java
 ```
 
 生成器会同时写入 `api` 模块和 `service` 模块：
 
 ```text
-api/model/entity/Xxx.java
-api/model/criteria/XxxCriteria.java
-api/service/IXxxService.java
-db/mapper/XxxMapper.java
-db/mapper/xml/XxxMapper.xml
-db/repository/XxxRepository.java
-service/XxxService.java
-controller/XxxController.java
+{context}/domain/model/entity/Xxx.java
+{context}/domain/criteria/XxxCriteria.java
+{context}/application/service/IXxxService.java
+{context}/infrastructure/persistence/mybatisplus/XxxMapper.java
+{context}/infrastructure/persistence/mybatisplus/XxxMapper.xml
+{context}/infrastructure/persistence/mybatisplus/XxxRepository.java
+{context}/application/service/XxxService.java
+{context}/interfaces/rest/XxxController.java
 ```
 
 ## 示例
 
 ```java
-package vip.isass.attachment.generator;
+package vip.isass.bsp.attachment.generator;
 
 import com.baomidou.mybatisplus.annotation.DbType;
 import vip.isass.framework.nocode.generator.MybatisPlusGeneratorMeta;
@@ -38,18 +38,18 @@ public class AttachmentMybatisPlusGenerator {
         String path = MethodHandles.lookup().lookupClass().getResource("/").getPath();
         path = path.replace("target/test-classes/", "");
         String serviceOutputDir = path;
-        String apiOutputDir = path.replace("-service/", "-api/");
+        String apiOutputDir = path.replace("bsp-service/", "bsp-api/");
 
         MybatisPlusGeneratorMeta meta = new MybatisPlusGeneratorMeta()
                 .setApiOutputDir(apiOutputDir)
                 .setServiceOutputDir(serviceOutputDir)
                 .setDbType(DbType.MYSQL)
-                .setDataSourceUrl("jdbc:mysql://127.0.0.1:3306/attachment?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai")
+                .setDataSourceUrl("jdbc:mysql://127.0.0.1:3306/bsp?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai")
                 .setDataSourceUserName("root")
                 .setDataSourcePassword("your-password")
-                .setTablePrefix(new String[]{ModuleInfo.TABLE_PREFIX})
-                .setPackageName(ModuleInfo.GROUP_ID)
-                .setModuleName(ModuleInfo.SERVICE_NAME)
+                .setTablePrefix(new String[]{"bsp_attachment_"})
+                .setPackageName("vip.isass")
+                .setModuleName("bsp.attachment")
                 .setControllerPrefix(ModuleInfo.SERVICE_URL_PREFIX)
                 .setExcludeTables(new String[]{
                         "(?i)(.*_)?DATABASECHANGELOG",
@@ -73,9 +73,9 @@ public class AttachmentMybatisPlusGenerator {
 | --- | --- |
 | `apiOutputDir` | API 模块根目录，生成实体、Criteria、`IXxxService` |
 | `serviceOutputDir` | Service 模块根目录，生成 Mapper、Repository、本地 Service 实现 |
-| `tablePrefix` | 数据库表前缀，例如 `att_`，生成 Java 类名时会移除 |
+| `tablePrefix` | 数据库表前缀，例如 `bsp_attachment_`，生成 Java 类名时会移除 |
 | `packageName` | 根包名，例如 `vip.isass` |
-| `moduleName` | 业务模块名，例如 `attachment`，最终包名为 `vip.isass.attachment...` |
+| `moduleName` | 含限界上下文的模块名，例如 `bsp.attachment`，最终包名为 `vip.isass.bsp.attachment...` |
 | `controllerPrefix` | 标准零代码 动态 HTTP 路由前缀配置；生成的实体 Controller 仅作为手写 Spring MVC 扩展外壳 |
 | `includeTables` | 只生成指定表，适合局部重新生成 |
 | `excludeTables` | 排除不参与生成的表 |

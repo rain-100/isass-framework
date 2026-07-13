@@ -1,8 +1,8 @@
 <#include "./segment/copyright.ftl">
 
-package ${cfg.package}.${cfg.moduleName}.api.service;
+package ${cfg.package}.${cfg.moduleName}.application.service;
 
-import ${cfg.package}.${cfg.moduleName}.api.ModuleInfo;
+import ${cfg.package}.${cfg.moduleName}.ModuleInfo;
 import ${cfg.criteriaPackageName}.${entity}Criteria;
 import ${cfg.entityPackageName}.${entity};
 import vip.isass.framework.nocode.service.IService;

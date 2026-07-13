@@ -1,13 +1,13 @@
 <#include "./segment/copyright.ftl">
 
-package ${cfg.package}.${cfg.moduleName}.controller;
+package ${cfg.package}.${cfg.moduleName}.interfaces.rest;
 
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import ${cfg.package}.${cfg.moduleName}.api.ModuleInfo;
-import ${cfg.package}.${cfg.moduleName}.service.${entity}Service;
+import ${cfg.package}.${cfg.moduleName}.ModuleInfo;
+import ${cfg.package}.${cfg.moduleName}.application.service.${entity}Service;
 
 /**
  * <p>

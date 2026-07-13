@@ -1,14 +1,13 @@
 <#include "./segment/copyright.ftl">
 
-package ${cfg.package}.${cfg.moduleName}.service;
+package ${cfg.package}.${cfg.moduleName}.application.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ${cfg.package}.${cfg.moduleName}.api.model.criteria.${entity}Criteria;
-import ${cfg.package}.${cfg.moduleName}.api.model.entity.${entity};
-import ${cfg.package}.${cfg.moduleName}.api.service.I${entity}Service;
-import ${cfg.package}.${cfg.moduleName}.db.repository.${entity}Repository;
+import ${cfg.package}.${cfg.moduleName}.domain.criteria.${entity}Criteria;
+import ${cfg.package}.${cfg.moduleName}.domain.model.entity.${entity};
+import ${cfg.package}.${cfg.moduleName}.infrastructure.persistence.mybatisplus.${entity}Repository;
 import vip.isass.framework.nocode.service.ILocalService;
 
 /**

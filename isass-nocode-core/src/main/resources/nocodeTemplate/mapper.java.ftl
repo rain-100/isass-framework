@@ -1,8 +1,8 @@
 <#include "./segment/copyright.ftl">
 
-package ${cfg.package}.${cfg.moduleName}.db.mapper;
+package ${cfg.package}.${cfg.moduleName}.infrastructure.persistence.mybatisplus;
 
-import ${cfg.package}.${cfg.moduleName}.api.model.entity.${entity};
+import ${cfg.package}.${cfg.moduleName}.domain.model.entity.${entity};
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
 /**

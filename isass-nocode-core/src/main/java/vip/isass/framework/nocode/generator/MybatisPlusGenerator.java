@@ -247,10 +247,10 @@ public class MybatisPlusGenerator {
                                         .put("moduleName", meta.getModuleName())
                                         .put("controllerPrefix", meta.getControllerPrefix())
                                         .put("package", meta.getPackageName())
-                                        .put("entityPackageName", basePackage + ".api.model.entity")
-                                        .put("criteriaPackageName", basePackage + ".api.model.criteria")
-                                        .put("mapperPackageName", basePackage + ".db.mapper")
-                                        .put("servicePackageName", basePackage + ".api.service")
+                                        .put("entityPackageName", basePackage + ".domain.model.entity")
+                                        .put("criteriaPackageName", basePackage + ".domain.criteria")
+                                        .put("mapperPackageName", basePackage + ".infrastructure.persistence.mybatisplus")
+                                        .put("servicePackageName", basePackage + ".application.service")
                                         .put("tablePrefix", meta.getTablePrefix())
 
                                         .put("idEntity", staticModels.get("vip.isass.framework.nocode.entity.IIdEntity"))
@@ -264,19 +264,19 @@ public class MybatisPlusGenerator {
                                 .customFile(CollUtil.newArrayList(
                                         customFile(new CustomFile.Builder()
                                                 .templatePath("/nocodeTemplate/entity.java.ftl")
-                                                .packageName("api.model.entity")
+                                                .packageName("domain.model.entity")
                                                 .fileName(".java")
                                                 .formatNameFunction(tableInfo -> tableInfo.getEntityName()),
                                                 meta.isEntityFileOverride()),
                                         customFile(new CustomFile.Builder()
                                                 .templatePath("/nocodeTemplate/criteria.java.ftl")
-                                                .packageName("api.model.criteria")
+                                                .packageName("domain.criteria")
                                                 .fileName("Criteria.java")
                                                 .formatNameFunction(tableInfo -> tableInfo.getEntityName()),
                                                 meta.isCriteriaFileOverride()),
                                         customFile(new CustomFile.Builder()
                                                 .templatePath("/nocodeTemplate/IService.java.ftl")
-                                                .packageName("api.service")
+                                                .packageName("application.service")
                                                 .fileName("Service.java")
                                                 .formatNameFunction(tableInfo -> "I" + tableInfo.getEntityName()),
                                                 meta.isServiceInterfaceFileOverride())
@@ -343,10 +343,10 @@ public class MybatisPlusGenerator {
                                         .put("moduleName", meta.getModuleName())
                                         .put("controllerPrefix", meta.getControllerPrefix())
                                         .put("package", meta.getPackageName())
-                                        .put("entityPackageName", basePackage + ".api.model.entity")
-                                        .put("criteriaPackageName", basePackage + ".api.model.criteria")
-                                        .put("mapperPackageName", basePackage + ".db.mapper")
-                                        .put("servicePackageName", basePackage + ".api.service")
+                                        .put("entityPackageName", basePackage + ".domain.model.entity")
+                                        .put("criteriaPackageName", basePackage + ".domain.criteria")
+                                        .put("mapperPackageName", basePackage + ".infrastructure.persistence.mybatisplus")
+                                        .put("servicePackageName", basePackage + ".application.service")
                                         .put("tablePrefix", meta.getTablePrefix())
 
                                         .put("idEntity", staticModels.get("vip.isass.framework.nocode.entity.IIdEntity"))
@@ -360,31 +360,31 @@ public class MybatisPlusGenerator {
                                 .customFile(CollUtil.newArrayList(
                                         customFile(new CustomFile.Builder()
                                                 .templatePath("/nocodeTemplate/mapper.java.ftl")
-                                                .packageName("db.mapper")
+                                                .packageName("infrastructure.persistence.mybatisplus")
                                                 .fileName("Mapper.java")
                                                 .formatNameFunction(tableInfo -> tableInfo.getEntityName()),
                                                 meta.isMapperFileOverride()),
                                         customFile(new CustomFile.Builder()
                                                 .templatePath("/nocodeTemplate/mapper.xml.ftl")
-                                                .packageName("db.mapper.xml")
+                                                .packageName("infrastructure.persistence.mybatisplus.xml")
                                                 .fileName("Mapper.xml")
                                                 .formatNameFunction(tableInfo -> tableInfo.getEntityName()),
                                                 meta.isMapperXmlFileOverride()),
                                         customFile(new CustomFile.Builder()
                                                 .templatePath("/nocodeTemplate/repository.java.ftl")
-                                                .packageName("db.repository")
+                                                .packageName("infrastructure.persistence.mybatisplus")
                                                 .fileName("Repository.java")
                                                 .formatNameFunction(tableInfo -> tableInfo.getEntityName()),
                                                 meta.isRepositoryFileOverride()),
                                         customFile(new CustomFile.Builder()
                                                 .templatePath("/nocodeTemplate/localService.java.ftl")
-                                                .packageName("service")
+                                                .packageName("application.service")
                                                 .fileName("Service.java")
                                                 .formatNameFunction(tableInfo -> tableInfo.getEntityName()),
                                                 meta.isLocalServiceFileOverride()),
                                         customFile(new CustomFile.Builder()
                                                 .templatePath("/nocodeTemplate/controller.java.ftl")
-                                                .packageName("controller")
+                                                .packageName("interfaces.rest")
                                                 .fileName("Controller.java")
                                                 .formatNameFunction(tableInfo -> "" + tableInfo.getEntityName()),
                                                 meta.isControllerFileOverride())

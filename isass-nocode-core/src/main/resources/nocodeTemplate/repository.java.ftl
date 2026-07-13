@@ -1,12 +1,11 @@
 <#include "./segment/copyright.ftl">
 
-package ${cfg.package}.${cfg.moduleName}.db.repository;
+package ${cfg.package}.${cfg.moduleName}.infrastructure.persistence.mybatisplus;
 
 import org.springframework.stereotype.Repository;
 import vip.isass.framework.nocode.orm.MybatisPlusRepository;
-import ${cfg.package}.${cfg.moduleName}.api.model.criteria.${entity}Criteria;
-import ${cfg.package}.${cfg.moduleName}.api.model.entity.${entity};
-import ${cfg.package}.${cfg.moduleName}.db.mapper.${entity}Mapper;
+import ${cfg.package}.${cfg.moduleName}.domain.criteria.${entity}Criteria;
+import ${cfg.package}.${cfg.moduleName}.domain.model.entity.${entity};
 
 /**
  * <p>

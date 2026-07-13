@@ -60,6 +60,7 @@
 
 #### docs
 
+- **微服务 DDD 规范**：新增 `docs/usage/architecture/microservice-ddd.md`，统一 V4 微服务 api/service/boot 三模块职责、限界上下文分层、Liquibase 配置位置与 BSP 命名约定；同步更新 NoCode MyBatis-Plus 生成器文档的模块与上下文路径示例。
 - **零代码文档校正**：`smart-doc` 使用说明改为无版本 nocode 合同、`IXxxService` 与统一动态 HTTP 路由；移除将 OpenAPI 地址 `/v3/api-docs` 误解为 nocode 接口版本的表述。
 - **前端零代码说明**：新增 `docs/usage/nocode/frontend-api-usage.md`，说明标准 CRUD 路径、参数绑定、文件流、自定义业务接口与高级响应投影。
 - 在 README 中补充模块命名规范，明确 `isass-分类-模块名` 格式。
