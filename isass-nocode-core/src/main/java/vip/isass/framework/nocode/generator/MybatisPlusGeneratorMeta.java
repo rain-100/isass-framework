@@ -199,6 +199,9 @@ public class MybatisPlusGeneratorMeta {
 
     private String packageName;
 
+    /** 微服务根包（其中定义 ModuleInfo）；未设置时由 packageName 与 moduleName 首段推导。 */
+    private String moduleInfoPackageName;
+
     private String[] tablePrefix;
 
     private String[] includeTables;

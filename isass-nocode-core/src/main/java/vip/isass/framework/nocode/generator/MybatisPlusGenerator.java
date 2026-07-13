@@ -251,6 +251,7 @@ public class MybatisPlusGenerator {
                                         .put("moduleName", meta.getModuleName())
                                         .put("controllerPrefix", meta.getControllerPrefix())
                                         .put("package", meta.getPackageName())
+                                        .put("moduleInfoPackageName", moduleInfoPackageName(meta))
                                         .put("entityPackageName", basePackage + ".domain.model.entity")
                                         .put("criteriaPackageName", basePackage + ".domain.criteria")
                                         .put("mapperPackageName", basePackage + ".infrastructure.persistence.mybatisplus")
@@ -351,6 +352,7 @@ public class MybatisPlusGenerator {
                                         .put("moduleName", meta.getModuleName())
                                         .put("controllerPrefix", meta.getControllerPrefix())
                                         .put("package", meta.getPackageName())
+                                        .put("moduleInfoPackageName", moduleInfoPackageName(meta))
                                         .put("entityPackageName", basePackage + ".domain.model.entity")
                                         .put("criteriaPackageName", basePackage + ".domain.criteria")
                                         .put("mapperPackageName", basePackage + ".infrastructure.persistence.mybatisplus")
@@ -410,6 +412,15 @@ public class MybatisPlusGenerator {
             builder.enableFileOverride();
         }
         return builder.build();
+    }
+
+    private static String moduleInfoPackageName(MybatisPlusGeneratorMeta meta) {
+        if (meta.getModuleInfoPackageName() != null && !meta.getModuleInfoPackageName().isBlank()) {
+            return meta.getModuleInfoPackageName();
+        }
+        int separator = meta.getModuleName().indexOf('.');
+        String serviceModule = separator < 0 ? meta.getModuleName() : meta.getModuleName().substring(0, separator);
+        return meta.getPackageName() + "." + serviceModule;
     }
 
 

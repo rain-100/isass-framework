@@ -6,7 +6,7 @@ import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import ${cfg.package}.${cfg.moduleName}.ModuleInfo;
+import ${cfg.moduleInfoPackageName}.ModuleInfo;
 import ${cfg.package}.${cfg.moduleName}.application.service.${entity}Service;
 
 /**

@@ -2,7 +2,7 @@
 
 package ${cfg.package}.${cfg.moduleName}.application.service;
 
-import ${cfg.package}.${cfg.moduleName}.ModuleInfo;
+import ${cfg.moduleInfoPackageName}.ModuleInfo;
 import ${cfg.criteriaPackageName}.${entity}Criteria;
 import ${cfg.entityPackageName}.${entity};
 import vip.isass.framework.nocode.service.IService;
