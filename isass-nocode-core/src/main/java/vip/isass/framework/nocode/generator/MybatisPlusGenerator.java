@@ -212,17 +212,20 @@ public class MybatisPlusGenerator {
                 .dataSourceConfig(builder -> builder
                         .schema(meta.getSchemaName())
                         .typeConvertHandler(new TypeConvertHandler()))
-                .strategyConfig(builder -> builder
+                .strategyConfig(builder -> {
+                    builder
                         // 是否跳过视图
                         .enableSkipView()
                         // 是否大写命名
                         .enableCapitalMode()
                         // 表前缀
-                        .addTablePrefix(meta.getTablePrefix())
-                        // 需要包含的表名，允许正则表达式（与exclude二选一配置）
-                        .addInclude(meta.getIncludeTables() == null ? new String[0] : meta.getIncludeTables())
-                        // 需要排除的表名，允许正则表达式
-                        .addExclude(meta.getExcludeTables() == null ? new String[0] : meta.getExcludeTables())
+                        .addTablePrefix(meta.getTablePrefix());
+                    if (meta.getIncludeTables() != null && meta.getIncludeTables().length > 0) {
+                        builder.addInclude(meta.getIncludeTables());
+                    } else if (meta.getExcludeTables() != null && meta.getExcludeTables().length > 0) {
+                        builder.addExclude(meta.getExcludeTables());
+                    }
+                    builder
                         // 取消内置的 controller 模板
                         .controllerBuilder().disable()
                         // 取消内置的 service 模板
@@ -236,7 +239,8 @@ public class MybatisPlusGenerator {
                         .versionColumnName(IVersionEntity.VERSION_COLUMN_NAME)
                         // 逻辑删除名称
                         .logicDeletePropertyName(ILogicDeleteEntity.DELETE_FLAG_PROPERTY_NAME)
-                        .logicDeleteColumnName(ILogicDeleteEntity.DELETE_FLAG_COLUMN_NAME))
+                        .logicDeleteColumnName(ILogicDeleteEntity.DELETE_FLAG_COLUMN_NAME);
+                })
                 .packageConfig(builder -> builder
                         .parent(meta.getPackageName())
                         .moduleName(meta.getModuleName()))
@@ -308,17 +312,20 @@ public class MybatisPlusGenerator {
                 .dataSourceConfig(builder -> builder
                         .schema(meta.getSchemaName())
                         .typeConvertHandler(new TypeConvertHandler()))
-                .strategyConfig(builder -> builder
+                .strategyConfig(builder -> {
+                    builder
                         // 是否跳过视图
                         .enableSkipView()
                         // 是否大写命名
                         .enableCapitalMode()
                         // 表前缀
-                        .addTablePrefix(meta.getTablePrefix())
-                        // 需要包含的表名，允许正则表达式（与exclude二选一配置）
-                        .addInclude(meta.getIncludeTables() == null ? new String[0] : meta.getIncludeTables())
-                        // 需要排除的表名，允许正则表达式
-                        .addExclude(meta.getExcludeTables() == null ? new String[0] : meta.getExcludeTables())
+                        .addTablePrefix(meta.getTablePrefix());
+                    if (meta.getIncludeTables() != null && meta.getIncludeTables().length > 0) {
+                        builder.addInclude(meta.getIncludeTables());
+                    } else if (meta.getExcludeTables() != null && meta.getExcludeTables().length > 0) {
+                        builder.addExclude(meta.getExcludeTables());
+                    }
+                    builder
                         // 取消内置的 controller 模板
                         .controllerBuilder().disable()
                         // 取消内置的 service 模板
@@ -332,7 +339,8 @@ public class MybatisPlusGenerator {
                         .versionColumnName(IVersionEntity.VERSION_COLUMN_NAME)
                         // 逻辑删除名称
                         .logicDeletePropertyName(ILogicDeleteEntity.DELETE_FLAG_PROPERTY_NAME)
-                        .logicDeleteColumnName(ILogicDeleteEntity.DELETE_FLAG_COLUMN_NAME))
+                        .logicDeleteColumnName(ILogicDeleteEntity.DELETE_FLAG_COLUMN_NAME);
+                })
                 .packageConfig(builder -> builder
                         .parent(meta.getPackageName())
                         .moduleName(meta.getModuleName()))
@@ -403,5 +411,6 @@ public class MybatisPlusGenerator {
         }
         return builder.build();
     }
+
 
 }

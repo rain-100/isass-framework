@@ -2,6 +2,10 @@
 
 ## 更新日志
 
+### 4.0.0-SNAPSHOT
+
+- 修复 nocode MyBatis-Plus 代码生成器同时设置空 `exclude` 导致 `includeTables` 失效的问题；包含表与排除表现在严格二选一。
+
 ### 4.0.0
 
 #### feat
