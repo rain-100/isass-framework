@@ -4,6 +4,7 @@
 
 ### 4.0.0-SNAPSHOT
 
+- `isass-core-dependencies` 统一管理微信服务所需的 Bouncy Castle JDK 18+ 组件版本，业务微服务不得再直写该依赖版本。
 - 修复 nocode MyBatis-Plus 代码生成器同时设置空 `exclude` 导致 `includeTables` 失效的问题；包含表与排除表现在严格二选一。
 - 修复生成器将 `ModuleInfo` 错误定位为上下文包的问题；默认从模块名首段推导微服务根包，并允许通过元数据覆盖。
 

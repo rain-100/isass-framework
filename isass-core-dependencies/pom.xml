@@ -305,6 +305,7 @@
         <cglib.version>3.3.0</cglib.version>
 
         <wxjava.version>4.7.8-20251023.110018</wxjava.version>
+        <bouncycastle.version>1.80</bouncycastle.version>
 
         <geotools.version>33.2</geotools.version>
         <jts.version>1.20.0</jts.version>
@@ -882,6 +883,18 @@
                 <groupId>com.github.binarywang</groupId>
                 <artifactId>weixin-java-miniapp</artifactId>
                 <version>${wxjava.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcutil-jdk18on</artifactId>
+                <version>${bouncycastle.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcprov-jdk18on</artifactId>
+                <version>${bouncycastle.version}</version>
             </dependency>
 
             <dependency>
