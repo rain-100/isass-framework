@@ -34,7 +34,9 @@ class ContractGeneratorTest {
                 class IconResult {
                     /** 返回数量 */
                     Integer total;
+                    IconDetail detail;
                 }
+                class IconDetail { String displayName; }
                 interface IconCriteria {}
                 interface IService<E,C> {}
                 public interface IIconService extends IService<Icon,IconCriteria> {
@@ -71,6 +73,8 @@ class ContractGeneratorTest {
                 .properties().getFirst().description());
         assertTrue(document.types().stream()
                 .anyMatch(type -> type.javaType().endsWith("IconResult")));
+        assertTrue(document.types().stream()
+                .anyMatch(type -> type.javaType().endsWith("IconDetail")));
         String proto = Files.readString(output.resolve("proto/attachment-nocode.proto"));
         assertTrue(proto.contains("rpc FindAvailableIcons"));
         assertTrue(proto.contains("service IconService"));

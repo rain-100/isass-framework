@@ -64,6 +64,18 @@ public class ContractGenerator {
                 addDocumentedTypes(documentedTypes, operation.returnJavaType());
             });
         });
+        boolean expanded;
+        do {
+            int sizeBefore = documentedTypes.size();
+            List<String> currentTypes = List.copyOf(documentedTypes);
+            currentTypes.stream()
+                    .map(builder::getClassByName)
+                    .filter(java.util.Objects::nonNull)
+                    .flatMap(type -> type.getFields().stream())
+                    .forEach(field -> addDocumentedTypes(
+                            documentedTypes, field.getType().getGenericFullyQualifiedName()));
+            expanded = documentedTypes.size() > sizeBefore;
+        } while (expanded);
         List<TypeContract> types = documentedTypes.stream()
                 .map(builder::getClassByName)
                 .filter(java.util.Objects::nonNull)
