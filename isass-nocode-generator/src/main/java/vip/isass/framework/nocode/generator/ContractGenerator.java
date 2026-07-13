@@ -57,9 +57,12 @@ public class ContractGenerator {
                 .toList();
         LinkedHashSet<String> documentedTypes = new LinkedHashSet<>();
         services.forEach(service -> {
-            documentedTypes.add(rawJavaType(service.entityJavaType()));
-            service.operations().forEach(operation -> operation.parameters()
-                    .forEach(parameter -> documentedTypes.add(rawJavaType(parameter.javaType()))));
+            addDocumentedTypes(documentedTypes, service.entityJavaType());
+            service.operations().forEach(operation -> {
+                operation.parameters().forEach(parameter ->
+                        addDocumentedTypes(documentedTypes, parameter.javaType()));
+                addDocumentedTypes(documentedTypes, operation.returnJavaType());
+            });
         });
         List<TypeContract> types = documentedTypes.stream()
                 .map(builder::getClassByName)
@@ -80,6 +83,15 @@ public class ContractGenerator {
     private String rawJavaType(String javaType) {
         int generic = javaType.indexOf('<');
         return generic < 0 ? javaType.replace("[]", "") : javaType.substring(0, generic);
+    }
+
+    /** 收集实体、请求与响应的实际类型；泛型容器本身会在后续查找中自然过滤。 */
+    private void addDocumentedTypes(LinkedHashSet<String> types, String javaType) {
+        for (String candidate : javaType.replace("[]", "").split("[<>,?\\s]+")) {
+            if (!candidate.isBlank()) {
+                types.add(candidate);
+            }
+        }
     }
 
     private TypeContract toType(JavaClass type) {

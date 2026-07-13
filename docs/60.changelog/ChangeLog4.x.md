@@ -90,6 +90,8 @@
 
 #### fix
 
+- **nocode 合同响应 Schema**：构建期合同生成器除实体与请求参数外，现同时收集自定义业务方法的返回类型及其泛型内部类型，确保 OpenAPI/Knife4j 可展示登录、业务 VO 等响应字段；补充 `ContractGeneratorTest` 回归覆盖。
+
 - **V3 逻辑删除元数据修正**：`V3TableMetaRegistrar` 运行时识别逻辑删除字段后，补齐 MyBatis-Plus `TableFieldInfo` 的逻辑删除标记及未删除/已删除值 `0/1`，避免查询错误生成 `delete_flag = null`。
 - **V3 表元数据注册时机修正**：`V3TableMetaRegistrar` 的 `populate()` 仅在 `v3ServiceRegistry` Bean 构造时联动触发，与 MyBatis-Plus `SqlSessionFactory` 构建 `TableInfo` 的顺序无任何约束，导致 MP 实际查询时回调 `postTableInfo` 的 `metaMap` 仍为空，最终实体类名直接转表名（如 `V3Icon` → `v3_icon`），抛出 `Table 'attachment.v3_icon' doesn't exist`。
   - `V3TableMetaRegistrar` 改为实现 `BeanDefinitionRegistryPostProcessor`，在 BDRPP 阶段（任何业务 Bean 实例化之前）通过 `ClassPathScanningCandidateComponentProvider` + `AssignableTypeFilter(IV3Entity.class)` 扫描 `vip.isass` 包下所有 `IV3Entity` 实现类，按接口契约（`IV3IdEntity`/`IV3TraceEntity`/`IV3LogicDeleteEntity`/`IV3VersionEntity`/`IV3TenantEntity`/`IV3ParentIdEntity`）镜像出表元数据，保证 MP `TableInfo` 构建时元数据已就绪。

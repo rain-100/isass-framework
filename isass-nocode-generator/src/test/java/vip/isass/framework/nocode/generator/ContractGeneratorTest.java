@@ -31,6 +31,10 @@ class ContractGeneratorTest {
                     /** 图标名称 */
                     String iconName;
                 }
+                class IconResult {
+                    /** 返回数量 */
+                    Integer total;
+                }
                 interface IconCriteria {}
                 interface IService<E,C> {}
                 public interface IIconService extends IService<Icon,IconCriteria> {
@@ -41,7 +45,7 @@ class ContractGeneratorTest {
                      * @http GET /available/{tenantId}
                      * @order 501
                      */
-                    List<Icon> findAvailableIcons(Long tenantId);
+                    IconResult findAvailableIcons(Long tenantId);
                 }
                 """);
         Files.writeString(source.resolve("vip/isass/attachment/api/IGroupService.java"), """
@@ -65,6 +69,8 @@ class ContractGeneratorTest {
         assertEquals(501, operation.order());
         assertEquals("图标名称", document.types().getFirst()
                 .properties().getFirst().description());
+        assertTrue(document.types().stream()
+                .anyMatch(type -> type.javaType().endsWith("IconResult")));
         String proto = Files.readString(output.resolve("proto/attachment-nocode.proto"));
         assertTrue(proto.contains("rpc FindAvailableIcons"));
         assertTrue(proto.contains("service IconService"));
