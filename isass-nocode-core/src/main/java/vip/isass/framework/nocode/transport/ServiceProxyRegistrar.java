@@ -3,6 +3,7 @@ package vip.isass.framework.nocode.transport;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
+import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.core.Ordered;
@@ -12,14 +13,21 @@ import vip.isass.framework.nocode.contract.ServiceContract;
 import vip.isass.framework.nocode.service.IService;
 import tools.jackson.databind.ObjectMapper;
 
+import java.util.List;
+
 /**
  * Registers a remote service proxy only when the generated V4 interface has no
  * local Spring implementation. This is the local > gRPC > HTTP selection's
  * local half; remote priority is handled by {@link TransportResolver}.
  */
-public class ServiceProxyRegistrar implements BeanFactoryPostProcessor, PriorityOrdered {
+public class ServiceProxyRegistrar implements BeanFactoryPostProcessor, BeanClassLoaderAware, PriorityOrdered {
 
     private ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+
+    @Override
+    public void setBeanClassLoader(ClassLoader classLoader) {
+        this.classLoader = classLoader;
+    }
 
     @Override
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory)
@@ -27,10 +35,15 @@ public class ServiceProxyRegistrar implements BeanFactoryPostProcessor, Priority
         if (!(beanFactory instanceof BeanDefinitionRegistry registry)) {
             throw new IllegalStateException("Nocode remote proxy registration requires a BeanDefinitionRegistry");
         }
-        for (ServiceContract contract : new ContractResourceLoader(new ObjectMapper(), classLoader)
-                .load().stream().flatMap(document -> document.services().stream()).toList()) {
+        for (ServiceContract contract : loadContracts()) {
             registerIfRemote(registry, beanFactory, contract);
         }
+    }
+
+    /** Visible for focused registration tests without requiring a packaged contract resource. */
+    protected List<ServiceContract> loadContracts() {
+        return new ContractResourceLoader(new ObjectMapper(), classLoader)
+                .load().stream().flatMap(document -> document.services().stream()).toList();
     }
 
     private void registerIfRemote(
