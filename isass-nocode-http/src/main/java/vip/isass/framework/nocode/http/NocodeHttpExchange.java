@@ -14,6 +14,7 @@ import java.net.URI;
 @HttpExchange(accept = MediaType.APPLICATION_JSON_VALUE)
 public interface NocodeHttpExchange {
 
+    @HttpExchange
     JsonNode exchange(
             HttpMethod method,
             URI uri,
