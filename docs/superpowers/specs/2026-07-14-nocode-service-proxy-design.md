@@ -23,7 +23,7 @@
 3. 若 `ApplicationContext` 中已有该接口类型的本地 Bean，则不注册代理；
 4. 否则注册唯一的 JDK 动态代理 Bean，Bean 类型就是该 V4 接口。
 
-`ServiceProxyFactory` 负责 Java 方法到 `OperationContract` 的映射；同名方法以参数数目匹配，缺失时明确报错。代理只使用同一 `ServiceContract` 的 transport 集合，避免不同服务之间错误路由。
+`ServiceProxyFactory` 负责 Java 方法到 `OperationContract` 的映射；当前合同禁止方法重载，因此按方法名唯一匹配，缺失时明确报错。代理只使用同一 `ServiceContract` 的 transport 集合，避免不同服务之间错误路由。
 
 ## 传输实现
 
@@ -37,7 +37,7 @@
 
 ### HTTP
 
-HTTP 客户端使用 Spring Framework 7 的 `@HttpExchange` 代理，而不是直接调用 `RestClient`。框架定义一个内部、固定的 exchange 接口，分别声明 GET、POST、PUT、DELETE 方法；每个方法接受完整 `URI`、查询参数和 JSON body，并返回 `JsonNode`。由 `HttpServiceProxyFactory` 基于 `RestClientAdapter` 创建该接口的实例。
+HTTP 客户端使用 Spring Framework 7 的 `@HttpExchange` 代理，而不是业务代码直接调用 `RestClient`。框架定义一个内部、固定的 exchange 接口：以 `@HttpExchange` 声明 JSON 接收能力，方法参数使用动态 `HttpMethod`、完整 `URI`、查询参数和可空 JSON body，并返回 `JsonNode`。`HttpExchange` 原生支持动态 `HttpMethod` 与 `URI` 参数；由 `HttpServiceProxyFactory` 基于 `RestClientAdapter` 创建该接口的实例。
 
 `HttpClientTransport` 根据 `OperationContract` 组装 URI、路径变量、查询参数和请求体，再经该 exchange 接口调用。对于框架标准 `Resp` JSON，取 `data` 并根据合同 `returnJavaType` 反序列化；非 JSON 文件响应继续由既有 `FileStream` 专用路径处理。每个远程 `serviceName` 的基础地址由 `isass.framework.nocode.http.endpoints` 配置。
 
