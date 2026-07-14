@@ -2,14 +2,52 @@ package vip.isass.framework.nocode.http;
 
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.web.client.RestClient;
+import org.springframework.web.client.support.RestClientAdapter;
+import org.springframework.web.service.invoker.HttpServiceProxyFactory;
 import tools.jackson.databind.ObjectMapper;
 import vip.isass.framework.nocode.ServiceRegistry;
 import vip.isass.framework.nocode.contract.ContractRegistry;
 import vip.isass.framework.nocode.contract.ContractResourceLoader;
 
 @AutoConfiguration
+@EnableConfigurationProperties(HttpEndpointProperties.class)
 public class HttpAutoConfiguration {
+
+    @Bean
+    @ConditionalOnMissingBean
+    public HttpEndpointResolver HttpEndpointResolver(HttpEndpointProperties properties) {
+        return serviceName -> properties.getEndpoints().get(serviceName);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public NocodeHttpExchange NocodeHttpExchange() {
+        return HttpServiceProxyFactory.builderFor(RestClientAdapter.create(RestClient.create()))
+                .build().createClient(NocodeHttpExchange.class);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public HttpClientTransport HttpClientTransport(
+            NocodeHttpExchange exchange,
+            HttpEndpointResolver endpoints,
+            ContractRegistry contracts,
+            ObjectMapper objectMapper
+    ) {
+        return new HttpClientTransport(exchange, endpoints, contracts, objectMapper);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public HttpRemoteTransportProvider HttpRemoteTransportProvider(
+            HttpEndpointResolver endpoints,
+            HttpClientTransport transport
+    ) {
+        return new HttpRemoteTransportProvider(endpoints, transport);
+    }
 
     @Bean
     @ConditionalOnMissingBean

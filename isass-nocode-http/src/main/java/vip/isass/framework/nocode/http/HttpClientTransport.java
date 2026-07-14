@@ -1,8 +1,8 @@
 package vip.isass.framework.nocode.http;
 
 import org.springframework.http.HttpMethod;
-import org.springframework.web.client.RestClient;
-import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.node.ObjectNode;
@@ -24,18 +24,18 @@ import java.util.Map;
  */
 public class HttpClientTransport implements InvocationTransport {
 
-    private final RestClient restClient;
+    private final NocodeHttpExchange exchange;
     private final HttpEndpointResolver endpoints;
     private final ContractRegistry contracts;
     private final ObjectMapper objectMapper;
 
     public HttpClientTransport(
-            RestClient restClient,
+            NocodeHttpExchange exchange,
             HttpEndpointResolver endpoints,
             ContractRegistry contracts,
             ObjectMapper objectMapper
     ) {
-        this.restClient = restClient;
+        this.exchange = exchange;
         this.endpoints = endpoints;
         this.contracts = contracts;
         this.objectMapper = objectMapper;
@@ -57,11 +57,9 @@ public class HttpClientTransport implements InvocationTransport {
                 .findFirst().orElseThrow();
         try {
             Request request = request(invocation, operation);
-            RestClient.RequestBodySpec spec = restClient.method(
-                    HttpMethod.valueOf(operation.httpMethod().name())).uri(request.uri());
-            JsonNode response = request.body() == null
-                    ? spec.retrieve().body(JsonNode.class)
-                    : spec.body(request.body()).retrieve().body(JsonNode.class);
+            JsonNode response = exchange.exchange(
+                    HttpMethod.valueOf(operation.httpMethod().name()),
+                    request.uri(), request.query(), request.body());
             JsonNode data = response == null ? null : response.path("data");
             if (data == null || data.isMissingNode() || data.isNull()) {
                 return null;
@@ -83,11 +81,7 @@ public class HttpClientTransport implements InvocationTransport {
                     "No HTTP endpoint for " + invocation.serviceName(), false);
         }
         String path = operation.path();
-        UriComponentsBuilder uri = UriComponentsBuilder.fromUri(base)
-                .pathSegment(invocation.serviceName(), invocation.entityName());
-        if (!"/".equals(path)) {
-            uri.path(path);
-        }
+        MultiValueMap<String, String> query = new LinkedMultiValueMap<>();
         Map<String, Object> bodies = new LinkedHashMap<>();
         int bodyCount = (int) operation.parameters().stream()
                 .filter(parameter -> parameter.source() == ParameterSource.BODY).count();
@@ -99,24 +93,28 @@ public class HttpClientTransport implements InvocationTransport {
                 case QUERY -> {
                     if (value != null && !isSimpleValue(value)) {
                         Map<?, ?> map = objectMapper.convertValue(value, Map.class);
-                        map.forEach((key, item) -> uri.queryParam(String.valueOf(key), item));
+                        map.forEach((key, item) -> addQueryValue(query, String.valueOf(key), item));
                     } else if (value != null) {
-                        uri.queryParam(parameter.name(), value);
+                        addQueryValue(query, parameter.name(), value);
                     }
                 }
                 case BODY -> bodies.put(parameter.name(), value);
             }
         }
-        UriComponentsBuilder finalUri = UriComponentsBuilder.fromUri(base)
-                .pathSegment(invocation.serviceName(), invocation.entityName());
-        if (!"/".equals(path)) {
-            finalUri.path(path);
-        }
-        uri.build().getQueryParams().forEach(finalUri::queryParam);
+        String relative = "/".equals(path) ? "" : path;
+        URI uri = base.resolve("/" + invocation.serviceName() + "/" + invocation.entityName() + relative);
         Object body = bodyCount == 0 ? null
                 : bodyCount == 1 ? bodies.values().iterator().next()
                 : bodies;
-        return new Request(finalUri.build(true).toUri(), body);
+        return new Request(uri, query, body);
+    }
+
+    private void addQueryValue(MultiValueMap<String, String> query, String name, Object value) {
+        if (value instanceof Iterable<?> values) {
+            values.forEach(item -> addQueryValue(query, name, item));
+        } else if (value != null) {
+            query.add(name, String.valueOf(value));
+        }
     }
 
     private boolean isSimpleValue(Object value) {
@@ -126,6 +124,6 @@ public class HttpClientTransport implements InvocationTransport {
                 || value instanceof Enum<?>;
     }
 
-    private record Request(URI uri, Object body) {
+    private record Request(URI uri, MultiValueMap<String, String> query, Object body) {
     }
 }

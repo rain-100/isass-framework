@@ -8,6 +8,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * Creates the single Java-facing service contract backed by local or remote transports.
@@ -25,6 +26,19 @@ public class ServiceProxyFactory {
             ServiceContract contract,
             List<InvocationTransport> transports
     ) {
+        return create(serviceInterface, contract, () -> transports);
+    }
+
+    /**
+     * Creates a proxy whose remote transport availability is resolved at call time.
+     * This lets client auto-configuration contribute gRPC and HTTP transports after
+     * the generated API contract proxy itself has been registered.
+     */
+    public <T> T create(
+            Class<T> serviceInterface,
+            ServiceContract contract,
+            Supplier<List<InvocationTransport>> transports
+    ) {
         if (!serviceInterface.isInterface()) {
             throw new IllegalArgumentException(" service contract must be an interface");
         }
@@ -39,7 +53,7 @@ public class ServiceProxyFactory {
             Method method,
             Object[] arguments,
             ServiceContract contract,
-            List<InvocationTransport> transports
+            Supplier<List<InvocationTransport>> transports
     ) throws Throwable {
         if (method.getDeclaringClass() == Object.class) {
             return switch (method.getName()) {
@@ -64,6 +78,11 @@ public class ServiceProxyFactory {
                 operation.name(),
                 arguments == null ? List.of() : Arrays.asList(arguments),
                 operation.idempotent());
-        return resolver.invoke(invocation, transports);
+        List<InvocationTransport> resolved = transports.get();
+        if (resolved == null) {
+            throw new IllegalStateException("No remote transports supplied for "
+                    + contract.serviceName() + "/" + contract.entityName());
+        }
+        return resolver.invoke(invocation, resolved);
     }
 }

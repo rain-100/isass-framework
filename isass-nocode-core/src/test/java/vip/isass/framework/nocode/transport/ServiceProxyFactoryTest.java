@@ -8,6 +8,7 @@ import vip.isass.framework.nocode.contract.ParameterSource;
 import vip.isass.framework.nocode.contract.ServiceContract;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -36,6 +37,34 @@ class ServiceProxyFactoryTest {
                 .create(ExampleService.class, contract, List.of(transport));
 
         assertEquals("asset-service:icon:findName:9", service.findName(9L));
+    }
+
+    @Test
+    void resolvesRemoteTransportsWhenMethodIsCalled() {
+        OperationContract operation = new OperationContract(
+                "findName", HttpMethod.GET, "/name/{id}", 301, true,
+                List.of(new ParameterContract(
+                        "id", "java.lang.Long", ParameterSource.PATH, true, "主键")),
+                "java.lang.String", "查询名称");
+        ServiceContract contract = new ServiceContract(
+                "asset-service", "icon", ExampleService.class.getName(),
+                "sample.Icon", "sample.IconCriteria", List.of(operation));
+        AtomicInteger supplied = new AtomicInteger();
+        InvocationTransport transport = new InvocationTransport() {
+            public TransportKind kind() { return TransportKind.HTTP; }
+            public boolean available(Invocation invocation) { return true; }
+            public Object invoke(Invocation invocation) { return "remote-" + invocation.arguments().getFirst(); }
+        };
+
+        ExampleService service = new ServiceProxyFactory(new TransportResolver())
+                .create(ExampleService.class, contract, () -> {
+                    supplied.incrementAndGet();
+                    return List.of(transport);
+                });
+
+        assertEquals(0, supplied.get());
+        assertEquals("remote-9", service.findName(9L));
+        assertEquals(1, supplied.get());
     }
 
     interface ExampleService {

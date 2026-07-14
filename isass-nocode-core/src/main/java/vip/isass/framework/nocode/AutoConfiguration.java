@@ -3,6 +3,7 @@ package vip.isass.framework.nocode;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import vip.isass.framework.nocode.service.IService;
+import vip.isass.framework.nocode.transport.ServiceProxyRegistrar;
 
 import java.util.List;
 
@@ -26,5 +27,11 @@ public class AutoConfiguration {
     @Bean
     public TableMetaRegistrar TableMetaRegistrar() {
         return new TableMetaRegistrar();
+    }
+
+    /** Registers typed remote proxies for V4 service contracts with no local implementation. */
+    @Bean
+    public static ServiceProxyRegistrar ServiceProxyRegistrar() {
+        return new ServiceProxyRegistrar();
     }
 }
