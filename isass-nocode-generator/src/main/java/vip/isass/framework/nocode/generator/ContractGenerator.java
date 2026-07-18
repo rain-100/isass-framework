@@ -139,8 +139,8 @@ public class ContractGenerator {
         String entityType = matcher.group(1).trim();
         String criteriaType = matcher.group(2).trim();
         String entitySimpleName = entityType.substring(entityType.lastIndexOf('.') + 1);
-        String entityName = entitySimpleName;
-        entityName = Character.toLowerCase(entityName.charAt(0)) + entityName.substring(1);
+        String entity = entitySimpleName;
+        entity = Character.toLowerCase(entity.charAt(0)) + entity.substring(1);
         String[] packageParts = type.getPackageName().split("\\.");
         String applicationName = packageParts.length >= 3 ? packageParts[2] + "-service" : "application";
         List<OperationContract> operations = new ArrayList<>(
@@ -150,7 +150,7 @@ public class ContractGenerator {
                 .toList());
         return new ServiceContract(
                 applicationName,
-                entityName,
+                entity,
                 type.getFullyQualifiedName(),
                 entityType,
                 criteriaType,
@@ -235,7 +235,7 @@ public class ContractGenerator {
     private void writeProto(Path outputRoot, ContractDocument document) throws IOException {
         Map<String, List<ServiceContract>> applications = new LinkedHashMap<>();
         document.services().forEach(service -> applications
-                .computeIfAbsent(service.serviceName(), ignored -> new ArrayList<>()).add(service));
+                .computeIfAbsent(service.service(), ignored -> new ArrayList<>()).add(service));
         for (var applicationServices : applications.entrySet()) {
             String application = applicationServices.getKey().replaceFirst("-service$", "");
             Path target = outputRoot.resolve("proto/" + application + "-nocode.proto");
@@ -256,12 +256,12 @@ public class ContractGenerator {
                 """.formatted(packageName));
         proto.append("message Request { bytes payload = 1; }\n");
         proto.append("message Response { bytes payload = 1; }\n");
-        for (ServiceContract service : services) {
-            String serviceName = service.serviceInterface()
-                    .substring(service.serviceInterface().lastIndexOf('.') + 1)
+        for (ServiceContract contract : services) {
+            String grpcService = contract.serviceInterface()
+                    .substring(contract.serviceInterface().lastIndexOf('.') + 1)
                     .replaceFirst("^I", "");
-            proto.append("\nservice ").append(serviceName).append(" {\n");
-            for (OperationContract operation : service.operations()) {
+            proto.append("\nservice ").append(grpcService).append(" {\n");
+            for (OperationContract operation : contract.operations()) {
                 String methodName = upperFirst(operation.name());
                 proto.append("  rpc ").append(methodName)
                         .append("(Request) returns (Response);\n");

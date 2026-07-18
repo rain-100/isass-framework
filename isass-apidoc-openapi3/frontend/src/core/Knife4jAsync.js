@@ -7171,7 +7171,7 @@ var SwaggerBootstrapUiApiInfo = function () {
   this.oneOfOptions = new Array();
   this.oneOfSelected = null;
   this.oneOfArray = false;
-  this.oneOfEntityParameter = 'entityName';
+  this.oneOfEntityParameter = 'entity';
   this.criteriaOptions = new Array();
   this.criteriaParameterNames = {};
   // 是否xml请求

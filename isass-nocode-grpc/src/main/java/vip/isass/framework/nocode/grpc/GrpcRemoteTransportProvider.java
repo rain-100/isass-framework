@@ -33,7 +33,7 @@ public class GrpcRemoteTransportProvider implements RemoteTransportProvider, Dis
 
     @Override
     public List<InvocationTransport> transports(ServiceContract contract) {
-        String target = properties.getEndpoints().get(contract.serviceName());
+        String target = properties.getEndpoints().get(contract.service());
         if (target == null || target.isBlank()) {
             return List.of();
         }

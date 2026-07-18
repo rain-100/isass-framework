@@ -45,12 +45,12 @@ public class HttpClientTransport implements InvocationTransport {
     }
 
     public boolean available(Invocation invocation) {
-        return endpoints.resolve(invocation.serviceName()) != null;
+        return endpoints.resolve(invocation.service()) != null;
     }
 
     public Object invoke(Invocation invocation) {
         ServiceContract service = contracts.requireService(
-                invocation.serviceName(), invocation.entityName());
+                invocation.service(), invocation.entity());
         OperationContract operation = service.operations().stream()
                 .filter(candidate -> candidate.name().equals(invocation.operationName()))
                 .findFirst().orElseThrow();
@@ -59,6 +59,17 @@ public class HttpClientTransport implements InvocationTransport {
             JsonNode response = exchange.exchange(
                     HttpMethod.valueOf(operation.httpMethod().name()),
                     request.uri(), request.query(), request.body());
+            if (response != null && response.has("success") && !response.path("success").asBoolean()) {
+                String message = response.path("detailMessage").asText();
+                if (message.isBlank()) {
+                    message = response.path("message").asText("Unknown remote business error");
+                }
+                throw new TransportInvocationException(
+                        "HTTP invocation failed: " + invocation.service() + "/"
+                                + invocation.entity() + "#" + invocation.operationName()
+                                + ": " + message,
+                        true);
+            }
             JsonNode data = response == null ? null : response.path("data");
             if (data == null || data.isMissingNode() || data.isNull()) {
                 return null;
@@ -74,10 +85,10 @@ public class HttpClientTransport implements InvocationTransport {
     }
 
     private Request request(Invocation invocation, OperationContract operation) {
-        URI base = endpoints.resolve(invocation.serviceName());
+        URI base = endpoints.resolve(invocation.service());
         if (base == null) {
             throw new TransportInvocationException(
-                    "No HTTP endpoint for " + invocation.serviceName(), false);
+                    "No HTTP endpoint for " + invocation.service(), false);
         }
         String path = operation.path();
         MultiValueMap<String, String> query = new LinkedMultiValueMap<>();
@@ -101,7 +112,7 @@ public class HttpClientTransport implements InvocationTransport {
             }
         }
         String relative = "/".equals(path) ? "" : path;
-        URI uri = base.resolve("/" + invocation.serviceName() + "/" + invocation.entityName() + relative);
+        URI uri = base.resolve("/" + invocation.service() + "/" + invocation.entity() + relative);
         Object body = bodyCount == 0 ? null
                 : bodyCount == 1 ? bodies.values().iterator().next()
                 : bodies;
@@ -110,8 +121,12 @@ public class HttpClientTransport implements InvocationTransport {
 
     private void addQueryValue(MultiValueMap<String, String> query, String name, Object value) {
         if (value instanceof Iterable<?> values) {
-            values.forEach(item -> addQueryValue(query, name, item));
-        } else if (value != null) {
+            values.forEach(item -> {
+                if (isSimpleValue(item)) {
+                    addQueryValue(query, name, item);
+                }
+            });
+        } else if (isSimpleValue(value)) {
             query.add(name, String.valueOf(value));
         }
     }

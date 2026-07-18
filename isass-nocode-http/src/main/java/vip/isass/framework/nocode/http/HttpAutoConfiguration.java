@@ -19,7 +19,7 @@ public class HttpAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public HttpEndpointResolver HttpEndpointResolver(HttpEndpointProperties properties) {
-        return serviceName -> properties.getEndpoints().get(serviceName);
+        return service -> properties.getEndpoints().get(service);
     }
 
     @Bean

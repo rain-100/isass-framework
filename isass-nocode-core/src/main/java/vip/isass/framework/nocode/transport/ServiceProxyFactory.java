@@ -73,15 +73,15 @@ public class ServiceProxyFactory {
                 .orElseThrow(() -> new IllegalStateException(
                         "Operation is absent from  contract: " + method));
         Invocation invocation = new Invocation(
-                contract.serviceName(),
-                contract.entityName(),
+                contract.service(),
+                contract.entity(),
                 operation.name(),
                 arguments == null ? List.of() : Arrays.asList(arguments),
                 operation.idempotent());
         List<InvocationTransport> resolved = transports.get();
         if (resolved == null) {
             throw new IllegalStateException("No remote transports supplied for "
-                    + contract.serviceName() + "/" + contract.entityName());
+                    + contract.service() + "/" + contract.entity());
         }
         return resolver.invoke(invocation, resolved);
     }

@@ -62,7 +62,10 @@ classpath:/db/changelog/attachment/db.changelog-master.yaml
 兼容规则：
 
 - `change-log` 写目录，如 `classpath:/db/changelog`，框架使用 `{目录}/{serviceName}/db.changelog-master.yaml`
-- `change-log` 写文件，如 `classpath:/db/changelog/db.changelog-master.xml`，框架在文件名前插入服务名目录
+- `change-log` 写文件，如 `classpath:/db/changelog/db.changelog-master.yaml`，框架在文件名前插入服务名目录
+
+变更优先使用 Liquibase XML 的数据库无关结构化标签（如 `createTable`、`addColumn`、`createIndex`）。不要为
+同一微服务按数据库产品维护多份 master；只有确实无法由 Liquibase 抽象的运行期查询，才在持久化层按数据库能力处理。
 
 ## 5. 表隔离
 

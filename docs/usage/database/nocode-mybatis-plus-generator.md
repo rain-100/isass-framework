@@ -1,11 +1,11 @@
 # NoCode 零代码 MyBatis-Plus 代码生成器使用示例
 
-业务微服务可以在 `service` 模块的 `src/test/java` 下放置一个本地执行的代码生成器类，用于从数据库表结构生成 NoCode 零代码 相关代码。
+业务服务可以在 `service` 模块的 `src/test/java` 下放置一个本地执行的代码生成器类，用于从数据库表结构生成 NoCode 零代码 相关代码。
 
-以任意微服务为例，推荐在 `{microservice}-service` 模块放置：
+以任意服务为例，推荐在 `{service}-service` 模块放置：
 
 ```text
-{microservice}-service/src/test/java/vip/isass/{microservice}/{context}/generator/XxxMybatisPlusGenerator.java
+{service}-service/src/test/java/vip/isass/{service}/{context}/generator/XxxMybatisPlusGenerator.java
 ```
 
 生成器会同时写入 `api` 模块和 `service` 模块：
@@ -27,6 +27,7 @@
 package vip.isass.bsp.attachment.generator;
 
 import com.baomidou.mybatisplus.annotation.DbType;
+import vip.isass.bsp.ServiceInfo;
 import vip.isass.framework.nocode.generator.MybatisPlusGeneratorMeta;
 import vip.isass.framework.nocode.generator.MybatisPlusGenerator;
 
@@ -49,8 +50,8 @@ public class AttachmentMybatisPlusGenerator {
                 .setDataSourcePassword("your-password")
                 .setTablePrefix(new String[]{"bsp_attachment_"})
                 .setPackageName("vip.isass")
-                .setModuleName("bsp.attachment")
-                .setControllerPrefix(ModuleInfo.SERVICE_URL_PREFIX)
+                .setContext("bsp.attachment")
+                .setControllerPrefix(ServiceInfo.SERVICE_URL_PREFIX)
                 .setExcludeTables(new String[]{
                         "(?i)(.*_)?DATABASECHANGELOG",
                         "(?i)(.*_)?DATABASECHANGELOGLOCK"
@@ -75,7 +76,7 @@ public class AttachmentMybatisPlusGenerator {
 | `serviceOutputDir` | Service 模块根目录，生成 Mapper、Repository、本地 Service 实现 |
 | `tablePrefix` | 数据库表前缀，例如 `bsp_attachment_`，生成 Java 类名时会移除 |
 | `packageName` | 根包名，例如 `vip.isass` |
-| `moduleName` | 含限界上下文的模块名，例如 `bsp.attachment`，最终包名为 `vip.isass.bsp.attachment...` |
+| `context` | 限界上下文标识，例如 `bsp.attachment`，最终包名为 `vip.isass.bsp.attachment...` |
 | `controllerPrefix` | 标准零代码 动态 HTTP 路由前缀配置；生成的实体 Controller 仅作为手写 Spring MVC 扩展外壳 |
 | `includeTables` | 只生成指定表，适合局部重新生成 |
 | `excludeTables` | 排除不参与生成的表 |
@@ -93,7 +94,7 @@ auth_DATABASECHANGELOG
 auth_DATABASECHANGELOGLOCK
 ```
 
-同一个数据库里可能同时包含单体模式或依赖微服务的 Liquibase 管理表，所以不要只排除当前服务名，也不要只写无前缀表名。
+同一个数据库里可能同时包含单体模式或依赖服务的 Liquibase 管理表，所以不要只排除当前服务名，也不要只写无前缀表名。
 
 推荐写法：
 

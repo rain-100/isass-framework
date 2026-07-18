@@ -171,12 +171,8 @@ package vip.isass.framework.net.proxy.upstream;
 
 import cn.hutool.core.exceptions.ExceptionUtil;
 import cn.hutool.core.util.RandomUtil;
-import cn.hutool.core.util.ReflectUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.reflect.FieldUtils;
 import org.redisson.RedissonShutdownException;
-import org.redisson.client.protocol.RedisStrictCommand;
-import org.redisson.spring.data.connection.RedissonStreamCommands;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.stream.Consumer;
@@ -193,7 +189,6 @@ import vip.isass.framework.net.core.handler.manager.IEventManager;
 import vip.isass.framework.net.core.message.Message;
 
 import jakarta.annotation.PreDestroy;
-import java.lang.reflect.Field;
 import java.time.Duration;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -242,13 +237,6 @@ public class MessageRedisStreamListener implements StreamListener<String, Object
     public void destroy() {
         try {
             log.info("正在清理 redis stream[{}]的消费者[{}]", streamServiceKey, CONSUMER);
-
-            // 由于 redisson 的 bug,执行删除消费者时错误地用了"XADD"指令，
-            // 新版 redisson 已更正，但他用了更加新的 springboot 版本，与我们冲突，所以这里只能通过反射修改其指令。
-            RedisStrictCommand<Boolean> command = new RedisStrictCommand<>("XGROUP", obj -> ((Long) obj) > 0);
-            Field field = ReflectUtil.getField(RedissonStreamCommands.class, "XGROUP_BOOLEAN");
-            FieldUtils.removeFinalModifier(field);
-            ReflectUtil.setFieldValue(RedissonStreamCommands.class, field, command);
 
             redisTemplate.opsForStream().deleteConsumer(streamServiceKey, CONSUMER);
         } catch (Exception e) {

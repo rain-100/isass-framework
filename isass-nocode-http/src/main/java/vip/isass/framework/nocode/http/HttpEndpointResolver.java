@@ -5,5 +5,5 @@ import java.net.URI;
 @FunctionalInterface
 public interface HttpEndpointResolver {
 
-    URI resolve(String serviceName);
+    URI resolve(String service);
 }

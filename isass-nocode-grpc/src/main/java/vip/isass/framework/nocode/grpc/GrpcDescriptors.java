@@ -20,7 +20,7 @@ final class GrpcDescriptors {
         return MethodDescriptor.<byte[], byte[]>newBuilder()
                 .setType(MethodDescriptor.MethodType.UNARY)
                 .setFullMethodName(MethodDescriptor.generateFullMethodName(
-                        serviceName(service), upperFirst(operation.name())))
+                        service(service), upperFirst(operation.name())))
                 .setRequestMarshaller(ByteArrayMarshaller.INSTANCE)
                 .setResponseMarshaller(ByteArrayMarshaller.INSTANCE)
                 .build();
@@ -33,13 +33,13 @@ final class GrpcDescriptors {
         return MethodDescriptor.<byte[], byte[]>newBuilder()
                 .setType(MethodDescriptor.MethodType.SERVER_STREAMING)
                 .setFullMethodName(MethodDescriptor.generateFullMethodName(
-                        serviceName(service), upperFirst(operation.name())))
+                        service(service), upperFirst(operation.name())))
                 .setRequestMarshaller(ByteArrayMarshaller.INSTANCE)
                 .setResponseMarshaller(ByteArrayMarshaller.INSTANCE)
                 .build();
     }
 
-    static String serviceName(ServiceContract contract) {
+    static String service(ServiceContract contract) {
         String interfaceName = contract.serviceInterface();
         int classSeparator = interfaceName.lastIndexOf('.');
         String packageName = interfaceName.substring(0, classSeparator)

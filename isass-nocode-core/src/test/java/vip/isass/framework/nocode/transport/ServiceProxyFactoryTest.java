@@ -28,7 +28,7 @@ class ServiceProxyFactoryTest {
             public TransportKind kind() { return TransportKind.GRPC; }
             public boolean available(Invocation invocation) { return true; }
             public Object invoke(Invocation invocation) {
-                return invocation.serviceName() + ":" + invocation.entityName() + ":"
+                return invocation.service() + ":" + invocation.entity() + ":"
                         + invocation.operationName() + ":" + invocation.arguments().getFirst();
             }
         };

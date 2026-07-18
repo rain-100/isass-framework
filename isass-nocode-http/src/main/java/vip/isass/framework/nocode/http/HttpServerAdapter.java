@@ -62,30 +62,30 @@ public class HttpServerAdapter {
         this.objectMapper = objectMapper;
     }
 
-    @RequestMapping("/{serviceName:[a-zA-Z0-9-]+-service}/{entityName}")
+    @RequestMapping("/{service:[a-zA-Z0-9-]+-service}/{entity}")
     public Object invokeRoot(
-            @PathVariable String serviceName,
-            @PathVariable String entityName,
+            @PathVariable String service,
+            @PathVariable String entity,
             @RequestParam MultiValueMap<String, String> query,
             org.springframework.web.context.request.ServletWebRequest request
     ) {
-        return invokeInternal(serviceName, entityName, "/", query, request);
+        return invokeInternal(service, entity, "/", query, request);
     }
 
-    @RequestMapping("/{serviceName:[a-zA-Z0-9-]+-service}/{entityName}/{*operationPath}")
+    @RequestMapping("/{service:[a-zA-Z0-9-]+-service}/{entity}/{*operationPath}")
     public Object invoke(
-            @PathVariable String serviceName,
-            @PathVariable String entityName,
+            @PathVariable String service,
+            @PathVariable String entity,
             @PathVariable String operationPath,
             @RequestParam MultiValueMap<String, String> query,
             org.springframework.web.context.request.ServletWebRequest request
     ) {
-        return invokeInternal(serviceName, entityName, operationPath, query, request);
+        return invokeInternal(service, entity, operationPath, query, request);
     }
 
     private Object invokeInternal(
-            String serviceName,
-            String entityName,
+            String service,
+            String entity,
             String operationPath,
             MultiValueMap<String, String> query,
             org.springframework.web.context.request.ServletWebRequest request
@@ -96,12 +96,12 @@ public class HttpServerAdapter {
                         : request.getHeader("X-HTTP-Method-Override"));
         String relativePath = operationPath.startsWith("/") ? operationPath : "/" + operationPath;
         OperationContract operation = contracts.requireOperation(
-                serviceName, entityName, httpMethod, relativePath);
-        IService<?, ?> service = services.require(serviceName, entityName);
+                service, entity, httpMethod, relativePath);
+        IService<?, ?> localService = services.require(service, entity);
         if (isFileOperation(operation)) {
-            return invokeFileOperation(service, operation, relativePath, query, request);
+            return invokeFileOperation(localService, operation, relativePath, query, request);
         }
-        Object result = invokeService(service, operation, relativePath, query, request);
+        Object result = invokeService(localService, operation, relativePath, query, request);
         return result instanceof Resp<?> response ? response : Resp.bizSuccess(result);
     }
 

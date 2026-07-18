@@ -56,7 +56,7 @@ public class GrpcLocalInvocationHandler implements GrpcInvocationHandler {
             OperationContract operation,
             byte[] request
     ) throws ReflectiveOperationException {
-        Object service = services.require(serviceContract.serviceName(), serviceContract.entityName());
+        Object service = services.require(serviceContract.service(), serviceContract.entity());
         var method = java.util.Arrays.stream(service.getClass().getMethods())
                 .filter(candidate -> candidate.getName().equals(operation.name()))
                 .filter(candidate -> candidate.getParameterCount() == operation.parameters().size())

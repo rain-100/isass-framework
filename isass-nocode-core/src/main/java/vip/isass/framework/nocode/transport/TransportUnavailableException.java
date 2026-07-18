@@ -6,7 +6,7 @@ public class TransportUnavailableException extends IllegalStateException {
         super(invocation == null
                 ? "No  invocation transport is available"
                 : "No  invocation transport is available for "
-                + invocation.serviceName() + "/" + invocation.entityName()
+                + invocation.service() + "/" + invocation.entity()
                 + "#" + invocation.operationName());
     }
 }

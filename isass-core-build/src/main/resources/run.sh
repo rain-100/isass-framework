@@ -404,6 +404,37 @@ check_jdk() {
     fi
 }
 
+get_server_port() {
+    config_file="${1:-config/application.yml}"
+    if [ ! -f "$config_file" ]; then
+        return 1
+    fi
+
+    port=$(awk '
+        /^[[:space:]]*#/ { next }
+        /^[[:space:]]*server:[[:space:]]*(#.*)?$/ { in_server = 1; next }
+        in_server && /^[^[:space:]]/ { in_server = 0 }
+        in_server && /^[[:space:]]+port:[[:space:]]*/ {
+            value = $0
+            sub(/^[[:space:]]*port:[[:space:]]*/, "", value)
+            sub(/[[:space:]]*(#.*)?$/, "", value)
+            gsub(/^[[:space:]]+|[[:space:]]+$/, "", value)
+            if (value ~ /^".*"$/) {
+                sub(/^"/, "", value)
+                sub(/"$/, "", value)
+            }
+            if (value ~ /^[0-9]+$/) {
+                print value
+                exit
+            }
+        }
+    ' "$config_file")
+    if [ -z "$port" ]; then
+        return 1
+    fi
+    echo "$port"
+}
+
 health_check() {
     get_pid
     if [ "$pid" = "" ]; then
@@ -412,19 +443,12 @@ health_check() {
         exit 1
     else
         if [ -d "/proc/${pid}" ]; then
-            ip_port=$(cat config/application.properties | grep server.port)
-            port=${ip_port##*=}
-
-            portLastLetter=${port:0-1}
-                case $portLastLetter in
-                [a-z]|[A-Z])
-                ;;
-                [0-9])
-                ;;
-                *)
-                    port=${port:0:-1}
-                ;;
-            esac
+            port=$(get_server_port)
+            if [ -z "$port" ]; then
+                echo "cannot read a numeric server.port from config/application.yml"
+                echo "${project_name} unhealthy"
+                exit 1
+            fi
 
             microService=${project_name##*-service-}
             url="http://localhost:${port}/${microService}/actuator/health"

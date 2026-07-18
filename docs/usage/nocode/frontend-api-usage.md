@@ -1,17 +1,17 @@
 # 零代码 HTTP 接口：前端使用说明
 
-本文面向前端调用方。接口的最终字段、枚举值、必填项与自定义业务接口以业务微服务提供的 OpenAPI / Knife4j 文档为准。
+本文面向前端调用方。接口的最终字段、枚举值、必填项与自定义业务接口以业务服务提供的 OpenAPI / Knife4j 文档为准。
 
 ## 1. 基础约定
 
 标准零代码接口的基础路径为：
 
 ```text
-/{serviceName}/{entityName}
+/{service}/{entity}
 ```
 
-- `serviceName`：微服务名称，例如 `attachment-service`。
-- `entityName`：实体名首字母小写，例如 `attachment`、`iconGroup`。
+- `service`：服务名称，例如 `attachment-service`。
+- `entity`：实体名首字母小写，例如 `attachment`、`iconGroup`。
 - 标准接口的成功响应为 `Resp<T>`；`data` 才是业务数据。
 - 业务自定义接口由其 `IXxxService` 方法的 `@http` 定义，路径与参数以 OpenAPI 文档为准。
 - `GET`、`DELETE` 的复杂查询条件使用 query 参数；`POST`、`PUT` 的实体或复杂对象使用 JSON body，除非 OpenAPI 标记为 `multipart/form-data`。
@@ -32,7 +32,7 @@
 
 ## 2. 标准接口
 
-下表中的 `{base}` 指 `/{serviceName}/{entityName}`。
+下表中的 `{base}` 指 `/{service}/{entity}`。
 
 ### 增
 
@@ -194,7 +194,7 @@ GET /attachment-service/iconGroup/criteria
 ## 6. 调用建议
 
 1. 优先从 Knife4j/OpenAPI 生成客户端或请求类型，避免手写实体字段。
-2. 标准 CRUD 使用本文路径；业务动作使用当前微服务 OpenAPI 的自定义路径。
+2. 标准 CRUD 使用本文路径；业务动作使用当前服务 OpenAPI 的自定义路径。
 3. 前端统一解包 `Resp.data`，统一处理 `success=false`。
 4. 对分页响应，以 API 文档中的分页结构为准；不要假设所有列表均分页。
 5. 需要展示格式化值时按需添加高级响应投影参数，避免在默认列表请求中增加不需要的字典查询开销。

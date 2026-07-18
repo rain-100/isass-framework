@@ -76,8 +76,8 @@ class HttpServerAdapterTest {
     void oneAdapterInvokesCustomMethodForEntity() throws Exception {
         IService service = mock(IService.class,
                 org.mockito.Mockito.withSettings().extraInterfaces(CustomApi.class));
-        when(service.serviceName()).thenReturn("attachment-service");
-        when(service.entityName()).thenReturn("icon");
+        when(service.service()).thenReturn("attachment-service");
+        when(service.entity()).thenReturn("icon");
         when(((CustomApi) service).findAvailableIcons(9L)).thenReturn("icons");
 
         OperationContract operation = new OperationContract(
@@ -107,8 +107,8 @@ class HttpServerAdapterTest {
     void queryParametersBindToCriteriaDefaultIdSetter() throws Exception {
         IService service = mock(IService.class,
                 org.mockito.Mockito.withSettings().extraInterfaces(CriteriaApi.class));
-        when(service.serviceName()).thenReturn("attachment-service");
-        when(service.entityName()).thenReturn("icon");
+        when(service.service()).thenReturn("attachment-service");
+        when(service.entity()).thenReturn("icon");
         when(((CriteriaApi) service).firstCriteriaConditionValueType(any(TestIconCriteria.class)))
                 .thenAnswer(invocation -> {
                     TestIconCriteria criteria = invocation.getArgument(0, TestIconCriteria.class);
@@ -145,8 +145,8 @@ class HttpServerAdapterTest {
     void multipartInputStreamAndFileStreamUseRawStreams() throws Exception {
         IService service = mock(IService.class,
                 org.mockito.Mockito.withSettings().extraInterfaces(StreamApi.class));
-        when(service.serviceName()).thenReturn("attachment-service");
-        when(service.entityName()).thenReturn("attachment");
+        when(service.service()).thenReturn("attachment-service");
+        when(service.entity()).thenReturn("attachment");
         when(((StreamApi) service).upload(any(InputStream.class))).thenAnswer(invocation ->
                 new String(invocation.getArgument(0, InputStream.class).readAllBytes()));
         when(((StreamApi) service).download()).thenReturn(new FileStream(
@@ -181,8 +181,8 @@ class HttpServerAdapterTest {
     void fileOperationReturnsEmptyNotFoundInsteadOfResp() throws Exception {
         IService service = mock(IService.class,
                 org.mockito.Mockito.withSettings().extraInterfaces(StreamApi.class));
-        when(service.serviceName()).thenReturn("attachment-service");
-        when(service.entityName()).thenReturn("attachment");
+        when(service.service()).thenReturn("attachment-service");
+        when(service.entity()).thenReturn("attachment");
         when(((StreamApi) service).download()).thenThrow(new FileNotFoundException("附件不存在"));
         OperationContract operation = new OperationContract(
                 "download", HttpMethod.GET, "/download", 301, true,
@@ -205,8 +205,8 @@ class HttpServerAdapterTest {
     void fileOperationReturnsEmptyServerErrorInsteadOfResp() throws Exception {
         IService service = mock(IService.class,
                 org.mockito.Mockito.withSettings().extraInterfaces(StreamApi.class));
-        when(service.serviceName()).thenReturn("attachment-service");
-        when(service.entityName()).thenReturn("attachment");
+        when(service.service()).thenReturn("attachment-service");
+        when(service.entity()).thenReturn("attachment");
         when(((StreamApi) service).download()).thenThrow(new IllegalStateException("storage unavailable"));
         OperationContract operation = new OperationContract(
                 "download", HttpMethod.GET, "/download", 301, true,
@@ -229,8 +229,8 @@ class HttpServerAdapterTest {
     void multipartFormFieldsBindToDtoAndDefaultFileNameToOriginalName() throws Exception {
         IService service = mock(IService.class,
                 org.mockito.Mockito.withSettings().extraInterfaces(MultipartApi.class));
-        when(service.serviceName()).thenReturn("attachment-service");
-        when(service.entityName()).thenReturn("attachment");
+        when(service.service()).thenReturn("attachment-service");
+        when(service.entity()).thenReturn("attachment");
         when(((MultipartApi) service).upload(any(UploadRequest.class), any(InputStream.class)))
                 .thenAnswer(invocation -> {
                     UploadRequest request = invocation.getArgument(0, UploadRequest.class);

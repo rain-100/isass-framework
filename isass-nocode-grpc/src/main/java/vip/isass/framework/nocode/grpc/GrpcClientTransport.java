@@ -40,7 +40,7 @@ public class GrpcClientTransport implements InvocationTransport {
 
     public boolean available(Invocation invocation) {
         ServiceContract service = contracts.requireService(
-                invocation.serviceName(), invocation.entityName());
+                invocation.service(), invocation.entity());
         OperationContract operation = service.operations().stream()
                 .filter(candidate -> candidate.name().equals(invocation.operationName()))
                 .findFirst().orElseThrow();
@@ -51,7 +51,7 @@ public class GrpcClientTransport implements InvocationTransport {
 
     public Object invoke(Invocation invocation) {
         ServiceContract service = contracts.requireService(
-                invocation.serviceName(), invocation.entityName());
+                invocation.service(), invocation.entity());
         OperationContract operation = service.operations().stream()
                 .filter(candidate -> candidate.name().equals(invocation.operationName()))
                 .findFirst()

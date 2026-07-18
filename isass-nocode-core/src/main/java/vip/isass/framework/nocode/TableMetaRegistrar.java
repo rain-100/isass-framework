@@ -263,8 +263,8 @@ public class TableMetaRegistrar
             return custom;
         }
         String prefix = TablePrefixUtil.get(deriveServiceName(entityClass));
-        String entityName = deriveEntityName(entityClass);
-        return prefix + StrUtil.toUnderlineCase(entityName).toLowerCase();
+        String entity = deriveEntityName(entityClass);
+        return prefix + StrUtil.toUnderlineCase(entity).toLowerCase();
     }
 
     /**

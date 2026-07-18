@@ -59,8 +59,8 @@ public class ServiceProxyRegistrar implements BeanFactoryPostProcessor, BeanClas
         String beanName = "nocodeRemoteServiceProxy." + contract.serviceInterface();
         if (registry.containsBeanDefinition(beanName)) {
             throw new IllegalStateException("Duplicate remote nocode proxy for "
-                    + contract.serviceInterface() + " (" + contract.serviceName() + "/"
-                    + contract.entityName() + ")");
+                    + contract.serviceInterface() + " (" + contract.service() + "/"
+                    + contract.entity() + ")");
         }
         RootBeanDefinition definition = new RootBeanDefinition(ServiceProxyFactoryBean.class);
         definition.getPropertyValues().add("serviceInterface", serviceInterface);
@@ -73,14 +73,14 @@ public class ServiceProxyRegistrar implements BeanFactoryPostProcessor, BeanClas
             Class<?> type = Class.forName(contract.serviceInterface(), false, classLoader);
             if (!type.isInterface() || !IService.class.isAssignableFrom(type)) {
                 throw new IllegalStateException("Invalid nocode service interface "
-                        + contract.serviceInterface() + " for " + contract.serviceName() + "/"
-                        + contract.entityName() + ": it must be an IService interface");
+                        + contract.serviceInterface() + " for " + contract.service() + "/"
+                        + contract.entity() + ": it must be an IService interface");
             }
             return type;
         } catch (ClassNotFoundException exception) {
             throw new IllegalStateException("Cannot load nocode service interface "
-                    + contract.serviceInterface() + " for " + contract.serviceName() + "/"
-                    + contract.entityName() + "; add the matching V4 API dependency", exception);
+                    + contract.serviceInterface() + " for " + contract.service() + "/"
+                    + contract.entity() + "; add the matching V4 API dependency", exception);
         }
     }
 

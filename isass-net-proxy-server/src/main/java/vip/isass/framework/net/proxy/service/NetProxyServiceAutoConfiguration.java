@@ -178,7 +178,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import vip.isass.framework.net.core.handler.IMessageEventRegister;
-import vip.isass.framework.net.core.message.Message;
 import vip.isass.framework.net.core.session.ISessionService;
 import vip.isass.framework.net.proxy.core.CmdRedisService;
 import vip.isass.framework.net.proxy.service.controller.NetMessageSenderController;
@@ -223,7 +222,7 @@ public class NetProxyServiceAutoConfiguration {
     }
 
     @Bean
-    GatewayToRedisMessageService gatewayToRedisMessageService(RedisTemplate<String, Message> redisTemplate) {
+    GatewayToRedisMessageService gatewayToRedisMessageService(RedisTemplate<String, Object> redisTemplate) {
         return new GatewayToRedisMessageService(redisTemplate);
     }
 
@@ -233,7 +232,7 @@ public class NetProxyServiceAutoConfiguration {
     }
 
     @Bean
-    RemoveC2SMessageService removeC2SMessageService(RedisTemplate<String, Message> redisTemplate) {
+    RemoveC2SMessageService removeC2SMessageService(RedisTemplate<String, Object> redisTemplate) {
         return new RemoveC2SMessageService(redisTemplate);
     }
 

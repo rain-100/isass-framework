@@ -19,6 +19,6 @@ public class HttpRemoteTransportProvider implements RemoteTransportProvider {
 
     @Override
     public List<InvocationTransport> transports(ServiceContract contract) {
-        return endpoints.resolve(contract.serviceName()) == null ? List.of() : List.of(transport);
+        return endpoints.resolve(contract.service()) == null ? List.of() : List.of(transport);
     }
 }

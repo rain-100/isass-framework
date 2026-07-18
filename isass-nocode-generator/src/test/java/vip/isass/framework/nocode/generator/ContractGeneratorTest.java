@@ -113,7 +113,7 @@ class ContractGeneratorTest {
                 output.resolve("META-INF/isass/nocode-contract.json").toFile(),
                 ContractDocument.class);
         assertEquals(1, document.services().size());
-        assertEquals("attachment", document.services().getFirst().entityName());
+        assertEquals("attachment", document.services().getFirst().entity());
         assertEquals("Attachment", document.types().getFirst().schemaName());
         assertEquals("原始文件名", document.types().getFirst().properties().getFirst().description());
     }

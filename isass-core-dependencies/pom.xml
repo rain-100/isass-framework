@@ -1072,7 +1072,7 @@
                     <artifactId>smart-doc-maven-plugin</artifactId>
                     <version>${smart-doc.version}</version>
                     <configuration>
-                        <configFile>${project.basedir}/src/main/resources/smart-doc.json</configFile>
+                        <configFile>${project.build.outputDirectory}/isass/smart-doc.json</configFile>
                     </configuration>
                     <executions>
                         <execution>
@@ -1081,6 +1081,25 @@
                             <goals>
                                 <!--smart-doc提供了html、openapi、markdown等goal，可按需配置-->
                                 <goal>openapi</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+
+                <!--
+                    业务服务显式声明该插件后，生成仅扫描本服务源码的 smart-doc 配置。
+                    仅在 pluginManagement 中管理，避免框架库模块自身执行该生成目标。
+                 -->
+                <plugin>
+                    <groupId>vip.isass</groupId>
+                    <artifactId>isass-nocode-generator</artifactId>
+                    <version>${isass.version}</version>
+                    <executions>
+                        <execution>
+                            <id>generate-smart-doc-config</id>
+                            <phase>generate-resources</phase>
+                            <goals>
+                                <goal>generate-smart-doc-config</goal>
                             </goals>
                         </execution>
                     </executions>

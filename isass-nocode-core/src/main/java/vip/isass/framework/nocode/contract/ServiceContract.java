@@ -5,8 +5,8 @@ import java.util.List;
 import java.util.Set;
 
 public record ServiceContract(
-        String serviceName,
-        String entityName,
+        String service,
+        String entity,
         String serviceInterface,
         String entityJavaType,
         String criteriaJavaType,
@@ -14,8 +14,8 @@ public record ServiceContract(
         List<OperationContract> operations
 ) {
     public ServiceContract {
-        serviceName = requireText(serviceName, "serviceName");
-        entityName = requireText(entityName, "entityName");
+        service = requireText(service, "service");
+        entity = requireText(entity, "entity");
         serviceInterface = requireText(serviceInterface, "serviceInterface");
         entityJavaType = requireText(entityJavaType, "entityJavaType");
         criteriaJavaType = requireText(criteriaJavaType, "criteriaJavaType");
@@ -24,10 +24,10 @@ public record ServiceContract(
         validateUniqueOperations(operations);
     }
 
-    public ServiceContract(String serviceName, String entityName, String serviceInterface,
+    public ServiceContract(String service, String entity, String serviceInterface,
                              String entityJavaType, String criteriaJavaType,
                              List<OperationContract> operations) {
-        this(serviceName, entityName, serviceInterface, entityJavaType, criteriaJavaType,
+        this(service, entity, serviceInterface, entityJavaType, criteriaJavaType,
                 serviceInterface, operations);
     }
 

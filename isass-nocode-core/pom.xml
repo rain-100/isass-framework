@@ -48,18 +48,6 @@
             <artifactId>mybatis-plus-spring-boot4-starter</artifactId>
         </dependency>
 
-        <!-- MyBatis-Plus Generator (for code generation) -->
-        <dependency>
-            <groupId>com.baomidou</groupId>
-            <artifactId>mybatis-plus-generator</artifactId>
-        </dependency>
-
-        <!-- Freemarker (for code generation templates) -->
-        <dependency>
-            <groupId>org.freemarker</groupId>
-            <artifactId>freemarker</artifactId>
-        </dependency>
-
         <dependency>
             <groupId>com.baomidou</groupId>
             <artifactId>mybatis-plus-jsqlparser-4.9</artifactId>

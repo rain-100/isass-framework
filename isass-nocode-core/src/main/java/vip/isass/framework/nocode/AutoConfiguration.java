@@ -3,6 +3,7 @@ package vip.isass.framework.nocode;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import vip.isass.framework.nocode.service.IService;
+import vip.isass.framework.nocode.service.ILocalService;
 import vip.isass.framework.nocode.transport.ServiceProxyRegistrar;
 
 import java.util.List;
@@ -11,12 +12,14 @@ import java.util.List;
 public class AutoConfiguration {
 
     /**
-     * nocode 服务注册表：启动时扫描所有 {@link IService} Bean，构建 entityName → IService 映射。
+     * nocode 服务注册表：启动时仅扫描本地 {@link ILocalService} Bean，构建 entity → IService 映射。
+     * 远程 {@link IService} 代理属于调用方能力，不能作为本服务的 HTTP/gRPC 服务端合同注册；
+     * 否则动态代理没有可反射的实体泛型，会在启动时解析失败。
      * 注意：表元数据 {@link TableMeta} 由 {@link TableMetaRegistrar} 在 BDRPP 阶段独立完成，
      * 不依赖本 Bean 的初始化时机，避免与 {@code SqlSessionFactory} 的创建顺序冲突。
      */
     @Bean
-    public ServiceRegistry ServiceRegistry(List<IService<?, ?>> services) {
+    public ServiceRegistry ServiceRegistry(List<ILocalService<?, ?>> services) {
         return new ServiceRegistry(services);
     }
 

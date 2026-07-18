@@ -15,8 +15,8 @@ public final class RuntimeContractFactory {
         List<ServiceContract> contracts = new ArrayList<>();
         for (IService<?, ?> service : registry.all()) {
             contracts.add(new ServiceContract(
-                    service.serviceName(),
-                    service.entityName(),
+                    service.service(),
+                    service.entity(),
                     serviceInterface(service).getName(),
                     service.entityClass().getName(),
                     service.criteriaClass().getName(),

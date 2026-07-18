@@ -11,16 +11,17 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * nocode 服务注册表：启动时扫描所有 IService Bean，构建 entityName → IService 映射。
+ * nocode 服务注册表：启动时扫描所有 IService Bean，构建 entity → IService 映射。
  */
 public class ServiceRegistry {
 
     private final Map<String, IService<?, ?>> services;
 
-    public ServiceRegistry(List<IService<?, ?>> services) {
+    @SuppressWarnings("rawtypes")
+    public ServiceRegistry(List<? extends IService> services) {
         Map<String, IService<?, ?>> map = new LinkedHashMap<>();
-        for (IService<?, ?> service : services) {
-            String name = service.entityName();
+        for (IService service : services) {
+            String name = service.entity();
             IService<?, ?> existing = map.putIfAbsent(name, service);
             if (existing != null) {
                 throw new IllegalStateException(
@@ -36,27 +37,27 @@ public class ServiceRegistry {
         return services.values();
     }
 
-    /** 根据 entityName 查找对应的实体 Class */
-    public Class<?> entityClass(String entityName) {
-        IService<?, ?> service = services.get(entityName);
+    /** 根据 entity 查找对应的实体 Class */
+    public Class<?> entityClass(String entity) {
+        IService<?, ?> service = services.get(entity);
         return service != null ? service.entityClass() : null;
     }
 
     /**
-     * 根据 serviceName 和 entityName 查找并校验 IService。
+     * 根据 service 和 entity 查找并校验 IService。
      *
-     * @throws ResponseStatusException 404 如果 entity 不存在或 serviceName 不匹配
+     * @throws ResponseStatusException 404 如果 entity 不存在或 service 不匹配
      */
-    public IService<?, ?> require(String serviceName, String entityName) {
-        IService<?, ?> service = services.get(entityName);
-        if (service == null) {
+    public IService<?, ?> require(String service, String entity) {
+        IService<?, ?> localService = services.get(entity);
+        if (localService == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-                    "Unknown entity: " + entityName);
+                    "Unknown entity: " + entity);
         }
-        if (!Objects.equals(serviceName, service.serviceName())) {
+        if (!Objects.equals(service, localService.service())) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-                    "Entity '" + entityName + "' does not belong to service '" + serviceName + "'");
+                    "Entity '" + entity + "' does not belong to service '" + service + "'");
         }
-        return service;
+        return localService;
     }
 }

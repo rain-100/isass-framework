@@ -64,10 +64,7 @@ public class XxxServiceLiquibaseConfiguration extends AbstractLiquibaseConfigura
 
 ```text
 src/main/resources/db/changelog/xxx/
-  ├── db.changelog-master.yaml
-  └── changes/
-      ├── 1.0.0-init.yaml
-      └── 3.4.0.1-update.yaml
+  └── db.changelog-master.yaml
 ```
 
 `xxx` 必须与 `getServiceName()` 返回值一致。
@@ -82,7 +79,6 @@ spring:
     database-change-log-table: DATABASECHANGELOG
     database-change-log-lock-table: DATABASECHANGELOGLOCK
     contexts: dev
-    label-filter: mysql
 ```
 
 框架会把示例中的 `change-log` 解析为：
@@ -128,7 +124,15 @@ xxx_DATABASECHANGELOGLOCK
 | `spring.liquibase.clear-checksums` | 是否清理 checksum |
 | `spring.liquibase.rollback-file` | 输出 rollback SQL 文件 |
 
-## 4. 常见问题
+## 4. 变更集边界：只写 DDL
+
+Liquibase changelog 只管理数据库结构演进：表、字段、索引、约束、注释以及经过安全校验的旧表改名。
+禁止在 changelog 或其 `sqlFile` 中写业务数据 `INSERT`、初始化字典、行政区划、演示数据或外部数据同步。
+
+这类数据必须由独立、可重复执行且可审计的导入任务处理，并明确记录数据来源、版本、操作者和导入结果。
+不要为了“启动后立即有数据”而把数据文件重新加入 Liquibase。
+
+## 5. 常见问题
 
 ### changelog 不在预期目录
 

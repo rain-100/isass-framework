@@ -1061,7 +1061,7 @@ export default {
       this.updateScriptFromCache(cacheApi);
       this.updateHeaderFromCacheApi(cacheApi);
       this.initOneOf(cacheApi);
-      this.initV3ServiceNameOptions();
+      this.initNocodeServiceOptions();
       this.hideDynamicParameterTable();
       // console.log(this.urlFormData);
     },
@@ -1106,7 +1106,7 @@ export default {
         this.rawText = option.requestValue;
       }
       if (KUtils.strNotBlank(option.entityName)) {
-        var entityParameter = this.api.oneOfEntityParameter || 'entityName';
+        var entityParameter = this.api.oneOfEntityParameter || 'entity';
         [this.formData, this.urlFormData, this.rawFormData].forEach(forms => {
           var entityForm = forms.find(form => form.name == entityParameter);
           if (KUtils.checkUndefined(entityForm)) {
@@ -1136,9 +1136,9 @@ export default {
       this.urlFormData = this.criteriaAllUrlFormData.filter(filter);
       this.rawFormData = this.criteriaAllRawFormData.filter(filter);
     },
-    initV3ServiceNameOptions() {
+    initNocodeServiceOptions() {
       var apiUrl = (this.api.originalUrl || this.api.url || '');
-      if (!apiUrl.includes('{serviceName}') || !apiUrl.includes('/v3')) {
+      if (!apiUrl.includes('{service}') || !apiUrl.includes('{entity}')) {
         return;
       }
       var options = (this.$store.state.globals.serviceOptions || []).map(option => ({
@@ -1150,7 +1150,7 @@ export default {
       }
       var currentService = this.swaggerInstance.name;
       [this.formData, this.urlFormData, this.rawFormData].forEach(forms => {
-        var serviceForm = forms.find(form => form.name == 'serviceName');
+        var serviceForm = forms.find(form => form.name == 'service');
         if (KUtils.checkUndefined(serviceForm)) {
           serviceForm.enums = options;
           serviceForm.enumsMode = 'default';

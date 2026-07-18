@@ -28,6 +28,10 @@ proto/<application>-nocode.proto
 
 契约生成器读取 `IXxxService`、实体源码和 Javadoc。实体字段无需增加 Swagger、Schema 或其他描述注解。
 
+IDE 启动服务前必须执行 Maven 生命周期至少到 `compile`（或直接执行 `generate-resources`）；不要只使用 IDE 的
+Java 编译器。后者不会执行 Maven 插件，`META-INF/isass/nocode-contract.json` 缺失时，服务会在启动阶段明确失败。
+建议在 IDEA 中将 Build/Run 委托给 Maven，或在对应启动配置的 Before launch 中添加 Maven `compile`。
+
 文档服务通过 `OpenApiEnhancerSpi`：
 
 1. 读取 Smart-Doc 的手写接口文档；
@@ -38,7 +42,7 @@ proto/<application>-nocode.proto
 标准接口统一路径为：
 
 ```text
-/{serviceName}/{entityName}
+/{service}/{entity}
 ```
 
 自定义业务接口使用所属 `IXxxService` 的完整业务路径，例如：

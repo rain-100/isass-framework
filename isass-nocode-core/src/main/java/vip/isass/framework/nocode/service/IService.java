@@ -223,12 +223,12 @@ public interface IService<E extends IEntity<E>, C extends ICriteria<E, C>> {
         return (Class<C>) serviceTypeArgs()[1];
     }
 
-    default String entityName() {
+    default String entity() {
         String name = entityClass().getSimpleName();
         return Character.toLowerCase(name.charAt(0)) + name.substring(1);
     }
 
-    default String serviceName() {
+    default String service() {
         String pkg = entityClass().getPackageName();
         String[] parts = pkg.split("\\.");
         return parts.length >= 3 ? parts[2] + "-service" : "unknown";

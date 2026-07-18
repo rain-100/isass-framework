@@ -15,6 +15,7 @@ import vip.isass.framework.nocode.contract.ParameterContract;
 import vip.isass.framework.nocode.contract.ParameterSource;
 import vip.isass.framework.nocode.contract.ServiceContract;
 import vip.isass.framework.nocode.transport.Invocation;
+import vip.isass.framework.nocode.transport.TransportInvocationException;
 
 import java.net.URI;
 import java.util.List;
@@ -22,6 +23,8 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.content;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
@@ -74,13 +77,17 @@ class HttpClientTransportTest {
                 "example.Icon", "example.IconCriteria", List.of(operation));
         HttpClientTransport transport = new HttpClientTransport(
                 exchange,
-                serviceName -> URI.create("https://asset.example"),
+                service -> URI.create("https://asset.example"),
                 new ContractRegistry(List.of(contract)),
                 objectMapper);
 
         Object result = transport.invoke(new Invocation(
                 "asset-service", "icon", "create",
-                List.of(9L, Map.of("tag", "blue", "ids", List.of(1, 2)), Map.of("name", "new icon")),
+                List.of(9L, Map.of(
+                        "tag", "blue",
+                        "ids", List.of(1, 2),
+                        "whereConditions", List.of(Map.of("propertyName", "tag", "value", "blue"))),
+                        Map.of("name", "new icon")),
                 false));
 
         assertEquals("created", result);
@@ -88,6 +95,28 @@ class HttpClientTransportTest {
         assertEquals(URI.create("https://asset.example/asset-service/icon/items/9"), uri.get());
         assertEquals(List.of("blue"), query.get().get("tag"));
         assertEquals(List.of("1", "2"), query.get().get("ids"));
+        assertNull(query.get().get("whereConditions"));
         assertEquals(Map.of("name", "new icon"), body.get());
+    }
+
+    @Test
+    void rejectsRemoteBusinessFailureInsteadOfReturningNullData() throws Exception {
+        ObjectMapper objectMapper = new ObjectMapper();
+        OperationContract operation = new OperationContract(
+                "find", vip.isass.framework.nocode.contract.HttpMethod.GET, "/criteria",
+                1, true, List.of(), String.class.getName(), "查询");
+        ServiceContract contract = new ServiceContract(
+                "asset-service", "icon", "example.IconService",
+                "example.Icon", "example.IconCriteria", List.of(operation));
+        HttpClientTransport transport = new HttpClientTransport(
+                (method, uri, query, body) -> objectMapper.readTree(
+                        "{\"success\":false,\"message\":\"criteria invalid\",\"data\":null}"),
+                service -> URI.create("https://asset.example"),
+                new ContractRegistry(List.of(contract)), objectMapper);
+
+        TransportInvocationException exception = assertThrows(TransportInvocationException.class,
+                () -> transport.invoke(new Invocation("asset-service", "icon", "find", List.of(), true)));
+
+        assertEquals("HTTP invocation failed: asset-service/icon#find: criteria invalid", exception.getMessage());
     }
 }

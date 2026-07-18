@@ -184,9 +184,9 @@ import java.util.Map;
  */
 public class GatewayToRedisMessageService {
 
-    private final RedisTemplate<String, Message> redisTemplate;
+    private final RedisTemplate<String, Object> redisTemplate;
 
-    public GatewayToRedisMessageService(RedisTemplate<String, Message> redisTemplate) {
+    public GatewayToRedisMessageService(RedisTemplate<String, Object> redisTemplate) {
         this.redisTemplate = redisTemplate;
     }
 

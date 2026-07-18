@@ -12,7 +12,7 @@ public class ContractRegistry {
     public ContractRegistry(List<ServiceContract> contracts) {
         Map<String, ServiceContract> indexed = new LinkedHashMap<>();
         for (ServiceContract contract : contracts) {
-            String key = key(contract.serviceName(), contract.entityName());
+            String key = key(contract.service(), contract.entity());
             if (indexed.putIfAbsent(key, contract) != null) {
                 throw new IllegalArgumentException("Duplicate  service contract: " + key);
             }
@@ -20,10 +20,10 @@ public class ContractRegistry {
         this.services = Map.copyOf(indexed);
     }
 
-    public ServiceContract requireService(String serviceName, String entityName) {
-        ServiceContract contract = services.get(key(serviceName, entityName));
+    public ServiceContract requireService(String service, String entity) {
+        ServiceContract contract = services.get(key(service, entity));
         if (contract == null) {
-            throw new IllegalArgumentException("Unknown  service: " + serviceName + "/" + entityName);
+            throw new IllegalArgumentException("Unknown  service: " + service + "/" + entity);
         }
         return contract;
     }
@@ -33,13 +33,13 @@ public class ContractRegistry {
     }
 
     public OperationContract requireOperation(
-            String serviceName,
-            String entityName,
+            String service,
+            String entity,
             HttpMethod method,
             String relativePath
     ) {
         String normalized = relativePath.startsWith("/") ? relativePath : "/" + relativePath;
-        return requireService(serviceName, entityName).operations().stream()
+        return requireService(service, entity).operations().stream()
                 .filter(operation -> operation.httpMethod() == method)
                 .filter(operation -> RouteMatcher.matches(operation.path(), normalized))
                 .sorted(Comparator
@@ -80,7 +80,7 @@ public class ContractRegistry {
         return trimmed.isEmpty() ? List.of() : List.of(trimmed.split("/"));
     }
 
-    private String key(String serviceName, String entityName) {
-        return serviceName + '\n' + entityName;
+    private String key(String service, String entity) {
+        return service + '\n' + entity;
     }
 }

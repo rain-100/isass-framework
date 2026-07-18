@@ -41,7 +41,7 @@ public class GrpcServerAdapter {
             ServiceContract contract,
         GrpcInvocationHandler invocationHandler
     ) {
-        String serviceName = GrpcDescriptors.serviceName(contract);
+        String service = GrpcDescriptors.service(contract);
         Map<OperationContract, MethodDescriptor<byte[], byte[]>> descriptors = new LinkedHashMap<>();
         for (OperationContract operation : contract.operations()) {
             descriptors.put(operation, isFileOperation(operation)
@@ -49,7 +49,7 @@ public class GrpcServerAdapter {
                     : GrpcDescriptors.method(contract, operation));
         }
         ServerServiceDefinition.Builder builder = ServerServiceDefinition.builder(
-                new ServiceDescriptor(serviceName, List.copyOf(descriptors.values())));
+                new ServiceDescriptor(service, List.copyOf(descriptors.values())));
         for (Map.Entry<OperationContract, MethodDescriptor<byte[], byte[]>> entry : descriptors.entrySet()) {
             OperationContract operation = entry.getKey();
             if (isFileOperation(operation)) {

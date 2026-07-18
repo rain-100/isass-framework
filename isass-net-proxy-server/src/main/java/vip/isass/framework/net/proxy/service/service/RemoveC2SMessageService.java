@@ -177,7 +177,6 @@ import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import vip.isass.framework.common.support.LocalDateTimeUtil;
 import vip.isass.framework.net.core.NetRedisKey;
-import vip.isass.framework.net.core.message.Message;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -190,9 +189,9 @@ import java.util.Set;
  */
 public class RemoveC2SMessageService {
 
-    private final RedisTemplate<String, Message> redisTemplate;
+    private final RedisTemplate<String, Object> redisTemplate;
 
-    public RemoveC2SMessageService(RedisTemplate<String, Message> redisTemplate) {
+    public RemoveC2SMessageService(RedisTemplate<String, Object> redisTemplate) {
         this.redisTemplate = redisTemplate;
     }
 

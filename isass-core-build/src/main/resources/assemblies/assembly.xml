@@ -176,11 +176,11 @@
     </formats>
     <includeBaseDirectory>false</includeBaseDirectory>
     <dependencySets>
-        <!-- 把 super-core-deploy 项目的 resources/deploy 目录文件复制到压缩包中 -->
+        <!-- 把 isass-core-build 模块的通用部署说明和 Windows 脚本复制到压缩包中 -->
         <dependencySet>
             <outputDirectory>${project.artifactId}</outputDirectory>
             <includes>
-                <include>vip.isass:super-core-deploy</include>
+                <include>vip.isass:isass-core-build</include>
             </includes>
             <unpack>true</unpack>
             <unpackOptions>
@@ -199,7 +199,7 @@
         <dependencySet>
             <outputDirectory>${project.artifactId}</outputDirectory>
             <includes>
-                <include>vip.isass:super-core-deploy</include>
+                <include>vip.isass:isass-core-build</include>
             </includes>
             <unpack>true</unpack>
             <unpackOptions>
@@ -210,11 +210,11 @@
             </unpackOptions>
         </dependencySet>
 
-        <!-- 把 super-core-deploy 项目的脚本文件目录文件复制到压缩包中，并赋予可执行权限 -->
+        <!-- 把 isass-core-build 模块的 Linux 脚本复制到压缩包中，并赋予可执行权限 -->
         <dependencySet>
             <outputDirectory>${project.artifactId}</outputDirectory>
             <includes>
-                <include>vip.isass:super-core-deploy</include>
+                <include>vip.isass:isass-core-build</include>
             </includes>
             <fileMode>0755</fileMode>
             <unpack>true</unpack>
