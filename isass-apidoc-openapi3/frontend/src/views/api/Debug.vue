@@ -1141,23 +1141,48 @@ export default {
       if (!apiUrl.includes('{service}') || !apiUrl.includes('{entity}')) {
         return;
       }
-      var options = (this.$store.state.globals.serviceOptions || []).map(option => ({
+      var serviceOptions = (this.$store.state.globals.serviceOptions || []).map(option => ({
         label: option.label,
         value: option.label
       }));
-      if (options.length == 0) {
+      var entityOptions = this.api.criteriaOptions || [];
+      if (serviceOptions.length == 0 && entityOptions.length == 0) {
         return;
       }
       var currentService = this.swaggerInstance.name;
+      var selectedEntity = null;
       [this.formData, this.urlFormData, this.rawFormData].forEach(forms => {
         var serviceForm = forms.find(form => form.name == 'service');
-        if (KUtils.checkUndefined(serviceForm)) {
-          serviceForm.enums = options;
+        if (KUtils.checkUndefined(serviceForm) && serviceOptions.length > 0) {
+          serviceForm.enums = serviceOptions;
           serviceForm.enumsMode = 'default';
           serviceForm.content = currentService;
           serviceForm.value = currentService;
         }
+        var entityForm = forms.find(form => form.name == (this.api.oneOfEntityParameter || 'entity'));
+        if (KUtils.checkUndefined(entityForm) && entityOptions.length > 0) {
+          entityForm.enums = entityOptions;
+          entityForm.enumsMode = 'default';
+          var entityValue = entityOptions.some(option => option.value == entityForm.content)
+            ? entityForm.content
+            : entityOptions[0].value;
+          entityForm.content = entityValue;
+          entityForm.value = entityValue;
+          selectedEntity = entityValue;
+        }
       });
+      if (selectedEntity != null) {
+        this.filterCriteriaParameters(selectedEntity);
+      }
+    },
+    syncNocodeEntitySelection(record, entityName) {
+      var criteriaParameterNames = this.api.criteriaParameterNames || {};
+      if (!record
+        || record.name != (this.api.oneOfEntityParameter || 'entity')
+        || Object.keys(criteriaParameterNames).length == 0) {
+        return;
+      }
+      this.filterCriteriaParameters(entityName);
     },
     hideDynamicParameterTable() {
       // 如果当前确定未开启动态参数调试,且参数为0的情况下,关闭table 的参数显示
@@ -1949,6 +1974,7 @@ export default {
         });
       }
       this.initFormSelections(record.id);
+      this.syncNocodeEntitySelection(record, formValue);
     },
     formContentEnumChange(formValue, option) {
       // console.log(option);
@@ -2043,6 +2069,7 @@ export default {
         });
       }
       this.initRawFormSelections(record.id);
+      this.syncNocodeEntitySelection(record, formValue);
     },
     rawFormContentEnumChange(formValue, option) {
       var formId = option.context.$attrs["data-key"];
@@ -2073,6 +2100,7 @@ export default {
         });
       }
       this.initUrlFormSelections(record.id);
+      this.syncNocodeEntitySelection(record, formValue);
     },
     urlFormContentEnumChange(formValue, option) {
       if (KUtils.checkUndefined(option)) {

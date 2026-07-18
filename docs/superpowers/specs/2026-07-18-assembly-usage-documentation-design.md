@@ -8,7 +8,7 @@
 ## 范围
 
 - 说明父 POM 已将 `maven-assembly-plugin` 的 `assembly` 描述符绑定到 `package` 阶段。
-- 给出与 `bsp-boot` 一致的插件依赖配置。
+- 给出与修正后的 `bsp-boot` 一致的项目依赖和插件依赖配置。
 - 说明项目不维护 `src/assembly/deployment.xml`，统一复用 `isass-core-build` 的部署清单。
 - 说明 `mvn -pl <boot-module> -am package` 的打包方式和生成文件名。
 - 展示标准部署包目录：可执行 JAR、`config/`、`lib/`、脚本、`git.properties` 与部署说明。

@@ -123,13 +123,17 @@ Content-Type: multipart/form-data
 
 前端应使用浏览器下载、`blob` 或流式读取处理这类接口，而不是按 JSON 解析。
 
-## 5. 高级响应投影
+## 5. 高级响应格式化
 
-高级响应投影只影响 JSON 响应展示，不改变数据库数据，也不影响 gRPC、本地 service 调用或文件流接口。
+查询接口支持高级响应格式化功能。通过 query 参数按字段声明，可单独或组合使用；格式化结果会在原值之外增加 `{字段名}Text`，方便页面直接展示。
 
-三种投影都通过 query 参数按字段声明，并在原值之外增加 `{字段名}Text`。可单独或组合使用。
+支持以下三项功能：
 
-### 5.1 日期格式化：`dateFormat.{字段名}`
+1. 日期时间字段格式化：`dateFormat.{字段名}`。
+2. 小数保留位数：`decimalPlaces.{字段名}`。
+3. 字典翻译：`dictTranslation.{字段名}`。
+
+### 5.1 日期时间字段格式化：`dateFormat.{字段名}`
 
 用于把日期、时间、时间戳字段转换为页面直接展示的日期文本，原字段保留，便于前端直接展示。
 
@@ -146,7 +150,7 @@ GET /attachment-service/iconGroup/criteria?dateFormat.createTime=yyyy-MM-dd
 
 日期格式遵循服务端日期格式规则，例如 `yyyy-MM-dd`、`yyyy-MM-dd HH:mm:ss`。
 
-### 5.2 小数格式化：`decimalPlaces.{字段名}`
+### 5.2 小数保留位数：`decimalPlaces.{字段名}`
 
 用于按指定小数位展示金额、数量、比例等数值。原数值保持精度不变，`Text` 字段是页面展示用的格式化值。
 
@@ -197,4 +201,4 @@ GET /attachment-service/iconGroup/criteria
 2. 标准 CRUD 使用本文路径；业务动作使用当前服务 OpenAPI 的自定义路径。
 3. 前端统一解包 `Resp.data`，统一处理 `success=false`。
 4. 对分页响应，以 API 文档中的分页结构为准；不要假设所有列表均分页。
-5. 需要展示格式化值时按需添加高级响应投影参数，避免在默认列表请求中增加不需要的字典查询开销。
+5. 需要展示格式化值时按需添加高级响应格式化参数，避免在默认列表请求中增加不需要的字典查询开销。

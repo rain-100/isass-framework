@@ -4391,10 +4391,6 @@ SwaggerBootstrapUi.prototype.initApiInfoAsyncOAS3 = function (swpinfo) {
         entityName: entityName,
         requestValue: null
       }));
-      if (!KUtils.arrNotEmpty(swpinfo.oneOfOptions)) {
-        swpinfo.oneOfOptions = swpinfo.criteriaOptions;
-        swpinfo.oneOfSelected = swpinfo.criteriaOptions[0].value;
-      }
     }
     let oa3Data = that.currentInstance.swaggerData;
     let refParameterObject = oa3Data['components']['parameters'];
