@@ -3,6 +3,7 @@ package vip.isass.framework.nocode;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 import vip.isass.framework.nocode.service.IService;
+import vip.isass.framework.nocode.service.ILocalApplicationService;
 
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -16,10 +17,20 @@ import java.util.Objects;
 public class ServiceRegistry {
 
     private final Map<String, IService<?, ?>> services;
+    private final Map<String, Object> endpoints;
 
     @SuppressWarnings("rawtypes")
-    public ServiceRegistry(List<? extends IService> services) {
+    public ServiceRegistry(java.util.Collection<? extends IService> services) {
+        this(services, List.of());
+    }
+
+    @SuppressWarnings("rawtypes")
+    public ServiceRegistry(
+            java.util.Collection<? extends IService> services,
+            java.util.Collection<? extends ILocalApplicationService> applicationServices
+    ) {
         Map<String, IService<?, ?>> map = new LinkedHashMap<>();
+        Map<String, Object> endpointMap = new LinkedHashMap<>();
         for (IService service : services) {
             String name = service.entity();
             IService<?, ?> existing = map.putIfAbsent(name, service);
@@ -29,8 +40,13 @@ public class ServiceRegistry {
                                 + existing.getClass().getName() + " and "
                                 + service.getClass().getName());
             }
+            register(endpointMap, service.service(), name, service);
+        }
+        for (ILocalApplicationService service : applicationServices) {
+            register(endpointMap, service.service(), service.entity(), service);
         }
         this.services = map;
+        this.endpoints = endpointMap;
     }
 
     public Collection<IService<?, ?>> all() {
@@ -48,16 +64,25 @@ public class ServiceRegistry {
      *
      * @throws ResponseStatusException 404 如果 entity 不存在或 service 不匹配
      */
-    public IService<?, ?> require(String service, String entity) {
-        IService<?, ?> localService = services.get(entity);
+    public Object require(String service, String entity) {
+        Object localService = endpoints.get(endpointKey(service, entity));
         if (localService == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-                    "Unknown entity: " + entity);
-        }
-        if (!Objects.equals(service, localService.service())) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-                    "Entity '" + entity + "' does not belong to service '" + service + "'");
+                    "Unknown nocode endpoint: " + service + "/" + entity);
         }
         return localService;
+    }
+
+    private void register(Map<String, Object> endpoints, String service, String entity, Object endpoint) {
+        String key = endpointKey(service, entity);
+        Object existing = endpoints.putIfAbsent(key, endpoint);
+        if (existing != null) {
+            throw new IllegalStateException("Duplicate nocode endpoint '" + service + "/" + entity + "': "
+                    + existing.getClass().getName() + " and " + endpoint.getClass().getName());
+        }
+    }
+
+    private String endpointKey(String service, String entity) {
+        return service + "\u0000" + entity;
     }
 }

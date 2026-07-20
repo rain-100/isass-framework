@@ -9,7 +9,7 @@ import vip.isass.framework.nocode.service.IService;
 
 /**
  * <p>
- * <#if table.comment??>${table.comment}<#else>${table.name}</#if> 服务接口
+ * <#if table.comment??>${table.comment}<#else>${table.name}</#if> 应用服务接口
  * </p>
  *
  * @author ${author}
@@ -24,6 +24,7 @@ public interface I${entity}Service extends IService<${entity}, ${entity}Criteria
     String URI_FIRST_PART = ServiceInfo.SERVICE_URL_PREFIX + URI_SECOND_PART;
 
     // region 新业务方法
+    // 自定义方法必须编写 JavaDoc，并声明 @http METHOD /path；ContractGenerator 会据此生成接口契约与文档。
 
     // endregion
 

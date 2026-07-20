@@ -11,6 +11,7 @@ import org.springframework.core.PriorityOrdered;
 import vip.isass.framework.nocode.contract.ContractResourceLoader;
 import vip.isass.framework.nocode.contract.ServiceContract;
 import vip.isass.framework.nocode.service.IService;
+import vip.isass.framework.nocode.service.IApplicationService;
 import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
@@ -71,10 +72,11 @@ public class ServiceProxyRegistrar implements BeanFactoryPostProcessor, BeanClas
     private Class<?> loadServiceInterface(ServiceContract contract) {
         try {
             Class<?> type = Class.forName(contract.serviceInterface(), false, classLoader);
-            if (!type.isInterface() || !IService.class.isAssignableFrom(type)) {
+            if (!type.isInterface() || (!IService.class.isAssignableFrom(type)
+                    && !IApplicationService.class.isAssignableFrom(type))) {
                 throw new IllegalStateException("Invalid nocode service interface "
                         + contract.serviceInterface() + " for " + contract.service() + "/"
-                        + contract.entity() + ": it must be an IService interface");
+                        + contract.entity() + ": it must be an IService or IApplicationService interface");
             }
             return type;
         } catch (ClassNotFoundException exception) {

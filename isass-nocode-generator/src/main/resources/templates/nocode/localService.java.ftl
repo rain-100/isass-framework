@@ -5,9 +5,9 @@ package ${cfg.package}.${cfg.context}.application.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ${cfg.package}.${cfg.context}.domain.criteria.${entity}Criteria;
-import ${cfg.package}.${cfg.context}.domain.model.entity.${entity};
-import ${cfg.package}.${cfg.context}.infrastructure.persistence.mybatisplus.${entity}Repository;
+import ${cfg.criteriaPackageName}.${entity}Criteria;
+import ${cfg.entityPackageName}.${entity};
+import ${cfg.repositoryPackageName}.I${entity}Repository;
 import vip.isass.framework.nocode.service.ILocalService;
 
 /**
@@ -19,13 +19,13 @@ import vip.isass.framework.nocode.service.ILocalService;
  */
 @Slf4j
 @Service
-public class ${entity}Service implements I${entity}Service, ILocalService<${entity}, ${entity}Criteria> {
+public class ${entity}ApplicationService implements I${entity}Service, ILocalService<${entity}, ${entity}Criteria> {
 
     @Autowired
-    private ${entity}Repository repository;
+    private I${entity}Repository repository;
 
     @Override
-    public ${entity}Repository getRepository() {
+    public I${entity}Repository getRepository() {
         return repository;
     }
 

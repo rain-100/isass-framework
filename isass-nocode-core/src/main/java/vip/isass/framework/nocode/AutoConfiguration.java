@@ -4,6 +4,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import vip.isass.framework.nocode.service.IService;
 import vip.isass.framework.nocode.service.ILocalService;
+import vip.isass.framework.nocode.service.ILocalApplicationService;
 import vip.isass.framework.nocode.transport.ServiceProxyRegistrar;
 
 import java.util.List;
@@ -19,6 +20,14 @@ public class AutoConfiguration {
      * 不依赖本 Bean 的初始化时机，避免与 {@code SqlSessionFactory} 的创建顺序冲突。
      */
     @Bean
+    public ServiceRegistry ServiceRegistry(
+            List<ILocalService<?, ?>> services,
+            List<ILocalApplicationService> applicationServices
+    ) {
+        return new ServiceRegistry(services, applicationServices);
+    }
+
+    /** Kept for programmatic callers that only register standard CRUD services. */
     public ServiceRegistry ServiceRegistry(List<ILocalService<?, ?>> services) {
         return new ServiceRegistry(services);
     }

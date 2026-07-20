@@ -4268,6 +4268,14 @@ SwaggerBootstrapUi.prototype.resolveOneOfBodySchema = function (schema, media, s
   var array = false;
   if (KUtils.arrNotEmpty(schema['oneOf'])) {
     oneOf = schema['oneOf'];
+    // Batch operations project one candidate array per entity, while other
+    // operations project one candidate entity. Normalize both for the debug UI.
+    if (oneOf.every(item => item['type'] == 'array'
+      && KUtils.checkUndefined(item['items'])
+      && KUtils.strNotBlank(item['items']['$ref']))) {
+      oneOf = oneOf.map(item => item['items']);
+      array = true;
+    }
   } else if (schema['type'] == 'array'
     && KUtils.checkUndefined(schema['items'])
     && KUtils.arrNotEmpty(schema['items']['oneOf'])) {
@@ -4389,6 +4397,15 @@ SwaggerBootstrapUi.prototype.initApiInfoAsyncOAS3 = function (swpinfo) {
         label: entityName,
         value: entityName,
         entityName: entityName,
+        requestValue: null
+      }));
+    }
+    var entityOptions = KUtils.getValue(apiInfo, 'x-isass-entity-options', null, true);
+    if (KUtils.checkUndefined(entityOptions)) {
+      swpinfo.entityOptions = Object.keys(entityOptions).map(schemaName => ({
+        label: schemaName,
+        value: entityOptions[schemaName],
+        entityName: entityOptions[schemaName],
         requestValue: null
       }));
     }
@@ -7168,6 +7185,7 @@ var SwaggerBootstrapUiApiInfo = function () {
   this.oneOfSelected = null;
   this.oneOfArray = false;
   this.oneOfEntityParameter = 'entity';
+  this.entityOptions = new Array();
   this.criteriaOptions = new Array();
   this.criteriaParameterNames = {};
   // 是否xml请求

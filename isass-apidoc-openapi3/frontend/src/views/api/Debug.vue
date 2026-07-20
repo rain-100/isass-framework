@@ -109,14 +109,6 @@
                     </a-dropdown>
                   </div>
                 </div>
-                <div v-if="oneOfOptions.length" class="knife4j-debug-request-content-type-float">
-                  <span style="margin-right: 8px;">实体类型</span>
-                  <a-select v-model="oneOfSelected" style="min-width: 220px;" @change="oneOfChange">
-                    <a-select-option v-for="option in oneOfOptions" :key="option.value" :value="option.value">
-                      {{ option.label }}
-                    </a-select-option>
-                  </a-select>
-                </div>
                 <div v-if="formatFlag" class="knife4j-debug-request-content-type-beautify">
                   <a @click="beautifyJson">Beautify</a>
                 </div>
@@ -1145,7 +1137,17 @@ export default {
         label: option.label,
         value: option.label
       }));
-      var entityOptions = this.api.criteriaOptions || [];
+      // The contract always provides dynamic nocode entity choices; oneOf and
+      // criteria remain responsible for the matching request body and fields.
+      var entityOptions = this.api.entityOptions || [];
+      if (entityOptions.length == 0) {
+        entityOptions = this.oneOfOptions
+          .filter(option => KUtils.strNotBlank(option.entityName))
+          .map(option => ({ label: option.label, value: option.entityName }));
+      }
+      if (entityOptions.length == 0) {
+        entityOptions = this.api.criteriaOptions || [];
+      }
       if (serviceOptions.length == 0 && entityOptions.length == 0) {
         return;
       }
@@ -1178,11 +1180,17 @@ export default {
     syncNocodeEntitySelection(record, entityName) {
       var criteriaParameterNames = this.api.criteriaParameterNames || {};
       if (!record
-        || record.name != (this.api.oneOfEntityParameter || 'entity')
-        || Object.keys(criteriaParameterNames).length == 0) {
+        || record.name != (this.api.oneOfEntityParameter || 'entity')) {
         return;
       }
-      this.filterCriteriaParameters(entityName);
+      var option = this.oneOfOptions.find(item => item.entityName == entityName);
+      if (KUtils.checkUndefined(option)) {
+        this.oneOfChange(option.value);
+        return;
+      }
+      if (Object.keys(criteriaParameterNames).length > 0) {
+        this.filterCriteriaParameters(entityName);
+      }
     },
     hideDynamicParameterTable() {
       // 如果当前确定未开启动态参数调试,且参数为0的情况下,关闭table 的参数显示

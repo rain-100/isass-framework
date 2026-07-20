@@ -2,7 +2,7 @@
 
 package ${cfg.package}.${cfg.context}.infrastructure.persistence.mybatisplus;
 
-import ${cfg.package}.${cfg.context}.domain.model.entity.${entity};
+import ${cfg.entityPackageName}.${entity};
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
 

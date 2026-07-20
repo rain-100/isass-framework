@@ -7,7 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ${cfg.serviceInfoPackageName}.ServiceInfo;
-import ${cfg.package}.${cfg.context}.application.service.${entity}Service;
+import ${cfg.package}.${cfg.context}.application.service.I${entity}Service;
 
 /**
  * <p>
@@ -24,6 +24,6 @@ import ${cfg.package}.${cfg.context}.application.service.${entity}Service;
 public class ${entity}Controller {
 
     @Resource
-    private ${entity}Service ${entity?uncap_first}Service;
+    private I${entity}Service ${entity?uncap_first}Service;
 
 }

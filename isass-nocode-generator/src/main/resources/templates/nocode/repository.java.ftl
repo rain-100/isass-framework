@@ -4,8 +4,9 @@ package ${cfg.package}.${cfg.context}.infrastructure.persistence.mybatisplus;
 
 import org.springframework.stereotype.Repository;
 import vip.isass.framework.nocode.orm.MybatisPlusRepository;
-import ${cfg.package}.${cfg.context}.domain.criteria.${entity}Criteria;
-import ${cfg.package}.${cfg.context}.domain.model.entity.${entity};
+import ${cfg.criteriaPackageName}.${entity}Criteria;
+import ${cfg.entityPackageName}.${entity};
+import ${cfg.repositoryPackageName}.I${entity}Repository;
 
 /**
  * <p>
@@ -18,6 +19,6 @@ import ${cfg.package}.${cfg.context}.domain.model.entity.${entity};
 public class ${entity}Repository extends MybatisPlusRepository<
         ${entity},
         ${entity}Criteria,
-        ${entity}Mapper> {
+        ${entity}Mapper> implements I${entity}Repository {
 
 }

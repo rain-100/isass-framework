@@ -52,7 +52,7 @@ public class ContractGenerator {
                 .filter(type -> type.getSimpleName().startsWith("I")
                         && type.getSimpleName().endsWith("Service")
                         && !type.getSimpleName().equals("IService"))
-                .filter(this::extendsService)
+                .filter(type -> extendsService(type) || extendsApplicationService(type))
                 .map(this::toService)
                 .toList();
         LinkedHashSet<String> documentedTypes = new LinkedHashSet<>();
@@ -127,7 +127,16 @@ public class ContractGenerator {
                 .anyMatch(value -> value.contains("IService<"));
     }
 
+    private boolean extendsApplicationService(JavaClass type) {
+        return type.getImplements().stream()
+                .map(JavaType::getFullyQualifiedName)
+                .anyMatch(value -> value.equals("vip.isass.framework.nocode.service.IApplicationService"));
+    }
+
     private ServiceContract toService(JavaClass type) {
+        if (extendsApplicationService(type)) {
+            return toApplicationService(type);
+        }
         JavaType parent = type.getImplements().stream()
                 .filter(value -> value.getGenericFullyQualifiedName().contains("IService<"))
                 .findFirst()
@@ -154,6 +163,24 @@ public class ContractGenerator {
                 type.getFullyQualifiedName(),
                 entityType,
                 criteriaType,
+                stringTag(type, "tag", type.getSimpleName()),
+                operations);
+    }
+
+    private ServiceContract toApplicationService(JavaClass type) {
+        String simpleName = type.getSimpleName().replaceFirst("^I", "").replaceFirst("Service$", "");
+        String entity = Character.toLowerCase(simpleName.charAt(0)) + simpleName.substring(1);
+        String[] packageParts = type.getPackageName().split("\\.");
+        String applicationName = packageParts.length >= 3 ? packageParts[2] + "-service" : "application";
+        List<OperationContract> operations = type.getMethods().stream()
+                .map(method -> toOperation(type, method))
+                .toList();
+        return new ServiceContract(
+                applicationName,
+                entity,
+                type.getFullyQualifiedName(),
+                Object.class.getName(),
+                Object.class.getName(),
                 stringTag(type, "tag", type.getSimpleName()),
                 operations);
     }

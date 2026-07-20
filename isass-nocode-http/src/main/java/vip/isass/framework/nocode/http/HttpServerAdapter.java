@@ -97,7 +97,7 @@ public class HttpServerAdapter {
         String relativePath = operationPath.startsWith("/") ? operationPath : "/" + operationPath;
         OperationContract operation = contracts.requireOperation(
                 service, entity, httpMethod, relativePath);
-        IService<?, ?> localService = services.require(service, entity);
+        Object localService = services.require(service, entity);
         if (isFileOperation(operation)) {
             return invokeFileOperation(localService, operation, relativePath, query, request);
         }
@@ -109,7 +109,7 @@ public class HttpServerAdapter {
      * 文件端点不使用 Resp：下载前的资源不存在、参数错误和服务异常分别直接映射为 404、400、5xx。
      */
     private Object invokeFileOperation(
-            IService<?, ?> service,
+            Object service,
             OperationContract operation,
             String relativePath,
             MultiValueMap<String, String> query,
