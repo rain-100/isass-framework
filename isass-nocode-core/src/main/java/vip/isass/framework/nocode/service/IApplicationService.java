@@ -13,6 +13,19 @@ public interface IApplicationService {
     }
 
     default String service() {
+        String packageName = applicationInterface().getPackageName();
+        // ServiceInfo belongs to the microservice root package, not a bounded context package.
+        while (!packageName.isEmpty()) {
+            try {
+                Class<?> serviceInfo = Class.forName(packageName + ".ServiceInfo");
+                return (String) serviceInfo.getField("SERVICE_FULL_NAME").get(null);
+            } catch (ClassNotFoundException ignored) {
+                int separator = packageName.lastIndexOf('.');
+                packageName = separator < 0 ? "" : packageName.substring(0, separator);
+            } catch (ReflectiveOperationException ignored) {
+                break;
+            }
+        }
         String[] parts = applicationInterface().getPackageName().split("\\.");
         return parts.length >= 3 ? parts[2] + "-service" : "application";
     }
