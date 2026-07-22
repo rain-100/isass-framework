@@ -169,14 +169,11 @@
 
 package vip.isass.framework.web.security.config;
 
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.security.autoconfigure.actuate.web.servlet.EndpointRequest;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -184,20 +181,14 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 import vip.isass.framework.web.security.authentication.jwt.JwtAuthenticationFilter;
 import vip.isass.framework.web.security.authentication.ms.MsAuthenticationFilter;
 import vip.isass.framework.web.security.authentication.multilogin.ShouldOfflineChecker;
-import vip.isass.framework.web.security.metadata.SecurityMetadataSourceProviderManager;
 import vip.isass.framework.web.security.processor.AffirmativeBasedPostProcessor;
 import vip.isass.framework.web.security.processor.FilterSecurityInterceptorSourcePostProcessor;
-import vip.isass.framework.web.uri.UriPrefixProvider;
 
 import jakarta.annotation.Resource;
 import java.util.Collection;
-import java.util.List;
 
 /**
  * @author Rain
@@ -208,38 +199,17 @@ import java.util.List;
 public class WebSecurityConfig {
 
     @Resource
-    private PasswordEncoder passwordEncoder;
-
-    @Resource
-    private UserDetailsService userDetailsService;
-
-    @Resource
-    private List<AuthenticationProvider> authenticationProvider;
-
-    @Resource
-    private RequestMappingHandlerMapping requestMappingHandlerMapping;
-
-    @Resource
-    private SecurityMetadataSourceProviderManager securityMetadataSourceProviderManager;
-
-    @Resource
-    private UriPrefixProvider uriPrefixProvider;
-
-    @Resource
     private PermitUrlConfiguration permitUrlConfiguration;
 
     @Resource
     private ShouldOfflineChecker shouldOfflineChecker;
 
     @Resource
-    private AuthenticationManager authenticationManager;
-
-    @Getter
-    @Value("${security.urlAccessSecurityStrategy:NONE}")
-    private UrlAccessSecurityStrategy urlAccessSecurityStrategy;
+    private SecurityProperties securityProperties;
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationManager authenticationManager) throws Exception {
+        UrlAccessSecurityStrategy urlAccessSecurityStrategy = securityProperties.getUrlAccessSecurityStrategy();
         log.info("urlAccessSecurityStrategy: {}", urlAccessSecurityStrategy);
 
         Collection<String> permitUrls = permitUrlConfiguration.getPermitUrls();
