@@ -184,6 +184,7 @@ import vip.isass.framework.database.mybatisplus.typehandler.BooleanArrayTypeHand
 import vip.isass.framework.database.mybatisplus.typehandler.DateArrayTypeHandler;
 import vip.isass.framework.database.mybatisplus.typehandler.IntegerArrayTypeHandler;
 import vip.isass.framework.database.mybatisplus.typehandler.JsonNodeTypeHandler;
+import vip.isass.framework.database.mybatisplus.typehandler.JsonValueTypeHandler;
 import vip.isass.framework.database.mybatisplus.typehandler.LocalDateArrayTypeHandler;
 import vip.isass.framework.database.mybatisplus.typehandler.LocalDateTimeArrayTypeHandler;
 import vip.isass.framework.database.mybatisplus.typehandler.LocalDateTimeTypeHandler;
@@ -234,6 +235,12 @@ public class DatabaseMybatisPlusAutoConfiguration implements InitializingBean {
     @ConditionalOnMissingBean
     public JsonNodeTypeHandler jsonNodeTypeHandler() {
         return new JsonNodeTypeHandler();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public JsonValueTypeHandler jsonValueTypeHandler() {
+        return new JsonValueTypeHandler();
     }
 
     @Bean
