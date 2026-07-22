@@ -1,68 +1,45 @@
 package vip.isass.framework.web.security.rsa;
 
-import cn.hutool.cache.Cache;
-import cn.hutool.cache.CacheUtil;
 import cn.hutool.core.lang.Assert;
-import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.SecureUtil;
 import cn.hutool.crypto.asymmetric.KeyType;
 import cn.hutool.crypto.asymmetric.RSA;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import vip.isass.framework.web.security.config.SecurityProperties;
 
-import jakarta.annotation.Resource;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
+import jakarta.annotation.PostConstruct;
 
-@Slf4j
 @Service
 public class RsaService {
-
-    private static final String RSA_REDIS_KEY = "auth:rsa:{id}";
 
     // 共用的 id，使用共用的密码对
     private static final String DEFAULT_ID = "PUBLIC";
 
-    @Resource
-    private RedisTemplate<String, Map<String, String>> redisTemplate;
+    private final SecurityProperties securityProperties;
 
-    private Cache<String, RsaKey> rsaCache = CacheUtil.newLRUCache(50, TimeUnit.DAYS.toMillis(1));
+    private RsaKey rsaKey;
 
-    /**
-     * 根据 id 加载秘钥对象，不存在则创建一个并缓存
-     */
+    public RsaService(SecurityProperties securityProperties) {
+        this.securityProperties = securityProperties;
+    }
+
+    @PostConstruct
+    void initialize() {
+        SecurityProperties.Rsa properties = securityProperties.getRsa();
+        Assert.notBlank(properties.getPrivateKey(), "security.rsa.private-key 必填");
+        Assert.notBlank(properties.getPublicKey(), "security.rsa.public-key 必填");
+        rsaKey = RsaKey.builder()
+                .rsa(SecureUtil.rsa(properties.getPrivateKey(), properties.getPublicKey()))
+                .privateKeyStr(properties.getPrivateKey())
+                .publicKeyStr(properties.getPublicKey())
+                .build();
+    }
+
+    /** RSA keys are configured per process; dynamic key ids are no longer supported. */
     private RsaKey loadKey(String id) {
-        final String rsaKeyId = StrUtil.isBlank(id) ? DEFAULT_ID : id;
-        return rsaCache.get(rsaKeyId, () -> {
-            String key = RSA_REDIS_KEY.replace("{id}", rsaKeyId);
-            Map<String, String> rsaKeyMap = redisTemplate.opsForValue().get(key);
-            RsaKey rsaKey;
-            if (MapUtil.isEmpty(rsaKeyMap)) {
-                RSA rsa = SecureUtil.rsa();
-                rsaKey = RsaKey.builder()
-                    .rsa(rsa)
-                    .privateKeyStr(rsa.getPrivateKeyBase64())
-                    .publicKeyStr(rsa.getPublicKeyBase64())
-                    .build();
-                redisTemplate.opsForValue().set(
-                    key,
-                    MapUtil.<String, String>builder()
-                        .put("privateKeyStr", rsaKey.getPrivateKeyStr())
-                        .put("publicKeyStr", rsaKey.getPublicKeyStr())
-                        .build());
-            } else {
-                String privateKeyStr = MapUtil.getStr(rsaKeyMap, "privateKeyStr");
-                String publicKeyStr = MapUtil.getStr(rsaKeyMap, "publicKeyStr");
-                rsaKey = RsaKey.builder()
-                    .rsa(SecureUtil.rsa(privateKeyStr, publicKeyStr))
-                    .privateKeyStr(privateKeyStr)
-                    .publicKeyStr(publicKeyStr)
-                    .build();
-            }
-            return rsaKey;
-        });
+        Assert.isTrue(StrUtil.isBlank(id) || DEFAULT_ID.equals(id), "仅支持默认 RSA 密钥");
+        return rsaKey;
     }
 
     public String getBase64PublicKey() {

@@ -73,6 +73,11 @@ public class ServiceRegistry {
         return localService;
     }
 
+    /** Returns whether this process exposes the contract through a local service implementation. */
+    public boolean contains(String service, String entity) {
+        return endpoints.containsKey(endpointKey(service, entity));
+    }
+
     private void register(Map<String, Object> endpoints, String service, String entity, Object endpoint) {
         String key = endpointKey(service, entity);
         Object existing = endpoints.putIfAbsent(key, endpoint);
