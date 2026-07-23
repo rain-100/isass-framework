@@ -13,13 +13,20 @@ import com.fasterxml.jackson.annotation.JsonValue;
 </#list>
 <#list table.fields as field>
 <#if field.propertyType == "JsonNode">
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
+<#break>
+</#if>
+</#list>
+<#list table.fields as field>
+<#if field.propertyName == "mutexTerminals" || field.propertyName == "sameTerminals">
+import java.util.List;
+<#break>
 </#if>
 </#list>
 <#list table.fields as field>
 <#if field.propertyName!?ends_with("Id") && field.propertyType == "Long">
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
+import tools.jackson.databind.annotation.JsonSerialize;
+import tools.jackson.databind.ser.std.ToStringSerializer;
 <#break>
 </#if>
 </#list>
@@ -122,7 +129,7 @@ public class ${entity} implements
         ILogicDeleteEntity<${entity}>,
 </#if>
 <#if isTraceEntity>
-        ITraceEntity<String, ${entity}>,
+        ITraceEntity<${idEntityPropertyType}, ${entity}>,
 </#if>
         IEntity<${entity}> {
 
@@ -150,7 +157,7 @@ public class ${entity} implements
      */
 <#if field.propertyName!?ends_with("Id") && field.propertyType == "Long">
     @JsonSerialize(using = ToStringSerializer.class)</#if>
-    private <#if field.propertyName == cfg.logicDeleteEntity.DELETE_FLAG_PROPERTY_NAME>Boolean<#elseif field.comment!?contains("${enumStart}")>${field.propertyName?cap_first}<#elseif field.propertyType == "JsonNode">JsonNode<#else>${field.propertyType}</#if> ${field.propertyName};
+    private <#if field.propertyName == cfg.logicDeleteEntity.DELETE_FLAG_PROPERTY_NAME>Boolean<#elseif field.comment!?contains("${enumStart}")>${field.propertyName?cap_first}<#elseif field.propertyName == "mutexTerminals" || field.propertyName == "sameTerminals">List<String><#elseif field.propertyType == "JsonNode">JsonNode<#else>${field.propertyType}</#if> ${field.propertyName};
 
 </#list>
 <#---------- END 定义字段 ---------->

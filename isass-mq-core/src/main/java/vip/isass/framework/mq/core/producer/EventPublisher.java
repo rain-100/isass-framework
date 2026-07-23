@@ -195,6 +195,8 @@ public class EventPublisher {
 
     private static String DEFAULT_MANUFACTURER;
 
+    private static DynamicMqProperties dynamicMqProperties;
+
     /**
      * key: manufacturer
      */
@@ -204,6 +206,7 @@ public class EventPublisher {
 
     public EventPublisher(DynamicMqProperties properties, List<ProducerManager> producerManagers) {
         this.properties = properties;
+        dynamicMqProperties = properties;
         this.producerManagers = producerManagers == null
                 ? Collections.emptyList()
                 : List.copyOf(producerManagers);
@@ -215,6 +218,9 @@ public class EventPublisher {
      * @param mqMessageContext the mq message context
      */
     public static void send(@NonNull MqMessageContext mqMessageContext) {
+        if (dynamicMqProperties == null || !Boolean.TRUE.equals(dynamicMqProperties.getEnabled())) {
+            return;
+        }
         Assert.notNull(producerManagerMap, "生产者管理器未初始化，或者没有启用mq，mq发送失败");
 
         // 找实现厂商

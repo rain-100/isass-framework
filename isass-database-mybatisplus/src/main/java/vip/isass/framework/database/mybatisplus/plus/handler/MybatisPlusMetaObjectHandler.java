@@ -194,26 +194,20 @@ public class MybatisPlusMetaObjectHandler implements MetaObjectHandler {
 
         LoginUser loginUser = LoginUserUtil.getLoginUser();
 
-        // tenantId
-        if (loginUser != null) {
-            setFieldValByName("tenantId", loginUser.getTenantId(), metaObject);
-        }
+        // Platform data created outside a request belongs to the system tenant.
+        setFieldValByName("tenantId", loginUser == null ? 0L : loginUser.getTenantId(), metaObject);
 
         // appId
-        if (loginUser != null) {
-            String name = metaObject.getOriginalObject().getClass().getName();
-            // 不是 user app 关联关系的表时才赋值
-            if (!name.contains("UserApp")) {
-                setFieldValByName("appId", loginUser.getAppId(), metaObject);
-            }
+        String name = metaObject.getOriginalObject().getClass().getName();
+        // 不是 user app 关联关系的表时才赋值
+        if (!name.contains("UserApp")) {
+            setFieldValByName("appId", loginUser == null ? 0L : loginUser.getAppId(), metaObject);
         }
 
         // createUserId
         setFieldValByName(
                 ITraceEntity.CREATE_USER_ID_PROPERTY_NAME,
-                loginUser == null
-                        ? ""
-                        : StrUtil.nullToEmpty(loginUser.getUserId()),
+                auditUserId(metaObject, ITraceEntity.CREATE_USER_ID_PROPERTY_NAME, loginUser),
                 metaObject);
 
         // createUserName
@@ -226,9 +220,7 @@ public class MybatisPlusMetaObjectHandler implements MetaObjectHandler {
 
         // modifyUserId
         setFieldValByName(ITraceEntity.MODIFY_USER_ID_PROPERTY_NAME,
-                loginUser == null
-                        ? ""
-                        : StrUtil.nullToEmpty(loginUser.getUserId()),
+                auditUserId(metaObject, ITraceEntity.MODIFY_USER_ID_PROPERTY_NAME, loginUser),
                 metaObject);
 
         // modifyUserName
@@ -258,9 +250,7 @@ public class MybatisPlusMetaObjectHandler implements MetaObjectHandler {
 
         // modifyUserId
         setFieldValByName(ITraceEntity.MODIFY_USER_ID_PROPERTY_NAME,
-                loginUser == null
-                        ? ""
-                        : StrUtil.nullToEmpty(loginUser.getUserId()),
+                auditUserId(metaObject, ITraceEntity.MODIFY_USER_ID_PROPERTY_NAME, loginUser),
                 metaObject);
 
         // modifyUserName
@@ -273,5 +263,15 @@ public class MybatisPlusMetaObjectHandler implements MetaObjectHandler {
         // modifyTime
         setFieldValByName(ITraceEntity.MODIFY_TIME_PROPERTY_NAME, LocalDateTimeUtil.now(), metaObject);
 
+    }
+
+    private Object auditUserId(MetaObject metaObject, String propertyName, LoginUser loginUser) {
+        if (!metaObject.hasSetter(propertyName)) {
+            return null;
+        }
+        if (Long.class.equals(metaObject.getSetterType(propertyName)) || long.class.equals(metaObject.getSetterType(propertyName))) {
+            return loginUser == null ? 0L : Long.valueOf(loginUser.getUserId());
+        }
+        return loginUser == null ? "" : StrUtil.nullToEmpty(loginUser.getUserId());
     }
 }

@@ -199,7 +199,7 @@ public class JwtUtil {
 
     public static long TOKEN_EFFECTIVE_MILLS = TOKEN_EFFECTIVE_SECONDS * 1000;
 
-    public static final String DEFAULT_SECRET = "FtvTa6nt4vfDFVST";
+    public static final String DEFAULT_SECRET = "siiwwsQgwxGgFhFdZ8cdYtjixrxCHJRzFBRDWwt4EdFkyz2SJf4uN8IhSAFtD19C";
 
     public static String generateToken(LoginUser loginUser, String secret) {
         // 生产 token

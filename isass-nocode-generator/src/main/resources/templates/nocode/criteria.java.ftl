@@ -74,7 +74,7 @@ public class ${entity}Criteria
         ITenantCriteria<${tenantIdEntityPropertyType}, ${entity}, ${entity}Criteria>,
 </#if>
 <#if isTraceEntity>
-        ITraceCriteria<String, ${entity}, ${entity}Criteria>,
+        ITraceCriteria<${idEntityPropertyType}, ${entity}, ${entity}Criteria>,
 </#if>
         ICriteria<${entity}, ${entity}Criteria> {
 

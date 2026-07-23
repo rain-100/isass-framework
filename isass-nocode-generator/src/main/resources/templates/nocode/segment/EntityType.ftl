@@ -34,7 +34,7 @@ cfg.versionEntity.VERSION_COLUMN_NAME
 <#------------ END LogicDeleteEntity ------------>
 <#------------ BEGIN ParentIdEntity ------------>
 <#list table.fields as field>
-    <#if field.name?lower_case == cfg.parentIdEntity.PARENT_ID_COLUMN_NAME>
+    <#if field.name?lower_case == cfg.parentIdEntity.PARENT_ID_COLUMN_NAME && field.propertyType == idEntityPropertyType>
         <#assign isParentIdEntity = true>
         <#assign parentIdEntityPropertyType = field.propertyType>
         <#break>
