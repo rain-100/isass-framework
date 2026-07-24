@@ -1,6 +1,7 @@
 package vip.isass.framework.nocode.http;
 
 import org.springframework.http.ContentDisposition;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -23,6 +24,8 @@ import vip.isass.framework.nocode.contract.OperationContract;
 import vip.isass.framework.nocode.contract.ParameterContract;
 import vip.isass.framework.nocode.contract.ParameterSource;
 import vip.isass.framework.nocode.contract.RouteMatcher;
+import vip.isass.framework.nocode.security.NocodeAuthorizationContext;
+import vip.isass.framework.nocode.security.NocodePermissionEvaluator;
 import vip.isass.framework.nocode.service.IService;
 import vip.isass.framework.nocode.stream.FileStream;
 import vip.isass.framework.nocode.stream.FileNotFoundException;
@@ -51,15 +54,27 @@ public class HttpServerAdapter {
     private final ContractRegistry contracts;
     private final ServiceRegistry services;
     private final ObjectMapper objectMapper;
+    private final NocodePermissionEvaluator permissionEvaluator;
 
     public HttpServerAdapter(
             ContractRegistry contracts,
             ServiceRegistry services,
             ObjectMapper objectMapper
     ) {
+        this(contracts, services, objectMapper, NocodePermissionEvaluator.ALLOW_ALL);
+    }
+
+    @Autowired
+    public HttpServerAdapter(
+            ContractRegistry contracts,
+            ServiceRegistry services,
+            ObjectMapper objectMapper,
+            NocodePermissionEvaluator permissionEvaluator
+    ) {
         this.contracts = contracts;
         this.services = services;
         this.objectMapper = objectMapper;
+        this.permissionEvaluator = permissionEvaluator;
     }
 
     @RequestMapping("/{service:[a-zA-Z0-9-]+-service}/{entity}")
@@ -98,10 +113,11 @@ public class HttpServerAdapter {
         OperationContract operation = contracts.requireOperation(
                 service, entity, httpMethod, relativePath);
         Object localService = services.require(service, entity);
+        boolean standardNocodeService = localService instanceof IService;
         if (isFileOperation(operation)) {
-            return invokeFileOperation(localService, operation, relativePath, query, request);
+            return invokeFileOperation(service, entity, standardNocodeService, localService, operation, relativePath, query, request);
         }
-        Object result = invokeService(localService, operation, relativePath, query, request);
+        Object result = invokeService(service, entity, standardNocodeService, localService, operation, relativePath, query, request);
         return result instanceof Resp<?> response ? response : Resp.bizSuccess(result);
     }
 
@@ -109,6 +125,9 @@ public class HttpServerAdapter {
      * 文件端点不使用 Resp：下载前的资源不存在、参数错误和服务异常分别直接映射为 404、400、5xx。
      */
     private Object invokeFileOperation(
+            String serviceName,
+            String entity,
+            boolean standardNocodeService,
             Object service,
             OperationContract operation,
             String relativePath,
@@ -116,7 +135,7 @@ public class HttpServerAdapter {
             org.springframework.web.context.request.ServletWebRequest request
     ) {
         try {
-            Object result = invokeService(service, operation, relativePath, query, request);
+            Object result = invokeService(serviceName, entity, standardNocodeService, service, operation, relativePath, query, request);
             if (!(result instanceof FileStream fileStream)) {
                 throw new IllegalStateException(" 文件接口未返回 FileStream: " + operation.name());
             }
@@ -197,6 +216,9 @@ public class HttpServerAdapter {
     }
 
     private Object invokeService(
+            String serviceName,
+            String entity,
+            boolean standardNocodeService,
             Object service,
             OperationContract operation,
             String relativePath,
@@ -205,6 +227,9 @@ public class HttpServerAdapter {
     ) {
         Method method = findMethod(service, operation);
         List<Object> arguments = bindArguments(operation, relativePath, query, request);
+        if (standardNocodeService) {
+            permissionEvaluator.check(new NocodeAuthorizationContext(serviceName, entity, operation.name(), List.copyOf(arguments)));
+        }
         try {
             return method.invoke(service, arguments.toArray());
         } catch (IllegalAccessException exception) {

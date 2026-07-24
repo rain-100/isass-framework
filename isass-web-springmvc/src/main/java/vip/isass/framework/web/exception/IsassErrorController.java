@@ -268,17 +268,27 @@ public class IsassErrorController implements ErrorController {
             return new Resp<>()
                     .setSuccess(false)
                     .setStatus(statusCode.getStatus())
-                    .setMessage(statusCode.getMsg() + ": " + request.getMethod() + " "
-                            + errorAttributes.get("path") + " "
-                            + errorAttributes.get("error") + " "
-                            + errorAttributes.get("exception") + " "
-                            + errorAttributes.get("message"));
+                    .setMessage(formatErrorMessage(statusCode.getMsg(), request, errorAttributes));
         }
 
         return new Resp<>()
                 .setSuccess(false)
                 .setStatus(status)
                 .setMessage(StatusMessageEnum.UNDEFINED.getMsg() + " " + request.getMethod() + " " + errorAttributes.get("path") + " " + errorAttributes.get("error"));
+    }
+
+    private String formatErrorMessage(String statusMessage, HttpServletRequest request, Map<String, Object> errorAttributes) {
+        return java.util.stream.Stream.of(
+                        statusMessage + ":",
+                        request.getMethod(),
+                        errorAttributes.get("path"),
+                        errorAttributes.get("error"),
+                        errorAttributes.get("exception"),
+                        errorAttributes.get("message"))
+                .filter(java.util.Objects::nonNull)
+                .map(Object::toString)
+                .filter(value -> !value.isBlank())
+                .collect(java.util.stream.Collectors.joining(" "));
     }
 
     private Integer resolveStatus(Map<String, Object> errorAttributes, HttpServletResponse response) {

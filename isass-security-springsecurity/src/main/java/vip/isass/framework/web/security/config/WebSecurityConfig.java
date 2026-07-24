@@ -184,6 +184,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import vip.isass.framework.web.security.authentication.jwt.JwtAuthenticationFilter;
 import vip.isass.framework.web.security.authentication.ms.MsAuthenticationFilter;
 import vip.isass.framework.web.security.authentication.multilogin.ShouldOfflineChecker;
+import vip.isass.framework.web.security.authorization.DynamicRoleAuthorizationManager;
 import vip.isass.framework.web.security.processor.AffirmativeBasedPostProcessor;
 import vip.isass.framework.web.security.processor.FilterSecurityInterceptorSourcePostProcessor;
 
@@ -206,6 +207,9 @@ public class WebSecurityConfig {
 
     @Resource
     private SecurityProperties securityProperties;
+
+    @Resource
+    private DynamicRoleAuthorizationManager dynamicRoleAuthorizationManager;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationManager authenticationManager) throws Exception {
@@ -240,6 +244,11 @@ public class WebSecurityConfig {
 
         if (urlAccessSecurityStrategy == UrlAccessSecurityStrategy.NONE) {
             http.authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+        } else if (urlAccessSecurityStrategy == UrlAccessSecurityStrategy.ROLE) {
+            http.authorizeHttpRequests(auth -> auth
+                    .requestMatchers(permitUrls.toArray(new String[0])).permitAll()
+                    .anyRequest().access(dynamicRoleAuthorizationManager)
+            );
         } else {
             http.authorizeHttpRequests(auth -> auth
                     // 允许自定义配置的 url 的请求

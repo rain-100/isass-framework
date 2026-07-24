@@ -4,6 +4,7 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.support.RestClientAdapter;
 import org.springframework.web.service.invoker.HttpServiceProxyFactory;
@@ -11,6 +12,7 @@ import tools.jackson.databind.ObjectMapper;
 import vip.isass.framework.nocode.ServiceRegistry;
 import vip.isass.framework.nocode.contract.ContractRegistry;
 import vip.isass.framework.nocode.contract.ContractResourceLoader;
+import vip.isass.framework.nocode.security.NocodePermissionEvaluator;
 
 @AutoConfiguration
 @EnableConfigurationProperties(HttpEndpointProperties.class)
@@ -27,6 +29,12 @@ public class HttpAutoConfiguration {
     public NocodeHttpExchange NocodeHttpExchange() {
         return HttpServiceProxyFactory.builderFor(RestClientAdapter.create(RestClient.create()))
                 .build().createClient(NocodeHttpExchange.class);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public NocodePermissionEvaluator nocodePermissionEvaluator() {
+        return NocodePermissionEvaluator.ALLOW_ALL;
     }
 
     @Bean
@@ -68,8 +76,10 @@ public class HttpAutoConfiguration {
     public HttpServerAdapter HttpServerAdapter(
             ContractRegistry contracts,
             ServiceRegistry services,
-            ObjectMapper objectMapper
+            ObjectMapper objectMapper,
+            ObjectProvider<NocodePermissionEvaluator> permissionEvaluator
     ) {
-        return new HttpServerAdapter(contracts, services, objectMapper);
+        return new HttpServerAdapter(contracts, services, objectMapper,
+                permissionEvaluator.getIfAvailable(() -> NocodePermissionEvaluator.ALLOW_ALL));
     }
 }
