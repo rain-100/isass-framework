@@ -1,8 +1,18 @@
 <#include "./segment/copyright.ftl">
 
 <#assign enumStart = "[枚举--">
+<#assign javaTypeStart = "[javaType--">
 <#include "./segment/EntityType.ftl">
 package ${cfg.entityPackageName};
+
+<#function javaType field>
+<#if field.comment!?contains("${javaTypeStart}")>
+    <#assign start = field.comment?index_of("${javaTypeStart}") + javaTypeStart?length>
+    <#assign end = field.comment?index_of("]", start)>
+    <#return field.comment?substring(start, end)?trim>
+</#if>
+<#return field.propertyType>
+</#function>
 
 <#list table.fields as field>
 <#if field.comment!?contains("${enumStart}")>
@@ -12,14 +22,20 @@ import com.fasterxml.jackson.annotation.JsonValue;
 </#if>
 </#list>
 <#list table.fields as field>
-<#if field.propertyType == "JsonNode">
+<#if field.propertyType == "JsonNode" && !field.comment!?contains("${javaTypeStart}")>
 import tools.jackson.databind.JsonNode;
 <#break>
 </#if>
 </#list>
 <#list table.fields as field>
-<#if field.propertyName == "mutexTerminals" || field.propertyName == "sameTerminals">
+<#if javaType(field)?starts_with("List<")>
 import java.util.List;
+<#break>
+</#if>
+</#list>
+<#list table.fields as field>
+<#if javaType(field)?starts_with("Map<")>
+import java.util.Map;
 <#break>
 </#if>
 </#list>
@@ -157,7 +173,7 @@ public class ${entity} implements
      */
 <#if field.propertyName!?ends_with("Id") && field.propertyType == "Long">
     @JsonSerialize(using = ToStringSerializer.class)</#if>
-    private <#if field.propertyName == cfg.logicDeleteEntity.DELETE_FLAG_PROPERTY_NAME>Boolean<#elseif field.comment!?contains("${enumStart}")>${field.propertyName?cap_first}<#elseif field.propertyName == "mutexTerminals" || field.propertyName == "sameTerminals">List<String><#elseif field.propertyType == "JsonNode">JsonNode<#else>${field.propertyType}</#if> ${field.propertyName};
+    private <#if field.propertyName == cfg.logicDeleteEntity.DELETE_FLAG_PROPERTY_NAME>Boolean<#elseif field.comment!?contains("${enumStart}")>${field.propertyName?cap_first}<#elseif field.comment!?contains("${javaTypeStart}")>${javaType(field)}<#elseif field.propertyType == "JsonNode">JsonNode<#else>${field.propertyType}</#if> ${field.propertyName};
 
 </#list>
 <#---------- END 定义字段 ---------->
