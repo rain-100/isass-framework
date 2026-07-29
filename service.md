@@ -2,14 +2,15 @@
 
 本表只描述当前 V4 可启动的服务。端口配置以各服务 `*-boot/src/main/resources/config/application.yml` 为准；部署时可通过其对应环境变量覆盖。
 
-| 服务 | 默认 HTTP 端口 | 说明 |
-| --- | ---: | --- |
-| `gateway-service` | 20000 | 网关 |
-| `message-service` | 20160 | 短信、App 系统通知与推送；不承载即时通信 |
-| `isass-service-apidoc` | 20200 | API 文档服务 |
-| `bsp-service` | 20380 | Basic Service Platform；包含 attachment、filesystem、auth、dict、param、dir、equipment、area、log 上下文 |
-| `im-service` | 20385 | 即时通信服务；可通过 `IM_HTTP_PORT` 覆盖 |
-| `wechat-service` | 20190 | 微信小程序能力 |
+| 服务                   | 默认 HTTP 端口 | 说明                                                                                                     |
+|------------------------|---------------:|----------------------------------------------------------------------------------------------------------|
+| `gateway-service`      |          20000 | 网关                                                                                                     |
+| `message-service`      |          20160 | 短信、App 系统通知与推送；不承载即时通信                                                                 |
+| `isass-service-apidoc` |          20200 | API 文档服务                                                                                             |
+| `bsp-service`          |          31010 | Basic Service Platform；包含 attachment、filesystem、auth、dict、param、dir、equipment、area、log 上下文 |
+| `im-service`           |          20385 | 即时通信服务；可通过 `IM_HTTP_PORT` 覆盖                                                                 |
+| `wechat-service`       |          20190 | 微信小程序能力                                                                                           |
+| `bsp-web-vue`          |          31011 | bsp前端管理                                                                                              |
 
 ## 不再作为 V4 独立部署服务的历史工程
 

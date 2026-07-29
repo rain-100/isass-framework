@@ -173,6 +173,7 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
 import org.apache.ibatis.reflection.MetaObject;
 import vip.isass.framework.nocode.entity.ILogicDeleteEntity;
+import vip.isass.framework.nocode.entity.ITenantEntity;
 import vip.isass.framework.nocode.entity.ITraceEntity;
 import vip.isass.framework.nocode.entity.IVersionEntity;
 import vip.isass.framework.common.login.LoginUser;
@@ -194,13 +195,17 @@ public class MybatisPlusMetaObjectHandler implements MetaObjectHandler {
 
         LoginUser loginUser = LoginUserUtil.getLoginUser();
 
-        // Platform data created outside a request belongs to the system tenant.
-        setFieldValByName("tenantId", loginUser == null ? 0L : loginUser.getTenantId(), metaObject);
+        // Only tenant-scoped entities inherit the current tenant. Relationship tables can
+        // also have a tenantId business key, which must retain the caller-provided value.
+        if (metaObject.getOriginalObject() instanceof ITenantEntity
+                && getFieldValByName("tenantId", metaObject) == null) {
+            setFieldValByName("tenantId", loginUser == null ? 0L : loginUser.getTenantId(), metaObject);
+        }
 
-        // appId
+        // Preserve explicitly assigned business appIds, such as TenantApp during bootstrap.
         String name = metaObject.getOriginalObject().getClass().getName();
-        // 不是 user app 关联关系的表时才赋值
-        if (!name.contains("UserApp")) {
+        // 不是 user app 关联关系的表且未指定应用时才填充当前应用。
+        if (!name.contains("UserApp") && getFieldValByName("appId", metaObject) == null) {
             setFieldValByName("appId", loginUser == null ? 0L : loginUser.getAppId(), metaObject);
         }
 

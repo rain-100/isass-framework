@@ -223,7 +223,7 @@ public class JwtAuthenticationToken extends AbstractAuthenticationToken {
     public void eraseCredentials() {
         super.eraseCredentials();
         token = null;
-        jwtClaim = null;
+        // The authenticated filter still needs these claims to build LoginUser.
     }
 
 }

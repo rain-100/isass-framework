@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.core.handlers.PostInitTableInfoHandler;
 import com.baomidou.mybatisplus.core.metadata.TableFieldInfo;
 import com.baomidou.mybatisplus.core.metadata.TableInfo;
+import com.baomidou.mybatisplus.extension.handlers.Jackson3TypeHandler;
 import org.apache.ibatis.session.Configuration;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
@@ -24,6 +25,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -202,6 +204,18 @@ public class TableMetaRegistrar
                     fill == FieldFill.INSERT || fill == FieldFill.INSERT_UPDATE,
                     fill == FieldFill.UPDATE || fill == FieldFill.INSERT_UPDATE);
         }
+        if (isJsonValue(fieldInfo.getField())) {
+            String mapping = ",typeHandler=" + Jackson3TypeHandler.class.getName();
+            setTableFieldInfoField(fieldInfo, "el", fieldInfo.getProperty() + mapping);
+            setTableFieldInfoField(fieldInfo, "mapping", mapping.substring(1));
+            setTableFieldInfoField(fieldInfo, "typeHandler", Jackson3TypeHandler.class);
+        }
+    }
+
+    /** Collection and map fields are persisted as JSON without leaking ORM annotations into models. */
+    private static boolean isJsonValue(Field field) {
+        return Map.class.isAssignableFrom(field.getType())
+                || Collection.class.isAssignableFrom(field.getType());
     }
 
     private static void invokeSetter(Object target, String methodName, Class<?> paramType, Object value) {

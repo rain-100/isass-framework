@@ -44,7 +44,7 @@ cfg.versionEntity.VERSION_COLUMN_NAME
 <#------------ END ParentIdEntity ------------>
 <#------------ BEGIN TenantEntity ------------>
 <#list table.fields as field>
-    <#if field.name?lower_case == cfg.tenantEntity.TENANT_ID_COLUMN_NAME>
+    <#if field.name?lower_case == cfg.tenantEntity.TENANT_ID_COLUMN_NAME && !field.comment!?contains("[tenantEntity--false]")>
         <#assign isTenantEntity = true>
         <#assign tenantIdEntityPropertyType = field.propertyType>
         <#break>
