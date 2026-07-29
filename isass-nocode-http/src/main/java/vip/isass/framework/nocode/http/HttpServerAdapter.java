@@ -178,6 +178,13 @@ public class HttpServerAdapter {
         try {
             fileStream.writeTo(response.getOutputStream());
             response.flushBuffer();
+        } catch (FileNotFoundException exception) {
+            if (!response.isCommitted()) {
+                log.warn("文件不存在: {}", fileStream.fileName());
+                emptyFileResponse(request, HttpStatus.NOT_FOUND);
+            } else {
+                log.error("文件流传输失败，响应已提交: {}", fileStream.fileName(), exception);
+            }
         } catch (IOException | RuntimeException exception) {
             if (!response.isCommitted()) {
                 log.error(" 文件接口传输失败: {}", fileStream.fileName(), exception);

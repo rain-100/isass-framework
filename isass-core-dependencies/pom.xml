@@ -325,6 +325,8 @@
         <!-- 文件管理 -->
         <xFileStorage.version>2.3.0</xFileStorage.version>
         <amazonaws-s3.version>1.12.792</amazonaws-s3.version>
+        <amazonaws-s3-v2.version>2.47.5</amazonaws-s3-v2.version>
+
         <qiniu.version>7.12.1</qiniu.version>
 
         <!-- jakarta -->
@@ -944,6 +946,12 @@
                 <groupId>com.amazonaws</groupId>
                 <artifactId>aws-java-sdk-s3</artifactId>
                 <version>${amazonaws-s3.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>software.amazon.awssdk</groupId>
+                <artifactId>s3</artifactId>
+                <version>${amazonaws-s3-v2.version}</version>
             </dependency>
 
             <dependency>

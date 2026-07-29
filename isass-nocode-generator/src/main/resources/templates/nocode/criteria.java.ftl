@@ -78,6 +78,23 @@ public class ${entity}Criteria
 </#if>
         ICriteria<${entity}, ${entity}Criteria> {
 
+<#---------- BEGIN HTTP 空值条件 ------------>
+<#list table.fields as field>
+    public ${entity}Criteria set${field.propertyName?cap_first}IsNull(Boolean enabled) {
+        return Boolean.TRUE.equals(enabled)
+                ? isNull(${entity}.${field.name?upper_case}, ${entity}.${field.name?upper_case}_COLUMN_NAME)
+                : this;
+    }
+
+    public ${entity}Criteria set${field.propertyName?cap_first}IsNotNull(Boolean enabled) {
+        return Boolean.TRUE.equals(enabled)
+                ? isNotNull(${entity}.${field.name?upper_case}, ${entity}.${field.name?upper_case}_COLUMN_NAME)
+                : this;
+    }
+
+</#list>
+<#---------- END HTTP 空值条件 ------------>
+
 <#---------- BEGIN 添加 getter setter 方法 ------------>
 <#list table.fields as field>
     <#if buildInColumns?seq_contains(field.name?lower_case)
