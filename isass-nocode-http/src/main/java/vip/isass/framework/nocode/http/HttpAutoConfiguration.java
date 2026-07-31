@@ -15,7 +15,7 @@ import vip.isass.framework.nocode.contract.ContractResourceLoader;
 import vip.isass.framework.nocode.security.NocodePermissionEvaluator;
 
 @AutoConfiguration
-@EnableConfigurationProperties(HttpEndpointProperties.class)
+@EnableConfigurationProperties({HttpEndpointProperties.class, NocodeInitializationProperties.class})
 public class HttpAutoConfiguration {
 
     @Bean
@@ -81,5 +81,31 @@ public class HttpAutoConfiguration {
     ) {
         return new HttpServerAdapter(contracts, services, objectMapper,
                 permissionEvaluator.getIfAvailable(() -> NocodePermissionEvaluator.ALLOW_ALL));
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public NocodeInitializationDataService nocodeInitializationDataService(
+            ServiceRegistry services,
+            ObjectMapper objectMapper
+    ) {
+        return new NocodeInitializationDataService(services, objectMapper);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(name = "nocodeInitializationRunner")
+    public org.springframework.boot.ApplicationRunner nocodeInitializationRunner(
+            NocodeInitializationDataService dataService,
+            NocodeInitializationProperties properties
+    ) {
+        return new NocodeInitializationRunner(dataService, properties).runner();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public NocodeInitializationController nocodeInitializationController(
+            NocodeInitializationDataService dataService
+    ) {
+        return new NocodeInitializationController(dataService);
     }
 }

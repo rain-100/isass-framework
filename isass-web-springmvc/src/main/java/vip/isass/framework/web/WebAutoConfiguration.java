@@ -191,6 +191,8 @@ import vip.isass.framework.web.interceptor.RestTemplateInterceptor;
 import vip.isass.framework.web.interceptor.TraceIdInterceptor;
 import vip.isass.framework.web.interceptor.UriMappingInterceptor;
 import vip.isass.framework.web.servicedocs.ServiceDocsController;
+import vip.isass.framework.web.servicedocs.OpenApiPermitUrlProvider;
+import vip.isass.framework.web.security.PermitUrlProvider;
 import vip.isass.framework.web.uri.UriPrefixProvider;
 
 import java.awt.image.BufferedImage;
@@ -210,6 +212,13 @@ import java.util.List;
 public class WebAutoConfiguration {
 
     public static final int READ_TIMEOUT_IN_MILLIS = 50_000;
+
+    @Bean
+    public PermitUrlProvider openApiPermitUrlProvider(
+            @org.springframework.beans.factory.annotation.Value("${spring.application.name:}") String applicationName
+    ) {
+        return new OpenApiPermitUrlProvider(applicationName);
+    }
 
     @Bean
     public RestTemplate noBalancedRestTemplate(RestTemplateInterceptor restTemplateInterceptor) {

@@ -5,6 +5,7 @@ import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.boot.webmvc.error.ErrorAttributes;
 import vip.isass.framework.web.exception.ExceptionAdvice;
+import vip.isass.framework.web.security.PermitUrlProvider;
 import vip.isass.framework.web.servicedocs.ServiceDocsController;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -21,6 +22,15 @@ class WebAutoConfigurationTest {
     void serviceDocsControllerIsCreated() {
         contextRunner.run(context -> {
             assertThat(context).hasSingleBean(ServiceDocsController.class);
+        });
+    }
+
+    @Test
+    void openApiUrlsAreExposedAsPermitUrls() {
+        contextRunner.run(context -> {
+            assertThat(context.getBeansOfType(PermitUrlProvider.class).values())
+                    .anySatisfy(provider -> assertThat(provider.getUrls())
+                            .contains("/v3/api-docs", "/test-app/v3/api-docs"));
         });
     }
 

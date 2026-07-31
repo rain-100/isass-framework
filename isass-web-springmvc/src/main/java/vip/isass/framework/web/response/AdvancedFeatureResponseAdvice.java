@@ -6,6 +6,7 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
+import org.springframework.web.bind.annotation.ControllerAdvice;
 import tools.jackson.databind.ObjectMapper;
 import vip.isass.framework.common.web.Resp;
 import vip.isass.framework.nocode.entity.AdvancedFeature;
@@ -19,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 /** Applies explicit HTTP response-projection options without ThreadLocal state. */
+@ControllerAdvice
 public class AdvancedFeatureResponseAdvice implements ResponseBodyAdvice<Object> {
 
     private final ObjectMapper objectMapper;

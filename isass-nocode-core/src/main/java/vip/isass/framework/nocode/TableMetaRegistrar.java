@@ -13,6 +13,7 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 import vip.isass.framework.nocode.entity.IEntity;
+import vip.isass.framework.nocode.entity.EntityAssociation;
 import vip.isass.framework.nocode.entity.IIdEntity;
 import vip.isass.framework.nocode.entity.ILogicDeleteEntity;
 import vip.isass.framework.nocode.entity.IParentIdEntity;
@@ -26,7 +27,9 @@ import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Collection;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -117,6 +120,7 @@ public class TableMetaRegistrar
             detectVersion(meta, entityClass);
             detectTenant(meta, entityClass);
             detectParentId(meta, entityClass);
+            detectAssociations(meta, entityClass);
             metaMap.put(entityClass, meta);
         }
     }
@@ -187,6 +191,13 @@ public class TableMetaRegistrar
                 }
             }
         }
+
+        // Association members are response-only projections, never database columns.
+        if (!meta.associationFields().isEmpty()) {
+            List<TableFieldInfo> fields = new ArrayList<>(tableInfo.getFieldList());
+            fields.removeIf(field -> meta.associationFields().contains(field.getProperty()));
+            setTableInfoField(tableInfo, "fieldList", fields);
+        }
     }
 
     /**
@@ -204,7 +215,7 @@ public class TableMetaRegistrar
                     fill == FieldFill.INSERT || fill == FieldFill.INSERT_UPDATE,
                     fill == FieldFill.UPDATE || fill == FieldFill.INSERT_UPDATE);
         }
-        if (isJsonValue(fieldInfo.getField())) {
+        if (!meta.associationFields().contains(fieldInfo.getProperty()) && isJsonValue(fieldInfo.getField())) {
             String mapping = ",typeHandler=" + Jackson3TypeHandler.class.getName();
             setTableFieldInfoField(fieldInfo, "el", fieldInfo.getProperty() + mapping);
             setTableFieldInfoField(fieldInfo, "mapping", mapping.substring(1));
@@ -371,6 +382,16 @@ public class TableMetaRegistrar
     private static void detectParentId(TableMeta meta, Class<?> entityClass) {
         if (IParentIdEntity.class.isAssignableFrom(entityClass)) {
             meta.parentIdField("parentId");
+        }
+    }
+
+    private static void detectAssociations(TableMeta meta, Class<?> entityClass) {
+        try {
+            IEntity<?> entity = (IEntity<?>) entityClass.getDeclaredConstructor().newInstance();
+            meta.associationFields(entity.associations().stream().map(EntityAssociation::property)
+                    .collect(java.util.stream.Collectors.toSet()));
+        } catch (ReflectiveOperationException ignored) {
+            // Entity metadata remains usable even if an entity has no default constructor.
         }
     }
 }

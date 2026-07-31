@@ -11,6 +11,8 @@
 | `im-service`           |          20385 | 即时通信服务；可通过 `IM_HTTP_PORT` 覆盖                                                                 |
 | `wechat-service`       |          20190 | 微信小程序能力                                                                                           |
 | `bsp-web-vue`          |          31011 | bsp前端管理                                                                                              |
+| `iimage-service`       |          31020 | 智图资产管理服务                                                                                         |
+| `iimage-asset-uniappx` |          31025 | 智图资产管理前端                                                                                         |
 
 ## 不再作为 V4 独立部署服务的历史工程
 

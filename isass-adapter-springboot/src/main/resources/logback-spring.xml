@@ -186,16 +186,80 @@
     <property name="LOG_PATTERN"
               value="%d{MM-dd HH:mm:ss.SSS}[%thread]%-5level %-40.40logger{39} - %msg%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}"/>
 
-    <!-- 控制台输出 -->
-    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder>
-            <pattern>${LOG_PATTERN}</pattern>
-        </encoder>
-    </appender>
-
-    <!-- 按照每天生成日志文件 -->
+    <!-- 输出到控制台和文件  -->
     <condition class="ch.qos.logback.core.boolex.ExpressionPropertyCondition">
-        <expression>!propertyEquals("WRITE_LOG_TO_FILE", "false")</expression>
+        <expression>!propertyEquals("WRITE_LOG_STDOUT", "false") &amp;&amp; propertyEquals("WRITE_LOG_TO_FILE", "true")
+        </expression>
+    </condition>
+    <if>
+        <then>
+            <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+                <encoder>
+                    <pattern>${LOG_PATTERN}</pattern>
+                </encoder>
+            </appender>
+
+            <appender name="FILE_ALL" class="ch.qos.logback.core.rolling.RollingFileAppender">
+                <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+                    <fileNamePattern>${LOG_HOME}/log.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+                    <maxFileSize>100MB</maxFileSize>
+                    <maxHistory>30</maxHistory>
+                    <totalSizeCap>10GB</totalSizeCap>
+                </rollingPolicy>
+
+                <encoder>
+                    <pattern>${LOG_PATTERN}</pattern>
+                </encoder>
+            </appender>
+
+            <appender name="FILE_WARN" class="ch.qos.logback.core.rolling.RollingFileAppender">
+                <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+                    <fileNamePattern>${LOG_HOME}/warn-log.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+                    <maxFileSize>100MB</maxFileSize>
+                    <maxHistory>30</maxHistory>
+                    <totalSizeCap>10GB</totalSizeCap>
+                </rollingPolicy>
+
+                <encoder>
+                    <pattern>${LOG_PATTERN}</pattern>
+                </encoder>
+
+                <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+                    <level>WARN</level>
+                </filter>
+            </appender>
+
+            <root level="INFO">
+                <appender-ref ref="STDOUT"/>
+                <appender-ref ref="FILE_ALL"/>
+                <appender-ref ref="FILE_WARN"/>
+            </root>
+        </then>
+    </if>
+
+    <!-- 只输出到控制台 -->
+    <condition class="ch.qos.logback.core.boolex.ExpressionPropertyCondition">
+        <expression>!propertyEquals("WRITE_LOG_STDOUT", "false") &amp;&amp; !propertyEquals("WRITE_LOG_TO_FILE", "true")
+        </expression>
+    </condition>
+    <if>
+        <then>
+            <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+                <encoder>
+                    <pattern>${LOG_PATTERN}</pattern>
+                </encoder>
+            </appender>
+
+            <root level="INFO">
+                <appender-ref ref="STDOUT"/>
+            </root>
+        </then>
+    </if>
+
+    <!-- 只输出到文件 -->
+    <condition class="ch.qos.logback.core.boolex.ExpressionPropertyCondition">
+        <expression>propertyEquals("WRITE_LOG_STDOUT", "false") &amp;&amp; propertyEquals("WRITE_LOG_TO_FILE", "true")
+        </expression>
     </condition>
     <if>
         <then>
@@ -228,42 +292,7 @@
                     <level>WARN</level>
                 </filter>
             </appender>
-        </then>
-    </if>
 
-    <!-- 如果没有配置 WRITE_LOG_STDOUT=false，则把日志输出到控制台 -->
-    <!-- 如果没有配置 WRITE_LOG_TO_FILE=false，则把日志输出到文件 -->
-    <condition class="ch.qos.logback.core.boolex.ExpressionPropertyCondition">
-        <expression>!propertyEquals("WRITE_LOG_STDOUT", "false") &amp;&amp; !propertyEquals("WRITE_LOG_TO_FILE", "false")</expression>
-    </condition>
-    <if>
-        <then>
-            <root level="INFO">
-                <appender-ref ref="STDOUT"/>
-                <appender-ref ref="FILE_ALL"/>
-                <appender-ref ref="FILE_WARN"/>
-            </root>
-        </then>
-    </if>
-
-    <!-- 仅输出到控制台 -->
-    <condition class="ch.qos.logback.core.boolex.ExpressionPropertyCondition">
-        <expression>!propertyEquals("WRITE_LOG_STDOUT", "false") &amp;&amp; propertyEquals("WRITE_LOG_TO_FILE", "false")</expression>
-    </condition>
-    <if>
-        <then>
-            <root level="INFO">
-                <appender-ref ref="STDOUT"/>
-            </root>
-        </then>
-    </if>
-
-    <!-- 仅输出到文件 -->
-    <condition class="ch.qos.logback.core.boolex.ExpressionPropertyCondition">
-        <expression>propertyEquals("WRITE_LOG_STDOUT", "false") &amp;&amp; !propertyEquals("WRITE_LOG_TO_FILE", "false")</expression>
-    </condition>
-    <if>
-        <then>
             <root level="INFO">
                 <appender-ref ref="FILE_ALL"/>
                 <appender-ref ref="FILE_WARN"/>
@@ -271,8 +300,10 @@
         </then>
     </if>
 
+    <!-- 都不输出 -->
     <condition class="ch.qos.logback.core.boolex.ExpressionPropertyCondition">
-        <expression>propertyEquals("WRITE_LOG_STDOUT", "false") &amp;&amp; propertyEquals("WRITE_LOG_TO_FILE", "false")</expression>
+        <expression>propertyEquals("WRITE_LOG_STDOUT", "false") &amp;&amp; !propertyEquals("WRITE_LOG_TO_FILE", "true")
+        </expression>
     </condition>
     <if>
         <then>

@@ -2,7 +2,21 @@
 
 <#assign enumStart = "[枚举--">
 <#assign javaTypeStart = "[javaType--">
+<#assign associationListStart = "[关联表-列表-">
+<#assign associationOneStart = "[关联表-单体-">
+<#assign tableDescription = (table.comment!"")>
+<#if tableDescription?contains(associationListStart)>
+    <#assign tableDescription = tableDescription?substring(0, tableDescription?index_of(associationListStart))>
+<#elseif tableDescription?contains(associationOneStart)>
+    <#assign tableDescription = tableDescription?substring(0, tableDescription?index_of(associationOneStart))>
+</#if>
+<#assign tableDescription = tableDescription?trim>
 <#include "./segment/EntityType.ftl">
+<#function associationTarget marker>
+    <#assign start = table.comment?index_of(marker) + marker?length>
+    <#assign end = table.comment?index_of("]", start)>
+    <#return table.comment?substring(start, end)?trim>
+</#function>
 package ${cfg.entityPackageName};
 
 <#function javaType field>
@@ -53,6 +67,9 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 import vip.isass.framework.nocode.entity.IEntity;
+<#if table.comment!?contains(associationListStart) || table.comment!?contains(associationOneStart)>
+import vip.isass.framework.nocode.entity.EntityAssociation;
+</#if>
 <#if isIdEntity>
 import vip.isass.framework.nocode.entity.IIdEntity;
 </#if>
@@ -113,6 +130,12 @@ import java.util.Collection;
 <#break>
 </#if>
 </#list>
+<#if table.comment!?contains(associationListStart)>
+import java.util.Collection;
+</#if>
+<#if table.comment!?contains(associationListStart) || table.comment!?contains(associationOneStart)>
+import java.util.List;
+</#if>
 
 <#------------ BEGIN 定义类名 ------------>
 /**
@@ -153,6 +176,9 @@ public class ${entity} implements
 <#------------ BEGIN 定义公共字段 ------------>
     public static final ${entity} EMPTY = new ${entity}();
 
+    /** 数据库表注释，用于管理端、初始化数据和接口文档展示。 */
+    public transient static final String COMMENT = "${tableDescription?j_string}";
+
     private static final long serialVersionUID = 1L;
 
 <#------------ END 定义公共字段 ------------>
@@ -177,6 +203,30 @@ public class ${entity} implements
 
 </#list>
 <#---------- END 定义字段 ---------->
+<#if table.comment!?contains(associationListStart)>
+    private Collection<${associationTarget(associationListStart)}> ${associationTarget(associationListStart)?uncap_first}s;
+
+</#if>
+<#if table.comment!?contains(associationOneStart)>
+    private ${associationTarget(associationOneStart)} ${associationTarget(associationOneStart)?uncap_first};
+
+</#if>
+<#if table.comment!?contains(associationListStart) || table.comment!?contains(associationOneStart)>
+    @Override
+    public List<EntityAssociation> associations() {
+        return List.of(
+<#if table.comment!?contains(associationListStart)>
+                EntityAssociation.many("${associationTarget(associationListStart)?uncap_first}s", ${associationTarget(associationListStart)}.class,
+                        "id", "${entity?uncap_first}Id")<#if table.comment!?contains(associationOneStart)>,</#if>
+</#if>
+<#if table.comment!?contains(associationOneStart)>
+                EntityAssociation.one("${associationTarget(associationOneStart)?uncap_first}", ${associationTarget(associationOneStart)}.class,
+                        "${associationTarget(associationOneStart)?uncap_first}Id", "id")
+</#if>
+        );
+    }
+
+</#if>
 <#---------- START 添加枚举类 ---------->
 <#list table.fields as field>
     <#if field.comment!?contains("${enumStart}")>

@@ -1,6 +1,7 @@
 # Isass V4 部署说明
 
-`@service-name-cn@` 是基于 Java 25 与 Spring Boot 4 的 Isass V4 服务。标准部署包由 boot 模块在 `package` 阶段生成，文件名为 `@project.artifactId@-bin.tar.gz`。
+`@service-name-cn@` 是基于 Java 25 与 Spring Boot 4 的 Isass V4 服务。标准部署包由 boot 模块在 `package` 阶段生成，文件名为
+`@project.artifactId@-bin.tar.gz`。
 
 ## 部署包结构
 
@@ -53,7 +54,8 @@ Windows 部署包还包含 `win_start.bat`、Windows 服务安装/启动/停止/
 ./run.sh stop
 ```
 
-`./run.sh` 默认以 `nohup` 后台运行并自动跟随日志；按 `Ctrl+C` 仅退出日志查看，不会停止服务。生产环境建议由 systemd、容器编排平台或其他进程守护工具管理服务生命周期。
+`./run.sh` 默认以 `nohup` 后台运行并自动跟随日志；按 `Ctrl+C` 仅退出日志查看，不会停止服务。生产环境建议由
+systemd、容器编排平台或其他进程守护工具管理服务生命周期。
 
 ## Windows 部署
 
@@ -67,17 +69,19 @@ Windows 服务名称为 `@project.artifactId@`。
 
 Linux 启动脚本支持通过环境变量调整 JVM 与运行行为；命令行选项优先于环境变量。
 
-| 变量 | 默认值 | 说明 |
-| --- | --- | --- |
-| `JVM_MEMORY_VARS` | 主机：`-Xms3G -Xmx6G`；容器：按 `MaxRAMPercentage=88.0` | 覆盖 JVM 内存参数。应按实际容器或主机内存设置。 |
-| `JVM_VARS` | `-server -XX:+PrintCommandLineFlags` | JVM 非内存参数。 |
-| `JVM_PRINT_GC` | `false` | 是否输出 GC 日志。 |
-| `DEBUG_PORT` | 空 | 开启 JDWP 远程调试端口。仅限受访问控制的排障环境。 |
-| `JMX_HOSTNAME` / `JMX_PORT` | 空 | 开启 JMX 监控。启用时必须通过网络策略保护端口。 |
-| `AUTO_TAIL_LOG` | `true` | 后台启动后是否自动跟随日志。 |
-| `RUN_AS_NOHUP` | `true` | 是否使用 `nohup` 在后台运行。容器中通常设为 `false`。 |
-| `RM_LOG` | `false` | 启动前删除 `logs/` 下已有日志。生产环境通常保持 `false`。 |
-| `KEEP_DOCKER_RUNNING` | `false` | 容器排障时启动失败后保持容器运行。 |
+| 变量                        | 默认值                                                  | 说明                                                      |
+|-----------------------------|---------------------------------------------------------|-----------------------------------------------------------|
+| `JVM_MEMORY_VARS`           | 主机：`-Xms3G -Xmx6G`；容器：按 `MaxRAMPercentage=88.0` | 覆盖 JVM 内存参数。应按实际容器或主机内存设置。           |
+| `JVM_VARS`                  | `-server -XX:+PrintCommandLineFlags`                    | JVM 非内存参数。                                          |
+| `JVM_PRINT_GC`              | `false`                                                 | 是否输出 GC 日志。                                        |
+| `DEBUG_PORT`                | 空                                                      | 开启 JDWP 远程调试端口。仅限受访问控制的排障环境。        |
+| `JMX_HOSTNAME` / `JMX_PORT` | 空                                                      | 开启 JMX 监控。启用时必须通过网络策略保护端口。           |
+| `WRITE_LOG_STDOUT`          | `true`                                                  | 打印日志到控制台。                                        |
+| `WRITE_LOG_TO_FILE`         | `false`                                                 | 打印日志到日志文件。                                      |
+| `AUTO_TAIL_LOG`             | `true`                                                  | 后台启动后是否自动跟随日志。仅日打印志到控制台时有意义    |
+| `RUN_AS_NOHUP`              | `true`                                                  | 是否使用 `nohup` 在后台运行。容器中通常设为 `false`。     |
+| `RM_LOG`                    | `false`                                                 | 启动前删除 `logs/` 下已有日志。生产环境通常保持 `false`。 |
+| `KEEP_DOCKER_RUNNING`       | `false`                                                 | 容器排障时 java 启动失败后保持容器运行。                  |
 
 示例：
 

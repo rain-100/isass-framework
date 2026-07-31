@@ -55,6 +55,7 @@ public class HttpServerAdapter {
     private final ServiceRegistry services;
     private final ObjectMapper objectMapper;
     private final NocodePermissionEvaluator permissionEvaluator;
+    private final NocodeAssociationLoader associationLoader;
 
     public HttpServerAdapter(
             ContractRegistry contracts,
@@ -75,6 +76,7 @@ public class HttpServerAdapter {
         this.services = services;
         this.objectMapper = objectMapper;
         this.permissionEvaluator = permissionEvaluator;
+        this.associationLoader = new NocodeAssociationLoader(services, objectMapper);
     }
 
     @RequestMapping("/{service:[a-zA-Z0-9-]+-service}/{entity}")
@@ -118,7 +120,18 @@ public class HttpServerAdapter {
             return invokeFileOperation(service, entity, standardNocodeService, localService, operation, relativePath, query, request);
         }
         Object result = invokeService(service, entity, standardNocodeService, localService, operation, relativePath, query, request);
+        if (standardNocodeService && isAssociationQueryable(operation)) {
+            associationLoader.load((IService<?, ?>) localService, result, query);
+        }
         return result instanceof Resp<?> response ? response : Resp.bizSuccess(result);
+    }
+
+    private boolean isAssociationQueryable(OperationContract operation) {
+        return switch (operation.name()) {
+            case "getById", "getByIdOrException", "getByCriteria", "getByCriteriaOrWarn",
+                    "getByCriteriaOrException", "findByCriteria", "findPageByCriteria", "findAll" -> true;
+            default -> false;
+        };
     }
 
     /**

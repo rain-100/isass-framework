@@ -206,7 +206,8 @@ public class PermitUrlConfiguration {
 
     public Collection<String> getPermitUrls() {
         HashSet<String> permitUrls = CollUtil.newHashSet(
-            "/error"
+            "/error",
+                "/favicon.ico"
         );
 
         if (permitUrlProviders != null) {

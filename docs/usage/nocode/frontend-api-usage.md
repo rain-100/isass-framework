@@ -138,7 +138,7 @@ Content-Type: multipart/form-data
 用于把日期、时间、时间戳字段转换为页面直接展示的日期文本，原字段保留，便于前端直接展示。
 
 ```text
-GET /attachment-service/iconGroup/criteria?dateFormat.createTime=yyyy-MM-dd
+GET /bsp-service/iconGroup/criteria?dateFormat.createTime=yyyy-MM-dd
 ```
 
 ```json

@@ -59,6 +59,19 @@ public class ServiceRegistry {
         return service != null ? service.entityClass() : null;
     }
 
+    /** Returns the local standard service by its generated entity name. */
+    public IService<?, ?> serviceByEntity(String entity) {
+        return services.get(entity);
+    }
+
+    /** Returns the local standard service for a generated association target. */
+    public IService<?, ?> serviceByEntityClass(Class<?> entityClass) {
+        return services.values().stream()
+                .filter(service -> service.entityClass().equals(entityClass))
+                .findFirst()
+                .orElse(null);
+    }
+
     /**
      * 根据 service 和 entity 查找并校验 IService。
      *

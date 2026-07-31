@@ -179,6 +179,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.List;
 
 /**
  * @author Rain
@@ -193,6 +194,14 @@ public interface IEntity<E extends IEntity<E>> extends Serializable, IAnyJsonEnt
      */
     default String tableName() {
         return "";
+    }
+
+    /**
+     * Generated non-persistent associations. Empty by default so ordinary entities
+     * do not pay any relationship-loading cost.
+     */
+    default List<EntityAssociation> associations() {
+        return List.of();
     }
 
     default String randomString() {

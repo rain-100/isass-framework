@@ -4,7 +4,9 @@ import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.IdType;
 
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 
 public class TableMeta {
 
@@ -17,6 +19,7 @@ public class TableMeta {
     private String tenantIdField;
     private String parentIdField;
     private final Map<String, FieldFill> fillFields = new HashMap<>();
+    private final Set<String> associationFields = new LinkedHashSet<>();
 
     public String tableName() { return tableName; }
     public TableMeta tableName(String v) { this.tableName = v; return this; }
@@ -44,4 +47,7 @@ public class TableMeta {
 
     public Map<String, FieldFill> fillFields() { return fillFields; }
     public TableMeta fillFields(Map<String, FieldFill> v) { fillFields.putAll(v); return this; }
+
+    public Set<String> associationFields() { return associationFields; }
+    public TableMeta associationFields(Set<String> v) { associationFields.addAll(v); return this; }
 }
