@@ -18,7 +18,6 @@
     <#return table.comment?substring(start, end)?trim>
 </#function>
 package ${cfg.entityPackageName};
-
 <#function javaType field>
 <#if field.comment!?contains("${javaTypeStart}")>
     <#assign start = field.comment?index_of("${javaTypeStart}") + javaTypeStart?length>
@@ -33,6 +32,7 @@ package ${cfg.entityPackageName};
 import cn.hutool.core.util.RandomUtil;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
+<#break>
 </#if>
 </#list>
 <#list table.fields as field>
@@ -196,8 +196,7 @@ public class ${entity} implements
      * </p>
      * 数据库字段名: ${field.name}
      * 数据库字段类型: ${field.metaInfo.typeName}
-     */
-<#if field.propertyName!?ends_with("Id") && field.propertyType == "Long">
+     */<#if field.propertyName!?ends_with("Id") && field.propertyType == "Long">
     @JsonSerialize(using = ToStringSerializer.class)</#if>
     private <#if field.propertyName == cfg.logicDeleteEntity.DELETE_FLAG_PROPERTY_NAME>Boolean<#elseif field.comment!?contains("${enumStart}")>${field.propertyName?cap_first}<#elseif field.comment!?contains("${javaTypeStart}")>${javaType(field)}<#elseif field.propertyType == "JsonNode">JsonNode<#else>${field.propertyType}</#if> ${field.propertyName};
 

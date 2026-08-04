@@ -175,7 +175,6 @@ import vip.isass.framework.nocode.entity.ITraceEntity;
 
 import java.beans.Transient;
 import java.io.Serializable;
-import java.time.LocalDateTime;
 import java.util.Collection;
 
 /**
@@ -609,65 +608,65 @@ public interface ITraceCriteria<
 
     @Transient
     @SuppressWarnings("rawtypes")
-    default LocalDateTime getCreateTime() {
+    default Long getCreateTime() {
         return this instanceof IWhereConditionCriteria
-                ? (LocalDateTime) ((IWhereConditionCriteria) this).getEquals(getCreatedTimePropertyName())
+                ? (Long) ((IWhereConditionCriteria) this).getEquals(getCreatedTimePropertyName())
                 : null;
     }
 
     // region 所有类型都有的条件
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    default C setCreateTime(LocalDateTime createTime) {
+    default C setCreateTime(Long createTime) {
         return this instanceof IWhereConditionCriteria
                 ? (C) ((IWhereConditionCriteria) this).equals(getCreatedTimePropertyName(), getCreatedTimeColumnName(), createTime)
                 : (C) this;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    default C setOrCreateTime(LocalDateTime createTime) {
+    default C setOrCreateTime(Long createTime) {
         return this instanceof IWhereConditionCriteria
                 ? (C) ((IWhereConditionCriteria) this).orEquals(getCreatedTimePropertyName(), getCreatedTimeColumnName(), createTime)
                 : (C) this;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    default C setCreateTimeNotEqual(LocalDateTime createTime) {
+    default C setCreateTimeNotEqual(Long createTime) {
         return this instanceof IWhereConditionCriteria
                 ? (C) ((IWhereConditionCriteria) this).notEquals(getCreatedTimePropertyName(), getCreatedTimeColumnName(), createTime)
                 : (C) this;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    default C setOrCreateTimeNotEqual(LocalDateTime createTime) {
+    default C setOrCreateTimeNotEqual(Long createTime) {
         return this instanceof IWhereConditionCriteria
                 ? (C) ((IWhereConditionCriteria) this).orNotEquals(getCreatedTimePropertyName(), getCreatedTimeColumnName(), createTime)
                 : (C) this;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    default C createTimeIn(Collection<LocalDateTime> createTime) {
+    default C createTimeIn(Collection<Long> createTime) {
         return this instanceof IWhereConditionCriteria
                 ? (C) ((IWhereConditionCriteria) this).in(getCreatedTimePropertyName(), getCreatedTimeColumnName(), createTime)
                 : (C) this;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    default C orCreateTimeIn(Collection<LocalDateTime> createTime) {
+    default C orCreateTimeIn(Collection<Long> createTime) {
         return this instanceof IWhereConditionCriteria
                 ? (C) ((IWhereConditionCriteria) this).orIn(getCreatedTimePropertyName(), getCreatedTimeColumnName(), createTime)
                 : (C) this;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    default C createTimeNotIn(Collection<LocalDateTime> createTime) {
+    default C createTimeNotIn(Collection<Long> createTime) {
         return this instanceof IWhereConditionCriteria
                 ? (C) ((IWhereConditionCriteria) this).notIn(getCreatedTimePropertyName(), getCreatedTimeColumnName(), createTime)
                 : (C) this;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    default C orCreateTimeNotIn(Collection<LocalDateTime> createTime) {
+    default C orCreateTimeNotIn(Collection<Long> createTime) {
         return this instanceof IWhereConditionCriteria
                 ? (C) ((IWhereConditionCriteria) this).orNotIn(getCreatedTimePropertyName(), getCreatedTimeColumnName(), createTime)
                 : (C) this;
@@ -706,56 +705,56 @@ public interface ITraceCriteria<
     // region 数字类型字段拥有的条件
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    default C setCreateTimeLessThan(LocalDateTime createTime) {
+    default C setCreateTimeLessThan(Long createTime) {
         return this instanceof IWhereConditionCriteria
                 ? (C) ((IWhereConditionCriteria) this).lessThan(getCreatedTimePropertyName(), getCreatedTimeColumnName(), createTime)
                 : (C) this;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    default C setOrCreateTimeLessThan(LocalDateTime createTime) {
+    default C setOrCreateTimeLessThan(Long createTime) {
         return this instanceof IWhereConditionCriteria
                 ? (C) ((IWhereConditionCriteria) this).orLessThan(getCreatedTimePropertyName(), getCreatedTimeColumnName(), createTime)
                 : (C) this;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    default C setCreateTimeLessThanEqual(LocalDateTime createTime) {
+    default C setCreateTimeLessThanEqual(Long createTime) {
         return this instanceof IWhereConditionCriteria
                 ? (C) ((IWhereConditionCriteria) this).lessThanEqual(getCreatedTimePropertyName(), getCreatedTimeColumnName(), createTime)
                 : (C) this;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    default C setOrCreateTimeLessThanEqual(LocalDateTime createTime) {
+    default C setOrCreateTimeLessThanEqual(Long createTime) {
         return this instanceof IWhereConditionCriteria
                 ? (C) ((IWhereConditionCriteria) this).orLessThanEqual(getCreatedTimePropertyName(), getCreatedTimeColumnName(), createTime)
                 : (C) this;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    default C setCreateTimeGreaterThan(LocalDateTime createTime) {
+    default C setCreateTimeGreaterThan(Long createTime) {
         return this instanceof IWhereConditionCriteria
                 ? (C) ((IWhereConditionCriteria) this).greaterThan(getCreatedTimePropertyName(), getCreatedTimeColumnName(), createTime)
                 : (C) this;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    default C setOrCreateTimeGreaterThan(LocalDateTime createTime) {
+    default C setOrCreateTimeGreaterThan(Long createTime) {
         return this instanceof IWhereConditionCriteria
                 ? (C) ((IWhereConditionCriteria) this).orGreaterThan(getCreatedTimePropertyName(), getCreatedTimeColumnName(), createTime)
                 : (C) this;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    default C setCreateTimeGreaterThanEqual(LocalDateTime createTime) {
+    default C setCreateTimeGreaterThanEqual(Long createTime) {
         return this instanceof IWhereConditionCriteria
                 ? (C) ((IWhereConditionCriteria) this).greaterThanEqual(getCreatedTimePropertyName(), getCreatedTimeColumnName(), createTime)
                 : (C) this;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    default C setOrCreateTimeGreaterThanEqual(LocalDateTime createTime) {
+    default C setOrCreateTimeGreaterThanEqual(Long createTime) {
         return this instanceof IWhereConditionCriteria
                 ? (C) ((IWhereConditionCriteria) this).orGreaterThanEqual(getCreatedTimePropertyName(), getCreatedTimeColumnName(), createTime)
                 : (C) this;
@@ -1121,65 +1120,65 @@ public interface ITraceCriteria<
 
     @Transient
     @SuppressWarnings("rawtypes")
-    default LocalDateTime getModifyTime() {
+    default Long getModifyTime() {
         return this instanceof IWhereConditionCriteria
-                ? (LocalDateTime) ((IWhereConditionCriteria) this).getEquals(getModifyTimeColumnPropertyName())
+                ? (Long) ((IWhereConditionCriteria) this).getEquals(getModifyTimeColumnPropertyName())
                 : null;
     }
 
     // region 所有类型都有的条件
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    default C setModifyTime(LocalDateTime modifyTime) {
+    default C setModifyTime(Long modifyTime) {
         return this instanceof IWhereConditionCriteria
                 ? (C) ((IWhereConditionCriteria) this).equals(getModifyTimeColumnPropertyName(), getModifyTimeColumnColumnName(), modifyTime)
                 : (C) this;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    default C setOrModifyTime(LocalDateTime modifyTime) {
+    default C setOrModifyTime(Long modifyTime) {
         return this instanceof IWhereConditionCriteria
                 ? (C) ((IWhereConditionCriteria) this).orEquals(getModifyTimeColumnPropertyName(), getModifyTimeColumnColumnName(), modifyTime)
                 : (C) this;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    default C setModifyTimeNotEqual(LocalDateTime modifyTime) {
+    default C setModifyTimeNotEqual(Long modifyTime) {
         return this instanceof IWhereConditionCriteria
                 ? (C) ((IWhereConditionCriteria) this).notEquals(getModifyTimeColumnPropertyName(), getModifyTimeColumnColumnName(), modifyTime)
                 : (C) this;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    default C setOrModifyTimeNotEqual(LocalDateTime modifyTime) {
+    default C setOrModifyTimeNotEqual(Long modifyTime) {
         return this instanceof IWhereConditionCriteria
                 ? (C) ((IWhereConditionCriteria) this).orNotEquals(getModifyTimeColumnPropertyName(), getModifyTimeColumnColumnName(), modifyTime)
                 : (C) this;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    default C modifyTimeIn(Collection<LocalDateTime> modifyTime) {
+    default C modifyTimeIn(Collection<Long> modifyTime) {
         return this instanceof IWhereConditionCriteria
                 ? (C) ((IWhereConditionCriteria) this).in(getModifyTimeColumnPropertyName(), getModifyTimeColumnColumnName(), modifyTime)
                 : (C) this;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    default C orModifyTimeIn(Collection<LocalDateTime> modifyTime) {
+    default C orModifyTimeIn(Collection<Long> modifyTime) {
         return this instanceof IWhereConditionCriteria
                 ? (C) ((IWhereConditionCriteria) this).orIn(getModifyTimeColumnPropertyName(), getModifyTimeColumnColumnName(), modifyTime)
                 : (C) this;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    default C modifyTimeNotIn(Collection<LocalDateTime> modifyTime) {
+    default C modifyTimeNotIn(Collection<Long> modifyTime) {
         return this instanceof IWhereConditionCriteria
                 ? (C) ((IWhereConditionCriteria) this).notIn(getModifyTimeColumnPropertyName(), getModifyTimeColumnColumnName(), modifyTime)
                 : (C) this;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    default C orModifyTimeNotIn(Collection<LocalDateTime> modifyTime) {
+    default C orModifyTimeNotIn(Collection<Long> modifyTime) {
         return this instanceof IWhereConditionCriteria
                 ? (C) ((IWhereConditionCriteria) this).orNotIn(getModifyTimeColumnPropertyName(), getModifyTimeColumnColumnName(), modifyTime)
                 : (C) this;
@@ -1218,56 +1217,56 @@ public interface ITraceCriteria<
     // region 数字类型字段拥有的条件
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    default C setModifyTimeLessThan(LocalDateTime modifyTime) {
+    default C setModifyTimeLessThan(Long modifyTime) {
         return this instanceof IWhereConditionCriteria
                 ? (C) ((IWhereConditionCriteria) this).lessThan(getModifyTimeColumnPropertyName(), getModifyTimeColumnColumnName(), modifyTime)
                 : (C) this;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    default C setOrModifyTimeLessThan(LocalDateTime modifyTime) {
+    default C setOrModifyTimeLessThan(Long modifyTime) {
         return this instanceof IWhereConditionCriteria
                 ? (C) ((IWhereConditionCriteria) this).orLessThan(getModifyTimeColumnPropertyName(), getModifyTimeColumnColumnName(), modifyTime)
                 : (C) this;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    default C setModifyTimeLessThanEqual(LocalDateTime modifyTime) {
+    default C setModifyTimeLessThanEqual(Long modifyTime) {
         return this instanceof IWhereConditionCriteria
                 ? (C) ((IWhereConditionCriteria) this).lessThanEqual(getModifyTimeColumnPropertyName(), getModifyTimeColumnColumnName(), modifyTime)
                 : (C) this;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    default C setOrModifyTimeLessThanEqual(LocalDateTime modifyTime) {
+    default C setOrModifyTimeLessThanEqual(Long modifyTime) {
         return this instanceof IWhereConditionCriteria
                 ? (C) ((IWhereConditionCriteria) this).orLessThanEqual(getModifyTimeColumnPropertyName(), getModifyTimeColumnColumnName(), modifyTime)
                 : (C) this;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    default C setModifyTimeGreaterThan(LocalDateTime modifyTime) {
+    default C setModifyTimeGreaterThan(Long modifyTime) {
         return this instanceof IWhereConditionCriteria
                 ? (C) ((IWhereConditionCriteria) this).greaterThan(getModifyTimeColumnPropertyName(), getModifyTimeColumnColumnName(), modifyTime)
                 : (C) this;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    default C setOrModifyTimeGreaterThan(LocalDateTime modifyTime) {
+    default C setOrModifyTimeGreaterThan(Long modifyTime) {
         return this instanceof IWhereConditionCriteria
                 ? (C) ((IWhereConditionCriteria) this).orGreaterThan(getModifyTimeColumnPropertyName(), getModifyTimeColumnColumnName(), modifyTime)
                 : (C) this;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    default C setModifyTimeGreaterThanEqual(LocalDateTime modifyTime) {
+    default C setModifyTimeGreaterThanEqual(Long modifyTime) {
         return this instanceof IWhereConditionCriteria
                 ? (C) ((IWhereConditionCriteria) this).greaterThanEqual(getModifyTimeColumnPropertyName(), getModifyTimeColumnColumnName(), modifyTime)
                 : (C) this;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    default C setOrModifyTimeGreaterThanEqual(LocalDateTime modifyTime) {
+    default C setOrModifyTimeGreaterThanEqual(Long modifyTime) {
         return this instanceof IWhereConditionCriteria
                 ? (C) ((IWhereConditionCriteria) this).orGreaterThanEqual(getModifyTimeColumnPropertyName(), getModifyTimeColumnColumnName(), modifyTime)
                 : (C) this;

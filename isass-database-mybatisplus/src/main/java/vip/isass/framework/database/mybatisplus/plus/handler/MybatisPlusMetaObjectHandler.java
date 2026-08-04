@@ -172,13 +172,13 @@ package vip.isass.framework.database.mybatisplus.plus.handler;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
 import org.apache.ibatis.reflection.MetaObject;
+import vip.isass.framework.common.support.SystemClock;
 import vip.isass.framework.nocode.entity.ILogicDeleteEntity;
 import vip.isass.framework.nocode.entity.ITenantEntity;
 import vip.isass.framework.nocode.entity.ITraceEntity;
 import vip.isass.framework.nocode.entity.IVersionEntity;
 import vip.isass.framework.common.login.LoginUser;
 import vip.isass.framework.common.login.LoginUserUtil;
-import vip.isass.framework.common.support.LocalDateTimeUtil;
 
 /**
  * @author Rain
@@ -238,11 +238,11 @@ public class MybatisPlusMetaObjectHandler implements MetaObjectHandler {
         // createTime
         Object createTime = getFieldValByName(ITraceEntity.CREATED_TIME_PROPERTY_NAME, metaObject);
         if (createTime == null) {
-            setFieldValByName(ITraceEntity.CREATED_TIME_PROPERTY_NAME, LocalDateTimeUtil.now(), metaObject);
+            setFieldValByName(ITraceEntity.CREATED_TIME_PROPERTY_NAME, SystemClock.now(), metaObject);
         }
 
         // modifyTime
-        setFieldValByName(ITraceEntity.MODIFY_TIME_PROPERTY_NAME, LocalDateTimeUtil.now(), metaObject);
+        setFieldValByName(ITraceEntity.MODIFY_TIME_PROPERTY_NAME, SystemClock.now(), metaObject);
 
         // delete_flag
         setFieldValByName(ILogicDeleteEntity.DELETE_FLAG_PROPERTY_NAME, ILogicDeleteEntity.DEFAULT_DELETE_FLAG_VALUE, metaObject);
@@ -266,7 +266,7 @@ public class MybatisPlusMetaObjectHandler implements MetaObjectHandler {
                 metaObject);
 
         // modifyTime
-        setFieldValByName(ITraceEntity.MODIFY_TIME_PROPERTY_NAME, LocalDateTimeUtil.now(), metaObject);
+        setFieldValByName(ITraceEntity.MODIFY_TIME_PROPERTY_NAME, System.currentTimeMillis(), metaObject);
 
     }
 

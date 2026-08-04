@@ -191,8 +191,8 @@ public enum ExtDbColumnType implements IColumnType {
     LOCAL_DATE_TIME_ARRAY("LocalDateTime[]", "java.time.LocalDateTime"),
     TIME_ARRAY("Time[]", "java.sql.Time"),
     LOCAL_TIME_ARRAY("LocalTime[]", "java.time.LocalTime"),
-    JSON("JsonNode", "com.fasterxml.jackson.databind.JsonNode"),
-    JSON_ARRAY("JsonNode[]", "com.fasterxml.jackson.databind.JsonNode");
+    JSON("JsonNode", "tools.jackson.databind.JsonNode"),
+    JSON_ARRAY("JsonNode[]", "tools.jackson.databind.JsonNode");
 
     /**
      * 类型

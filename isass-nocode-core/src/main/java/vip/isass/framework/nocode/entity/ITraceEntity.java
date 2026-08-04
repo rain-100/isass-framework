@@ -173,7 +173,6 @@ import vip.isass.framework.common.sequence.impl.LongSequence;
 
 import java.beans.Transient;
 import java.io.Serializable;
-import java.time.LocalDateTime;
 
 /**
  * 审计追踪类型实体
@@ -273,7 +272,7 @@ public interface ITraceEntity<UPK extends Serializable, E extends ITraceEntity<U
      *
      * @return create time
      */
-    default LocalDateTime getCreateTime() {
+    default Long getCreateTime() {
         return null;
     }
 
@@ -282,7 +281,7 @@ public interface ITraceEntity<UPK extends Serializable, E extends ITraceEntity<U
      *
      * @param createTime create time
      */
-    default void setCreateTime(LocalDateTime createTime) {
+    default void setCreateTime(Long createTime) {
 
     }
 
@@ -327,7 +326,7 @@ public interface ITraceEntity<UPK extends Serializable, E extends ITraceEntity<U
      *
      * @return modify time
      */
-    default LocalDateTime getModifyTime() {
+    default Long getModifyTime() {
         return null;
     }
 
@@ -336,7 +335,7 @@ public interface ITraceEntity<UPK extends Serializable, E extends ITraceEntity<U
      *
      * @param modifyTime modify time
      */
-    default void setModifyTime(LocalDateTime modifyTime) {
+    default void setModifyTime(Long modifyTime) {
 
     }
 
@@ -346,10 +345,10 @@ public interface ITraceEntity<UPK extends Serializable, E extends ITraceEntity<U
         // 在 isass 3.x.x 版本，用户id是字符串，现在只能写死类型强转
         setCreateUserId((UPK) LongSequence.get().toString());
         setCreateUserName(randomString());
-        setCreateTime(randomLocalDateTime());
+        setCreateTime(randomLong());
         setModifyUserId((UPK) LongSequence.get().toString());
         setModifyUserName(randomString());
-        setModifyTime(randomLocalDateTime());
+        setModifyTime(randomLong());
         return (E) this;
     }
 
