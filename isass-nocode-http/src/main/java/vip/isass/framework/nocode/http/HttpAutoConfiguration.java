@@ -5,29 +5,48 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.http.HttpHeaders;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.support.RestClientAdapter;
 import org.springframework.web.service.invoker.HttpServiceProxyFactory;
 import tools.jackson.databind.ObjectMapper;
+import vip.isass.framework.common.web.header.AdditionalRequestHeaderProvider;
 import vip.isass.framework.nocode.ServiceRegistry;
 import vip.isass.framework.nocode.contract.ContractRegistry;
 import vip.isass.framework.nocode.contract.ContractResourceLoader;
 import vip.isass.framework.nocode.security.NocodePermissionEvaluator;
 
 @AutoConfiguration
-@EnableConfigurationProperties({HttpEndpointProperties.class, NocodeInitializationProperties.class})
+@EnableConfigurationProperties(NocodeInitializationProperties.class)
 public class HttpAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public HttpEndpointResolver HttpEndpointResolver(HttpEndpointProperties properties) {
-        return service -> properties.getEndpoints().get(service);
+    public HttpEndpointResolver HttpEndpointResolver(
+            org.springframework.core.env.Environment environment,
+            org.springframework.beans.factory.ListableBeanFactory beanFactory
+    ) {
+        return new DefaultHttpEndpointResolver(new HttpEndpointProperties(environment), beanFactory);
     }
 
     @Bean
     @ConditionalOnMissingBean
-    public NocodeHttpExchange NocodeHttpExchange() {
-        return HttpServiceProxyFactory.builderFor(RestClientAdapter.create(RestClient.create()))
+    public NocodeHttpExchange NocodeHttpExchange(
+            ObjectProvider<java.util.List<AdditionalRequestHeaderProvider>> additionalHeaderProviders
+    ) {
+        RestClient.Builder client = RestClient.builder();
+        java.util.List<AdditionalRequestHeaderProvider> providers = additionalHeaderProviders.getIfAvailable(java.util.List::of);
+        client.requestInterceptor((request, body, execution) -> {
+            HttpHeaders headers = request.getHeaders();
+            for (AdditionalRequestHeaderProvider provider : providers) {
+                if (!provider.support(request.getMethod().name(), request.getURI().getHost())) continue;
+                if (provider.override() || headers.getFirst(provider.getHeaderName()) == null) {
+                    headers.set(provider.getHeaderName(), provider.getValue());
+                }
+            }
+            return execution.execute(request, body);
+        });
+        return HttpServiceProxyFactory.builderFor(RestClientAdapter.create(client.build()))
                 .build().createClient(NocodeHttpExchange.class);
     }
 
@@ -93,12 +112,23 @@ public class HttpAutoConfiguration {
     }
 
     @Bean
+    @ConditionalOnMissingBean
+    public NocodeInitializationRemoteClient nocodeInitializationRemoteClient(
+            NocodeHttpExchange exchange,
+            HttpEndpointResolver endpoints,
+            ObjectMapper objectMapper
+    ) {
+        return new NocodeInitializationRemoteClient(exchange, endpoints, objectMapper);
+    }
+
+    @Bean
     @ConditionalOnMissingBean(name = "nocodeInitializationRunner")
     public org.springframework.boot.ApplicationRunner nocodeInitializationRunner(
             NocodeInitializationDataService dataService,
+            NocodeInitializationRemoteClient remoteClient,
             NocodeInitializationProperties properties
     ) {
-        return new NocodeInitializationRunner(dataService, properties).runner();
+        return new NocodeInitializationRunner(dataService, remoteClient, properties).runner();
     }
 
     @Bean

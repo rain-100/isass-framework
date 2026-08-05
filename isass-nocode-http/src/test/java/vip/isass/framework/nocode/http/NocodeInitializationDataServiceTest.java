@@ -4,7 +4,8 @@ import org.junit.jupiter.api.Test;
 import tools.jackson.databind.ObjectMapper;
 import vip.isass.framework.nocode.ServiceRegistry;
 import vip.isass.framework.nocode.entity.IIdEntity;
-import vip.isass.framework.nocode.service.IService;
+import vip.isass.framework.nocode.repository.IRepository;
+import vip.isass.framework.nocode.service.ILocalService;
 
 import java.util.List;
 import java.util.Map;
@@ -12,6 +13,7 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -20,12 +22,14 @@ class NocodeInitializationDataServiceTest {
     @Test
     @SuppressWarnings({"rawtypes", "unchecked"})
     void importsOnlyAbsentRowsAndKeepsDistributedIds() {
-        IService service = mock(IService.class);
+        ILocalService service = mock(ILocalService.class);
+        IRepository repository = mock(IRepository.class);
         when(service.service()).thenReturn("sample-service");
         when(service.entity()).thenReturn("sample");
         when(service.entityClass()).thenReturn((Class) Sample.class);
         when(service.isPresentById(1L)).thenReturn(false);
         when(service.isPresentById(2L)).thenReturn(true);
+        when(service.getRepository()).thenReturn(repository);
 
         NocodeInitializationDataService dataService = new NocodeInitializationDataService(
                 new ServiceRegistry(List.of(service)), new ObjectMapper());
@@ -36,17 +40,20 @@ class NocodeInitializationDataServiceTest {
         assertThat(result.inserted()).isEqualTo(1);
         assertThat(result.skipped()).isEqualTo(1);
         assertThat(result.failures()).isEmpty();
-        verify(service).add(any(Sample.class));
+        verify(repository).add(any(Sample.class));
+        verify(service, never()).add(any(Sample.class));
     }
 
     @Test
     @SuppressWarnings({"rawtypes", "unchecked"})
     void continuesOtherEntitiesAndReportsEntityFailureForHttpImport() {
-        IService validService = mock(IService.class);
+        ILocalService validService = mock(ILocalService.class);
+        IRepository repository = mock(IRepository.class);
         when(validService.service()).thenReturn("sample-service");
         when(validService.entity()).thenReturn("sample");
         when(validService.entityClass()).thenReturn((Class) Sample.class);
         when(validService.isPresentById(1L)).thenReturn(false);
+        when(validService.getRepository()).thenReturn(repository);
 
         NocodeInitializationDataService dataService = new NocodeInitializationDataService(
                 new ServiceRegistry(List.of(validService)), new ObjectMapper());
@@ -57,17 +64,18 @@ class NocodeInitializationDataServiceTest {
         assertThat(result.total()).isEqualTo(1);
         assertThat(result.inserted()).isEqualTo(1);
         assertThat(result.failures()).containsKey("unknown");
-        verify(validService).add(any(Sample.class));
+        verify(repository).add(any(Sample.class));
+        verify(validService, never()).add(any(Sample.class));
     }
 
     @Test
     @SuppressWarnings({"rawtypes", "unchecked"})
     void listsOnlyEntitiesImplementedByRequestedService() {
-        IService sampleService = mock(IService.class);
+        ILocalService sampleService = mock(ILocalService.class);
         when(sampleService.service()).thenReturn("sample-service");
         when(sampleService.entity()).thenReturn("sample");
         when(sampleService.entityClass()).thenReturn((Class) Sample.class);
-        IService otherService = mock(IService.class);
+        ILocalService otherService = mock(ILocalService.class);
         when(otherService.service()).thenReturn("other-service");
         when(otherService.entity()).thenReturn("other");
         when(otherService.entityClass()).thenReturn((Class) Sample.class);

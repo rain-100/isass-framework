@@ -208,10 +208,10 @@ public class OnLoginEventHandler implements OnMessageEventHandler<String> {
     @Override
     public Object onMessage(Message message, String token) {
         JwtInfo jwtInfo = JwtUtil.parse(token, secret);
-        sessionService.setUserId(message.getSenderSessionId(), jwtInfo.getUid());
+        sessionService.setUserId(message.getSenderSessionId(), String.valueOf(jwtInfo.getUid()));
         Long appId = jwtInfo.getAid();
         if (appId != null) {
-            sessionService.setTags(message.getSenderSessionId(), Collections.singleton("appId:" + appId.toString()));
+            sessionService.setTags(message.getSenderSessionId(), Collections.singleton("appId:" + appId));
         }
         return Resp.bizSuccess(jwtInfo);
     }

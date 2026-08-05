@@ -1,6 +1,10 @@
 package vip.isass.framework.nocode.http;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.support.StaticListableBeanFactory;
+import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
+import org.springframework.mock.env.MockEnvironment;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.web.client.RestClient;
@@ -25,12 +29,43 @@ import java.util.concurrent.atomic.AtomicReference;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.content;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
 class HttpClientTransportTest {
+
+    @Test
+    void explicitUrlTakesPrecedenceOverServiceDiscovery() {
+        MockEnvironment environment = new MockEnvironment()
+                .withProperty("http.bsp-service.url", "http://127.0.0.1:31010");
+        LoadBalancerClient loadBalancerClient = mock(LoadBalancerClient.class);
+        StaticListableBeanFactory beans = new StaticListableBeanFactory();
+        beans.addBean("loadBalancerClient", loadBalancerClient);
+
+        HttpEndpointResolver resolver = new DefaultHttpEndpointResolver(new HttpEndpointProperties(environment), beans);
+
+        assertEquals(URI.create("http://127.0.0.1:31010"), resolver.resolve("bsp-service"));
+        verifyNoInteractions(loadBalancerClient);
+    }
+
+    @Test
+    void resolvesServiceInstanceWhenExplicitUrlIsNotConfigured() {
+        LoadBalancerClient loadBalancerClient = mock(LoadBalancerClient.class);
+        ServiceInstance instance = mock(ServiceInstance.class);
+        when(loadBalancerClient.choose("bsp-service")).thenReturn(instance);
+        when(instance.getUri()).thenReturn(URI.create("http://10.0.0.8:31010"));
+        StaticListableBeanFactory beans = new StaticListableBeanFactory();
+        beans.addBean("loadBalancerClient", loadBalancerClient);
+
+        HttpEndpointResolver resolver = new DefaultHttpEndpointResolver(new HttpEndpointProperties(new MockEnvironment()), beans);
+
+        assertEquals(URI.create("http://10.0.0.8:31010"), resolver.resolve("bsp-service"));
+    }
 
     @Test
     void springHttpExchangeSupportsDynamicMethodAndUri() {

@@ -242,9 +242,6 @@ public class CodeFieldMybatisEnumTypeHandler<E extends Enum<E>> extends BaseType
 
     @Override
     public E getNullableResult(ResultSet rs, String columnName) throws SQLException {
-        if (rs.wasNull()) {
-            return null;
-        }
         Object value = rs.getObject(columnName, this.propertyType);
         if (null == value) {
             return null;
@@ -254,9 +251,6 @@ public class CodeFieldMybatisEnumTypeHandler<E extends Enum<E>> extends BaseType
 
     @Override
     public E getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
-        if (rs.wasNull()) {
-            return null;
-        }
         Object value = rs.getObject(columnIndex, this.propertyType);
         if (null == value) {
             return null;
@@ -266,9 +260,6 @@ public class CodeFieldMybatisEnumTypeHandler<E extends Enum<E>> extends BaseType
 
     @Override
     public E getNullableResult(CallableStatement cs, int columnIndex) throws SQLException {
-        if (cs.wasNull()) {
-            return null;
-        }
         Object value = cs.getObject(columnIndex, this.propertyType);
         if (null == value) {
             return null;

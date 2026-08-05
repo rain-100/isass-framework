@@ -288,9 +288,9 @@ public class WrapperUtil {
                     wrapper.orderByAsc(orderByColumnArr[0]);
                     break;
                 case 2:
-                    if (IOrderByCriteria.ASC.equalsIgnoreCase(orderByColumnArr[1])) {
+                    if (IOrderByCriteria.ASC.trim().equalsIgnoreCase(orderByColumnArr[1])) {
                         wrapper.orderByAsc(orderByColumnArr[0]);
-                    } else if (IOrderByCriteria.DESC.equalsIgnoreCase(orderByColumnArr[1])) {
+                    } else if (IOrderByCriteria.DESC.trim().equalsIgnoreCase(orderByColumnArr[1])) {
                         wrapper.orderByDesc(orderByColumnArr[0]);
                     } else {
                         throw new IllegalArgumentException("orderBy 参数错误：" + orderByColumn);

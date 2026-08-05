@@ -141,6 +141,10 @@ class NocodeAssociationLoaderTest {
             return this;
         }
 
+        public SampleItemCriteria setSampleGroupIdIn(Long... sampleGroupIds) {
+            throw new AssertionError("Association loader must prefer the collection overload");
+        }
+
         public Collection<Long> getSampleGroupIds() {
             return sampleGroupIds;
         }

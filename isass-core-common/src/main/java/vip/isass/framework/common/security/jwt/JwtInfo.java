@@ -207,7 +207,7 @@ public class JwtInfo {
     /**
      * 用户 id
      */
-    private String uid;
+    private Long uid;
 
     /**
      * 用户昵称

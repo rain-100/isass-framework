@@ -218,7 +218,7 @@ public class LoginUserTokenWrapper extends AbstractAuthenticationToken implement
         if (loginUsers == null) {
             return null;
         }
-        return loginUsers.stream().map(LoginUser::getUserId).collect(Collectors.joining(","));
+        return loginUsers.stream().map(LoginUser::getUserId).map(String::valueOf).collect(Collectors.joining(","));
     }
 
     @Override
@@ -258,7 +258,7 @@ public class LoginUserTokenWrapper extends AbstractAuthenticationToken implement
     }
 
     @Override
-    public String getUserId() {
+    public Long getUserId() {
         return loginUsers == null ? null : loginUsers.stream()
                 .filter(l -> JwtAuthenticationToken.class.getSimpleName().equals(l.getTokenFrom()))
                 .map(LoginUser::getUserId)
@@ -269,7 +269,8 @@ public class LoginUserTokenWrapper extends AbstractAuthenticationToken implement
 
     @Override
     public String getAllUserId() {
-        return loginUsers == null ? null : loginUsers.stream().map(LoginUser::getUserId).collect(Collectors.joining(","));
+        return loginUsers == null ? null : loginUsers.stream().map(LoginUser::getUserId)
+                .filter(Objects::nonNull).map(String::valueOf).collect(Collectors.joining(","));
     }
 
     @Override

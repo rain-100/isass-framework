@@ -7,8 +7,9 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class NocodeInitializationProperties {
 
     private boolean enabled = true;
-    private String location = "classpath*:init/*.json";
+    private String location = "classpath*:init/**/*.json";
     private boolean failFast = true;
+    private boolean remoteEnabled;
 
     public boolean isEnabled() {
         return enabled;
@@ -32,5 +33,13 @@ public class NocodeInitializationProperties {
 
     public void setFailFast(boolean failFast) {
         this.failFast = failFast;
+    }
+
+    public boolean isRemoteEnabled() {
+        return remoteEnabled;
+    }
+
+    public void setRemoteEnabled(boolean remoteEnabled) {
+        this.remoteEnabled = remoteEnabled;
     }
 }

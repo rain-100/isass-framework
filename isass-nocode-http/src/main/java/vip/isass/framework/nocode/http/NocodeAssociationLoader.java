@@ -121,7 +121,15 @@ final class NocodeAssociationLoader {
 
     private void addRelationConstraint(ICriteria<?, ?> criteria, String targetField, List<Object> relationValues) {
         String setterName = targetField + "In";
-        Method setter = findSetter(criteria.getClass(), setterName).orElseThrow(() ->
+        Method setter = java.util.Arrays.stream(criteria.getClass().getMethods())
+                .filter(method -> method.getName().equals("set" + capitalize(setterName)))
+                .filter(method -> method.getParameterCount() == 1)
+                // Generated criteria also expose a varargs overload. Use the collection overload so
+                // all parent relation values are retained instead of converting only the first one.
+                .filter(method -> Collection.class.isAssignableFrom(method.getParameterTypes()[0]))
+                .findFirst()
+                .or(() -> findSetter(criteria.getClass(), setterName))
+                .orElseThrow(() ->
                 new IllegalStateException("Association target criteria is missing set" + capitalize(setterName)
                         + ": " + criteria.getClass().getName()));
         invokeSetter(criteria, setter, relationValues);

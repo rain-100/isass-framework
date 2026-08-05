@@ -186,7 +186,7 @@ public interface LoginUser {
     /**
      * @return auth_user 的用户id
      */
-    String getUserId();
+    Long getUserId();
 
     /**
      * @return 用户 id, 包括微服务 msToken

@@ -194,19 +194,19 @@ public class MybatisPlusMetaObjectHandler implements MetaObjectHandler {
         }
 
         LoginUser loginUser = LoginUserUtil.getLoginUser();
+        Long currentTenantId = loginUser == null ? null : loginUser.getTenantId();
+        Long currentAppId = loginUser == null ? null : loginUser.getAppId();
 
         // Only tenant-scoped entities inherit the current tenant. Relationship tables can
         // also have a tenantId business key, which must retain the caller-provided value.
         if (metaObject.getOriginalObject() instanceof ITenantEntity
                 && getFieldValByName("tenantId", metaObject) == null) {
-            setFieldValByName("tenantId", loginUser == null ? 0L : loginUser.getTenantId(), metaObject);
+            setFieldValByName("tenantId", currentTenantId == null ? 0L : currentTenantId, metaObject);
         }
 
         // Preserve explicitly assigned business appIds, such as TenantApp during bootstrap.
-        String name = metaObject.getOriginalObject().getClass().getName();
-        // 不是 user app 关联关系的表且未指定应用时才填充当前应用。
-        if (!name.contains("UserApp") && getFieldValByName("appId", metaObject) == null) {
-            setFieldValByName("appId", loginUser == null ? 0L : loginUser.getAppId(), metaObject);
+        if (getFieldValByName("appId", metaObject) == null) {
+            setFieldValByName("appId", currentAppId == null ? 0L : currentAppId, metaObject);
         }
 
         // createUserId
@@ -275,8 +275,8 @@ public class MybatisPlusMetaObjectHandler implements MetaObjectHandler {
             return null;
         }
         if (Long.class.equals(metaObject.getSetterType(propertyName)) || long.class.equals(metaObject.getSetterType(propertyName))) {
-            return loginUser == null ? 0L : Long.valueOf(loginUser.getUserId());
+            return loginUser == null || loginUser.getUserId() == null ? 0L : loginUser.getUserId();
         }
-        return loginUser == null ? "" : StrUtil.nullToEmpty(loginUser.getUserId());
+        return loginUser == null || loginUser.getUserId() == null ? "" : loginUser.getUserId().toString();
     }
 }

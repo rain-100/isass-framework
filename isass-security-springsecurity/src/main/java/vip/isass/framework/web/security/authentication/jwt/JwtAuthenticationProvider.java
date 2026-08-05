@@ -224,7 +224,7 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
 
         // 获取用户拥有的角色
         Collection<GrantedAuthority> configAttributes = Collections.emptyList();
-        Collection<String> roleCodes = securityMetadataSourceProviderManager.findRoleCodesByUserId(jwtInfo.getUid());
+        Collection<String> roleCodes = securityMetadataSourceProviderManager.findRoleCodesByUserId(String.valueOf(jwtInfo.getUid()));
         if (!CollUtil.isEmpty(roleCodes)) {
             configAttributes = roleCodes.stream()
                 .filter(StrUtil::isNotBlank)

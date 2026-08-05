@@ -22,23 +22,20 @@ private IUserService userService;
 ## 远程 endpoint 配置
 
 ```yaml
-isass:
-  framework:
-    nocode:
-      http:
-        endpoints:
-          bsp-service: http://bsp-service:8080
+http:
+  bsp-service:
+    url: http://127.0.0.1:31010
 ```
 
-配置项的 key 是合同中的 `service`，例如 `bsp-service`，不是 Maven artifactId、Java 包名或实体名。
+配置项中的服务名是合同的 `service`，例如 `bsp-service`，不是 Maven artifactId、Java 包名或实体名。显式 URL 优先于服务发现；仅在未配置 URL 时，框架才通过 Spring Cloud LoadBalancer 选择 Nacos 等注册中心中的实例。
 
-不使用服务发现时，直接配置该 endpoint 即可；BSP 单体启动时不需要 Nacos。例如本地 IM 调用 BSP：
+不使用服务发现时，直接配置 URL 即可；BSP 单体启动时不需要 Nacos。例如本地 IM 调用 BSP：
 
 ```bash
-SPRING_APPLICATION_JSON='{"isass":{"framework":{"nocode":{"http":{"endpoints":{"bsp-service":"http://127.0.0.1:20380"}}}}}}'
+SPRING_APPLICATION_JSON='{"http":{"bsp-service":{"url":"http://127.0.0.1:31010"}}}'
 ```
 
-使用 `SPRING_APPLICATION_JSON` 可以原样保留 service 中的连字符；不要把 endpoint 留空，也不要为本地调用额外启用 Nacos。
+使用 `SPRING_APPLICATION_JSON` 可以原样保留服务名中的连字符；不要为本地调用额外启用 Nacos。
 
 ## gRPC 遗留状态
 

@@ -5,12 +5,12 @@ import tools.jackson.databind.ObjectMapper;
 import vip.isass.framework.nocode.ServiceRegistry;
 import vip.isass.framework.nocode.entity.IEntity;
 import vip.isass.framework.nocode.entity.IIdEntity;
-import vip.isass.framework.nocode.service.IService;
+import vip.isass.framework.nocode.service.ILocalService;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Field;
 import java.io.Serializable;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -33,21 +33,27 @@ public class NocodeInitializationDataService {
     }
 
     public ImportResult importResource(InputStream input) throws IOException {
-        return importData(objectMapper.readValue(input, DOCUMENT_TYPE));
+        return importData(readDocument(input));
+    }
+
+    public Map<String, List<Map<String, Object>>> readDocument(InputStream input) throws IOException {
+        return objectMapper.readValue(input, DOCUMENT_TYPE);
     }
 
     public ImportResult importData(Map<String, ? extends Collection<?>> document) {
         return importData(null, document);
     }
 
+    /**
+     * Imports rows directly through target-service repositories. This deliberately bypasses
+     * application-service defaults and CRUD lifecycle listeners: an initialization document is
+     * data, not a replay of interactive business operations.
+     */
     public ImportResult importData(String serviceName, Map<String, ? extends Collection<?>> document) {
         return importData(serviceName, document, true);
     }
 
-    /**
-     * Imports every entity independently. Intended for the HTTP management endpoint so one invalid
-     * entity does not prevent other selected entities from being migrated.
-     */
+    /** Imports each local entity independently for the HTTP data-migration endpoint. */
     public ImportResult importDataWithFailures(String serviceName, Map<String, ? extends Collection<?>> document) {
         return importData(serviceName, document, false);
     }
@@ -63,9 +69,9 @@ public class NocodeInitializationDataService {
     public Map<String, List<?>> exportData(String serviceName, Collection<String> entityNames) {
         Map<String, List<?>> document = new LinkedHashMap<>();
         for (String entityName : entityNames) {
-            IService<?, ?> service = requiredService(serviceName, entityName);
+            ILocalService<?, ?> service = requiredLocalService(serviceName, entityName);
             @SuppressWarnings({"rawtypes", "unchecked"})
-            List<?> rows = new ArrayList<>(((IService) service).findAll());
+            List<?> rows = new ArrayList<>(((ILocalService) service).findAll());
             document.put(entityName, rows);
         }
         return document;
@@ -77,16 +83,12 @@ public class NocodeInitializationDataService {
             boolean failFast
     ) {
         ImportSummary summary = new ImportSummary();
-        if (document == null) {
-            return summary.result();
-        }
+        if (document == null) return summary.result();
         document.forEach((entityName, rows) -> {
             try {
                 importRows(serviceName, entityName, rows, summary);
             } catch (RuntimeException exception) {
-                if (failFast) {
-                    throw exception;
-                }
+                if (failFast) throw exception;
                 summary.failures.put(entityName, message(exception));
             }
         });
@@ -99,49 +101,58 @@ public class NocodeInitializationDataService {
             Collection<?> rows,
             ImportSummary summary
     ) {
-        IService<?, ?> service = serviceName == null
-                ? services.serviceByEntity(entityName)
-                : requiredService(serviceName, entityName);
-        if (service == null) {
-            throw new IllegalArgumentException("Unknown local nocode entity: " + entityName);
-        }
-        if (rows == null) {
-            return;
-        }
+        ResolvedService resolved = resolveService(serviceName, entityName);
+        if (resolved == null) throw new IllegalArgumentException("Unknown local nocode entity: " + entityName);
+        if (rows == null) return;
         for (Object row : rows) {
             summary.total++;
-            IEntity<?> entity = (IEntity<?>) objectMapper.convertValue(row, service.entityClass());
-            if (alreadyExists(service, entity)) {
+            IEntity<?> entity = (IEntity<?>) objectMapper.convertValue(row, resolved.entityClass());
+            if (alreadyExists(resolved.service(), entity)) {
                 summary.skipped++;
                 continue;
             }
-            add(service, entity);
+            add(resolved.service(), entity);
             summary.inserted++;
         }
     }
 
-    private boolean alreadyExists(IService<?, ?> service, IEntity<?> entity) {
-        if (!(entity instanceof IIdEntity<?, ?> idEntity) || idEntity.getId() == null) {
-            return false;
-        }
+    private boolean alreadyExists(ILocalService<?, ?> service, IEntity<?> entity) {
+        if (!(entity instanceof IIdEntity<?, ?> idEntity) || idEntity.getId() == null) return false;
         @SuppressWarnings({"rawtypes", "unchecked"})
-        IService rawService = service;
+        ILocalService rawService = service;
         return Boolean.TRUE.equals(rawService.isPresentById((Serializable) idEntity.getId()));
     }
 
-    private void add(IService<?, ?> service, IEntity<?> entity) {
+    private void add(ILocalService<?, ?> service, IEntity<?> entity) {
         @SuppressWarnings({"rawtypes", "unchecked"})
-        IService rawService = service;
-        rawService.add(entity);
+        vip.isass.framework.nocode.repository.IRepository repository = service.getRepository();
+        repository.add(entity);
     }
 
-    private IService<?, ?> requiredService(String serviceName, String entityName) {
-        Object endpoint = services.require(serviceName, entityName);
-        if (!(endpoint instanceof IService<?, ?> service)) {
-            throw new IllegalArgumentException("Nocode endpoint is not a standard entity service: "
+    private ResolvedService resolveService(String serviceName, String entityName) {
+        if (serviceName == null) {
+            ILocalService<?, ?> service = localService(services.serviceByEntity(entityName), entityName);
+            return service == null ? null : new ResolvedService(service, service.entityClass());
+        }
+        ILocalService<?, ?> service = requiredLocalService(serviceName, entityName);
+        return new ResolvedService(service, service.entityClass());
+    }
+
+    private ILocalService<?, ?> requiredLocalService(String serviceName, String entityName) {
+        ILocalService<?, ?> service = localService(services.require(serviceName, entityName), entityName);
+        if (service == null) {
+            throw new IllegalArgumentException("Nocode endpoint is not a local standard entity service: "
                     + serviceName + "/" + entityName);
         }
         return service;
+    }
+
+    private ILocalService<?, ?> localService(Object service, String entityName) {
+        if (service == null) return null;
+        if (!(service instanceof ILocalService<?, ?> localService)) {
+            throw new IllegalArgumentException("Nocode entity is not implemented locally: " + entityName);
+        }
+        return localService;
     }
 
     private String message(Exception exception) {
@@ -157,9 +168,7 @@ public class NocodeInitializationDataService {
         try {
             Field field = entityClass.getField("COMMENT");
             Object value = field.get(null);
-            if (value instanceof String comment && !comment.isBlank()) {
-                return comment;
-            }
+            if (value instanceof String comment && !comment.isBlank()) return comment;
         } catch (NoSuchFieldException ignored) {
             // Models generated before COMMENT was introduced remain available during gradual upgrades.
         } catch (IllegalAccessException exception) {
@@ -183,5 +192,8 @@ public class NocodeInitializationDataService {
     }
 
     public record ImportResult(int total, int inserted, int skipped, Map<String, String> failures) {
+    }
+
+    private record ResolvedService(ILocalService<?, ?> service, Class<?> entityClass) {
     }
 }

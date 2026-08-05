@@ -1,22 +1,20 @@
 package vip.isass.framework.nocode.http;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.core.env.Environment;
 
 import java.net.URI;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
-/** Remote HTTP base URIs, keyed by generated nocode service name. */
-@ConfigurationProperties("isass.framework.nocode.http")
+/** Reads an explicit remote URL from {@code http.<service>.url}. */
 public class HttpEndpointProperties {
 
-    private Map<String, URI> endpoints = new LinkedHashMap<>();
+    private final Environment environment;
 
-    public Map<String, URI> getEndpoints() {
-        return endpoints;
+    public HttpEndpointProperties(Environment environment) {
+        this.environment = environment;
     }
 
-    public void setEndpoints(Map<String, URI> endpoints) {
-        this.endpoints = endpoints == null ? new LinkedHashMap<>() : new LinkedHashMap<>(endpoints);
+    public URI getUrl(String service) {
+        String url = environment.getProperty("http." + service + ".url");
+        return url == null || url.isBlank() ? null : URI.create(url);
     }
 }

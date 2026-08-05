@@ -39,7 +39,7 @@
 
 HTTP 客户端使用 Spring Framework 7 的 `@HttpExchange` 代理，而不是业务代码直接调用 `RestClient`。框架定义一个内部、固定的 exchange 接口：以 `@HttpExchange` 声明 JSON 接收能力，方法参数使用动态 `HttpMethod`、完整 `URI`、查询参数和可空 JSON body，并返回 `JsonNode`。`HttpExchange` 原生支持动态 `HttpMethod` 与 `URI` 参数；由 `HttpServiceProxyFactory` 基于 `RestClientAdapter` 创建该接口的实例。
 
-`HttpClientTransport` 根据 `OperationContract` 组装 URI、路径变量、查询参数和请求体，再经该 exchange 接口调用。对于框架标准 `Resp` JSON，取 `data` 并根据合同 `returnJavaType` 反序列化；非 JSON 文件响应继续由既有 `FileStream` 专用路径处理。每个远程 `serviceName` 的基础地址由 `isass.framework.nocode.http.endpoints` 配置。
+`HttpClientTransport` 根据 `OperationContract` 组装 URI、路径变量、查询参数和请求体，再经该 exchange 接口调用。对于框架标准 `Resp` JSON，取 `data` 并根据合同 `returnJavaType` 反序列化；非 JSON 文件响应继续由既有 `FileStream` 专用路径处理。每个远程 `serviceName` 的基础地址优先由 `http.<serviceName>.url` 配置；未配置时通过 Spring Cloud 服务发现选择实例。
 
 ## 错误与可观测性
 

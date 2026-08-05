@@ -176,6 +176,8 @@ import org.redisson.RedissonShutdownException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.boot.autoconfigure.AutoConfigurationPackages;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CachingConfigurerSupport;
 import org.springframework.cache.annotation.EnableCaching;
@@ -189,16 +191,16 @@ import org.springframework.data.redis.connection.stream.ObjectRecord;
 import org.springframework.data.redis.connection.stream.StreamOffset;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.hash.HashMapper;
-import org.springframework.data.redis.hash.Jackson2HashMapper;
+import org.springframework.data.redis.hash.JacksonHashMapper;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
-import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
-import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.GenericJacksonJsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.RedisSerializer;
-import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.data.redis.stream.StreamMessageListenerContainer;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import vip.isass.framework.common.support.JsonUtil;
+import tools.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
+import tools.jackson.databind.jsontype.PolymorphicTypeValidator;
 
 import java.time.Duration;
 import java.util.List;
@@ -213,9 +215,35 @@ public class RedisConfig extends CachingConfigurerSupport {
 
     Logger log = LoggerFactory.getLogger(RedisConfig.class);
 
-    public static final HashMapper HASH_MAPPER = new Jackson2HashMapper(false);
+    public static final HashMapper HASH_MAPPER = new JacksonHashMapper(JsonUtil.DEFAULT_INSTANCE, false);
+
+    private static final RedisSerializer<String> KEY_SERIALIZER = RedisSerializer.string();
+
+    private final RedisSerializer<Object> objectValueSerializer;
 
     private ThreadPoolTaskExecutor executor;
+
+    public RedisConfig(BeanFactory beanFactory) {
+        this.objectValueSerializer = createObjectValueSerializer(beanFactory);
+    }
+
+    private static RedisSerializer<Object> createObjectValueSerializer(BeanFactory beanFactory) {
+        BasicPolymorphicTypeValidator.Builder validator = BasicPolymorphicTypeValidator.builder()
+                .allowIfSubType("vip.isass.")
+                .allowIfSubType("java.lang.")
+                .allowIfSubType("java.time.")
+                .allowIfSubType("java.util.")
+                .allowIfSubTypeIsArray();
+        if (AutoConfigurationPackages.has(beanFactory)) {
+            AutoConfigurationPackages.get(beanFactory).forEach(validator::allowIfSubType);
+        }
+        // 所有对象值统一保留运行时类型，并使用 Spring 的空值占位对象缓存 null。
+        return GenericJacksonJsonRedisSerializer.builder()
+                .customize(JsonUtil::configure)
+                .enableDefaultTyping(validator.build())
+                .enableSpringCacheNullValueSupport()
+                .build();
+    }
 
     private void initExecutor() {
         this.executor = new ThreadPoolTaskExecutor();
@@ -233,8 +261,8 @@ public class RedisConfig extends CachingConfigurerSupport {
         RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig();
 
         // 配置序列化
-        config.serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()));
-        config.serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer()));
+        config.serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(KEY_SERIALIZER));
+        config.serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(objectValueSerializer));
 
         return RedisCacheManager.builder(redisConnectionFactory).cacheDefaults(config).build();
     }
@@ -244,14 +272,12 @@ public class RedisConfig extends CachingConfigurerSupport {
     public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory factory) {
         RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setConnectionFactory(factory);
-        template.setDefaultSerializer(RedisSerializer.string());
+        template.setDefaultSerializer(KEY_SERIALIZER);
+        template.setKeySerializer(KEY_SERIALIZER);
+        template.setHashKeySerializer(KEY_SERIALIZER);
 
-        Jackson2JsonRedisSerializer<Object> jackson2JsonRedisSerializer =
-                new Jackson2JsonRedisSerializer<>(Object.class);
-        jackson2JsonRedisSerializer.setObjectMapper(JsonUtil.LEGACY_MAPPER);
-
-        template.setValueSerializer(jackson2JsonRedisSerializer);
-        template.setHashValueSerializer(jackson2JsonRedisSerializer);
+        template.setValueSerializer(objectValueSerializer);
+        template.setHashValueSerializer(objectValueSerializer);
         template.afterPropertiesSet();
 
         // 修改 stream 类型的 hashMapper
@@ -281,7 +307,7 @@ public class RedisConfig extends CachingConfigurerSupport {
     }
 
     /**
-     * 注册 redis pubsub 功能
+     * 注册 redis stream 功能
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
     @Bean(initMethod = "start", destroyMethod = "stop")
@@ -293,10 +319,10 @@ public class RedisConfig extends CachingConfigurerSupport {
                 StreamMessageListenerContainer.StreamMessageListenerContainerOptions
                         .builder()
                         .objectMapper(RedisConfig.HASH_MAPPER)
-                        .serializer(redisTemplate.getDefaultSerializer())
-                        .hashKeySerializer(redisTemplate.getHashKeySerializer())
-                        .keySerializer(redisTemplate.getKeySerializer())
-                        .hashValueSerializer(redisTemplate.getHashValueSerializer())
+                        .serializer(KEY_SERIALIZER)
+                        .hashKeySerializer(KEY_SERIALIZER)
+                        .keySerializer(KEY_SERIALIZER)
+                        .hashValueSerializer(objectValueSerializer)
                         .pollTimeout(Duration.ofSeconds(5))
                         .batchSize(10)
                         .build();

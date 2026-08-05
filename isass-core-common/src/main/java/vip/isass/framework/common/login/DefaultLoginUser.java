@@ -185,7 +185,7 @@ public class DefaultLoginUser implements LoginUser {
 
     private Long appId;
 
-    private String userId;
+    private Long userId;
 
     private String nickName;
 
@@ -199,7 +199,7 @@ public class DefaultLoginUser implements LoginUser {
 
     @Override
     public String getAllUserId() {
-        return this.userId;
+        return this.userId == null ? null : this.userId.toString();
     }
 
 }
