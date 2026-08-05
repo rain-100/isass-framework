@@ -170,6 +170,7 @@
 package vip.isass.framework.nocode.orm;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.dynamic.datasource.DynamicRoutingDataSource;
 import com.baomidou.mybatisplus.core.conditions.AbstractWrapper;
@@ -177,6 +178,7 @@ import tools.jackson.core.JacksonException;
 import lombok.SneakyThrows;
 import org.apache.ibatis.mapping.DatabaseIdProvider;
 import vip.isass.framework.nocode.criteria.WhereCondition;
+import vip.isass.framework.nocode.criteria.impl.type.Condition;
 import vip.isass.framework.common.support.JsonUtil;
 import vip.isass.framework.common.support.BeanProviderUtil;
 
@@ -194,15 +196,20 @@ public class MybatisPlusWhereCondition {
 
     @SuppressWarnings("unchecked")
     public static void apply(WhereCondition whereCondition, AbstractWrapper wrapper) {
+        Class<?> entityClass = wrapper.getEntityClass();
+        Assert.notNull(entityClass, "Wrapper 未设置实体类型");
+        String columnName = whereCondition.getCondition() == Condition.OR
+                ? null
+                : EntityPropertyColumnResolver.resolve(entityClass, whereCondition.getPropertyName());
         switch (whereCondition.getCondition()) {
             case OR:
                 wrapper.or();
                 break;
             case EQUAL:
-                wrapper.eq(whereCondition.getValue() != null, whereCondition.getColumnName(), whereCondition.getValue());
+                wrapper.eq(whereCondition.getValue() != null, columnName, whereCondition.getValue());
                 break;
             case NOT_EQUAL:
-                wrapper.ne(whereCondition.getValue() != null, whereCondition.getColumnName(), whereCondition.getValue());
+                wrapper.ne(whereCondition.getValue() != null, columnName, whereCondition.getValue());
                 break;
             case IN:
 
@@ -210,9 +217,9 @@ public class MybatisPlusWhereCondition {
                     break;
                 }
                 if (whereCondition.getValue() instanceof Collection) {
-                    wrapper.in(whereCondition.getColumnName(), ((Collection) whereCondition.getValue()).toArray());
+                    wrapper.in(columnName, ((Collection) whereCondition.getValue()).toArray());
                 } else {
-                    wrapper.in(whereCondition.getColumnName(), whereCondition.getValue());
+                    wrapper.in(columnName, whereCondition.getValue());
                 }
                 break;
             case NOT_IN:
@@ -220,61 +227,67 @@ public class MybatisPlusWhereCondition {
                     break;
                 }
                 if (whereCondition.getValue() instanceof Collection) {
-                    wrapper.notIn(whereCondition.getColumnName(), ((Collection) whereCondition.getValue()).toArray());
+                    wrapper.notIn(columnName, ((Collection) whereCondition.getValue()).toArray());
                 } else {
-                    wrapper.notIn(whereCondition.getColumnName(), whereCondition.getValue());
+                    wrapper.notIn(columnName, whereCondition.getValue());
                 }
                 break;
             case IS_NULL:
-                if (StrUtil.isNotBlank(whereCondition.getColumnName())) {
-                    wrapper.isNull(whereCondition.getColumnName());
+                if (StrUtil.isNotBlank(columnName)) {
+                    wrapper.isNull(columnName);
                 }
                 break;
             case IS_NOT_NULL:
-                if (StrUtil.isNotBlank(whereCondition.getColumnName())) {
-                    wrapper.isNotNull(whereCondition.getColumnName());
+                if (StrUtil.isNotBlank(columnName)) {
+                    wrapper.isNotNull(columnName);
                 }
                 break;
+            case IS_EMPTY:
+                wrapper.eq(columnName, "");
+                break;
+            case IS_NOT_EMPTY:
+                wrapper.ne(columnName, "");
+                break;
             case GREATER_THAN:
-                wrapper.gt(whereCondition.getValue() != null, whereCondition.getColumnName(), whereCondition.getValue());
+                wrapper.gt(whereCondition.getValue() != null, columnName, whereCondition.getValue());
                 break;
             case GREATER_THAN_EQUAL:
-                wrapper.ge(whereCondition.getValue() != null, whereCondition.getColumnName(), whereCondition.getValue());
+                wrapper.ge(whereCondition.getValue() != null, columnName, whereCondition.getValue());
                 break;
             case LESS_THAN:
-                wrapper.lt(whereCondition.getValue() != null, whereCondition.getColumnName(), whereCondition.getValue());
+                wrapper.lt(whereCondition.getValue() != null, columnName, whereCondition.getValue());
                 break;
             case LESS_THAN_EQUAL:
-                wrapper.le(whereCondition.getValue() != null, whereCondition.getColumnName(), whereCondition.getValue());
+                wrapper.le(whereCondition.getValue() != null, columnName, whereCondition.getValue());
                 break;
             case START_WITH:
-                wrapper.likeRight(whereCondition.getValue() != null, whereCondition.getColumnName(), whereCondition.getValue());
+                wrapper.likeRight(whereCondition.getValue() != null, columnName, whereCondition.getValue());
                 break;
             case LIKE:
-                wrapper.like(whereCondition.getValue() != null, whereCondition.getColumnName(), whereCondition.getValue());
+                wrapper.like(whereCondition.getValue() != null, columnName, whereCondition.getValue());
                 break;
             case NOT_LIKE:
-                wrapper.notLike(whereCondition.getValue() != null, whereCondition.getColumnName(), whereCondition.getValue());
+                wrapper.notLike(whereCondition.getValue() != null, columnName, whereCondition.getValue());
                 break;
             case CONTAINS_ALL:
                 wrapper.apply(
                         whereCondition.getValue() != null,
                         StrUtil.format("{} @> '{{}}'",
-                                whereCondition.getColumnName(),
+                                columnName,
                                 CollUtil.join((Collection) whereCondition.getValue(), ",")));
                 break;
             case CONTAINS_ANY:
                 wrapper.apply(
                         whereCondition.getValue() != null,
                         StrUtil.format("{} && '{{}}'",
-                                whereCondition.getColumnName(),
+                                columnName,
                                 CollUtil.join((Collection) whereCondition.getValue(), ",")));
                 break;
             case JSON_OBJECT_PATH_EQUAL:
                 if (whereCondition.getValue() == null) {
                     return;
                 }
-                String[] path = whereCondition.getColumnName().split("\\.", 2);
+                String[] path = columnName.split("\\.", 2);
                 path[1] = formatMysqlJsonPath(path[1]);
                 switch (getDbType()) {
                     case "":
@@ -293,7 +306,7 @@ public class MybatisPlusWhereCondition {
                 if (whereCondition.getValue() == null) {
                     return;
                 }
-                String[] fieldPath = whereCondition.getColumnName().split("\\.", 2);
+                String[] fieldPath = columnName.split("\\.", 2);
                 fieldPath[1] = formatMysqlJsonPath(fieldPath[1]);
                 switch (getDbType()) {
                     case "":
@@ -317,7 +330,7 @@ public class MybatisPlusWhereCondition {
                     case "mysql":
                         try {
                             wrapper.apply(
-                                    StrUtil.format("JSON_CONTAINS({},{0})", whereCondition.getColumnName()),
+                                    StrUtil.format("JSON_CONTAINS({},{0})", columnName),
                                     JsonUtil.DEFAULT_INSTANCE.writeValueAsString(Collections.singletonList(whereCondition.getValue()))
                             );
                         } catch (JacksonException e) {
@@ -326,7 +339,7 @@ public class MybatisPlusWhereCondition {
                         break;
                     case "dm":
                         wrapper.apply(
-                                StrUtil.format("{} like concat('%',{0},'%')", whereCondition.getColumnName()),
+                                StrUtil.format("{} like concat('%',{0},'%')", columnName),
                                 whereCondition.getValue()
                         );
                         break;
@@ -346,7 +359,7 @@ public class MybatisPlusWhereCondition {
                             Object[] valueArr = new Object[containsAnyValues.size()];
                             int i = 0;
                             for (Object o : containsAnyValues) {
-                                sqlFragments.add(StrUtil.format("JSON_CONTAINS({},{{}})", whereCondition.getColumnName(), i));
+                                sqlFragments.add(StrUtil.format("JSON_CONTAINS({},{{}})", columnName, i));
                                 valueArr[i] = JsonUtil.DEFAULT_INSTANCE.writeValueAsString(o);
                                 i++;
                             }
@@ -364,7 +377,7 @@ public class MybatisPlusWhereCondition {
                         Object[] valueArr = new Object[containsAnyValues.size()];
                         int i = 0;
                         for (Object o : containsAnyValues) {
-                            sqlFragments.add(StrUtil.format("{} like concat('%',{{}},'%')", whereCondition.getColumnName(), i));
+                            sqlFragments.add(StrUtil.format("{} like concat('%',{{}},'%')", columnName, i));
                             valueArr[i] = o;
                             i++;
                         }
@@ -391,7 +404,7 @@ public class MybatisPlusWhereCondition {
                             Object[] valueArr = new Object[containsAllValues.size()];
                             int i = 0;
                             for (Object o : containsAllValues) {
-                                sqlFragments.add(StrUtil.format("JSON_CONTAINS({},{{}})", whereCondition.getColumnName(), i));
+                                sqlFragments.add(StrUtil.format("JSON_CONTAINS({},{{}})", columnName, i));
                                 valueArr[i] = JsonUtil.DEFAULT_INSTANCE.writeValueAsString(o);
                                 i++;
                             }
@@ -409,7 +422,7 @@ public class MybatisPlusWhereCondition {
                         Object[] valueArr = new Object[containsAllValues.size()];
                         int i = 0;
                         for (Object o : containsAllValues) {
-                            sqlFragments.add(StrUtil.format("{} like concat('%',{{}},'%')", whereCondition.getColumnName(), i));
+                            sqlFragments.add(StrUtil.format("{} like concat('%',{{}},'%')", columnName, i));
                             valueArr[i] = o;
                             i++;
                         }

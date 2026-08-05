@@ -182,10 +182,6 @@ import java.io.Serializable;
 public interface IParentIdEntity<PK extends Serializable, E extends IParentIdEntity<PK, E>>
     extends IPkEntity<PK, E> {
 
-    String PARENT_ID_PROPERTY_NAME = "parentId";
-
-    String PARENT_ID_COLUMN_NAME = "parent_id";
-
     String TOP_ID_STRING_VALUE = "0";
 
     Integer TOP_ID_INTEGER_VALUE = 0;
@@ -204,11 +200,6 @@ public interface IParentIdEntity<PK extends Serializable, E extends IParentIdEnt
      * @param parentId parent id
      */
     void setParentId(PK parentId);
-
-    @Transient
-    default String getParentIdColumnName() {
-        return PARENT_ID_COLUMN_NAME;
-    }
 
     /**
      * 标记为顶级实体

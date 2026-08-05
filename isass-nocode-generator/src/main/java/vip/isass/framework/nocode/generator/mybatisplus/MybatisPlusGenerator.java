@@ -333,11 +333,11 @@ public class MybatisPlusGenerator {
                             .entityBuilder()
                             .nameConvert(CONTEXT_FREE_ENTITY_NAME_CONVERT).disable()
                             // 乐观锁名称
-                            .versionPropertyName(IVersionEntity.VERSION_PROPERTY_NAME)
-                            .versionColumnName(IVersionEntity.VERSION_COLUMN_NAME)
+                            .versionPropertyName("version")
+                            .versionColumnName("version")
                             // 逻辑删除名称
-                            .logicDeletePropertyName(ILogicDeleteEntity.DELETE_FLAG_PROPERTY_NAME)
-                            .logicDeleteColumnName(ILogicDeleteEntity.DELETE_FLAG_COLUMN_NAME);
+                            .logicDeletePropertyName("deleteFlag")
+                            .logicDeleteColumnName("delete_flag");
                 })
                 .packageConfig(builder -> builder
                         .parent(meta.getPackageName())
@@ -434,11 +434,11 @@ public class MybatisPlusGenerator {
                             // 取消内置的 entity 模板
                             .entityBuilder().nameConvert(CONTEXT_FREE_ENTITY_NAME_CONVERT).disable()
                             // 乐观锁名称
-                            .versionPropertyName(IVersionEntity.VERSION_PROPERTY_NAME)
-                            .versionColumnName(IVersionEntity.VERSION_COLUMN_NAME)
+                            .versionPropertyName("version")
+                            .versionColumnName("version")
                             // 逻辑删除名称
-                            .logicDeletePropertyName(ILogicDeleteEntity.DELETE_FLAG_PROPERTY_NAME)
-                            .logicDeleteColumnName(ILogicDeleteEntity.DELETE_FLAG_COLUMN_NAME);
+                            .logicDeletePropertyName("deleteFlag")
+                            .logicDeleteColumnName("delete_flag");
                 })
                 .packageConfig(builder -> builder
                         .parent(meta.getPackageName())

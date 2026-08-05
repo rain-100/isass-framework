@@ -46,8 +46,8 @@ public final class StandardContractFactory {
             route("getByCriteriaOrException", "GET", "/exception/criteria"), route("findByCriteria", "GET", "/criteria"),
             route("findPageByCriteria", "GET", "/page"), route("findAll", "GET", "/all"),
             route("countByCriteria", "GET", "/count/criteria"), route("countAll", "GET", "/count/all"),
-            route("isPresentById", "GET", "/present/{id}"), route("isPresentByColumn", "GET", "/present/{columnName}/{value}"),
-            route("isPresentByCriteria", "GET", "/present/criteria"), route("isAbsentByColumn", "GET", "/absent/{columnName}/{value}"),
+            route("isPresentById", "GET", "/present/{id}"), route("isPresentByColumn", "GET", "/present/{propertyName}/{value}"),
+            route("isPresentByCriteria", "GET", "/present/criteria"), route("isAbsentByColumn", "GET", "/absent/{propertyName}/{value}"),
             route("isAbsentByCriteria", "GET", "/absent/criteria"), route("exceptionIfPresentByCriteria", "GET", "/exception-if-present/criteria"),
             route("exceptionIfAbsentByCriteria", "GET", "/exception-if-absent/criteria"),
             route("deleteById", "DELETE", "/id/{id}"), route("deleteByIds", "DELETE", "/{ids}"), route("deleteByCriteria", "DELETE", "/criteria")

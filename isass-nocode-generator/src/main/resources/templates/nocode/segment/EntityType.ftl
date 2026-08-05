@@ -1,16 +1,4 @@
-<#assign buildInColumns = [
-cfg.idEntity.ID_COLUMN_NAME,
-cfg.parentIdEntity.PARENT_ID_COLUMN_NAME,
-cfg.logicDeleteEntity.DELETE_FLAG_COLUMN_NAME,
-cfg.tenantEntity.TENANT_ID_COLUMN_NAME,
-cfg.traceEntity.CREATE_USER_ID_COLUMN_NAME,
-cfg.traceEntity.CREATE_USER_NAME_COLUMN_NAME,
-cfg.traceEntity.CREATED_TIME_COLUMN_NAME,
-cfg.traceEntity.MODIFY_USER_ID_COLUMN_NAME,
-cfg.traceEntity.MODIFY_USER_NAME_COLUMN_NAME,
-cfg.traceEntity.MODIFY_TIME_COLUMN_NAME,
-cfg.versionEntity.VERSION_COLUMN_NAME
-]>
+<#assign buildInColumns = ["id", "parent_id", "delete_flag", "tenant_id", "create_user_id", "create_user_name", "create_time", "modify_user_id", "modify_user_name", "modify_time", "version"]>
 <#------------ BEGIN IdEntity ------------>
 <#list table.fields as field>
 <#if field.keyFlag>
@@ -25,7 +13,7 @@ cfg.versionEntity.VERSION_COLUMN_NAME
 <#------------ END IdEntity ------------>
 <#------------ BEGIN LogicDeleteEntity ------------>
 <#list table.fields as field>
-    <#if field.name?lower_case == cfg.logicDeleteEntity.DELETE_FLAG_COLUMN_NAME>
+    <#if field.name?lower_case == "delete_flag">
         <#assign isLogicDeleteEntity = true>
         <#break>
     </#if>
@@ -34,7 +22,7 @@ cfg.versionEntity.VERSION_COLUMN_NAME
 <#------------ END LogicDeleteEntity ------------>
 <#------------ BEGIN ParentIdEntity ------------>
 <#list table.fields as field>
-    <#if field.name?lower_case == cfg.parentIdEntity.PARENT_ID_COLUMN_NAME && field.propertyType == idEntityPropertyType>
+    <#if field.name?lower_case == "parent_id" && field.propertyType == idEntityPropertyType>
         <#assign isParentIdEntity = true>
         <#assign parentIdEntityPropertyType = field.propertyType>
         <#break>
@@ -44,7 +32,7 @@ cfg.versionEntity.VERSION_COLUMN_NAME
 <#------------ END ParentIdEntity ------------>
 <#------------ BEGIN TenantEntity ------------>
 <#list table.fields as field>
-    <#if field.name?lower_case == cfg.tenantEntity.TENANT_ID_COLUMN_NAME && !field.comment!?contains("[tenantEntity--false]")>
+    <#if field.name?lower_case == "tenant_id" && !field.comment!?contains("[tenantEntity--false]")>
         <#assign isTenantEntity = true>
         <#assign tenantIdEntityPropertyType = field.propertyType>
         <#break>
@@ -54,12 +42,12 @@ cfg.versionEntity.VERSION_COLUMN_NAME
 <#------------ END TenantEntity ------------>
 <#------------ BEGIN TraceEntity ------------>
 <#list table.fields as field>
-<#if field.name?lower_case == cfg.traceEntity.CREATE_USER_ID_COLUMN_NAME
-|| field.name?lower_case == cfg.traceEntity.CREATE_USER_NAME_COLUMN_NAME
-|| field.name?lower_case == cfg.traceEntity.CREATED_TIME_COLUMN_NAME
-|| field.name?lower_case == cfg.traceEntity.MODIFY_USER_ID_COLUMN_NAME
-|| field.name?lower_case == cfg.traceEntity.MODIFY_USER_NAME_COLUMN_NAME
-|| field.name?lower_case == cfg.traceEntity.MODIFY_TIME_COLUMN_NAME>
+<#if field.name?lower_case == "create_user_id"
+|| field.name?lower_case == "create_user_name"
+|| field.name?lower_case == "create_time"
+|| field.name?lower_case == "modify_user_id"
+|| field.name?lower_case == "modify_user_name"
+|| field.name?lower_case == "modify_time">
 <#assign isTraceEntity = true>
 <#break>
 </#if>
@@ -68,7 +56,7 @@ cfg.versionEntity.VERSION_COLUMN_NAME
 <#------------ END traceEntity ------------>
 <#------------ BEGIN VersionEntity ------------>
 <#list table.fields as field>
-<#if field.name?lower_case == cfg.versionEntity.VERSION_COLUMN_NAME>
+<#if field.name?lower_case == "version">
 <#assign isVersionEntity = true>
 <#break>
 </#if>

@@ -189,18 +189,12 @@ public interface IRepository<E extends IEntity<E>, C extends ICriteria<E, C>> {
 
     Logger LOGGER = LoggerFactory.getLogger(IRepository.class);
 
-    Map<Class<?>, String> ID_COLUMN_NAMES = new ConcurrentHashMap<>(64);
+    Map<Class<?>, String> ID_PROPERTY_NAMES = new ConcurrentHashMap<>(64);
 
-    default String getIdColumnName(Class<?> clazz) {
-        return ID_COLUMN_NAMES.computeIfAbsent(clazz, c -> {
+    default String getIdPropertyName(Class<?> clazz) {
+        return ID_PROPERTY_NAMES.computeIfAbsent(clazz, c -> {
             if (IIdEntity.class.isAssignableFrom(c)) {
-                IIdEntity entity = null;
-                try {
-                    entity = (IIdEntity) c.getDeclaredConstructor().newInstance();
-                } catch (Exception e) {
-                    LOGGER.error("{}", e.getMessage(), e);
-                }
-                return StrUtil.nullToEmpty(entity.getIdColumnName());
+                return "id";
             }
             return "";
         });
@@ -298,7 +292,7 @@ public interface IRepository<E extends IEntity<E>, C extends ICriteria<E, C>> {
         throw new UnsupportedOperationException();
     }
 
-    default boolean isPresentByColumn(String columnName, Object value) {
+    default boolean isPresentByColumn(String propertyName, Object value) {
         throw new UnsupportedOperationException();
     }
 

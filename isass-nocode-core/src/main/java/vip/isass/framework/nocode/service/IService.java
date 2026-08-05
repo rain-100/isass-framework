@@ -340,14 +340,14 @@ public interface IService<E extends IEntity<E>, C extends ICriteria<E, C>> {
     /** @http GET /present/{id} */
     Boolean isPresentById(Serializable id);
 
-    /** @http GET /present/{columnName}/{value} */
-    Boolean isPresentByColumn(String columnName, Object value);
+    /** @http GET /present/{propertyName}/{value} */
+    Boolean isPresentByColumn(String propertyName, Object value);
 
     /** @http GET /present/criteria */
     Boolean isPresentByCriteria(C criteria);
 
-    /** @http GET /absent/{columnName}/{value} */
-    Boolean isAbsentByColumn(String columnName, Object value);
+    /** @http GET /absent/{propertyName}/{value} */
+    Boolean isAbsentByColumn(String propertyName, Object value);
 
     /** @http GET /absent/criteria */
     Boolean isAbsentByCriteria(C criteria);

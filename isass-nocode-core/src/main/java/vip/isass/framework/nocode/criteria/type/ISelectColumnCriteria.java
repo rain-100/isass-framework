@@ -173,6 +173,8 @@ import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.StrUtil;
 import vip.isass.framework.nocode.criteria.ICriteria;
 import vip.isass.framework.nocode.entity.IEntity;
+import vip.isass.framework.nocode.property.PropertyGetter;
+import vip.isass.framework.nocode.property.PropertyNameResolver;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -199,6 +201,11 @@ public interface ISelectColumnCriteria<E extends IEntity<E>, C extends ISelectCo
         return addSelectColumn(selectColumn);
     }
 
+    default C setSelectColumn(PropertyGetter<E, ?> getter) {
+        getSelectColumns().clear();
+        return addSelectColumn(getter);
+    }
+
     default C setSelectColumns(Collection<String> selectColumns) {
         getSelectColumns().clear();
         return addSelectColumns(selectColumns);
@@ -210,6 +217,17 @@ public interface ISelectColumnCriteria<E extends IEntity<E>, C extends ISelectCo
     }
 
     @SuppressWarnings("unchecked")
+    default C setSelectColumns(PropertyGetter<E, ?>... getters) {
+        getSelectColumns().clear();
+        if (ArrayUtil.isNotEmpty(getters)) {
+            for (PropertyGetter<E, ?> getter : getters) {
+                addSelectColumn(PropertyNameResolver.resolve(getter));
+            }
+        }
+        return (C) this;
+    }
+
+    @SuppressWarnings("unchecked")
     default C addSelectColumn(String selectColumn) {
         if (StrUtil.isNotBlank(selectColumn)) {
             if (!getSelectColumns().contains(selectColumn)) {
@@ -217,6 +235,10 @@ public interface ISelectColumnCriteria<E extends IEntity<E>, C extends ISelectCo
             }
         }
         return (C) this;
+    }
+
+    default C addSelectColumn(PropertyGetter<E, ?> getter) {
+        return addSelectColumn(PropertyNameResolver.resolve(getter));
     }
 
     @SuppressWarnings("unchecked")
@@ -242,11 +264,25 @@ public interface ISelectColumnCriteria<E extends IEntity<E>, C extends ISelectCo
     }
 
     @SuppressWarnings("unchecked")
+    default C addSelectColumns(PropertyGetter<E, ?>... getters) {
+        if (ArrayUtil.isNotEmpty(getters)) {
+            for (PropertyGetter<E, ?> getter : getters) {
+                addSelectColumn(getter);
+            }
+        }
+        return (C) this;
+    }
+
+    @SuppressWarnings("unchecked")
     default C unSelectColumn(String selectColumn) {
         if (StrUtil.isNotBlank(selectColumn)) {
             getSelectColumns().remove(selectColumn);
         }
         return (C) this;
+    }
+
+    default C unSelectColumn(PropertyGetter<E, ?> getter) {
+        return unSelectColumn(PropertyNameResolver.resolve(getter));
     }
 
     @SuppressWarnings("unchecked")

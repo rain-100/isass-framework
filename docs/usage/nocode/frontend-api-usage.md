@@ -75,9 +75,9 @@
 | 条件数量 | `GET {base}/count/criteria` | query：Criteria 等值字段 |
 | 全部数量 | `GET {base}/count/all` | 无 |
 | 按 id 是否存在 | `GET {base}/present/{id}` | path：`id` |
-| 按列是否存在 | `GET {base}/present/{columnName}/{value}` | path：列名和值 |
+| 按属性是否存在 | `GET {base}/present/{propertyName}/{value}` | path：实体属性名和值 |
 | 按条件是否存在 | `GET {base}/present/criteria` | query：Criteria 等值字段 |
-| 按列是否不存在 | `GET {base}/absent/{columnName}/{value}` | path：列名和值 |
+| 按属性是否不存在 | `GET {base}/absent/{propertyName}/{value}` | path：实体属性名和值 |
 | 按条件是否不存在 | `GET {base}/absent/criteria` | query：Criteria 等值字段 |
 | 校验条件存在 | `GET {base}/exception-if-present/criteria` | query：Criteria 等值字段 |
 | 校验条件不存在 | `GET {base}/exception-if-absent/criteria` | query：Criteria 等值字段 |
@@ -99,7 +99,7 @@ GET /attachment-service/iconGroup/criteria?id=9&iconGroupName=默认分组
 ```
 
 - 不要提交 `Like`、`Or`、`setOr` 等内部增强条件字段。
-- `selectColumns`、`orderBy` 按 OpenAPI 字段说明传递。
+- `selectColumns`、`orderBy`、`present/absent` 路径中的字段一律使用实体的驼峰属性名，例如 `nickName`、`createTime`；不要传 `NICK_NAME`、`create_time` 等数据库列名。ORM 会在基础设施层自动映射为物理列。
 - 只有分页接口 `GET {base}/page` 使用 `pageNum`、`pageSize`；普通列表接口不要传分页参数。
 - 枚举字段使用文档给出的值；不要假设枚举可以用整数或名称互换。
 

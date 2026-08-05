@@ -178,10 +178,6 @@ import java.beans.Transient;
  */
 public interface IVersionEntity<E extends IVersionEntity<E>> extends IEntity<E> {
 
-    String VERSION_PROPERTY_NAME = "version";
-
-    String VERSION_COLUMN_NAME = "version";
-
     Integer DEFAULT_VERSION = 1;
 
     /**
@@ -197,11 +193,6 @@ public interface IVersionEntity<E extends IVersionEntity<E>> extends IEntity<E> 
      * @param version version
      */
     void setVersion(Integer version);
-
-    @Transient
-    default String getVersionColumnName() {
-        return VERSION_COLUMN_NAME;
-    }
 
     /**
      * @return 如果版本号为 null, 则设置版本号为1，并返回版本号

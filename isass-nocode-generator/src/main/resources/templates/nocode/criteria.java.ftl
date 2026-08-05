@@ -78,33 +78,16 @@ public class ${entity}Criteria
 </#if>
         ICriteria<${entity}, ${entity}Criteria> {
 
-<#---------- BEGIN HTTP 空值条件 ------------>
-<#list table.fields as field>
-    public ${entity}Criteria set${field.propertyName?cap_first}IsNull(Boolean enabled) {
-        return Boolean.TRUE.equals(enabled)
-                ? isNull(${entity}.${field.name?upper_case}, ${entity}.${field.name?upper_case}_COLUMN_NAME)
-                : this;
-    }
-
-    public ${entity}Criteria set${field.propertyName?cap_first}IsNotNull(Boolean enabled) {
-        return Boolean.TRUE.equals(enabled)
-                ? isNotNull(${entity}.${field.name?upper_case}, ${entity}.${field.name?upper_case}_COLUMN_NAME)
-                : this;
-    }
-
-</#list>
-<#---------- END HTTP 空值条件 ------------>
-
 <#---------- BEGIN 添加 getter setter 方法 ------------>
 <#list table.fields as field>
     <#if buildInColumns?seq_contains(field.name?lower_case)
-        && !(field.name?lower_case == cfg.tenantEntity.TENANT_ID_COLUMN_NAME && field.comment!?contains("[tenantEntity--false]"))><#continue></#if>
+        && !(field.name?lower_case == "tenant_id" && field.comment!?contains("[tenantEntity--false]"))><#continue></#if>
     <#if field.propertyType == "JsonNode"><#continue></#if>
     // region ${field.propertyName}
 
     @Transient
     public ${field.propertyType} get${field.propertyName?cap_first}() {
-        return getEquals(${entity}.${field.name?upper_case}, ${field.propertyType}.class);
+        return getEquals(propertyName(${entity}::get${field.propertyName?cap_first}), ${field.propertyType}.class);
     }
 
 <#---------- 所有字段类型都有的 setter 方法 ------------>
@@ -116,7 +99,6 @@ public class ${entity}Criteria
 <#---------- 集合字段类型都有的 setter 方法 ------------>
 <#include "./segment/criteria_setter_collection.java.ftl">
     // endregion
-
 </#list>
 
 <#---------- END 添加 getter setter 方法 ------------>

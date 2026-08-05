@@ -183,13 +183,13 @@ import java.util.HashSet;
 public interface SensitiveDataProperty {
 
     HashSet<String> PROPERTIES = CollUtil.newHashSet(
-            ILogicDeleteEntity.DELETE_FLAG_COLUMN_NAME,
+            "deleteFlag",
             //        TimeTracedEntity.CREATED_TIME_PROPERTY,
             //        TimeTracedEntity.MODIFY_TIME_PROPERTY,
-            ITraceEntity.CREATE_USER_ID_COLUMN_NAME,
-            ITraceEntity.CREATE_USER_NAME_COLUMN_NAME,
-            ITraceEntity.MODIFY_USER_ID_COLUMN_NAME,
-            ITraceEntity.MODIFY_USER_NAME_COLUMN_NAME,
+            "createUserId",
+            "createUserName",
+            "modifyUserId",
+            "modifyUserName",
 
             "password");
 

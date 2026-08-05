@@ -179,10 +179,6 @@ import java.io.Serializable;
  */
 public interface ITenantEntity<TPK extends Serializable, E extends ITenantEntity<TPK, E>> extends IEntity<E> {
 
-    String TENANT_ID_COLUMN_NAME = "tenant_id";
-
-    String TENANT_ID_PROPERTY_NAME = "tenantId";
-
     /**
      * 获取 租户 id
      *
@@ -196,11 +192,6 @@ public interface ITenantEntity<TPK extends Serializable, E extends ITenantEntity
      * @param tenantId 租户 id
      */
     void setTenantId(TPK tenantId);
-
-    @Transient
-    default String getTenantIdColumnName() {
-        return TENANT_ID_COLUMN_NAME;
-    }
 
     @Override
     @SuppressWarnings("unchecked")

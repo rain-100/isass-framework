@@ -92,8 +92,8 @@ import vip.isass.framework.nocode.entity.IVersionEntity;
 <#if (field.propertyType == "LocalDate"
 || field.propertyType == "LocalTime"
 || field.propertyType == "LocalDateTime")
-&& field.name?lower_case != cfg.traceEntity.CREATED_TIME_COLUMN_NAME
-&& field.name?lower_case != cfg.traceEntity.MODIFY_TIME_COLUMN_NAME>
+&& field.name?lower_case != "create_time"
+&& field.name?lower_case != "modify_time">
 import vip.isass.framework.common.support.LocalDateTimeUtil;
 <#break>
 </#if>
@@ -182,12 +182,6 @@ public class ${entity} implements
     private static final long serialVersionUID = 1L;
 
 <#------------ END 定义公共字段 ------------>
-<#------------ BEGIN 定义数据库字段名 ------------>
-<#list table.fields as field>
-    public transient static final String ${field.name?upper_case} = "${field.propertyName}";
-    public transient static final String ${field.name?upper_case}_COLUMN_NAME = "${field.name}";
-
-</#list>
 <#---------- BEGIN 定义字段 ------------>
 <#list table.fields as field>
     /**
@@ -198,7 +192,7 @@ public class ${entity} implements
      * 数据库字段类型: ${field.metaInfo.typeName}
      */<#if field.propertyName!?ends_with("Id") && field.propertyType == "Long">
     @JsonSerialize(using = ToStringSerializer.class)</#if>
-    private <#if field.propertyName == cfg.logicDeleteEntity.DELETE_FLAG_PROPERTY_NAME>Boolean<#elseif field.comment!?contains("${enumStart}")>${field.propertyName?cap_first}<#elseif field.comment!?contains("${javaTypeStart}")>${javaType(field)}<#elseif field.propertyType == "JsonNode">JsonNode<#else>${field.propertyType}</#if> ${field.propertyName};
+    private <#if field.propertyName == "deleteFlag">Boolean<#elseif field.comment!?contains("${enumStart}")>${field.propertyName?cap_first}<#elseif field.comment!?contains("${javaTypeStart}")>${javaType(field)}<#elseif field.propertyType == "JsonNode">JsonNode<#else>${field.propertyType}</#if> ${field.propertyName};
 
 </#list>
 <#---------- END 定义字段 ---------->
@@ -284,7 +278,7 @@ public class ${entity} implements
 <#---------- START 添加IdEntity的方法 ---------->
 <#if isIdEntity>
 <#-- 当主键字段名与默认主键字段名不一致时，添加默认主键字段名的get、set方法 -->
-<#if idEntityColumnName != cfg.idEntity.ID_COLUMN_NAME>
+<#if idEntityColumnName != "id">
     @Override
     public ${idEntityPropertyType} getId() {
         return this.${idEntityPropertyName};

@@ -171,6 +171,8 @@ package vip.isass.framework.nocode.criteria.type;
 import cn.hutool.core.util.StrUtil;
 import vip.isass.framework.nocode.criteria.ICriteria;
 import vip.isass.framework.nocode.entity.IEntity;
+import vip.isass.framework.nocode.property.PropertyGetter;
+import vip.isass.framework.nocode.property.PropertyNameResolver;
 
 /**
  * order by 排序条件接口
@@ -200,5 +202,12 @@ public interface IOrderByCriteria<E extends IEntity<E>, C extends IOrderByCriter
         return setOrderBy(column + " " + direction);
     }
 
-}
+    default C orderBy(PropertyGetter<E, ?> propertyGetter, String direction) {
+        return orderBy(PropertyNameResolver.resolve(propertyGetter), direction);
+    }
 
+    default C orderByIfBlank(PropertyGetter<E, ?> propertyGetter, String direction) {
+        return orderByIfBlank(PropertyNameResolver.resolve(propertyGetter), direction);
+    }
+
+}

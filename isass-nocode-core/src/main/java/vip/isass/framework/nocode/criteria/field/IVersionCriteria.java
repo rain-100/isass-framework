@@ -174,6 +174,7 @@ import vip.isass.framework.nocode.criteria.type.ISelectColumnCriteria;
 import vip.isass.framework.nocode.criteria.type.IWhereConditionCriteria;
 
 import java.beans.Transient;
+import vip.isass.framework.nocode.property.PropertyGetter;
 
 /**
  * 乐观锁版本号 类型条件接口
@@ -185,29 +186,47 @@ public interface IVersionCriteria<
     C extends IVersionCriteria<E, C>
     > extends ICriteria<E, C> {
 
-    @Transient
-    default String getVersionColumnName() {
-        return IVersionEntity.VERSION_COLUMN_NAME;
-    }
-
-    @Transient
-    default String getVersionPropertyName() {
-        return IVersionEntity.VERSION_PROPERTY_NAME;
+    static <E extends IVersionEntity<E>> PropertyGetter<E, Integer> versionGetter() {
+        return IVersionEntity::getVersion;
     }
 
     @Transient
     @SuppressWarnings({"rawtypes"})
     default Integer getVersion() {
         return this instanceof IWhereConditionCriteria
-            ? (Integer) ((IWhereConditionCriteria) this).getEquals(getVersionColumnName())
+            ? (Integer) ((IWhereConditionCriteria) this).getEquals(versionGetter())
             : null;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     default C setVersion(Integer id) {
         return this instanceof IWhereConditionCriteria
-            ? (C) ((IWhereConditionCriteria) this).equals(getVersionPropertyName(), getVersionColumnName(), id)
+            ? (C) ((IWhereConditionCriteria) this).equals(versionGetter(), id)
             : (C) this;
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    default C setVersionIsNull() {
+        return this instanceof IWhereConditionCriteria
+                ? (C) ((IWhereConditionCriteria) this).isNull(versionGetter())
+                : (C) this;
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    default C setVersionIsNull(Boolean enabled) {
+        return Boolean.TRUE.equals(enabled) ? setVersionIsNull() : (C) this;
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    default C setVersionIsNotNull() {
+        return this instanceof IWhereConditionCriteria
+                ? (C) ((IWhereConditionCriteria) this).isNotNull(versionGetter())
+                : (C) this;
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    default C setVersionIsNotNull(Boolean enabled) {
+        return Boolean.TRUE.equals(enabled) ? setVersionIsNotNull() : (C) this;
     }
 
     // region SelectColumnCriteria
@@ -215,21 +234,21 @@ public interface IVersionCriteria<
     @SuppressWarnings({"unchecked", "rawtypes"})
     default C selectVersion() {
         return this instanceof ISelectColumnCriteria
-            ? (C) ((ISelectColumnCriteria) this).setSelectColumn(getVersionColumnName())
+            ? (C) ((ISelectColumnCriteria) this).setSelectColumn(versionGetter())
             : (C) this;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     default C addSelectVersion() {
         return this instanceof ISelectColumnCriteria
-            ? (C) ((ISelectColumnCriteria) this).addSelectColumn(getVersionColumnName())
+            ? (C) ((ISelectColumnCriteria) this).addSelectColumn(versionGetter())
             : (C) this;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     default C unSelectVersion() {
         return this instanceof ISelectColumnCriteria
-            ? (C) ((ISelectColumnCriteria) this).unSelectColumn(getVersionColumnName())
+            ? (C) ((ISelectColumnCriteria) this).unSelectColumn(versionGetter())
             : (C) this;
     }
 

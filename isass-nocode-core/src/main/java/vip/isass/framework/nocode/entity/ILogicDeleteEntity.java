@@ -178,10 +178,6 @@ import java.beans.Transient;
  */
 public interface ILogicDeleteEntity<E extends ILogicDeleteEntity<E>> extends IEntity<E> {
 
-    String DELETE_FLAG_PROPERTY_NAME = "deleteFlag";
-
-    String DELETE_FLAG_COLUMN_NAME = "delete_flag";
-
     Boolean DEFAULT_DELETE_FLAG_VALUE = Boolean.FALSE;
 
     /** MyBatis-Plus 中未删除记录的数据库值。 */
@@ -203,11 +199,6 @@ public interface ILogicDeleteEntity<E extends ILogicDeleteEntity<E>> extends IEn
      * @param deleteFlag deleteFlag
      */
     void setDeleteFlag(Boolean deleteFlag);
-
-    @Transient
-    default String getDeleteFlagColumnName() {
-        return DELETE_FLAG_COLUMN_NAME;
-    }
 
     /**
      * 如果删除标识为 null, 则设置删除标识为 false，并返回删除标识

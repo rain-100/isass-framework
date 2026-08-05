@@ -182,17 +182,6 @@ import java.io.Serializable;
 public interface IIdEntity<PK extends Serializable, E extends IIdEntity<PK, E>>
     extends IPkEntity<PK, E> {
 
-    //  默认的 id 成员变量名
-    String ID_PROPERTY_NAME = "id";
-
-    //  默认的 id 字段名
-    String ID_COLUMN_NAME = "id";
-
-    @Transient
-    default String getIdColumnName() {
-        return ID_COLUMN_NAME;
-    }
-
     /**
      * @return id
      */

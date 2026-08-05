@@ -181,55 +181,7 @@ import java.io.Serializable;
  * @author Rain
  */
 public interface ITraceEntity<UPK extends Serializable, E extends ITraceEntity<UPK, E>>
-    extends IEntity<E> {
-
-    String CREATE_USER_ID_PROPERTY_NAME = "createUserId";
-    String CREATE_USER_ID_COLUMN_NAME = "create_user_id";
-
-    @Transient
-    default String getCreateUserIdColumnName() {
-        return CREATE_USER_ID_COLUMN_NAME;
-    }
-
-    String CREATE_USER_NAME_PROPERTY_NAME = "createUserName";
-    String CREATE_USER_NAME_COLUMN_NAME = "create_user_name";
-
-    @Transient
-    default String getCreateUserNameColumnName() {
-        return CREATE_USER_NAME_COLUMN_NAME;
-    }
-
-    String CREATED_TIME_PROPERTY_NAME = "createTime";
-    String CREATED_TIME_COLUMN_NAME = "create_time";
-
-    @Transient
-    default String getCreatedTimeColumnName() {
-        return CREATED_TIME_COLUMN_NAME;
-    }
-
-    String MODIFY_USER_ID_PROPERTY_NAME = "modifyUserId";
-    String MODIFY_USER_ID_COLUMN_NAME = "modify_user_id";
-
-    @Transient
-    default String getModifyUserIdColumnName() {
-        return MODIFY_USER_ID_COLUMN_NAME;
-    }
-
-    String MODIFY_USER_NAME_PROPERTY_NAME = "modifyUserName";
-    String MODIFY_USER_NAME_COLUMN_NAME = "modify_user_name";
-
-    @Transient
-    default String getModifyUserNameColumnName() {
-        return MODIFY_USER_NAME_COLUMN_NAME;
-    }
-
-    String MODIFY_TIME_PROPERTY_NAME = "modifyTime";
-    String MODIFY_TIME_COLUMN_NAME = "modify_time";
-
-    @Transient
-    default String getModifyTimeColumnColumnName() {
-        return MODIFY_TIME_COLUMN_NAME;
-    }
+        extends IEntity<E> {
 
     // 允许数据库表只包含其中1个审计字段，所以 get set 方法均添加默认实现，避免实现类报错
 
@@ -342,11 +294,10 @@ public interface ITraceEntity<UPK extends Serializable, E extends ITraceEntity<U
     @Override
     @SuppressWarnings("unchecked")
     default E randomEntity() {
-        // 在 isass 3.x.x 版本，用户id是字符串，现在只能写死类型强转
-        setCreateUserId((UPK) LongSequence.get().toString());
+        setCreateUserId((UPK) LongSequence.get());
         setCreateUserName(randomString());
         setCreateTime(randomLong());
-        setModifyUserId((UPK) LongSequence.get().toString());
+        setModifyUserId((UPK) LongSequence.get());
         setModifyUserName(randomString());
         setModifyTime(randomLong());
         return (E) this;

@@ -189,6 +189,9 @@ public enum Condition {
     IS_NULL("IsNull"),
     IS_NOT_NULL("IsNotNull"),
 
+    IS_EMPTY("IsEmpty"),
+    IS_NOT_EMPTY("IsNotEmpty"),
+
     // 数字类型
     GREATER_THAN("GreaterThan"),
     GREATER_THAN_EQUAL("GreaterThanEqual"),

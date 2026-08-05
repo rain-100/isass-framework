@@ -362,10 +362,7 @@ public abstract class MybatisPlusRepository<
         if (id instanceof String) {
             Assert.notBlank((String) id, "id 不能为空");
         }
-        String idColumnName = idEntity.getIdColumnName();
-        return IIdEntity.ID_COLUMN_NAME.equalsIgnoreCase(idColumnName)
-                ? super.updateById(entity)
-                : super.update(entity, new UpdateWrapper<E>().eq(idColumnName, idEntity.getId()));
+        return super.updateById(entity);
     }
 
     @Override
@@ -379,7 +376,7 @@ public abstract class MybatisPlusRepository<
         }
 
         UpdateWrapper<E> updateWrapper = new UpdateWrapper<E>()
-                .eq(idEntity.getIdColumnName(), idEntity.getId());
+                .eq(EntityPropertyColumnResolver.resolve(currentEntityClass(), "id"), idEntity.getId());
 
         Class<E> entityClass = currentEntityClass();
         TableInfo tableInfo = TableInfoHelper.getTableInfo(entityClass);
@@ -402,6 +399,7 @@ public abstract class MybatisPlusRepository<
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     public boolean updateByWrapper(E entity, Wrapper<E> wrapper) {
+        Assert.isTrue(!wrapper.isEmptyOfNormal(), "更新失败，更新条件不能为空");
         return this.update(entity, wrapper);
     }
 
@@ -427,10 +425,8 @@ public abstract class MybatisPlusRepository<
         }
 
         if (IIdEntity.class.isAssignableFrom(entityClass)) {
-            String IdColumnName = getIdColumnName(entityClass);
-            if (StrUtil.isNotBlank(IdColumnName)) {
-                return getByWrapper(new QueryWrapper<E>().eq(IdColumnName, realId));
-            }
+            return getByWrapper(new QueryWrapper<E>().eq(
+                    EntityPropertyColumnResolver.resolve(entityClass, "id"), realId));
         }
         return super.getById(realId);
     }
@@ -558,14 +554,17 @@ public abstract class MybatisPlusRepository<
             Assert.notBlank((String) id, "id");
         }
 
-        return isPresentByWrapper(Wrappers.<E>query().eq(IIdEntity.ID_COLUMN_NAME, id).last("limit 1"));
+        return isPresentByWrapper(Wrappers.<E>query()
+                .eq(EntityPropertyColumnResolver.resolve(currentEntityClass(), "id"), id)
+                .last("limit 1"));
     }
 
     @Override
-    public boolean isPresentByColumn(String columnName, Object value) {
-        Assert.notBlank(columnName);
+    public boolean isPresentByColumn(String propertyName, Object value) {
+        Assert.notBlank(propertyName);
         Assert.notNull(value, "value");
-        return isPresentByWrapper(Wrappers.<E>query().eq(columnName, value));
+        return isPresentByWrapper(Wrappers.<E>query()
+                .eq(EntityPropertyColumnResolver.resolve(currentEntityClass(), propertyName), value));
     }
 
     public boolean isPresentByWrapper(Wrapper<E> wrapper) {

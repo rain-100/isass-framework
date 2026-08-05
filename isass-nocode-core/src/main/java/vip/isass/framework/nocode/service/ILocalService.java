@@ -405,16 +405,16 @@ public interface ILocalService<
         return getRepository().isPresentById(id);
     }
 
-    default Boolean isPresentByColumn(String columnName, Object value) {
-        return getRepository().isPresentByColumn(columnName, value);
+    default Boolean isPresentByColumn(String propertyName, Object value) {
+        return getRepository().isPresentByColumn(propertyName, value);
     }
 
     default Boolean isPresentByCriteria(C criteria) {
         return getRepository().isPresentByCriteria(criteria);
     }
 
-    default Boolean isAbsentByColumn(String columnName, Object value) {
-        return !isPresentByColumn(columnName, value);
+    default Boolean isAbsentByColumn(String propertyName, Object value) {
+        return !isPresentByColumn(propertyName, value);
     }
 
     default Boolean isAbsentByCriteria(C criteria) {

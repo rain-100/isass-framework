@@ -80,7 +80,7 @@ public class TableMetaRegistrar
         // no-op
     }
 
-    private static void registerFromBeanDefinitions(BeanDefinitionRegistry registry) {
+    private void registerFromBeanDefinitions(BeanDefinitionRegistry registry) {
         for (String beanName : registry.getBeanDefinitionNames()) {
             BeanDefinition bd;
             try {
@@ -110,18 +110,40 @@ public class TableMetaRegistrar
             if (entityClass == null || !IEntity.class.isAssignableFrom(entityClass)) {
                 continue;
             }
-            if (metaMap.containsKey(entityClass)) {
+            registerEntity(entityClass);
+        }
+        applyCustomizers(registry);
+    }
+
+    private static void registerEntity(Class<?> entityClass) {
+        if (metaMap.containsKey(entityClass)) {
+            return;
+        }
+        TableMeta meta = new TableMeta().tableName(resolveTableName(entityClass));
+        detectIdType(meta, entityClass);
+        detectTraceFields(meta, entityClass);
+        detectLogicDelete(meta, entityClass);
+        detectVersion(meta, entityClass);
+        detectTenant(meta, entityClass);
+        detectParentId(meta, entityClass);
+        detectAssociations(meta, entityClass);
+        metaMap.put(entityClass, meta);
+    }
+
+    private void applyCustomizers(BeanDefinitionRegistry registry) {
+        for (String beanName : registry.getBeanDefinitionNames()) {
+            String className = registry.getBeanDefinition(beanName).getBeanClassName();
+            if (className == null || className.isBlank()) {
                 continue;
             }
-            TableMeta meta = new TableMeta().tableName(resolveTableName(entityClass));
-            detectIdType(meta, entityClass);
-            detectTraceFields(meta, entityClass);
-            detectLogicDelete(meta, entityClass);
-            detectVersion(meta, entityClass);
-            detectTenant(meta, entityClass);
-            detectParentId(meta, entityClass);
-            detectAssociations(meta, entityClass);
-            metaMap.put(entityClass, meta);
+            try {
+                Class<?> beanClass = Class.forName(className, false, TableMetaRegistrar.class.getClassLoader());
+                if (TableMetaCustomizer.class.isAssignableFrom(beanClass) && !beanClass.isInterface()) {
+                    ((TableMetaCustomizer) beanClass.getDeclaredConstructor().newInstance()).customize(this);
+                }
+            } catch (ReflectiveOperationException exception) {
+                throw new IllegalStateException("Cannot initialize table metadata customizer: " + className, exception);
+            }
         }
     }
 
@@ -150,6 +172,17 @@ public class TableMetaRegistrar
     }
 
     /**
+     * Configures an exceptional physical column mapping while keeping the application model property-based.
+     */
+    public void customize(Class<?> entityClass, java.util.function.Consumer<TableMeta> customizer) {
+        TableMeta meta = metaMap.get(entityClass);
+        if (meta == null) {
+            throw new IllegalArgumentException("Entity is not managed by a local nocode service: " + entityClass.getName());
+        }
+        customizer.accept(meta);
+    }
+
+    /**
      * MP 初始化每张表后回调，从 metaMap 注入 tableName / idType / keyType / keyColumn / keyProperty / logicDelete / version。
      * TableInfo 的 setter 均为包级私有，通过反射调用。
      */
@@ -162,8 +195,8 @@ public class TableMetaRegistrar
         invokeSetter(tableInfo, "setTableName", String.class, meta.tableName());
         invokeSetter(tableInfo, "setIdType", IdType.class, meta.idType());
         invokeSetter(tableInfo, "setKeyType", Class.class, meta.keyType());
-        invokeSetter(tableInfo, "setKeyColumn", String.class, meta.idColumnName());
-        invokeSetter(tableInfo, "setKeyProperty", String.class, meta.idColumnName());
+        invokeSetter(tableInfo, "setKeyColumn", String.class, meta.keyColumnName());
+        invokeSetter(tableInfo, "setKeyProperty", String.class, meta.keyPropertyName());
 
         String lf = meta.logicDeleteField();
         if (lf != null) {
@@ -214,6 +247,11 @@ public class TableMetaRegistrar
             setTableFieldInfoFill(fieldInfo, fill,
                     fill == FieldFill.INSERT || fill == FieldFill.INSERT_UPDATE,
                     fill == FieldFill.UPDATE || fill == FieldFill.INSERT_UPDATE);
+        }
+        String columnName = meta.columnMappings().get(fieldInfo.getProperty());
+        if (StrUtil.isNotBlank(columnName)) {
+            setTableFieldInfoField(fieldInfo, "column", columnName);
+            setTableFieldInfoField(fieldInfo, "columnSelect", columnName);
         }
         if (!meta.associationFields().contains(fieldInfo.getProperty()) && isJsonValue(fieldInfo.getField())) {
             String mapping = ",typeHandler=" + Jackson3TypeHandler.class.getName();
@@ -330,7 +368,8 @@ public class TableMetaRegistrar
         }
         meta.idType(IdType.ASSIGN_ID);
         meta.keyType(resolveKeyType(entityClass));
-        meta.idColumnName("id");
+        meta.keyPropertyName("id");
+        meta.keyColumnName("id");
     }
 
     private static Class<?> resolveKeyType(Class<?> entityClass) {

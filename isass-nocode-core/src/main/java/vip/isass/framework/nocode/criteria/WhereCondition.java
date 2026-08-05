@@ -168,7 +168,6 @@
 
 package vip.isass.framework.nocode.criteria;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -180,18 +179,12 @@ import vip.isass.framework.nocode.criteria.impl.type.Condition;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
 public class WhereCondition {
 
     /**
      * java 对象属性名
      */
     private String propertyName;
-
-    /**
-     * 数据库字段名
-     */
-    private String columnName;
 
     /**
      * 条件，例如：大于，小于，等于
@@ -202,5 +195,11 @@ public class WhereCondition {
      * 比较的值
      */
     private Object value;
+
+    public WhereCondition(String propertyName, Condition condition, Object value) {
+        this.propertyName = propertyName;
+        this.condition = condition;
+        this.value = value;
+    }
 
 }
