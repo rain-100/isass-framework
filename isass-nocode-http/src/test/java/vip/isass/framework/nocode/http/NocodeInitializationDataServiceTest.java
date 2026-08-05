@@ -4,6 +4,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.DefaultApplicationArguments;
 import tools.jackson.databind.ObjectMapper;
 import vip.isass.framework.nocode.ServiceRegistry;
+import vip.isass.framework.nocode.criteria.ICriteria;
+import vip.isass.framework.nocode.criteria.field.IIdCriteria;
+import vip.isass.framework.nocode.criteria.impl.type.FullTypeCriteria;
 import vip.isass.framework.nocode.entity.IIdEntity;
 import vip.isass.framework.nocode.repository.IRepository;
 import vip.isass.framework.nocode.service.ILocalService;
@@ -12,9 +15,12 @@ import java.util.List;
 import java.util.Map;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentCaptor.forClass;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -30,8 +36,10 @@ class NocodeInitializationDataServiceTest {
         when(service.service()).thenReturn("sample-service");
         when(service.entity()).thenReturn("sample");
         when(service.entityClass()).thenReturn((Class) Sample.class);
-        when(service.isPresentById(1L)).thenReturn(false);
-        when(service.isPresentById(2L)).thenReturn(true);
+        when(service.criteriaClass()).thenReturn((Class) SampleCriteria.class);
+        Sample existing = new Sample();
+        existing.setId(2L);
+        when(service.findByCriteria(any())).thenReturn(List.of(existing));
         when(service.getRepository()).thenReturn(repository);
 
         NocodeInitializationDataService dataService = new NocodeInitializationDataService(
@@ -45,6 +53,41 @@ class NocodeInitializationDataServiceTest {
         assertThat(result.failures()).isEmpty();
         verify(repository).add(any(Sample.class));
         verify(service, never()).add(any(Sample.class));
+        verify(service).findByCriteria(any());
+        verify(service, never()).isPresentById(any());
+    }
+
+    @Test
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    void preloadsExistingIdsInBatchesOfOneHundred() {
+        ILocalService service = mock(ILocalService.class);
+        IRepository repository = mock(IRepository.class);
+        when(service.service()).thenReturn("sample-service");
+        when(service.entity()).thenReturn("sample");
+        when(service.entityClass()).thenReturn((Class) Sample.class);
+        when(service.criteriaClass()).thenReturn((Class) SampleCriteria.class);
+        when(service.findByCriteria(any())).thenReturn(List.of());
+        when(service.getRepository()).thenReturn(repository);
+
+        List<Map<String, Object>> rows = IntStream.rangeClosed(1, 201)
+                .mapToObj(id -> Map.<String, Object>of("id", id, "name", "sample-" + id))
+                .toList();
+        NocodeInitializationDataService dataService = new NocodeInitializationDataService(
+                new ServiceRegistry(List.of(service)), new ObjectMapper());
+
+        NocodeInitializationDataService.ImportResult result = dataService.importData(
+                "sample-service", Map.of("sample", rows));
+
+        assertThat(result.total()).isEqualTo(201);
+        assertThat(result.inserted()).isEqualTo(201);
+        var criteriaCaptor = forClass(SampleCriteria.class);
+        verify(service, times(3)).findByCriteria(criteriaCaptor.capture());
+        assertThat(criteriaCaptor.getAllValues()).allSatisfy(criteria -> assertThat(criteria.getWhereConditions())
+                .singleElement()
+                .satisfies(condition -> assertThat((List<?>) condition.getValue()).hasSizeLessThanOrEqualTo(100)));
+        assertThat(criteriaCaptor.getAllValues())
+                .allSatisfy(criteria -> assertThat(criteria.getSelectColumns()).containsExactly("id"));
+        verify(service, never()).isPresentById(any());
     }
 
     @Test
@@ -55,7 +98,8 @@ class NocodeInitializationDataServiceTest {
         when(validService.service()).thenReturn("sample-service");
         when(validService.entity()).thenReturn("sample");
         when(validService.entityClass()).thenReturn((Class) Sample.class);
-        when(validService.isPresentById(1L)).thenReturn(false);
+        when(validService.criteriaClass()).thenReturn((Class) SampleCriteria.class);
+        when(validService.findByCriteria(any())).thenReturn(List.of());
         when(validService.getRepository()).thenReturn(repository);
 
         NocodeInitializationDataService dataService = new NocodeInitializationDataService(
@@ -113,7 +157,8 @@ class NocodeInitializationDataServiceTest {
         when(sampleService.service()).thenReturn("sample-service");
         when(sampleService.entity()).thenReturn("sample");
         when(sampleService.entityClass()).thenReturn((Class) Sample.class);
-        when(sampleService.isPresentById(1L)).thenReturn(false);
+        when(sampleService.criteriaClass()).thenReturn((Class) SampleCriteria.class);
+        when(sampleService.findByCriteria(any())).thenReturn(List.of());
         when(sampleService.getRepository()).thenReturn(repository);
 
         Path initDirectory = Files.createTempDirectory("nocode-init").resolve("init/sample-service");
@@ -161,5 +206,9 @@ class NocodeInitializationDataServiceTest {
         public Sample randomEntity() {
             return this;
         }
+    }
+
+    static class SampleCriteria extends FullTypeCriteria<Sample, SampleCriteria>
+            implements IIdCriteria<Long, Sample, SampleCriteria>, ICriteria<Sample, SampleCriteria> {
     }
 }

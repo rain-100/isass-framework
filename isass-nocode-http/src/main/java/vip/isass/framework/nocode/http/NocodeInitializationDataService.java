@@ -3,6 +3,9 @@ package vip.isass.framework.nocode.http;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
 import vip.isass.framework.nocode.ServiceRegistry;
+import vip.isass.framework.nocode.criteria.ICriteria;
+import vip.isass.framework.nocode.criteria.field.IIdCriteria;
+import vip.isass.framework.nocode.criteria.type.ISelectColumnCriteria;
 import vip.isass.framework.nocode.entity.IEntity;
 import vip.isass.framework.nocode.entity.IIdEntity;
 import vip.isass.framework.nocode.service.ILocalService;
@@ -13,12 +16,16 @@ import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /** Imports and exports standard nocode entities as portable JSON documents. */
 public class NocodeInitializationDataService {
+
+    private static final int EXISTING_ID_BATCH_SIZE = 100;
 
     private static final TypeReference<LinkedHashMap<String, List<Map<String, Object>>>> DOCUMENT_TYPE =
             new TypeReference<>() {
@@ -109,10 +116,15 @@ public class NocodeInitializationDataService {
         ResolvedService resolved = resolveService(serviceName, entityName);
         if (resolved == null) throw new IllegalArgumentException("Unknown local nocode entity: " + entityName);
         if (rows == null) return;
+        List<IEntity<?>> entities = new ArrayList<>(rows.size());
         for (Object row : rows) {
             summary.total++;
-            IEntity<?> entity = (IEntity<?>) objectMapper.convertValue(row, resolved.entityClass());
-            if (alreadyExists(resolved.service(), entity)) {
+            entities.add((IEntity<?>) objectMapper.convertValue(row, resolved.entityClass()));
+        }
+        Set<Serializable> existingIds = findExistingIds(resolved.service(), entities);
+        for (IEntity<?> entity : entities) {
+            Serializable id = entityId(entity);
+            if (id != null && !existingIds.add(id)) {
                 summary.skipped++;
                 continue;
             }
@@ -121,11 +133,54 @@ public class NocodeInitializationDataService {
         }
     }
 
-    private boolean alreadyExists(ILocalService<?, ?> service, IEntity<?> entity) {
-        if (!(entity instanceof IIdEntity<?, ?> idEntity) || idEntity.getId() == null) return false;
-        @SuppressWarnings({"rawtypes", "unchecked"})
-        ILocalService rawService = service;
-        return Boolean.TRUE.equals(rawService.isPresentById((Serializable) idEntity.getId()));
+    private Set<Serializable> findExistingIds(ILocalService<?, ?> service, Collection<IEntity<?>> entities) {
+        Set<Serializable> ids = new LinkedHashSet<>();
+        for (IEntity<?> entity : entities) {
+            Serializable id = entityId(entity);
+            if (id != null) ids.add(id);
+        }
+
+        Set<Serializable> existingIds = new LinkedHashSet<>();
+        List<Serializable> idList = new ArrayList<>(ids);
+        for (int start = 0; start < idList.size(); start += EXISTING_ID_BATCH_SIZE) {
+            int end = Math.min(start + EXISTING_ID_BATCH_SIZE, idList.size());
+            List<IEntity<?>> existingEntities = findByIds(service, idList.subList(start, end));
+            for (IEntity<?> existingEntity : existingEntities) {
+                Serializable id = entityId(existingEntity);
+                if (id != null) existingIds.add(id);
+            }
+        }
+        return existingIds;
+    }
+
+    private List<IEntity<?>> findByIds(ILocalService<?, ?> service, Collection<Serializable> ids) {
+        try {
+            ICriteria<?, ?> criteria = service.criteriaClass().getDeclaredConstructor().newInstance();
+            if (!(criteria instanceof IIdCriteria<?, ?, ?> idCriteria)) {
+                throw new IllegalArgumentException("Nocode entity criteria does not support ID conditions: "
+                        + service.entity());
+            }
+            @SuppressWarnings({"rawtypes", "unchecked"})
+            IIdCriteria rawCriteria = idCriteria;
+            rawCriteria.setIdIn(ids);
+            if (!(criteria instanceof ISelectColumnCriteria<?, ?> selectColumnCriteria)) {
+                throw new IllegalArgumentException("Nocode entity criteria does not support selected columns: "
+                        + service.entity());
+            }
+            @SuppressWarnings({"rawtypes", "unchecked"})
+            ISelectColumnCriteria rawSelectColumnCriteria = selectColumnCriteria;
+            rawSelectColumnCriteria.setSelectColumns(IIdCriteria.idGetter());
+            @SuppressWarnings({"rawtypes", "unchecked"})
+            ILocalService rawService = service;
+            return rawService.findByCriteria(criteria);
+        } catch (ReflectiveOperationException exception) {
+            throw new IllegalStateException("Cannot create nocode criteria: " + service.criteriaClass().getName(), exception);
+        }
+    }
+
+    private Serializable entityId(IEntity<?> entity) {
+        if (!(entity instanceof IIdEntity<?, ?> idEntity) || idEntity.getId() == null) return null;
+        return (Serializable) idEntity.getId();
     }
 
     private void add(ILocalService<?, ?> service, IEntity<?> entity) {

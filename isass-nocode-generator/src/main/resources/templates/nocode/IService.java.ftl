@@ -13,7 +13,7 @@ import vip.isass.framework.nocode.service.IService;
  * </p>
  *
  * @author ${author}
- * @tag <#if table.comment?trim?length gt 0>${table.comment}<#else>${entity}</#if>
+ * @tag <#if table.comment?trim?length gt 0>${table.comment?replace("\\([^)]*\\)|\\[[^]]*\\]|（[^）]*）|【[^】]*】", "", "r")?trim}<#else>${entity}</#if>
  */
 public interface I${entity}Service extends IService<${entity}, ${entity}Criteria> {
 

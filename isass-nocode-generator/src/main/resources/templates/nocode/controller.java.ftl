@@ -16,7 +16,7 @@ import ${cfg.package}.${cfg.context}.application.service.I${entity}Service;
  *
  * @apiNote 业务模块自定义接口。
  * @author ${author}
- * @tag <#if table.comment?trim?length gt 0>${table.comment}<#else>${entity}</#if>
+ * @tag <#if table.comment?trim?length gt 0>${table.comment?replace("\\([^)]*\\)|\\[[^]]*\\]|（[^）]*）|【[^】]*】", "", "r")?trim}<#else>${entity}</#if>
  */
 @Slf4j
 @RestController
