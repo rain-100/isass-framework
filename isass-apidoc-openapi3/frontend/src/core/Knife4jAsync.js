@@ -4409,6 +4409,10 @@ SwaggerBootstrapUi.prototype.initApiInfoAsyncOAS3 = function (swpinfo) {
         requestValue: null
       }));
     }
+    var serviceEntities = KUtils.getValue(apiInfo, 'x-isass-service-entities', null, true);
+    if (KUtils.checkUndefined(serviceEntities)) {
+      swpinfo.nocodeServiceEntities = serviceEntities;
+    }
     let oa3Data = that.currentInstance.swaggerData;
     let refParameterObject = oa3Data['components']['parameters'];
     let responseExample = null;

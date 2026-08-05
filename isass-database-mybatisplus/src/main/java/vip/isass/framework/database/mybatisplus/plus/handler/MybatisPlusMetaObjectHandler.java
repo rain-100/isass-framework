@@ -187,11 +187,8 @@ public class MybatisPlusMetaObjectHandler implements MetaObjectHandler {
 
     @Override
     public void insertFill(MetaObject metaObject) {
-        // version
-        Object version = getFieldValByName(IVersionEntity.VERSION_PROPERTY_NAME, metaObject);
-        if (version == null) {
-            setFieldValByName(IVersionEntity.VERSION_PROPERTY_NAME, IVersionEntity.DEFAULT_VERSION, metaObject);
-        }
+        Object entity = metaObject.getOriginalObject();
+        fillVersion(entity);
 
         LoginUser loginUser = LoginUserUtil.getLoginUser();
         Long currentTenantId = loginUser == null ? null : loginUser.getTenantId();
@@ -199,84 +196,73 @@ public class MybatisPlusMetaObjectHandler implements MetaObjectHandler {
 
         // Only tenant-scoped entities inherit the current tenant. Relationship tables can
         // also have a tenantId business key, which must retain the caller-provided value.
-        if (metaObject.getOriginalObject() instanceof ITenantEntity
-                && getFieldValByName("tenantId", metaObject) == null) {
-            setFieldValByName("tenantId", currentTenantId == null ? 0L : currentTenantId, metaObject);
-        }
+        fillTenant(entity, currentTenantId == null ? 0L : currentTenantId);
 
         // Preserve explicitly assigned business appIds, such as TenantApp during bootstrap.
         if (getFieldValByName("appId", metaObject) == null) {
             setFieldValByName("appId", currentAppId == null ? 0L : currentAppId, metaObject);
         }
 
-        // createUserId
-        setFieldValByName(
-                ITraceEntity.CREATE_USER_ID_PROPERTY_NAME,
-                auditUserId(metaObject, ITraceEntity.CREATE_USER_ID_PROPERTY_NAME, loginUser),
-                metaObject);
-
-        // createUserName
-        setFieldValByName(
-                ITraceEntity.CREATE_USER_NAME_PROPERTY_NAME,
-                loginUser == null
-                        ? StrUtil.subPre(Thread.currentThread().getName(), 32)
-                        : StrUtil.nullToEmpty(StrUtil.subPre(loginUser.getNickName(), 32)),
-                metaObject);
-
-        // modifyUserId
-        setFieldValByName(ITraceEntity.MODIFY_USER_ID_PROPERTY_NAME,
-                auditUserId(metaObject, ITraceEntity.MODIFY_USER_ID_PROPERTY_NAME, loginUser),
-                metaObject);
-
-        // modifyUserName
-        setFieldValByName(ITraceEntity.MODIFY_USER_NAME_PROPERTY_NAME,
-                loginUser == null
-                        ? StrUtil.subPre(Thread.currentThread().getName(), 32)
-                        : StrUtil.nullToEmpty(StrUtil.subPre(loginUser.getNickName(), 32)),
-                metaObject);
-
-        // createTime
-        Object createTime = getFieldValByName(ITraceEntity.CREATED_TIME_PROPERTY_NAME, metaObject);
-        if (createTime == null) {
-            setFieldValByName(ITraceEntity.CREATED_TIME_PROPERTY_NAME, SystemClock.now(), metaObject);
-        }
-
-        // modifyTime
-        setFieldValByName(ITraceEntity.MODIFY_TIME_PROPERTY_NAME, SystemClock.now(), metaObject);
-
-        // delete_flag
-        setFieldValByName(ILogicDeleteEntity.DELETE_FLAG_PROPERTY_NAME, ILogicDeleteEntity.DEFAULT_DELETE_FLAG_VALUE, metaObject);
-
+        fillInsertTrace(entity, loginUser);
+        fillDeleteFlag(entity);
     }
 
     @Override
     public void updateFill(MetaObject metaObject) {
-        LoginUser loginUser = LoginUserUtil.getLoginUser();
-
-        // modifyUserId
-        setFieldValByName(ITraceEntity.MODIFY_USER_ID_PROPERTY_NAME,
-                auditUserId(metaObject, ITraceEntity.MODIFY_USER_ID_PROPERTY_NAME, loginUser),
-                metaObject);
-
-        // modifyUserName
-        setFieldValByName(ITraceEntity.MODIFY_USER_NAME_PROPERTY_NAME,
-                loginUser == null
-                        ? StrUtil.subPre(Thread.currentThread().getName(), 32)
-                        : StrUtil.nullToEmpty(loginUser.getNickName()),
-                metaObject);
-
-        // modifyTime
-        setFieldValByName(ITraceEntity.MODIFY_TIME_PROPERTY_NAME, System.currentTimeMillis(), metaObject);
-
+        fillUpdateTrace(metaObject.getOriginalObject(), LoginUserUtil.getLoginUser());
     }
 
-    private Object auditUserId(MetaObject metaObject, String propertyName, LoginUser loginUser) {
-        if (!metaObject.hasSetter(propertyName)) {
-            return null;
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private void fillVersion(Object entity) {
+        if (entity instanceof IVersionEntity versionEntity && versionEntity.getVersion() == null) {
+            versionEntity.setVersion(IVersionEntity.DEFAULT_VERSION);
         }
-        if (Long.class.equals(metaObject.getSetterType(propertyName)) || long.class.equals(metaObject.getSetterType(propertyName))) {
-            return loginUser == null || loginUser.getUserId() == null ? 0L : loginUser.getUserId();
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private void fillTenant(Object entity, Long tenantId) {
+        if (entity instanceof ITenantEntity tenantEntity && tenantEntity.getTenantId() == null) {
+            tenantEntity.setTenantId(tenantId);
         }
-        return loginUser == null || loginUser.getUserId() == null ? "" : loginUser.getUserId().toString();
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private void fillInsertTrace(Object entity, LoginUser loginUser) {
+        if (!(entity instanceof ITraceEntity traceEntity)) return;
+        Long userId = auditUserId(loginUser);
+        String userName = auditUserName(loginUser);
+        traceEntity.setCreateUserId(userId);
+        traceEntity.setCreateUserName(userName);
+        traceEntity.setModifyUserId(userId);
+        traceEntity.setModifyUserName(userName);
+        if (traceEntity.getCreateTime() == null) {
+            traceEntity.setCreateTime(SystemClock.now());
+        }
+        traceEntity.setModifyTime(SystemClock.now());
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private void fillUpdateTrace(Object entity, LoginUser loginUser) {
+        if (!(entity instanceof ITraceEntity traceEntity)) return;
+        traceEntity.setModifyUserId(auditUserId(loginUser));
+        traceEntity.setModifyUserName(auditUserName(loginUser));
+        traceEntity.setModifyTime(System.currentTimeMillis());
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private void fillDeleteFlag(Object entity) {
+        if (entity instanceof ILogicDeleteEntity logicDeleteEntity) {
+            logicDeleteEntity.setDeleteFlag(ILogicDeleteEntity.DEFAULT_DELETE_FLAG_VALUE);
+        }
+    }
+
+    private Long auditUserId(LoginUser loginUser) {
+        return loginUser == null || loginUser.getUserId() == null ? 0L : loginUser.getUserId();
+    }
+
+    private String auditUserName(LoginUser loginUser) {
+        return loginUser == null
+                ? StrUtil.subPre(Thread.currentThread().getName(), 32)
+                : StrUtil.nullToEmpty(StrUtil.subPre(loginUser.getNickName(), 32));
     }
 }

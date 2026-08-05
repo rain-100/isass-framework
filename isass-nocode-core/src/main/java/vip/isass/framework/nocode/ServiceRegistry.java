@@ -91,6 +91,12 @@ public class ServiceRegistry {
         return endpoints.containsKey(endpointKey(service, entity));
     }
 
+    /** Returns whether at least one nocode endpoint is implemented by the named local service. */
+    public boolean containsService(String service) {
+        String prefix = service + "\u0000";
+        return endpoints.keySet().stream().anyMatch(key -> key.startsWith(prefix));
+    }
+
     private void register(Map<String, Object> endpoints, String service, String entity, Object endpoint) {
         String key = endpointKey(service, entity);
         Object existing = endpoints.putIfAbsent(key, endpoint);

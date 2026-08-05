@@ -35,13 +35,16 @@ final class NocodeInitializationRunner {
             for (Resource resource : resources) {
                 try (var input = resource.getInputStream()) {
                     String targetService = targetService(resource);
-                    if (targetService != null && !properties.isRemoteEnabled()) {
+                    boolean localTarget = targetService != null && dataService.hasLocalService(targetService);
+                    if (targetService != null && !localTarget && !properties.isRemoteEnabled()) {
                         log.info("Skipped remote nocode init data [{}]; remote initialization is disabled",
                                 resource.getFilename());
                         continue;
                     }
                     NocodeInitializationDataService.ImportResult result = targetService == null
                             ? dataService.importResource(input)
+                            : localTarget
+                            ? dataService.importData(targetService, dataService.readDocument(input))
                             : remoteClient.importData(targetService, dataService.readDocument(input));
                     if (!result.failures().isEmpty() && properties.isFailFast()) {
                         throw new IllegalStateException("Initialization contains failed entities: " + result.failures());

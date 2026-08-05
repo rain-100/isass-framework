@@ -1,6 +1,7 @@
 package vip.isass.framework.nocode.http;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.DefaultApplicationArguments;
 import tools.jackson.databind.ObjectMapper;
 import vip.isass.framework.nocode.ServiceRegistry;
 import vip.isass.framework.nocode.entity.IIdEntity;
@@ -9,6 +10,8 @@ import vip.isass.framework.nocode.service.ILocalService;
 
 import java.util.List;
 import java.util.Map;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -85,6 +88,49 @@ class NocodeInitializationDataServiceTest {
 
         assertThat(dataService.entities("sample-service"))
                 .containsExactly(new NocodeInitializationDataService.EntityInfo("sample", "测试数据模型"));
+    }
+
+    @Test
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    void recognizesWhenTargetServiceIsImplementedLocally() {
+        ILocalService sampleService = mock(ILocalService.class);
+        when(sampleService.service()).thenReturn("sample-service");
+        when(sampleService.entity()).thenReturn("sample");
+        when(sampleService.entityClass()).thenReturn((Class) Sample.class);
+
+        NocodeInitializationDataService dataService = new NocodeInitializationDataService(
+                new ServiceRegistry(List.of(sampleService)), new ObjectMapper());
+
+        assertThat(dataService.hasLocalService("sample-service")).isTrue();
+        assertThat(dataService.hasLocalService("other-service")).isFalse();
+    }
+
+    @Test
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    void importsTargetServiceDataLocallyWhenItsImplementationIsPresent() throws Exception {
+        ILocalService sampleService = mock(ILocalService.class);
+        IRepository repository = mock(IRepository.class);
+        when(sampleService.service()).thenReturn("sample-service");
+        when(sampleService.entity()).thenReturn("sample");
+        when(sampleService.entityClass()).thenReturn((Class) Sample.class);
+        when(sampleService.isPresentById(1L)).thenReturn(false);
+        when(sampleService.getRepository()).thenReturn(repository);
+
+        Path initDirectory = Files.createTempDirectory("nocode-init").resolve("init/sample-service");
+        Files.createDirectories(initDirectory);
+        Files.writeString(initDirectory.resolve("sample.json"), "{\"sample\":[{\"id\":1,\"name\":\"first\"}]}");
+        NocodeInitializationProperties properties = new NocodeInitializationProperties();
+        properties.setLocation("file:" + initDirectory.getParent().getParent() + "/**/*.json");
+        properties.setRemoteEnabled(false);
+        NocodeInitializationDataService dataService = new NocodeInitializationDataService(
+                new ServiceRegistry(List.of(sampleService)), new ObjectMapper());
+        NocodeInitializationRemoteClient remoteClient = mock(NocodeInitializationRemoteClient.class);
+
+        new NocodeInitializationRunner(dataService, remoteClient, properties)
+                .runner().run(new DefaultApplicationArguments());
+
+        verify(repository).add(any(Sample.class));
+        verify(remoteClient, never()).importData(any(), any());
     }
 
     static class Sample implements IIdEntity<Long, Sample> {

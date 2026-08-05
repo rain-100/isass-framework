@@ -1133,10 +1133,14 @@ export default {
       if (!apiUrl.includes('{service}') || !apiUrl.includes('{entity}')) {
         return;
       }
-      var serviceOptions = (this.$store.state.globals.serviceOptions || []).map(option => ({
-        label: option.label,
-        value: option.label
-      }));
+      var serviceEntities = this.api.nocodeServiceEntities || {};
+      var serviceOptions = Object.keys(serviceEntities).map(service => ({ label: service, value: service }));
+      if (serviceOptions.length == 0) {
+        serviceOptions = (this.$store.state.globals.serviceOptions || []).map(option => ({
+          label: option.label,
+          value: option.label
+        }));
+      }
       // The contract always provides dynamic nocode entity choices; oneOf and
       // criteria remain responsible for the matching request body and fields.
       var entityOptions = this.api.entityOptions || [];
@@ -1152,6 +1156,10 @@ export default {
         return;
       }
       var currentService = this.swaggerInstance.name;
+      if (!serviceOptions.some(option => option.value == currentService) && serviceOptions.length > 0) {
+        currentService = serviceOptions[0].value;
+      }
+      entityOptions = this.nocodeEntityOptions(currentService, entityOptions);
       var selectedEntity = null;
       [this.formData, this.urlFormData, this.rawFormData].forEach(forms => {
         var serviceForm = forms.find(form => form.name == 'service');
@@ -1177,12 +1185,24 @@ export default {
         this.filterCriteriaParameters(selectedEntity);
       }
     },
+    nocodeEntityOptions(serviceName, fallbackOptions) {
+      var serviceEntities = this.api.nocodeServiceEntities || {};
+      var allowedEntities = serviceEntities[serviceName];
+      if (!Array.isArray(allowedEntities)) {
+        return fallbackOptions;
+      }
+      return fallbackOptions.filter(option => allowedEntities.includes(option.value));
+    },
     syncNocodeEntitySelection(record, entityName) {
       var criteriaParameterNames = this.api.criteriaParameterNames || {};
-      if (!record
-        || record.name != (this.api.oneOfEntityParameter || 'entity')) {
+      if (!record) {
         return;
       }
+      if (record.name == 'service') {
+        this.syncNocodeServiceSelection(entityName);
+        return;
+      }
+      if (record.name != (this.api.oneOfEntityParameter || 'entity')) return;
       var option = this.oneOfOptions.find(item => item.entityName == entityName);
       if (KUtils.checkUndefined(option)) {
         this.oneOfChange(option.value);
@@ -1191,6 +1211,27 @@ export default {
       if (Object.keys(criteriaParameterNames).length > 0) {
         this.filterCriteriaParameters(entityName);
       }
+    },
+    syncNocodeServiceSelection(serviceName) {
+      var entityOptions = this.nocodeEntityOptions(serviceName, this.api.entityOptions || []);
+      if (entityOptions.length == 0) return;
+      var entityParameter = this.api.oneOfEntityParameter || 'entity';
+      var selectedEntity = entityOptions[0].value;
+      [this.formData, this.urlFormData, this.rawFormData].forEach(forms => {
+        var entityForm = forms.find(form => form.name == entityParameter);
+        if (!KUtils.checkUndefined(entityForm)) return;
+        this.$set(entityForm, 'enums', entityOptions);
+        this.$set(entityForm, 'enumsMode', 'default');
+        if (entityOptions.some(option => option.value == entityForm.content)) {
+          selectedEntity = entityForm.content;
+        } else {
+          this.$set(entityForm, 'content', selectedEntity);
+          this.$set(entityForm, 'value', selectedEntity);
+        }
+      });
+      this.oneOfChange(selectedEntity);
+      this.filterCriteriaParameters(selectedEntity);
+      this.$forceUpdate();
     },
     hideDynamicParameterTable() {
       // 如果当前确定未开启动态参数调试,且参数为0的情况下,关闭table 的参数显示

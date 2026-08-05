@@ -40,6 +40,11 @@ public class NocodeInitializationDataService {
         return objectMapper.readValue(input, DOCUMENT_TYPE);
     }
 
+    /** Returns whether the current process has a local standard implementation of the target service. */
+    public boolean hasLocalService(String serviceName) {
+        return services.containsService(serviceName);
+    }
+
     public ImportResult importData(Map<String, ? extends Collection<?>> document) {
         return importData(null, document);
     }
