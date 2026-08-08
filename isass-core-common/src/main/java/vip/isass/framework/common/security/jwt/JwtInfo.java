@@ -176,6 +176,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import vip.isass.framework.common.login.TerminalType;
+import vip.isass.framework.common.security.PrincipalType;
 
 /**
  * JWT 信息
@@ -203,6 +204,8 @@ public class JwtInfo {
     public static final String TERMINAL_TYPE = "tt";
 
     public static final String LOGIN_LOG_ID = "lid";
+
+    public static final String EXPIRE_AT = "eat";
 
     /**
      * 用户 id
@@ -238,5 +241,8 @@ public class JwtInfo {
      * 登录日志 id
      */
     private Long lid;
+
+    /** JWT 认证到期时间，毫秒时间戳。 */
+    private Long eat;
 
 }

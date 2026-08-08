@@ -173,7 +173,9 @@ import cn.hutool.core.util.StrUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.AuthenticationException;
-import vip.isass.framework.common.login.DefaultLoginUser;
+import org.springframework.security.core.context.SecurityContextHolder;
+import vip.isass.framework.common.security.DefaultAuthenticatedPrincipal;
+import vip.isass.framework.common.security.PrincipalType;
 import vip.isass.framework.common.security.jwt.JwtInfo;
 import vip.isass.framework.web.security.authentication.AbstractAuthenticationFilter;
 import vip.isass.framework.web.security.authentication.multilogin.ShouldOfflineChecker;
@@ -217,26 +219,34 @@ public class JwtAuthenticationFilter extends AbstractAuthenticationFilter {
             return;
         }
 
+        if (SecurityContextHolder.getContext().getAuthentication()
+                instanceof vip.isass.framework.web.security.authentication.PrincipalAuthenticationToken) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "同一请求不能同时携带多个 ISASS 认证凭证");
+            return;
+        }
+
         try {
             JwtAuthenticationToken authResult = (JwtAuthenticationToken) getAuthenticationManager()
                     .authenticate(new JwtAuthenticationToken(token));
 
             JwtInfo jwtClaim = authResult.getJwtClaim();
-            DefaultLoginUser defaultLoginUser = new DefaultLoginUser()
-                    .setUserId(jwtClaim.getUid())
-                    .setNickName(jwtClaim.getName())
+            DefaultAuthenticatedPrincipal principal = new DefaultAuthenticatedPrincipal()
+                    .setPrincipalType(PrincipalType.USER)
+                    .setPrincipalId(jwtClaim.getUid())
+                    .setPrincipalName(jwtClaim.getName())
                     .setTenantId(jwtClaim.getTid())
                     .setAppId(jwtClaim.getAid())
                     .setLoginLogId(jwtClaim.getLid())
-                    .setTokenFrom(JwtAuthenticationToken.class.getSimpleName());
+                    .setAuthenticationExpireAt(jwtClaim.getEat())
+                    .setTerminalType(jwtClaim.getTt());
 
             // todo 判断账号是否禁用
 
             // 处理多端登录
-            shouldOfflineChecker.checkShouldOffline(defaultLoginUser);
+            shouldOfflineChecker.checkShouldOffline(principal);
 
             // 保存已验证的权限信息
-            saveAuthentication(defaultLoginUser, authResult.getAuthorities());
+            saveAuthentication(principal, authResult.getAuthorities());
 
             // 权限认证成功方法
             onSuccessfulAuthentication(request, response, authResult);

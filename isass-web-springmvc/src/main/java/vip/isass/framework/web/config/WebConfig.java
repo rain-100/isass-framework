@@ -205,9 +205,9 @@ public class WebConfig implements WebMvcConfigurer {
     private final String allowedHeaders;
 
     public WebConfig(List<IsassHandlerInterceptor> isassHandlerInterceptors,
-                     @Value("${core.web.allowedOrigins:*}") String allowedOrigins,
-                     @Value("${core.web.allowedMethods:*}") String allowedMethods,
-                     @Value("${core.web.allowedHeaders:*}") String allowedHeaders) {
+                     @Value("${isass.web.cors.allowed-origins:*}") String allowedOrigins,
+                     @Value("${isass.web.cors.allowed-methods:*}") String allowedMethods,
+                     @Value("${isass.web.cors.allowed-headers:*}") String allowedHeaders) {
         this.isassHandlerInterceptors = isassHandlerInterceptors;
         this.allowedOrigins = allowedOrigins;
         this.allowedMethods = allowedMethods;

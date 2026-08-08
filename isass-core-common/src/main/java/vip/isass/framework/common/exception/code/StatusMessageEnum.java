@@ -185,7 +185,7 @@ public enum StatusMessageEnum implements IStatusMessage {
     ABSENT(13, "数据不存在"),
     UN_SUPPORT_OPERATION(14, "暂不支持该操作:{}"),
 
-    // 安全相关（core-common JwtUtil/LoginUserUtil/IsassErrorController 引用，不迁至 security）
+    // 安全相关（core-common JwtUtil/CurrentPrincipalUtil/IsassErrorController 引用，不迁至 security）
     JWT_TOKEN_ERROR(15, "token错误或过期"),
     UN_LOGIN(16, "未登录系统"),
 

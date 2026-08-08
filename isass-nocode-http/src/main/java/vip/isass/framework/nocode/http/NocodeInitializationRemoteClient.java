@@ -41,4 +41,24 @@ final class NocodeInitializationRemoteClient {
         }
         return objectMapper.convertValue(response.path("data"), NocodeInitializationDataService.ImportResult.class);
     }
+
+    Map<String, java.util.List<?>> exportData(
+            String serviceName,
+            Collection<NocodeExportPlan> plans,
+            Map<String, Object> input
+    ) {
+        URI base = endpoints.resolve(serviceName);
+        if (base == null) throw new IllegalStateException("No HTTP endpoint for " + serviceName);
+        URI uri = base.resolve("/" + serviceName + "/init-data/export-internal");
+        JsonNode response = exchange.exchange(HttpMethod.POST, uri, new LinkedMultiValueMap<>(),
+                Map.of("plans", plans, "input", input));
+        if (response == null || !response.path("success").asBoolean()) {
+            String message = response == null ? "No response" : response.path("detailMessage").asText();
+            if (message.isBlank() && response != null) message = response.path("message").asText();
+            throw new IllegalStateException("Remote export failed for " + serviceName + ": " + message);
+        }
+        @SuppressWarnings("unchecked")
+        Map<String, java.util.List<?>> document = objectMapper.convertValue(response.path("data"), Map.class);
+        return document;
+    }
 }

@@ -10,8 +10,10 @@ import vip.isass.framework.nocode.entity.IEntity;
 import vip.isass.framework.nocode.entity.EntityAssociation;
 import vip.isass.framework.nocode.entity.IIdEntity;
 import vip.isass.framework.nocode.entity.ILogicDeleteEntity;
+import vip.isass.framework.nocode.entity.ITenantEntity;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -60,6 +62,17 @@ class TableMetaRegistrarTest {
         assertEquals(List.of("name"), tableInfo.getFieldList().stream().map(TableFieldInfo::getProperty).toList());
     }
 
+    @Test
+    void marksTenantAndAppFieldsForInsertFill() throws Exception {
+        Method registerEntity = TableMetaRegistrar.class.getDeclaredMethod("registerEntity", Class.class);
+        registerEntity.setAccessible(true);
+        registerEntity.invoke(null, TenantAppEntity.class);
+
+        TableMeta meta = tableMetas().get(TenantAppEntity.class);
+        assertEquals(com.baomidou.mybatisplus.annotation.FieldFill.INSERT, meta.fillFields().get("tenantId"));
+        assertEquals(com.baomidou.mybatisplus.annotation.FieldFill.INSERT, meta.fillFields().get("appId"));
+    }
+
     @SuppressWarnings("unchecked")
     private static Map<Class<?>, TableMeta> tableMetas() throws Exception {
         Field field = TableMetaRegistrar.class.getDeclaredField("metaMap");
@@ -104,6 +117,18 @@ class TableMetaRegistrarTest {
         @Override public List<EntityAssociation> associations() {
             return List.of(EntityAssociation.many("children", ChildEntity.class, "id", "parentId"));
         }
+    }
+
+    static class TenantAppEntity implements IIdEntity<Long, TenantAppEntity>, ITenantEntity<Long, TenantAppEntity> {
+        private Long id;
+        private Long tenantId;
+        private Long appId;
+
+        @Override public Long getId() { return id; }
+        @Override public void setId(Long id) { this.id = id; }
+        @Override public Long getTenantId() { return tenantId; }
+        @Override public void setTenantId(Long tenantId) { this.tenantId = tenantId; }
+        @Override public TenantAppEntity randomEntity() { return this; }
     }
 
     static class ChildEntity implements IIdEntity<Long, ChildEntity> {

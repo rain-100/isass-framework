@@ -200,7 +200,7 @@ import java.util.stream.Collectors;
 @Component
 public class JwtAuthenticationProvider implements AuthenticationProvider {
 
-    @Value("${security.jwt.secret:" + JwtUtil.DEFAULT_SECRET + "}")
+    @Value("${isass.security.jwt.secret:" + JwtUtil.DEFAULT_SECRET + "}")
     private String secret;
 
     @Resource

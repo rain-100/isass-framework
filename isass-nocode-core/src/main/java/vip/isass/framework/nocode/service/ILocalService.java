@@ -175,6 +175,8 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import vip.isass.framework.common.exception.AbsentException;
+import vip.isass.framework.common.security.AuthenticatedPrincipal;
+import vip.isass.framework.common.security.CurrentPrincipalUtil;
 import vip.isass.framework.common.support.api.ApiOrder;
 import vip.isass.framework.nocode.criteria.ICriteria;
 import vip.isass.framework.nocode.criteria.type.IWhereConditionCriteria;
@@ -183,6 +185,7 @@ import vip.isass.framework.nocode.lifecycle.CrudLifecycleRegistry;
 import vip.isass.framework.nocode.lifecycle.CrudOperation;
 import vip.isass.framework.nocode.entity.IEntity;
 import vip.isass.framework.nocode.entity.IIdEntity;
+import vip.isass.framework.nocode.entity.ITenantEntity;
 import vip.isass.framework.nocode.repository.IRepository;
 
 import java.io.Serializable;
@@ -209,6 +212,7 @@ public interface ILocalService<
     // region 增
 
     default E add(E entity) {
+        prepareForInsert(entity);
         return CrudLifecycleRegistry.execute(this, CrudOperation.ADD, "add", new Object[]{entity}, () -> {
             getRepository().add(entity);
             return entity;
@@ -216,6 +220,7 @@ public interface ILocalService<
     }
 
     default Collection<E> addBatch(Collection<E> entities) {
+        prepareForInsert(entities);
         return CrudLifecycleRegistry.execute(this, CrudOperation.ADD_BATCH, "addBatch", new Object[]{entities}, () -> {
             getRepository().addBatch(entities);
             return entities;
@@ -224,6 +229,7 @@ public interface ILocalService<
 
     @Override
     default Collection<E> addBatchByBatchSize(Collection<E> entities, int batchSize) {
+        prepareForInsert(entities);
         return CrudLifecycleRegistry.execute(this, CrudOperation.ADD_BATCH, "addBatchByBatchSize", new Object[]{entities, batchSize}, () -> {
             getRepository().addBatch(entities, batchSize);
             return entities;
@@ -240,6 +246,7 @@ public interface ILocalService<
 
     @Override
     default E addIfAbsentByColumns(E entity, List<String> uniqueColumns) {
+        prepareForInsert(entity);
         return CrudLifecycleRegistry.execute(this, CrudOperation.ADD_IF_ABSENT, "addIfAbsentByColumns", new Object[]{entity, uniqueColumns}, () -> {
             if (getRepository().addIfAbsentByColumns(entity, uniqueColumns)) return entity;
             return null;
@@ -248,6 +255,7 @@ public interface ILocalService<
 
     @Override
     default Integer addBatchIfAbsentByCriteria(List<E> entities, C criteria) {
+        prepareForInsert(entities);
         return CrudLifecycleRegistry.execute(this, CrudOperation.ADD_IF_ABSENT, "addBatchIfAbsentByCriteria", new Object[]{entities, criteria}, () -> {
             int count = 0;
             if (!(criteria instanceof IWhereConditionCriteria)) throw new UnsupportedOperationException("criteria不是WhereConditionCriteria，请检查代码");
@@ -260,6 +268,7 @@ public interface ILocalService<
 
     @Override
     default Integer addBatchIfAbsentByColumns(List<E> entities, List<String> uniqueColumns) {
+        prepareForInsert(entities);
         return CrudLifecycleRegistry.execute(this, CrudOperation.ADD_IF_ABSENT, "addBatchIfAbsentByColumns", new Object[]{entities, uniqueColumns}, () -> {
             int count = 0;
             for (E entity : entities) if (getRepository().addIfAbsentByColumns(entity, uniqueColumns)) count++;
@@ -278,15 +287,34 @@ public interface ILocalService<
 
     @Override
     default E addOrUpdateByColumns(E entity, List<String> uniqueColumns) {
+        prepareForInsert(entity);
         return CrudLifecycleRegistry.execute(this, CrudOperation.ADD_OR_UPDATE, "addOrUpdateByColumns", new Object[]{entity, uniqueColumns}, () -> getRepository().addOrUpdate(entity, uniqueColumns));
     }
 
     @Override
     default Integer addOrUpdateBatchByColumns(List<E> entities, List<String> uniqueColumns) {
+        prepareForInsert(entities);
         return CrudLifecycleRegistry.execute(this, CrudOperation.ADD_OR_UPDATE, "addOrUpdateBatchByColumns", new Object[]{entities, uniqueColumns}, () -> {
             for (E entity : entities) getRepository().addOrUpdate(entity, uniqueColumns);
             return entities.size();
         });
+    }
+
+    /** Fills the current tenant before MyBatis-Plus builds dynamic insert SQL. */
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    default E prepareForInsert(E entity) {
+        if (entity instanceof ITenantEntity tenantEntity && tenantEntity.getTenantId() == null) {
+            AuthenticatedPrincipal principal = CurrentPrincipalUtil.getPrincipal();
+            tenantEntity.setTenantId(principal == null || principal.getTenantId() == null ? 0L : principal.getTenantId());
+        }
+        return entity;
+    }
+
+    default Collection<E> prepareForInsert(Collection<E> entities) {
+        if (entities != null) {
+            entities.forEach(this::prepareForInsert);
+        }
+        return entities;
     }
 
     // endregion

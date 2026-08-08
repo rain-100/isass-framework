@@ -181,7 +181,7 @@ import org.springframework.context.annotation.Configuration;
 @ToString
 @Accessors(chain = true)
 @Configuration
-@ConfigurationProperties("mq.spring-event")
+@ConfigurationProperties("isass.mq.spring-event")
 public class SpringEventConfiguration {
 
     private boolean enable;

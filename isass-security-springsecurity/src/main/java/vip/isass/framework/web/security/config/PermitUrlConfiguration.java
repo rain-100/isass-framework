@@ -193,7 +193,7 @@ import java.util.stream.Collectors;
 @Accessors(chain = true)
 @ToString
 @Configuration
-@ConfigurationProperties("security.auth")
+@ConfigurationProperties("isass.security.permit-url")
 public class PermitUrlConfiguration {
 
     @Autowired(required = false)

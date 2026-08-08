@@ -4,6 +4,11 @@
 
 ### 4.0.0-SNAPSHOT
 
+- **零代码初始化跨服务路由**：初始化 JSON 现在按实体所属微服务分组导入，`resources/init` 下的目录仅作分类，不再被误用为目标服务。一个 JSON 可同时包含本地与远程实体；本地直接导入，远程实体按服务合并为一次 HTTP 初始化调用。
+- **出站 API Key 与 ROLE 授权收紧**：
+  - `SpringApiKeyHeaderProvider` 仅对 `isass.http.endpoints.*.url` 声明的内部服务地址或服务发现实例附加 `X-ISASS-API-Key`，不再向对象存储、AI 平台等任意外部 URL 泄露服务凭证。
+  - `DynamicRoleAuthorizationManager` 在 `ROLE` 策略下改为默认拒绝；除 `PermitUrlProvider` 明确放行的 URL 外，接口必须存在资源、权限与角色关联才允许访问。
+  - 接口资源匹配使用实际请求的“方法 + 路径”，避免 Spring MVC 泛型路径模板导致初始化接口等资源无法稳定匹配。
 - `isass-core-dependencies` 统一管理微信服务所需的 Bouncy Castle JDK 18+ 组件版本，业务微服务不得再直写该依赖版本。
 - 修复 nocode MyBatis-Plus 代码生成器同时设置空 `exclude` 导致 `includeTables` 失效的问题；包含表与排除表现在严格二选一。
 - 修复生成器将 `ModuleInfo` 错误定位为上下文包的问题；默认从模块名首段推导微服务根包，并允许通过元数据覆盖。
@@ -62,7 +67,7 @@
 #### test
 
 - `ExceptionAdvice` 集成测试扩展至 19 个用例，覆盖 UnifiedException（有/无 status、有/无 cause）、core 映射（IllegalArgumentException/AbsentException/AlreadyPresentException/UnsupportedOperationException/IOException/FileNotFoundException/DateTimeException）、未映射异常回退 UNDEFINED、showDetailError 开关控制。验证：`mvn -pl isass-web-springmvc -am test -Dtest=ExceptionAdviceTest -Dmaven.javadoc.skip=true`。
-- `StatusMessageEnum` 评估结论：JWT_TOKEN_ERROR/UN_LOGIN/TOKEN_EXPIRED/TOKEN_ILLEGAL 因 core-common（JwtUtil/LoginUserUtil）和 web-springmvc（IsassErrorController）跨模块引用保留，符合 `docs/design/exception-code-architecture.md` 设计约束，无需拆分。
+- `StatusMessageEnum` 评估结论：JWT_TOKEN_ERROR/UN_LOGIN/TOKEN_EXPIRED/TOKEN_ILLEGAL 因 core-common（JwtUtil）和 web-springmvc（IsassErrorController）跨模块引用保留，符合 `docs/design/exception-code-architecture.md` 设计约束，无需拆分。
 
 #### docs
 

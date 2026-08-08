@@ -18,9 +18,14 @@ import java.util.Map;
 public class NocodeInitializationController {
 
     private final NocodeInitializationDataService dataService;
+    private final NocodeExportService exportService;
 
-    public NocodeInitializationController(NocodeInitializationDataService dataService) {
+    public NocodeInitializationController(
+            NocodeInitializationDataService dataService,
+            NocodeExportService exportService
+    ) {
         this.dataService = dataService;
+        this.exportService = exportService;
     }
 
     @PostMapping("/import")
@@ -42,5 +47,40 @@ public class NocodeInitializationController {
             @RequestParam("entities") List<String> entities
     ) {
         return Resp.bizSuccess(dataService.exportData(service, entities));
+    }
+
+    @GetMapping("/export-profiles")
+    public Resp<List<NocodeExportService.ProfileInfo>> exportProfiles() {
+        return Resp.bizSuccess(exportService.profiles());
+    }
+
+    /**
+     * Exports either a reusable profile or caller-supplied entity plans. Each plan's criteria map
+     * maps directly to generated Criteria setters and supports ${export.Entity.property} references.
+     */
+    @PostMapping("/export")
+    public Resp<NocodeExportPackage> export(
+            @PathVariable String service,
+            @RequestBody NocodeExportRequest request
+    ) {
+        return Resp.bizSuccess(exportService.export(service, request));
+    }
+
+    @PostMapping("/import-package")
+    public Resp<Map<String, NocodeInitializationDataService.ImportResult>> importPackage(
+            @RequestBody NocodeExportPackage document
+    ) {
+        return Resp.bizSuccess(exportService.importPackage(document));
+    }
+
+    @PostMapping("/export-internal")
+    public Resp<Map<String, List<?>>> exportInternal(
+            @PathVariable String service,
+            @RequestBody InternalExportRequest request
+    ) {
+        return Resp.bizSuccess(exportService.exportInternal(service, request.plans(), request.input()));
+    }
+
+    public record InternalExportRequest(List<NocodeExportPlan> plans, Map<String, Object> input) {
     }
 }

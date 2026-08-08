@@ -160,7 +160,7 @@
     - `IExceptionMapping` 接口 + SPI 发现机制已在 core-common 抽象层；Spring Web `ExceptionAdvice` 通过 `IsassServiceLoader` 合并 SPI 映射与 Spring Bean 映射。
     - 新增 `BuildInCoreExceptionMappingTest`（10 个测试）：覆盖 参数校验（IllegalArgumentException/ValidateException）、404 类（AbsentException/FileNotFoundException）、业务异常（AlreadyPresentException）、不支持操作（UnsupportedOperationException）、IO 异常、日期异常、未知异常。验证：`mvn -pl isass-core-common test -Dtest=BuildInCoreExceptionMappingTest -Dmaven.javadoc.skip=true`。
     - 2026-06-23：`ExceptionAdvice` 集成测试扩展至 19 个用例，覆盖 UnifiedException（有/无 status、有/无 cause）、core 映射（IllegalArgumentException/AbsentException/AlreadyPresentException/UnsupportedOperationException/IOException/FileNotFoundException/DateTimeException）、未映射异常回退 UNDEFINED、showDetailError 开关控制。验证：`mvn -pl isass-web-springmvc -am test -Dtest=ExceptionAdviceTest -Dmaven.javadoc.skip=true`。
-    - 2026-06-23：`StatusMessageEnum` 评估结论——JWT_TOKEN_ERROR/UN_LOGIN/TOKEN_EXPIRED/TOKEN_ILLEGAL 因 core-common（JwtUtil/LoginUserUtil）和 web-springmvc（IsassErrorController）跨模块引用保留，符合 `docs/design/exception-code-architecture.md` 设计约束，无需拆分。
+    - 2026-06-23：`StatusMessageEnum` 评估结论——JWT_TOKEN_ERROR/UN_LOGIN/TOKEN_EXPIRED/TOKEN_ILLEGAL 因 core-common（JwtUtil）和 web-springmvc（IsassErrorController）跨模块引用保留，符合 `docs/design/exception-code-architecture.md` 设计约束，无需拆分。
 
 - [x] **异常码按模块分类**
   - 完成记录：
@@ -170,7 +170,7 @@
     - `WebStatusMapping`：HTTP 标准码（Map 模式，行业规范不适用前缀）。
     - `SecurityCoreStatusEnum`：安全模块枚举已整合 `VERIFICATION_CODE_ERROR`/`VERIFICATION_CODE_ALREADY_SEND`/`FORCE_OFFLINE` 等码，`JwtAuthenticationProvider` 引用已迁。
     - `BuildInDatabaseExceptionMapping` 引用已迁至 `DatabaseStatusMapping.DatabaseStatusEnum`。
-    - `StatusMessageEnum` 中 `JWT_TOKEN_ERROR`/`UN_LOGIN`/`TOKEN_EXPIRED`/`TOKEN_ILLEGAL` 因 core-common（`JwtUtil`/`LoginUserUtil`）和 web-springmvc（`IsassErrorController`）跨模块引用，保留并加注说明。
+    - `StatusMessageEnum` 中 `JWT_TOKEN_ERROR`/`UN_LOGIN`/`TOKEN_EXPIRED`/`TOKEN_ILLEGAL` 因 core-common（`JwtUtil`）和 web-springmvc（`IsassErrorController`）跨模块引用，保留并加注说明。
     - 各模块 `ModuleInfoTest` 自检 5 位数 + 前缀公式；跨模块唯一性由 hashCode（不同包名）保证。
     - 测试：`BuildInCoreExceptionMappingTest`（10）+ `ModuleCodeResolverTest`（4）+ `ModuleInfoTest`（2）+ `ModuleCodeUniqueness`（设计约束）。验证：`mvn -pl isass-core-common,isass-security-springsecurity -am test -Dmaven.javadoc.skip=true`。
     - 新增 `docs/design/exception-code-architecture.md`。

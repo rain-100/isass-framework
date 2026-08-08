@@ -182,7 +182,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import vip.isass.framework.web.security.authentication.jwt.JwtAuthenticationFilter;
-import vip.isass.framework.web.security.authentication.ms.MsAuthenticationFilter;
+import vip.isass.framework.web.security.authentication.apikey.ApiKeyAuthenticationFilter;
 import vip.isass.framework.web.security.authentication.multilogin.ShouldOfflineChecker;
 import vip.isass.framework.web.security.authorization.DynamicRoleAuthorizationManager;
 import vip.isass.framework.web.security.processor.AffirmativeBasedPostProcessor;
@@ -237,8 +237,8 @@ public class WebSecurityConfig {
                 // jwt 校验过滤器
                 .addFilter(new JwtAuthenticationFilter(authenticationManager, shouldOfflineChecker))
 
-                // 微服务之间调用权限校验过滤器
-                .addFilter(new MsAuthenticationFilter(authenticationManager))
+                // API Key 应用主体认证过滤器
+                .addFilter(new ApiKeyAuthenticationFilter(authenticationManager))
 
                 // 允许匿名机制
                 .anonymous(anonymous -> {});

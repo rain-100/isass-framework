@@ -29,7 +29,7 @@ Spring Boot 会把未命中路由、静态资源不存在、Filter 或框架层�
 
 ## 静默 404 URL 配置
 
-框架 Web 异常配置统一使用 `isass.framework.web.exception` 前缀。
+框架 Web 异常配置统一使用 `isass.web.exception` 前缀。
 
 - `show-detail-error`：是否在错误响应中输出详细异常信息，默认 `true`
 - `prod-unified-message`：关闭详细异常信息时的统一提示语，默认 `系统繁忙，请稍后重试`
@@ -52,7 +52,7 @@ isass:
 `silent-not-found-urls` 也可以使用逗号分隔的 properties 形式：
 
 ```properties
-isass.framework.web.exception.silent-not-found-urls=/robots.txt,/assets/missing-logo.png
+isass.web.exception.silent-not-found-urls=/robots.txt,/assets/missing-logo.png
 ```
 
 未命中该列表的静态资源不存在异常，仍然按普通异常处理并打印明确日志，便于开发人员发现真实资源路径错误。

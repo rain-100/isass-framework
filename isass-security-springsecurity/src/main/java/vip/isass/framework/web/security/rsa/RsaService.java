@@ -27,8 +27,8 @@ public class RsaService {
     @PostConstruct
     void initialize() {
         SecurityProperties.Rsa properties = securityProperties.getRsa();
-        Assert.notBlank(properties.getPrivateKey(), "security.rsa.private-key 必填");
-        Assert.notBlank(properties.getPublicKey(), "security.rsa.public-key 必填");
+        Assert.notBlank(properties.getPrivateKey(), "isass.security.rsa.private-key 必填");
+        Assert.notBlank(properties.getPublicKey(), "isass.security.rsa.public-key 必填");
         rsaKey = RsaKey.builder()
                 .rsa(SecureUtil.rsa(properties.getPrivateKey(), properties.getPublicKey()))
                 .privateKeyStr(properties.getPrivateKey())

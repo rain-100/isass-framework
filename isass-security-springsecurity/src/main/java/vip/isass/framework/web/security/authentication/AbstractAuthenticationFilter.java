@@ -180,16 +180,9 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import vip.isass.framework.common.login.DefaultLoginUser;
-import vip.isass.framework.common.login.LoginUser;
-import vip.isass.framework.web.security.authentication.jwt.JwtAuthenticationFilter;
-import vip.isass.framework.web.security.authentication.jwt.JwtConst;
-import vip.isass.framework.web.security.authentication.ms.MsAuthenticationFilter;
-import vip.isass.framework.common.web.security.authentication.ms.MsAuthenticationHeaderProvider;
+import vip.isass.framework.common.security.AuthenticatedPrincipal;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 /**
  * @author Rain
@@ -201,45 +194,25 @@ public abstract class AbstractAuthenticationFilter extends BasicAuthenticationFi
         super(authenticationManager);
     }
 
-    protected void saveAuthentication(DefaultLoginUser defaultLoginUser, Collection<GrantedAuthority> authorities) {
-        // 已有授权信息
-        LoginUserTokenWrapper tokenWrapper = (LoginUserTokenWrapper) SecurityContextHolder.getContext().getAuthentication();
-
-        if (tokenWrapper == null) {
-            tokenWrapper = new LoginUserTokenWrapper(defaultLoginUser, authorities);
-        } else {
-            // loginUsers
-            List<LoginUser> loginUsers = tokenWrapper.getLoginUsers();
-            loginUsers.add(defaultLoginUser);
-
-            // newAuthorities
-            Collection<GrantedAuthority> newAuthorities;
-            if (tokenWrapper.getAuthorities().isEmpty()) {
-                newAuthorities = authorities;
-            } else {
-                newAuthorities = new ArrayList<>(tokenWrapper.getAuthorities().size() + authorities.size());
-                newAuthorities.addAll(tokenWrapper.getAuthorities());
-                newAuthorities.addAll(authorities);
-            }
-
-            // token
-            tokenWrapper = new LoginUserTokenWrapper(loginUsers, newAuthorities);
+    protected void saveAuthentication(AuthenticatedPrincipal principal, Collection<GrantedAuthority> authorities) {
+        Authentication current = SecurityContextHolder.getContext().getAuthentication();
+        if (current instanceof PrincipalAuthenticationToken) {
+            throw new IllegalStateException("不允许同时使用多种 ISASS 认证凭证");
         }
-
-        SecurityContextHolder.getContext().setAuthentication(tokenWrapper);
+        SecurityContextHolder.getContext().setAuthentication(new PrincipalAuthenticationToken(principal, authorities));
     }
 
     @Override
     protected void onSuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, Authentication authResult) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication instanceof LoginUserTokenWrapper) {
-            LoginUserTokenWrapper loginUserAuthenticationToken = (LoginUserTokenWrapper) authentication;
+        if (authentication instanceof PrincipalAuthenticationToken principalAuthenticationToken) {
+            AuthenticatedPrincipal principal = principalAuthenticationToken.getPrincipal();
             log.debug("认证成功[{}], 正在访问[{} {}], userId[{}], name[{}], 拥有角色{}, 源ip[{}]",
                 this.getClass().getSimpleName(),
                 request.getMethod(),
                 request.getRequestURL(),
-                loginUserAuthenticationToken.getAllUserId(),
-                loginUserAuthenticationToken.getAllNickName(),
+                principal.getPrincipalId(),
+                principal.getPrincipalName(),
                 authentication.getAuthorities(),
                 JakartaServletUtil.getClientIP(request));
         }
@@ -247,15 +220,8 @@ public abstract class AbstractAuthenticationFilter extends BasicAuthenticationFi
 
     @Override
     protected void onUnsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) {
-        String token = null;
-        if (this instanceof JwtAuthenticationFilter) {
-            token = request.getHeader(JwtConst.HEADER_NAME);
-        } else if (this instanceof MsAuthenticationFilter) {
-            token = request.getHeader(MsAuthenticationHeaderProvider.HEADER);
-        }
-        log.debug("认证失败[{}], token[{}]，正在访问 {} {}, 源ip[{}]",
+        log.debug("认证失败[{}]，正在访问 {} {}, 源ip[{}]",
             this.getClass().getSimpleName(),
-            token,
             request.getMethod(),
             request.getRequestURL(),
             JakartaServletUtil.getClientIP(request));

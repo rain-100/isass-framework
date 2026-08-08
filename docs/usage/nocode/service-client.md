@@ -22,9 +22,11 @@ private IUserService userService;
 ## 远程 endpoint 配置
 
 ```yaml
-http:
-  bsp-service:
-    url: http://127.0.0.1:31010
+isass:
+  http:
+    endpoints:
+      bsp-service:
+        url: http://127.0.0.1:31010
 ```
 
 配置项中的服务名是合同的 `service`，例如 `bsp-service`，不是 Maven artifactId、Java 包名或实体名。显式 URL 优先于服务发现；仅在未配置 URL 时，框架才通过 Spring Cloud LoadBalancer 选择 Nacos 等注册中心中的实例。
@@ -32,7 +34,7 @@ http:
 不使用服务发现时，直接配置 URL 即可；BSP 单体启动时不需要 Nacos。例如本地 IM 调用 BSP：
 
 ```bash
-SPRING_APPLICATION_JSON='{"http":{"bsp-service":{"url":"http://127.0.0.1:31010"}}}'
+SPRING_APPLICATION_JSON='{"isass":{"http":{"endpoints":{"bsp-service":{"url":"http://127.0.0.1:31010"}}}}}'
 ```
 
 使用 `SPRING_APPLICATION_JSON` 可以原样保留服务名中的连字符；不要为本地调用额外启用 Nacos。

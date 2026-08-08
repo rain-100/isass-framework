@@ -125,6 +125,7 @@ public class TableMetaRegistrar
         detectLogicDelete(meta, entityClass);
         detectVersion(meta, entityClass);
         detectTenant(meta, entityClass);
+        detectAppId(meta, entityClass);
         detectParentId(meta, entityClass);
         detectAssociations(meta, entityClass);
         metaMap.put(entityClass, meta);
@@ -415,6 +416,23 @@ public class TableMetaRegistrar
     private static void detectTenant(TableMeta meta, Class<?> entityClass) {
         if (ITenantEntity.class.isAssignableFrom(entityClass)) {
             meta.tenantIdField("tenantId");
+            meta.fillFields(Map.of("tenantId", FieldFill.INSERT));
+        }
+    }
+
+    /**
+     * appId is a conventional application context field rather than an entity interface.
+     * Mark it as insert-filled when present so MyBatis-Plus keeps it in dynamic INSERT SQL.
+     */
+    private static void detectAppId(TableMeta meta, Class<?> entityClass) {
+        for (Class<?> type = entityClass; type != null && type != Object.class; type = type.getSuperclass()) {
+            try {
+                type.getDeclaredField("appId");
+                meta.fillFields(Map.of("appId", FieldFill.INSERT));
+                return;
+            } catch (NoSuchFieldException ignored) {
+                // Continue checking inherited fields.
+            }
         }
     }
 

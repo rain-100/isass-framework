@@ -4,6 +4,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.DefaultApplicationArguments;
 import tools.jackson.databind.ObjectMapper;
 import vip.isass.framework.nocode.ServiceRegistry;
+import vip.isass.framework.nocode.contract.ContractRegistry;
+import vip.isass.framework.nocode.contract.ServiceContract;
 import vip.isass.framework.nocode.criteria.ICriteria;
 import vip.isass.framework.nocode.criteria.field.IIdCriteria;
 import vip.isass.framework.nocode.criteria.impl.type.FullTypeCriteria;
@@ -25,6 +27,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.eq;
 
 class NocodeInitializationDataServiceTest {
 
@@ -166,16 +169,55 @@ class NocodeInitializationDataServiceTest {
         Files.writeString(initDirectory.resolve("sample.json"), "{\"sample\":[{\"id\":1,\"name\":\"first\"}]}");
         NocodeInitializationProperties properties = new NocodeInitializationProperties();
         properties.setLocation("file:" + initDirectory.getParent().getParent() + "/**/*.json");
-        properties.setRemoteEnabled(false);
         NocodeInitializationDataService dataService = new NocodeInitializationDataService(
                 new ServiceRegistry(List.of(sampleService)), new ObjectMapper());
         NocodeInitializationRemoteClient remoteClient = mock(NocodeInitializationRemoteClient.class);
 
-        new NocodeInitializationRunner(dataService, remoteClient, properties)
+        new NocodeInitializationRunner(dataService, remoteClient, properties,
+                new ContractRegistry(List.of(new ServiceContract("sample-service", "sample", "ISampleService",
+                        Sample.class.getName(), SampleCriteria.class.getName(), List.of()))))
                 .runner().run(new DefaultApplicationArguments());
 
         verify(repository).add(any(Sample.class));
         verify(remoteClient, never()).importData(any(), any());
+    }
+
+    @Test
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    void routesEachEntityByItsContractInsteadOfTheInitDirectoryName() throws Exception {
+        ILocalService sampleService = mock(ILocalService.class);
+        IRepository repository = mock(IRepository.class);
+        when(sampleService.service()).thenReturn("sample-service");
+        when(sampleService.entity()).thenReturn("sample");
+        when(sampleService.entityClass()).thenReturn((Class) Sample.class);
+        when(sampleService.criteriaClass()).thenReturn((Class) SampleCriteria.class);
+        when(sampleService.findByCriteria(any())).thenReturn(List.of());
+        when(sampleService.getRepository()).thenReturn(repository);
+
+        Path initDirectory = Files.createTempDirectory("nocode-init").resolve("init/asset-service");
+        Files.createDirectories(initDirectory);
+        Files.writeString(initDirectory.resolve("mixed.json"),
+                "{\"sample\":[{\"id\":1,\"name\":\"local\"}],\"remote\":[{\"id\":2}]} ");
+        NocodeInitializationProperties properties = new NocodeInitializationProperties();
+        properties.setLocation("file:" + initDirectory.getParent().getParent() + "/**/*.json");
+        NocodeInitializationDataService dataService = new NocodeInitializationDataService(
+                new ServiceRegistry(List.of(sampleService)), new ObjectMapper());
+        NocodeInitializationRemoteClient remoteClient = mock(NocodeInitializationRemoteClient.class);
+        when(remoteClient.importData(any(), any()))
+                .thenReturn(new NocodeInitializationDataService.ImportResult(1, 1, 0, Map.of()));
+        ContractRegistry contracts = new ContractRegistry(List.of(
+                new ServiceContract("sample-service", "sample", "ISampleService",
+                        Sample.class.getName(), SampleCriteria.class.getName(), List.of()),
+                new ServiceContract("remote-service", "remote", "IRemoteService",
+                        Object.class.getName(), Object.class.getName(), List.of())
+        ));
+
+        new NocodeInitializationRunner(dataService, remoteClient, properties, contracts)
+                .runner().run(new DefaultApplicationArguments());
+
+        verify(repository).add(any(Sample.class));
+        verify(remoteClient).importData(eq("remote-service"), eq(Map.of("remote", List.of(Map.of("id", 2)))));
+        verify(remoteClient, never()).importData(eq("asset-service"), any());
     }
 
     static class Sample implements IIdEntity<Long, Sample> {

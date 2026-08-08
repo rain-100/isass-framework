@@ -194,7 +194,7 @@ import java.util.Collections;
 @ConditionalOnBean(Server.class)
 public class OnLoginEventHandler implements OnMessageEventHandler<String> {
 
-    @Value("${security.jwt.secret:" + JwtUtil.DEFAULT_SECRET + "}")
+    @Value("${isass.security.jwt.secret:" + JwtUtil.DEFAULT_SECRET + "}")
     private String secret;
 
     @Autowired

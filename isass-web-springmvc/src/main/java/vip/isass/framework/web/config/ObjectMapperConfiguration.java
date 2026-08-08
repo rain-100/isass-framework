@@ -181,7 +181,7 @@ import vip.isass.framework.common.support.JsonUtil;
 @Getter
 @Setter
 @Configuration
-@ConfigurationProperties(prefix = "core.json.object-mapper")
+@ConfigurationProperties(prefix = "isass.json.object-mapper")
 public class ObjectMapperConfiguration {
 
     /**

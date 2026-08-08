@@ -42,7 +42,7 @@ class HttpClientTransportTest {
     @Test
     void explicitUrlTakesPrecedenceOverServiceDiscovery() {
         MockEnvironment environment = new MockEnvironment()
-                .withProperty("http.bsp-service.url", "http://127.0.0.1:31010");
+                .withProperty("isass.http.endpoints.bsp-service.url", "http://127.0.0.1:31010");
         LoadBalancerClient loadBalancerClient = mock(LoadBalancerClient.class);
         StaticListableBeanFactory beans = new StaticListableBeanFactory();
         beans.addBean("loadBalancerClient", loadBalancerClient);

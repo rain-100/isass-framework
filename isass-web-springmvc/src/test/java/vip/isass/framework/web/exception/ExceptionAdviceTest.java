@@ -196,7 +196,7 @@ class ExceptionAdviceTest {
     @Test
     void configuredNoResourceUrlCanBindFromEnvironmentProperty() {
         MockEnvironment environment = new MockEnvironment()
-                .withProperty("isass.framework.web.exception.silent-not-found-urls", "/robots.txt,/apple-touch-icon.png");
+                .withProperty("isass.web.exception.silent-not-found-urls", "/robots.txt,/apple-touch-icon.png");
         @SuppressWarnings("unchecked")
         ObjectProvider<IExceptionMapping> provider = mock(ObjectProvider.class);
         when(provider.orderedStream()).thenReturn(Stream.empty());

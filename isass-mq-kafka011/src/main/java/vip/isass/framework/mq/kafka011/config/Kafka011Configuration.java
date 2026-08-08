@@ -186,7 +186,7 @@ import java.util.List;
 @ToString
 @Accessors(chain = true)
 @Configuration
-@ConfigurationProperties("mq.kafka011")
+@ConfigurationProperties("isass.mq.kafka011")
 public class Kafka011Configuration {
 
     private boolean enable;

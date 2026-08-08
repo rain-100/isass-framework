@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 @Getter
 @Setter
 @Component
-@ConfigurationProperties(prefix = "security")
+@ConfigurationProperties(prefix = "isass.security")
 public class SecurityProperties {
 
     private UrlAccessSecurityStrategy urlAccessSecurityStrategy = UrlAccessSecurityStrategy.NONE;

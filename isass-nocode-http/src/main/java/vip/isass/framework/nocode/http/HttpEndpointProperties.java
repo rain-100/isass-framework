@@ -4,7 +4,7 @@ import org.springframework.core.env.Environment;
 
 import java.net.URI;
 
-/** Reads an explicit remote URL from {@code http.<service>.url}. */
+/** Reads an explicit remote URL from {@code isass.http.endpoints.<service>.url}. */
 public class HttpEndpointProperties {
 
     private final Environment environment;
@@ -14,7 +14,7 @@ public class HttpEndpointProperties {
     }
 
     public URI getUrl(String service) {
-        String url = environment.getProperty("http." + service + ".url");
+        String url = environment.getProperty("isass.http.endpoints." + service + ".url");
         return url == null || url.isBlank() ? null : URI.create(url);
     }
 }

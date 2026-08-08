@@ -179,7 +179,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import vip.isass.framework.common.exception.UnifiedException;
 import vip.isass.framework.common.exception.code.StatusMessageEnum;
-import vip.isass.framework.common.login.LoginUser;
+import vip.isass.framework.common.security.AuthenticatedPrincipal;
 import vip.isass.framework.common.support.LocalDateTimeUtil;
 
 import javax.crypto.SecretKey;
@@ -201,15 +201,19 @@ public class JwtUtil {
 
     public static final String DEFAULT_SECRET = "siiwwsQgwxGgFhFdZ8cdYtjixrxCHJRzFBRDWwt4EdFkyz2SJf4uN8IhSAFtD19C";
 
-    public static String generateToken(LoginUser loginUser, String secret) {
+    public static String generateToken(AuthenticatedPrincipal principal, String secret) {
+        long expireAt = principal.getAuthenticationExpireAt() == null
+                ? SystemClock.now() + TOKEN_EFFECTIVE_MILLS
+                : principal.getAuthenticationExpireAt();
         // 生产 token
         Map<String, Object> map = MapUtil.<String, Object>builder()
-                .put(JwtInfo.TENANT_ID, loginUser.getTenantId())
-                .put(JwtInfo.APP_ID, loginUser.getAppId())
-                .put(JwtInfo.USER_ID, loginUser.getUserId())
-                .put(JwtInfo.NICK_NAME, loginUser.getNickName())
-                .put(JwtInfo.TERMINAL_TYPE, loginUser.getTerminalType())
-                .put(JwtInfo.LOGIN_LOG_ID, loginUser.getLoginLogId())
+                .put(JwtInfo.TENANT_ID, principal.getTenantId())
+                .put(JwtInfo.APP_ID, principal.getAppId())
+                .put(JwtInfo.USER_ID, principal.getPrincipalId())
+                .put(JwtInfo.NICK_NAME, principal.getPrincipalName())
+                .put(JwtInfo.TERMINAL_TYPE, principal.getTerminalType())
+                .put(JwtInfo.LOGIN_LOG_ID, principal.getLoginLogId())
+                .put(JwtInfo.EXPIRE_AT, expireAt)
                 .build();
 
         secret = StrUtil.blankToDefault(secret, DEFAULT_SECRET);
@@ -217,9 +221,7 @@ public class JwtUtil {
 
         return Jwts.builder()
                 .claims(map)
-                .expiration(new Date(loginUser.getExpireAt() == null
-                        ? SystemClock.now() + TOKEN_EFFECTIVE_MILLS
-                        : loginUser.getExpireAt()))
+                .expiration(new Date(expireAt))
                 .signWith(key)
                 .compact();
     }

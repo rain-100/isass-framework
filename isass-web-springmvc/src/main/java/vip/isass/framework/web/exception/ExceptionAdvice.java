@@ -223,8 +223,8 @@ public class ExceptionAdvice {
      */
     @Autowired
     public ExceptionAdvice(ObjectProvider<IExceptionMapping> exceptionMappings,
-                           @Value("${isass.framework.web.exception.show-detail-error:true}") boolean showDetailError,
-                           @Value("${isass.framework.web.exception.prod-unified-message:系统繁忙，请稍后重试}") String prodUnifiedMessage,
+                           @Value("${isass.web.exception.show-detail-error:true}") boolean showDetailError,
+                           @Value("${isass.web.exception.prod-unified-message:系统繁忙，请稍后重试}") String prodUnifiedMessage,
                            Environment environment) {
         this.showDetailError = showDetailError;
         this.prodUnifiedMessage = prodUnifiedMessage;
@@ -290,7 +290,7 @@ public class ExceptionAdvice {
             return List.of();
         }
         return Binder.get(environment)
-                .bind("isass.framework.web.exception.silent-not-found-urls", Bindable.listOf(String.class))
+                .bind("isass.web.exception.silent-not-found-urls", Bindable.listOf(String.class))
                 .orElse(List.of());
     }
 

@@ -52,6 +52,12 @@ public class NocodeInitializationDataService {
         return services.containsService(serviceName);
     }
 
+    /** Returns the owning service only when the entity has a local implementation. */
+    public String localServiceName(String entityName) {
+        ILocalService<?, ?> service = localService(services.serviceByEntity(entityName), entityName);
+        return service == null ? null : service.service();
+    }
+
     public ImportResult importData(Map<String, ? extends Collection<?>> document) {
         return importData(null, document);
     }
@@ -198,7 +204,7 @@ public class NocodeInitializationDataService {
         return new ResolvedService(service, service.entityClass());
     }
 
-    private ILocalService<?, ?> requiredLocalService(String serviceName, String entityName) {
+    ILocalService<?, ?> requiredLocalService(String serviceName, String entityName) {
         ILocalService<?, ?> service = localService(services.require(serviceName, entityName), entityName);
         if (service == null) {
             throw new IllegalArgumentException("Nocode endpoint is not a local standard entity service: "

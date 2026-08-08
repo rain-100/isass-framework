@@ -1,8 +1,12 @@
 package vip.isass.framework.nocode.lifecycle;
 
 import org.junit.jupiter.api.Test;
+import vip.isass.framework.common.security.CurrentPrincipalUtil;
+import vip.isass.framework.common.security.DefaultAuthenticatedPrincipal;
+import vip.isass.framework.common.security.PrincipalType;
 import vip.isass.framework.nocode.criteria.impl.type.FullTypeCriteria;
 import vip.isass.framework.nocode.entity.IIdEntity;
+import vip.isass.framework.nocode.entity.ITenantEntity;
 import vip.isass.framework.nocode.repository.IRepository;
 import vip.isass.framework.nocode.service.ILocalService;
 
@@ -13,6 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class CrudLifecycleRegistryTest {
 
@@ -42,6 +47,24 @@ class CrudLifecycleRegistryTest {
             assertEquals(List.of("before", "failure"), events);
         } finally {
             CrudLifecycleRegistry.unregister(listener);
+        }
+    }
+
+    @Test
+    void fillsCurrentTenantBeforeRepositoryInsert() {
+        IRepository<TestEntity, TestCriteria> repository = mock(IRepository.class);
+        DefaultAuthenticatedPrincipal principal = new DefaultAuthenticatedPrincipal()
+                .setPrincipalType(PrincipalType.USER)
+                .setTenantId(99L);
+        CurrentPrincipalUtil.setCurrentPrincipalService(() -> principal);
+        try {
+            TestEntity entity = new TestEntity();
+
+            new TestService(repository).add(entity);
+
+            assertEquals(99L, entity.getTenantId());
+        } finally {
+            CurrentPrincipalUtil.setCurrentPrincipalService(null);
         }
     }
 
@@ -77,8 +100,9 @@ class CrudLifecycleRegistryTest {
         }
     }
 
-    static class TestEntity implements IIdEntity<Long, TestEntity> {
+    static class TestEntity implements IIdEntity<Long, TestEntity>, ITenantEntity<Long, TestEntity> {
         private Long id;
+        private Long tenantId;
 
         @Override
         public Long getId() {
@@ -88,6 +112,16 @@ class CrudLifecycleRegistryTest {
         @Override
         public void setId(Long id) {
             this.id = id;
+        }
+
+        @Override
+        public Long getTenantId() {
+            return tenantId;
+        }
+
+        @Override
+        public void setTenantId(Long tenantId) {
+            this.tenantId = tenantId;
         }
 
         @Override

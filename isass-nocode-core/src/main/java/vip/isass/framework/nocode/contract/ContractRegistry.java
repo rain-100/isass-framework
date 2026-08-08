@@ -32,6 +32,20 @@ public class ContractRegistry {
         return List.copyOf(services.values());
     }
 
+    /** Resolves an entity name to its owning microservice for portable initialization documents. */
+    public ServiceContract requireServiceByEntity(String entity) {
+        List<ServiceContract> matches = services.values().stream()
+                .filter(contract -> contract.entity().equals(entity))
+                .toList();
+        if (matches.isEmpty()) {
+            throw new IllegalArgumentException("Unknown nocode entity: " + entity);
+        }
+        if (matches.size() > 1) {
+            throw new IllegalArgumentException("Ambiguous nocode entity: " + entity);
+        }
+        return matches.getFirst();
+    }
+
     public OperationContract requireOperation(
             String service,
             String entity,

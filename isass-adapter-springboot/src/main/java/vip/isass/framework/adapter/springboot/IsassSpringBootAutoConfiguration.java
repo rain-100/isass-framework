@@ -14,8 +14,8 @@ import vip.isass.framework.adapter.springboot.support.SpringBeanProvider;
 import vip.isass.framework.common.exception.BuildInCoreExceptionMapping;
 import vip.isass.framework.common.log.slf4j.LogLevelManager;
 import vip.isass.framework.common.log.slf4j.LogUtil;
-import vip.isass.framework.common.login.LoginUserService;
-import vip.isass.framework.common.login.LoginUserUtil;
+import vip.isass.framework.common.security.CurrentPrincipalService;
+import vip.isass.framework.common.security.CurrentPrincipalUtil;
 import vip.isass.framework.common.selectoption.ISelectOptionService;
 import vip.isass.framework.common.selectoption.SelectOptionServiceManager;
 import vip.isass.framework.common.sequence.Sequence;
@@ -55,13 +55,13 @@ public class IsassSpringBootAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public BeanProvider beanProvider(ConfigurableApplicationContext applicationContext,
-                                     ObjectProvider<LoginUserService> loginUserServiceProvider,
+                                     ObjectProvider<CurrentPrincipalService> currentPrincipalServiceProvider,
                                      ObjectProvider<ISystemClock> systemClockProvider,
                                      ObjectProvider<Sequence<?>> sequenceProvider,
                                      ObjectProvider<IDictTranslationProvider> nocodeDictTranslationProvider) {
         BeanProvider beanProvider = new SpringBeanProvider(applicationContext);
         BeanProviderUtil.setBeanProvider(beanProvider);
-        LoginUserUtil.setLoginUserServiceProvider(loginUserServiceProvider::getIfAvailable);
+        CurrentPrincipalUtil.setCurrentPrincipalServiceProvider(currentPrincipalServiceProvider::getIfAvailable);
         SystemClock.setSystemClockProvider(systemClockProvider::getIfAvailable);
         LongSequence.setSequenceProvider(() -> getLongSequence(sequenceProvider));
         vip.isass.framework.nocode.DictTranslationProviderUtil.setProviderSupplier(

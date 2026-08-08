@@ -170,7 +170,7 @@ package vip.isass.framework.web.security.authentication.multilogin;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import vip.isass.framework.common.login.LoginUser;
+import vip.isass.framework.common.security.AuthenticatedPrincipal;
 
 /**
  * 是否需要下线检查器
@@ -183,7 +183,7 @@ public class ShouldOfflineChecker {
     /**
      * 检查 token 是否需要被下线
      */
-    public void checkShouldOffline(LoginUser loginUser) {
+    public void checkShouldOffline(AuthenticatedPrincipal principal) {
 
     }
 

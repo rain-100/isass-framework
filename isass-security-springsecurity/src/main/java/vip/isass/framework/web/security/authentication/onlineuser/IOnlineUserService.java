@@ -168,7 +168,7 @@
 
 package vip.isass.framework.web.security.authentication.onlineuser;
 
-import vip.isass.framework.common.login.LoginUser;
+import vip.isass.framework.common.security.AuthenticatedPrincipal;
 
 import java.util.List;
 
@@ -177,8 +177,8 @@ import java.util.List;
  */
 public interface IOnlineUserService {
 
-    void offline(LoginUser loginUser);
+    void offline(AuthenticatedPrincipal principal);
 
-    List<LoginUser> getOnlineUsers(Long tenantId, String userId);
+    List<AuthenticatedPrincipal> getOnlineUsers(Long tenantId, String userId);
 
 }

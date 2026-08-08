@@ -39,7 +39,7 @@ public class HttpAutoConfiguration {
         client.requestInterceptor((request, body, execution) -> {
             HttpHeaders headers = request.getHeaders();
             for (AdditionalRequestHeaderProvider provider : providers) {
-                if (!provider.support(request.getMethod().name(), request.getURI().getHost())) continue;
+                if (!provider.support(request.getMethod().name(), request.getURI().toString())) continue;
                 if (provider.override() || headers.getFirst(provider.getHeaderName()) == null) {
                     headers.set(provider.getHeaderName(), provider.getValue());
                 }
@@ -122,20 +122,32 @@ public class HttpAutoConfiguration {
     }
 
     @Bean
+    @ConditionalOnMissingBean
+    public NocodeExportService nocodeExportService(
+            NocodeInitializationDataService dataService,
+            NocodeInitializationRemoteClient remoteClient,
+            ObjectMapper objectMapper
+    ) {
+        return new NocodeExportService(dataService, remoteClient, new NocodeExportProfileLoader(objectMapper), objectMapper);
+    }
+
+    @Bean
     @ConditionalOnMissingBean(name = "nocodeInitializationRunner")
     public org.springframework.boot.ApplicationRunner nocodeInitializationRunner(
             NocodeInitializationDataService dataService,
             NocodeInitializationRemoteClient remoteClient,
-            NocodeInitializationProperties properties
+            NocodeInitializationProperties properties,
+            ContractRegistry contracts
     ) {
-        return new NocodeInitializationRunner(dataService, remoteClient, properties).runner();
+        return new NocodeInitializationRunner(dataService, remoteClient, properties, contracts).runner();
     }
 
     @Bean
     @ConditionalOnMissingBean
     public NocodeInitializationController nocodeInitializationController(
-            NocodeInitializationDataService dataService
+            NocodeInitializationDataService dataService,
+            NocodeExportService exportService
     ) {
-        return new NocodeInitializationController(dataService);
+        return new NocodeInitializationController(dataService, exportService);
     }
 }
