@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: LGPL-3.0-only
+
 package vip.isass.framework.nocode;
 
 import org.springframework.context.annotation.Bean;

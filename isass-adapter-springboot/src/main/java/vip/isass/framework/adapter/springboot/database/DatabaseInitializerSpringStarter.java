@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: LGPL-3.0-only
+
 package vip.isass.framework.adapter.springboot.database;
 
 import lombok.extern.slf4j.Slf4j;

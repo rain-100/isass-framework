@@ -4,6 +4,7 @@
 
 ### 4.0.0-SNAPSHOT
 
+- 将工作区自有源码中重复的 LGPL/Apache 长 Header 规范化为短 SPDX 标识；新增安全优先的六项目 dry-run/apply/check 工具、生成器 SPDX 模板、第三方保护规则与边界测试，并补齐项目许可证构建元数据。
 - 修复零代码 HTTP 查询对象无法将同名多值参数绑定到数组 setter 的问题，`xxxIn` 等数组条件现在支持重复 query 参数。
 - 修复零代码 HTTP 文件预览和下载直接写入中文文件名导致 Tomcat 拒绝 `Content-Disposition` 响应头的问题；文件名现在按 UTF-8 RFC 5987 编码。
 

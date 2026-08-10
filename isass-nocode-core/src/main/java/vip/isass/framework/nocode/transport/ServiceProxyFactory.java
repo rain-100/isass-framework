@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: LGPL-3.0-only
+
 package vip.isass.framework.nocode.transport;
 
 import vip.isass.framework.nocode.contract.OperationContract;

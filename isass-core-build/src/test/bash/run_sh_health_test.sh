@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+
+# SPDX-License-Identifier: LGPL-3.0-only
+
 set -euo pipefail
 
 script_dir=$(cd "$(dirname "$0")/../.." && pwd)

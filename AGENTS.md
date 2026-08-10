@@ -25,3 +25,16 @@
 - Shared Redis key names use `<microservice>:<domain>:<feature>[:<id>]`. Avoid framework-global key prefixes and avoid clearing unrelated keys.
 - Framework configuration uses the `isass.<module>.<feature>...` hierarchy. New reusable configuration must not introduce a one-off root prefix.
 - Do not place service-specific initialization data or business rules in framework modules.
+
+## Source-file reading optimization
+
+Source files may begin with copyright or license notices.
+
+When the task is unrelated to licensing:
+
+- Treat leading copyright/license comments as legal boilerplate and avoid repeatedly loading identical text into context.
+- Prefer targeted reads beginning at the first meaningful source declaration, then expand the range as needed.
+- Never assume a fixed number of lines covers either the header or the implementation.
+- Never delete, modify, relocate, or normalize legal notices unless the task explicitly requires it.
+
+For licensing, copyright, redistribution, provenance, third-party code, or compliance work, read the complete source header together with the repository license and any NOTICE or third-party license files.

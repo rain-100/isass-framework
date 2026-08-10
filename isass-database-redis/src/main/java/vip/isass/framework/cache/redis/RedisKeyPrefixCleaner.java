@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: LGPL-3.0-only
+
 package vip.isass.framework.cache.redis;
 
 import org.springframework.data.redis.core.Cursor;

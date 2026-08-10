@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: LGPL-3.0-only
+
 package vip.isass.framework.mq.spring.event.consumer;
 
 import cn.hutool.core.collection.CollUtil;

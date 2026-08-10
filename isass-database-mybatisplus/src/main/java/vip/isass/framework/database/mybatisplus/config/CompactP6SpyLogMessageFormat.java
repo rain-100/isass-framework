@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: LGPL-3.0-only
+
 package vip.isass.framework.database.mybatisplus.config;
 
 import com.p6spy.engine.spy.appender.MessageFormattingStrategy;

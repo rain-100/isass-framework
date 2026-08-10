@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: LGPL-3.0-only
+
 package vip.isass.framework.database.mybatisplus.config;
 
 import org.junit.jupiter.api.Test;

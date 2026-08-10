@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: LGPL-3.0-only
+
 package vip.isass.framework.web.security.rsa;
 
 import cn.hutool.crypto.asymmetric.RSA;
