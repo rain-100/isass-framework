@@ -40,10 +40,28 @@ class HttpServerAdapterTest {
         String firstCriteriaConditionValueType(TestIconCriteria criteria);
     }
 
+    public interface ArrayQueryApi {
+        String joinBizTypes(ArrayQuery query);
+    }
+
+    public static class ArrayQuery {
+        private String[] bizTypeIn;
+
+        public String[] getBizTypeIn() {
+            return bizTypeIn;
+        }
+
+        public void setBizTypeIn(String[] bizTypeIn) {
+            this.bizTypeIn = bizTypeIn;
+        }
+    }
+
     public interface StreamApi {
         String upload(InputStream file);
 
         FileStream download();
+
+        FileStream preview();
     }
 
     public interface MultipartApi {
@@ -142,6 +160,38 @@ class HttpServerAdapterTest {
 
     @Test
     @SuppressWarnings({"rawtypes", "unchecked"})
+    void repeatedQueryParametersBindToArraySetter() throws Exception {
+        IService service = mock(IService.class,
+                org.mockito.Mockito.withSettings().extraInterfaces(ArrayQueryApi.class));
+        when(service.service()).thenReturn("attachment-service");
+        when(service.entity()).thenReturn("icon");
+        when(((ArrayQueryApi) service).joinBizTypes(any(ArrayQuery.class)))
+                .thenAnswer(invocation -> String.join(",", invocation.getArgument(0, ArrayQuery.class).getBizTypeIn()));
+
+        OperationContract operation = new OperationContract(
+                "joinBizTypes", HttpMethod.GET, "/array-query",
+                302, true,
+                List.of(new ParameterContract(
+                        "query", ArrayQuery.class.getName(), ParameterSource.QUERY,
+                        false, "数组查询条件")),
+                String.class.getName(), "数组查询条件");
+        ServiceContract contract = new ServiceContract(
+                "attachment-service", "icon", ArrayQueryApi.class.getName(),
+                TestIcon.class.getName(), TestIconCriteria.class.getName(), List.of(operation));
+        HttpServerAdapter adapter = new HttpServerAdapter(
+                new ContractRegistry(List.of(contract)),
+                new ServiceRegistry(List.of(service)),
+                new ObjectMapper());
+        MockMvc mvc = MockMvcBuilders.standaloneSetup(adapter).build();
+
+        mvc.perform(get("/attachment-service/icon/array-query")
+                        .param("bizTypeIn", "photo", "business"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data").value("photo,business"));
+    }
+
+    @Test
+    @SuppressWarnings({"rawtypes", "unchecked"})
     void multipartInputStreamAndFileStreamUseRawStreams() throws Exception {
         IService service = mock(IService.class,
                 org.mockito.Mockito.withSettings().extraInterfaces(StreamApi.class));
@@ -174,6 +224,33 @@ class HttpServerAdapterTest {
                 .andExpect(status().isOk())
                 .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content()
                         .string("data"));
+    }
+
+    @Test
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    void inlineFileOperationEncodesNonAsciiFileNameForHttpHeader() throws Exception {
+        IService service = mock(IService.class,
+                org.mockito.Mockito.withSettings().extraInterfaces(StreamApi.class));
+        when(service.service()).thenReturn("attachment-service");
+        when(service.entity()).thenReturn("attachment");
+        when(((StreamApi) service).preview()).thenReturn(new FileStream(
+                "全家福.png", "image/png", 4L, false,
+                output -> output.write("data".getBytes())));
+        OperationContract operation = new OperationContract(
+                "preview", HttpMethod.GET, "/preview", 301, true,
+                List.of(), FileStream.class.getName(), "预览");
+        ServiceContract contract = new ServiceContract(
+                "attachment-service", "attachment", StreamApi.class.getName(),
+                "example.Attachment", "example.AttachmentCriteria", List.of(operation));
+        MockMvc mvc = MockMvcBuilders.standaloneSetup(new HttpServerAdapter(
+                new ContractRegistry(List.of(contract)), new ServiceRegistry(List.of(service)),
+                new ObjectMapper())).build();
+
+        mvc.perform(get("/attachment-service/attachment/preview"))
+                .andExpect(status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.header()
+                        .string("Content-Disposition", org.hamcrest.Matchers.containsString(
+                                "filename*=UTF-8''%E5%85%A8%E5%AE%B6%E7%A6%8F.png")));
     }
 
     @Test

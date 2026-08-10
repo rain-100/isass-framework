@@ -37,6 +37,7 @@ import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -181,7 +182,7 @@ public class HttpServerAdapter {
         headers.setContentDisposition((fileStream.download()
                 ? ContentDisposition.attachment()
                 : ContentDisposition.inline())
-                .filename(fileStream.fileName())
+                .filename(fileStream.fileName(), StandardCharsets.UTF_8)
                 .build());
         if (fileStream.contentLength() != null) {
             headers.setContentLength(fileStream.contentLength());
@@ -403,7 +404,8 @@ public class HttpServerAdapter {
                     continue;
                 }
                 Method method = setter.get();
-                Object rawValue = Collection.class.isAssignableFrom(method.getParameterTypes()[0])
+                Class<?> parameterType = method.getParameterTypes()[0];
+                Object rawValue = Collection.class.isAssignableFrom(parameterType) || parameterType.isArray()
                         ? entry.getValue()
                         : entry.getValue().getFirst();
                 Object converted = objectMapper.convertValue(rawValue,

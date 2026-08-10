@@ -4,6 +4,9 @@
 
 ### 4.0.0-SNAPSHOT
 
+- 修复零代码 HTTP 查询对象无法将同名多值参数绑定到数组 setter 的问题，`xxxIn` 等数组条件现在支持重复 query 参数。
+- 修复零代码 HTTP 文件预览和下载直接写入中文文件名导致 Tomcat 拒绝 `Content-Disposition` 响应头的问题；文件名现在按 UTF-8 RFC 5987 编码。
+
 - **零代码初始化跨服务路由**：初始化 JSON 现在按实体所属微服务分组导入，`resources/init` 下的目录仅作分类，不再被误用为目标服务。一个 JSON 可同时包含本地与远程实体；本地直接导入，远程实体按服务合并为一次 HTTP 初始化调用。
 - **出站 API Key 与 ROLE 授权收紧**：
   - `SpringApiKeyHeaderProvider` 仅对 `isass.http.endpoints.*.url` 声明的内部服务地址或服务发现实例附加 `X-ISASS-API-Key`，不再向对象存储、AI 平台等任意外部 URL 泄露服务凭证。
