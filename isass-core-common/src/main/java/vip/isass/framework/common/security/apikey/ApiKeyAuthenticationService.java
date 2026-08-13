@@ -2,7 +2,7 @@
 
 package vip.isass.framework.common.security.apikey;
 
-import vip.isass.framework.common.security.AuthenticatedPrincipal;
+import vip.isass.framework.common.security.DefaultAuthenticatedPrincipal;
 
 import java.util.Collection;
 
@@ -11,6 +11,11 @@ public interface ApiKeyAuthenticationService {
 
     ApiKeyAuthenticationResult authenticate(String apiKey);
 
-    record ApiKeyAuthenticationResult(AuthenticatedPrincipal principal, Collection<String> roleCodes) {
+    /**
+     * API Key 认证结果。
+     *
+     * <p>主体使用具体类型，保证该结果既可用于本地调用，也可通过 HTTP 合同可靠序列化和反序列化。</p>
+     */
+    record ApiKeyAuthenticationResult(DefaultAuthenticatedPrincipal principal, Collection<String> roleCodes) {
     }
 }

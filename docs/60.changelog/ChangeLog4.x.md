@@ -4,6 +4,7 @@
 
 ### 4.0.0-SNAPSHOT
 
+- 完善自动服务入口与 NoCode 边界设计讨论，确定 `IEntrypoint`、`EntrypointInfo`、含 `displayName`、`description`、`displayOrder` 的 `EntrypointOperation` 及五类参数注解；明确 `ICrudService` 直接继承 `IEntrypoint`，正式 CRUD 方法统一标注入口注解并沿用“增-批量”“查-分页列表”等展示名，单体新增、条件新增、单体删除和 `requireOne` 等默认便捷方法不发布远程入口；确定拆分 `isass-entrypoint-core/registry/http/grpc` 四个模块，registry 仅提供协议无关元数据；各微服务自行维护 Smart-doc 配置并按服务名隔离 OpenAPI 产物，由 `isass-apidoc-openapi3` 按微服务/单体配置合并静态文档和本地 Entrypoint，同时确定不兼容读取旧 `nocode-contract.json`；并补充对象 Query 双向绑定、NoCode 入口层级、固定 URL 鉴权、应用/领域分层、聚合所有权和级联写入方案。
 - 将工作区自有源码中重复的 LGPL/Apache 长 Header 规范化为短 SPDX 标识；新增安全优先的六项目 dry-run/apply/check 工具、生成器 SPDX 模板、第三方保护规则与边界测试，并补齐项目许可证构建元数据。
 - 修复零代码 HTTP 查询对象无法将同名多值参数绑定到数组 setter 的问题，`xxxIn` 等数组条件现在支持重复 query 参数。
 - 修复零代码 HTTP 文件预览和下载直接写入中文文件名导致 Tomcat 拒绝 `Content-Disposition` 响应头的问题；文件名现在按 UTF-8 RFC 5987 编码。
@@ -75,6 +76,37 @@
 
 #### docs
 
+- **自动服务入口与 NoCode 边界设计**：由 `ICrudService` 继承关系唯一识别 NoCode 标准入口，并要求
+  自定义业务操作使用独立 `IApplicationService`；确定将
+  `isass-nocode-generator` 改为普通 `jar`，只保留领域模型、Criteria、Repository、Mapper、CRUD Service、
+  关联及级联元数据等源码生成能力，删除合同与 Smart-doc 配置生成 Goal 及其实现；HTTP/gRPC 客户端采用
+  全局传输顺序和按服务覆盖，不提供操作级覆盖且不在请求发出后跨协议重试；当前阶段不提供静态 `.proto`、
+  离线 OpenAPI 或诊断 JSON 导出工具，运行时 `/v3/api-docs` 和 `ServiceDefinitionRegistry` 分别作为文档与
+  入口元数据来源；确定 `findRoleCodesByUri` 只允许携带 `ROLE_INTERNAL_AUTH_QUERY` 的已认证应用主体通过
+  固定本地规则调用，避免动态 URL 授权递归；同时重排主设计与 CRUD 专项文档，合并重复结论并统一
+  `cursorPage` 命名；逐项评审现有 `IService` 的 36 个 CRUD 方法，确定升级七个现有方法并新增
+  `cursorPage`，最终形成八个正式入口，其余改为 Java 默认实现或删除；批量新增、批量修改和批量删除保留
+  为带 `EntrypointOperation` 的默认方法，单体新增、不存在时新增和单体删除改为未标注入口注解的 Java
+  默认方法，并统一规范化到超级增删改接口 `superCud`；`createIfAbsent` 只接受主键或 DDL 注册唯一键并使用数据库原子语义；新增独立
+  `CrudChangeExecutor` 作为事务、授权、校验、生命周期、关联、审计和事件的统一执行边界，避免 Spring
+  Bean 自调用绕过切面；同时补充 `newCriteria`、`NullValueMode` 以及非 CRUD 元数据方法、
+  `IServiceManager` 的迁移结论。
+- **级联、关联与树形 CRUD 设计**：将复杂场景库收敛为方向性删除级联、同事务关联编辑、方向性关联查询和
+  `parent_id` 树形 CRUD 四项能力；关联声明统一为以 DDL 当前实体指向目标实体的方向性关系，一个声明只
+  生成当前实体属性，不配置反向属性名称，反向关系由目标实体 DDL 另行声明；DDL 声明删除级联，不设置
+  聚合写入开关或 DDL 更新模式；新增 `IUpdateCriteria` 并由 `FullTypeCriteria` 实现，以 Query 参数动态选择
+  `MERGE/REPLACE`，并以 `IGNORE_NULL/WRITE_NULL` 控制普通字段空值写入；只发布批量更新入口，单实体
+  更新默认包装为单元素集合；标准新增、条件新增、修改和删除方法均由默认实现统一调用 `superCud`，
+  `batchSave` 升级为同事务执行普通新增、条件新增、修改和删除并返回分项结果的超级增删改接口 `superCud`；真正执行
+  统一委托给独立 `CrudChangeExecutor`，不依赖 Service 自调用切面；字段出现性由 HTTP、gRPC 和本地 Java
+  调用统一规范化为瞬态写入属性掩码，执行器不再依赖原始 JSON；当前实体有 ID 时由 ID 与
+  Criteria 共同定位，无 ID 时由 Criteria 定位；关联对象有 ID 时更新、无 ID 时新增；`IParentIdEntity`
+  固定提供 `parentId/parent/children`，无需 DDL 标记生成父、子属性；表级
+  `[树结构-cascadeDelete=true]` 专门控制删除当前节点时是否向下递归删除全部子孙节点；普通关联的
+  级联参数继续使用 `cascadeDelete`，删除只沿当前实体 DDL 明确开启的方向级联；
+  `getOne/list/requireOne` 改为复用 `page` 的默认方法，新增按 ID、支持 `orderBy=id asc/id desc` 且无总数
+  查询的 `cursorPage` 深分页正式入口，将游标字段统一为 `cursorId/nextCursorId`，并明确高频附加过滤条件
+  原则上使用以 ID 结尾的联合索引。
 - **微服务 DDD 规范**：新增 `docs/usage/architecture/service-ddd.md`，统一 V4 微服务 api/service/boot 三模块职责、限界上下文分层、Liquibase 配置位置与 BSP 命名约定；同步更新 NoCode MyBatis-Plus 生成器文档的模块与上下文路径示例。
 - **零代码文档校正**：`smart-doc` 使用说明改为无版本 nocode 合同、`IXxxService` 与统一动态 HTTP 路由；移除将 OpenAPI 地址 `/v3/api-docs` 误解为 nocode 接口版本的表述。
 - **前端零代码说明**：新增 `docs/usage/nocode/frontend-api-usage.md`，说明标准 CRUD 路径、参数绑定、文件流、自定义业务接口与高级响应投影。
@@ -100,6 +132,7 @@
 
 #### fix
 
+- **API Key 跨微服务认证**：`ApiKeyAuthenticationResult` 使用可传输的具体主体类型，支持 BSP 认证契约通过 NoCode HTTP 代理返回认证主体及角色，无需业务微服务自行实现认证适配器；NoCode HTTP 对单个字符串请求体统一按 JSON 字符串发送，避免服务端因 `text/plain` 请求体无法解析 API Key。
 - **nocode 合同响应 Schema**：构建期合同生成器除实体与请求参数外，现同时收集自定义业务方法的返回类型及其泛型内部类型，确保 OpenAPI/Knife4j 可展示登录、业务 VO 等响应字段；补充 `ContractGeneratorTest` 回归覆盖。
 
 - **V3 逻辑删除元数据修正**：`V3TableMetaRegistrar` 运行时识别逻辑删除字段后，补齐 MyBatis-Plus `TableFieldInfo` 的逻辑删除标记及未删除/已删除值 `0/1`，避免查询错误生成 `delete_flag = null`。

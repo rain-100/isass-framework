@@ -35,6 +35,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.content;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
@@ -85,6 +86,40 @@ class HttpClientTransportTest {
                 URI.create("https://asset.example/asset-service/icon/items/9"),
                 new org.springframework.util.LinkedMultiValueMap<>(),
                 Map.of("name", "new icon")).path("data").asText());
+        server.verify();
+    }
+
+    @Test
+    void serializesSingleStringBodyAsJson() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        RestClient.Builder builder = RestClient.builder();
+        MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
+        NocodeHttpExchange exchange = HttpServiceProxyFactory.builderFor(
+                RestClientAdapter.create(builder.build())).build().createClient(NocodeHttpExchange.class);
+        OperationContract operation = new OperationContract(
+                "authenticate", vip.isass.framework.nocode.contract.HttpMethod.POST, "/authenticate",
+                1, false, List.of(new ParameterContract(
+                "apiKey", String.class.getName(), ParameterSource.BODY, true, "API Key")),
+                String.class.getName(), "认证");
+        ServiceContract contract = new ServiceContract(
+                "bsp-service", "bspApiKeyAuthentication", "example.ApiKeyAuthenticationService",
+                String.class.getName(), String.class.getName(), List.of(operation));
+        HttpClientTransport transport = new HttpClientTransport(
+                exchange,
+                service -> URI.create("https://bsp.example"),
+                new ContractRegistry(List.of(contract)),
+                objectMapper);
+        server.expect(requestTo("https://bsp.example/bsp-service/bspApiKeyAuthentication/authenticate"))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(header("Content-Type", MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(content().string("\"isass_sk_example\""))
+                .andRespond(withSuccess("{\"data\":\"authenticated\"}", MediaType.APPLICATION_JSON));
+
+        Object result = transport.invoke(new Invocation(
+                "bsp-service", "bspApiKeyAuthentication", "authenticate",
+                List.of("isass_sk_example"), false));
+
+        assertEquals("authenticated", result);
         server.verify();
     }
 

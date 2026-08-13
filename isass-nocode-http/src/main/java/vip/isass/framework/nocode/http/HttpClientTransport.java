@@ -118,6 +118,9 @@ public class HttpClientTransport implements InvocationTransport {
         Object body = bodyCount == 0 ? null
                 : bodyCount == 1 ? bodies.values().iterator().next()
                 : bodies;
+        if (body instanceof CharSequence) {
+            body = objectMapper.valueToTree(body);
+        }
         return new Request(uri, query, body);
     }
 

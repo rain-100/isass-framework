@@ -13,7 +13,10 @@ import tools.jackson.databind.JsonNode;
 import java.net.URI;
 
 /** One dynamic Spring HTTP service client shared by all nocode contracts. */
-@HttpExchange(accept = MediaType.APPLICATION_JSON_VALUE)
+@HttpExchange(
+        accept = MediaType.APPLICATION_JSON_VALUE,
+        contentType = MediaType.APPLICATION_JSON_VALUE
+)
 public interface NocodeHttpExchange {
 
     @HttpExchange
