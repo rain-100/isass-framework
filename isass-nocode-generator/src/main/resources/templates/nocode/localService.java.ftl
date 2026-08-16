@@ -1,4 +1,5 @@
 <#include "./segment/copyright.ftl">
+<#include "./segment/EntityType.ftl">
 
 package ${cfg.package}.${cfg.context}.application.service;
 
@@ -8,7 +9,7 @@ import org.springframework.stereotype.Service;
 import ${cfg.criteriaPackageName}.${entity}Criteria;
 import ${cfg.entityPackageName}.${entity};
 import ${cfg.repositoryPackageName}.I${entity}Repository;
-import vip.isass.framework.nocode.service.ILocalService;
+import vip.isass.framework.nocode.service.ILocalCrudService;
 
 /**
  * <p>
@@ -19,7 +20,8 @@ import vip.isass.framework.nocode.service.ILocalService;
  */
 @Slf4j
 @Service
-public class ${entity}ApplicationService implements I${entity}Service, ILocalService<${entity}, ${entity}Criteria> {
+public class ${entity}ApplicationService
+        implements I${entity}Service, ILocalCrudService<${entity}, ${entity}Criteria, ${idEntityPropertyType}> {
 
     @Autowired
     private I${entity}Repository repository;
@@ -27,6 +29,11 @@ public class ${entity}ApplicationService implements I${entity}Service, ILocalSer
     @Override
     public I${entity}Repository getRepository() {
         return repository;
+    }
+
+    @Override
+    public ${entity}Criteria newCriteria() {
+        return new ${entity}Criteria();
     }
 
 }

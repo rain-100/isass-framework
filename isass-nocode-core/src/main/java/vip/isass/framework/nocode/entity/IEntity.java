@@ -5,6 +5,7 @@ package vip.isass.framework.nocode.entity;
 import cn.hutool.core.util.RandomUtil;
 import vip.isass.framework.common.support.LocalDateTimeUtil;
 import vip.isass.framework.common.support.SystemClock;
+import vip.isass.framework.entrypoint.PropertyPresenceAware;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -17,7 +18,7 @@ import java.util.List;
 /**
  * @author Rain
  */
-public interface IEntity<E extends IEntity<E>> extends Serializable, IAnyJsonEntity {
+public interface IEntity<E extends IEntity<E>> extends Serializable, IAnyJsonEntity, PropertyPresenceAware {
 
     long serialVersionUID = 1L;
 

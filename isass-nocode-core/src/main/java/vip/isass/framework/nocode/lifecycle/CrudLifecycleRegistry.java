@@ -2,7 +2,7 @@
 
 package vip.isass.framework.nocode.lifecycle;
 
-import vip.isass.framework.nocode.service.ILocalService;
+import vip.isass.framework.nocode.service.ILocalCrudService;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -25,7 +25,7 @@ public final class CrudLifecycleRegistry {
         LISTENERS.remove(listener);
     }
 
-    public static <T> T execute(ILocalService<?, ?> service, CrudOperation operation,
+    public static <T> T execute(ILocalCrudService<?, ?, ?> service, CrudOperation operation,
                                 String methodName, Object[] arguments, Supplier<T> action) {
         if (DEPTH.get() > 0) return action.get();
         DEPTH.set(1);

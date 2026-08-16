@@ -11,7 +11,8 @@ public record EntityAssociation(
         Kind kind,
         Class<? extends IEntity<?>> targetType,
         String localField,
-        String targetField
+        String targetField,
+        boolean cascadeDelete
 ) {
 
     public enum Kind {
@@ -25,7 +26,12 @@ public record EntityAssociation(
             String localField,
             String targetField
     ) {
-        return new EntityAssociation(property, Kind.ONE, targetType, localField, targetField);
+        return one(property, targetType, localField, targetField, false);
+    }
+
+    public static EntityAssociation one(String property, Class<? extends IEntity<?>> targetType,
+                                        String localField, String targetField, boolean cascadeDelete) {
+        return new EntityAssociation(property, Kind.ONE, targetType, localField, targetField, cascadeDelete);
     }
 
     public static EntityAssociation many(
@@ -34,6 +40,11 @@ public record EntityAssociation(
             String localField,
             String targetField
     ) {
-        return new EntityAssociation(property, Kind.MANY, targetType, localField, targetField);
+        return many(property, targetType, localField, targetField, false);
+    }
+
+    public static EntityAssociation many(String property, Class<? extends IEntity<?>> targetType,
+                                         String localField, String targetField, boolean cascadeDelete) {
+        return new EntityAssociation(property, Kind.MANY, targetType, localField, targetField, cascadeDelete);
     }
 }

@@ -11,10 +11,10 @@ import vip.isass.framework.common.web.header.AdditionalRequestHeaderProvider;
 @Component
 public class SpringApiKeyHeaderProvider implements AdditionalRequestHeaderProvider {
 
-    private final ServiceAccountProperties properties;
+    private final BootstrapSecurityProperties properties;
     private final InternalServiceEndpointMatcher endpointMatcher;
 
-    public SpringApiKeyHeaderProvider(ServiceAccountProperties properties, Environment environment,
+    public SpringApiKeyHeaderProvider(BootstrapSecurityProperties properties, Environment environment,
                                       ListableBeanFactory beanFactory) {
         this.properties = properties;
         this.endpointMatcher = new InternalServiceEndpointMatcher(environment, beanFactory);
@@ -37,6 +37,6 @@ public class SpringApiKeyHeaderProvider implements AdditionalRequestHeaderProvid
 
     @Override
     public boolean support(String method, String url) {
-        return properties.enabled() && endpointMatcher.matches(url);
+        return properties.apiKeyEnabled() && endpointMatcher.matches(url);
     }
 }

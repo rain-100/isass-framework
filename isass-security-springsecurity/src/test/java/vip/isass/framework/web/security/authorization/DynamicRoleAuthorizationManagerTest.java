@@ -21,23 +21,33 @@ class DynamicRoleAuthorizationManagerTest {
     @Test
     void deniesAuthenticatedRequestWithoutRegisteredResourceRoles() {
         SecurityMetadataSourceProviderManager metadata = mock(SecurityMetadataSourceProviderManager.class);
-        when(metadata.findRoleCodesByUri("POST /bsp-service/init-data/import")).thenReturn(List.of());
+        when(metadata.findRoleCodesByUri("POST /bsp-service/nocode/system/initialization/importData")).thenReturn(List.of());
         DynamicRoleAuthorizationManager manager = new DynamicRoleAuthorizationManager(metadata);
 
         assertFalse(manager.authorize(this::authenticated,
-                new RequestAuthorizationContext(request("POST", "/bsp-service/init-data/import"))).isGranted());
+                new RequestAuthorizationContext(request("POST", "/bsp-service/nocode/system/initialization/importData"))).isGranted());
+    }
+
+    @Test
+    void allowsSuperDeveloperWithoutRegisteredResourceRoles() {
+        SecurityMetadataSourceProviderManager metadata = mock(SecurityMetadataSourceProviderManager.class);
+        DynamicRoleAuthorizationManager manager = new DynamicRoleAuthorizationManager(metadata);
+
+        assertTrue(manager.authorize(() -> new UsernamePasswordAuthenticationToken("admin", "", List.of(
+                        new SimpleGrantedAuthority("ROLE_SUPER_DEV"))),
+                new RequestAuthorizationContext(request("GET", "/bsp-service/auth/app/getResourceTree"))).isGranted());
     }
 
     @Test
     void allowsMatchingRoleForActualRequestUri() {
         SecurityMetadataSourceProviderManager metadata = mock(SecurityMetadataSourceProviderManager.class);
-        when(metadata.findRoleCodesByUri("POST /bsp-service/init-data/import"))
+        when(metadata.findRoleCodesByUri("POST /bsp-service/nocode/system/initialization/importData"))
                 .thenReturn(List.of("ROLE_IIMAGE_ASSET_SERVICE_APP_ADMIN"));
         DynamicRoleAuthorizationManager manager = new DynamicRoleAuthorizationManager(metadata);
 
         assertTrue(manager.authorize(() -> new UsernamePasswordAuthenticationToken("asset", "", List.of(
                         new SimpleGrantedAuthority("ROLE_IIMAGE_ASSET_SERVICE_APP_ADMIN"))),
-                new RequestAuthorizationContext(request("POST", "/bsp-service/init-data/import"))).isGranted());
+                new RequestAuthorizationContext(request("POST", "/bsp-service/nocode/system/initialization/importData"))).isGranted());
     }
 
     private UsernamePasswordAuthenticationToken authenticated() {

@@ -1,11 +1,13 @@
 <#include "./segment/copyright.ftl">
+<#include "./segment/EntityType.ftl">
 
 package ${cfg.package}.${cfg.context}.application.service;
 
 import ${cfg.serviceInfoPackageName}.ServiceInfo;
 import ${cfg.criteriaPackageName}.${entity}Criteria;
 import ${cfg.entityPackageName}.${entity};
-import vip.isass.framework.nocode.service.IService;
+import vip.isass.framework.entrypoint.annotation.EntrypointInfo;
+import vip.isass.framework.nocode.service.ICrudService;
 
 /**
  * <p>
@@ -15,16 +17,15 @@ import vip.isass.framework.nocode.service.IService;
  * @author ${author}
  * @tag <#if table.comment?trim?length gt 0>${table.comment?replace("\\([^)]*\\)|\\[[^]]*\\]|（[^）]*）|【[^】]*】", "", "r")?trim}<#else>${entity}</#if>
  */
-public interface I${entity}Service extends IService<${entity}, ${entity}Criteria> {
-
-    /** 当前实体相对于服务 URL 前缀的  路由。 */
-    String URI_SECOND_PART = "/${entity?uncap_first}";
-
-    /** 当前实体的完整  HTTP 路由。 */
-    String URI_FIRST_PART = ServiceInfo.SERVICE_URL_PREFIX + URI_SECOND_PART;
+@EntrypointInfo(
+        serviceName = ServiceInfo.SERVICE_FULL_NAME,
+        contextName = "${cfg.boundedContextName}",
+        resourceName = "${entity?uncap_first}")
+public interface I${entity}Service
+        extends ICrudService<${entity}, ${entity}Criteria, ${idEntityPropertyType}> {
 
     // region 新业务方法
-    // 自定义方法必须编写 JavaDoc，并声明 @http METHOD /path；ContractGenerator 会据此生成接口契约与文档。
+    // 自定义远程方法必须声明 @EntrypointOperation 和参数来源注解。
 
     // endregion
 

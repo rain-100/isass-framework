@@ -4,8 +4,8 @@ package vip.isass.framework.nocode.util;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Assert;
-import com.baomidou.mybatisplus.core.metadata.IPage;
 import lombok.extern.slf4j.Slf4j;
+import vip.isass.framework.common.page.Page;
 import vip.isass.framework.nocode.criteria.type.IPageCriteria;
 import vip.isass.framework.nocode.entity.IEntity;
 
@@ -30,8 +30,8 @@ public final class BatchUtil {
             C countCriteria,
             Function<C, Integer> countFunction,
             C fetchCriteria,
-            Function<C, IPage<E>> fetchFunction,
-            Function<IPage<E>, List<R>> consumeFunction) {
+            Function<C, Page<E>> fetchFunction,
+            Function<Page<E>, List<R>> consumeFunction) {
         return findAllByBatchPage(countCriteria, countFunction, fetchCriteria, fetchFunction, consumeFunction, -1);
     }
 
@@ -39,8 +39,8 @@ public final class BatchUtil {
             C countCriteria,
             Function<C, Integer> countFunction,
             C fetchCriteria,
-            Function<C, IPage<E>> fetchFunction,
-            Function<IPage<E>, List<R>> consumeFunction,
+            Function<C, Page<E>> fetchFunction,
+            Function<Page<E>, List<R>> consumeFunction,
             int limitResultSize) {
         Assert.notNull(countCriteria, "countCriteria");
         int totalCount = countFunction.apply(countCriteria);
@@ -54,7 +54,7 @@ public final class BatchUtil {
 
         do {
             log.debug("findAllByBatchPage 进度：{}/{}", currentPage, totalCount);
-            IPage<E> page = fetchFunction.apply(fetchCriteria);
+            Page<E> page = fetchFunction.apply(fetchCriteria);
             result.addAll(consumeFunction.apply(page));
             fetchCriteria.setPageNum(++currentPage);
             if (limitResultSize > -1 && result.size() >= limitResultSize) {
@@ -69,8 +69,8 @@ public final class BatchUtil {
             C countCriteria,
             Function<C, Integer> countFunction,
             C fetchCriteria,
-            Function<C, IPage<E>> fetchFunction,
-            Consumer<IPage<E>> consumeFunction) {
+            Function<C, Page<E>> fetchFunction,
+            Consumer<Page<E>> consumeFunction) {
         Assert.notNull(countCriteria, "countCriteria");
         int totalCount = countFunction.apply(countCriteria);
 
@@ -81,7 +81,7 @@ public final class BatchUtil {
 
         do {
             log.debug("batchFunction 进度：{}/{}", currentPage, totalCount);
-            IPage<E> page = fetchFunction.apply(fetchCriteria);
+            Page<E> page = fetchFunction.apply(fetchCriteria);
             fetchCriteria.setPageNum(++currentPage);
             consumeFunction.accept(page);
         } while (currentPage <= totalPageNum);

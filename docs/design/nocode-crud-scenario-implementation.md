@@ -2,7 +2,7 @@
 
 ## 文档状态
 
-- 状态：设计已确认，尚未实施
+- 状态：第一阶段已实施（破坏式重构，不兼容旧 CRUD 类型与路由）
 - 首次记录：2026-08-12
 - 最近整理：2026-08-13
 - 上位设计：[自动服务入口与 NoCode 边界设计](automatic-service-entry-and-nocode-boundary.md)
@@ -305,14 +305,13 @@ public enum NullValueMode {
 
 ```text
 create
-  -> createBatch
-    -> superCud
-      -> CrudChangeExecutor.execute
+  -> superCud(addEntities=[entity])
+    -> CrudChangeExecutor.superCud
 ```
 
 ```java
 default E create(E entity) {
-    return createBatch(List.of(entity)).getFirst();
+    return superCud(SuperCudReq.add(entity)).addEntities().getFirst();
 }
 
 @EntrypointOperation(
@@ -322,7 +321,7 @@ default E create(E entity) {
         displayOrder = 101,
         httpMethod = HttpMethod.POST)
 default List<E> createBatch(@BodyParam Collection<E> entities) {
-    return superCud(BatchChange.creates(entities)).createdEntities();
+    return superCud(SuperCudReq.addAll(entities)).addEntities();
 }
 ```
 
@@ -335,8 +334,8 @@ default List<E> createBatch(@BodyParam Collection<E> entities) {
 5. 在同一个本地事务提交；
 6. 任一步失败，全部回滚。
 
-`createBatch` 拒绝 `null`、空集合和空元素；成功结果必须与输入数量及顺序一致。因此 `create` 在
-`createBatch(List.of(entity))` 成功后可以安全取得第一条结果，不能接受静默跳过失败元素的实现。
+`createBatch` 拒绝 `null`、空集合和空元素；成功结果必须与输入数量及顺序一致。因此 `create` 可以安全取得
+`SuperCudResult.addEntities` 的第一条结果，不能接受静默跳过失败元素的实现。
 
 ### 5.5 不存在时新增
 
@@ -347,8 +346,8 @@ default List<E> createBatch(@BodyParam Collection<E> entities) {
 default CreateIfAbsentResult<E> createIfAbsent(
         E entity,
         C criteria) {
-    return superCud(BatchChange.createIfAbsent(entity, criteria))
-            .conditionalCreateResults().getFirst();
+    return superCud(SuperCudReq.addIfAbsent(entity, criteria))
+            .addIfAbsentResults().getFirst();
 }
 ```
 
@@ -357,20 +356,21 @@ default CreateIfAbsentResult<E> createIfAbsent(
 1. Criteria 只能完整匹配实体主键或 Liquibase DDL 已注册并具有数据库唯一索引的命名唯一键；
 2. Criteria 值必须与待新增实体的相应字段完全一致；
 3. 任意 Criteria、非唯一字段和客户端提交的任意列名直接拒绝；
-4. 不能使用“先执行 `exists`，不存在再 `insert`”作为最终实现；
-5. `CrudChangeExecutor` 通过数据库方言的原子 `insertIfAbsent` 实现，例如 MySQL 唯一键语义、PostgreSQL
-   `ON CONFLICT DO NOTHING` 或等价能力；
-6. 如果方言使用捕获唯一冲突的实现，必须考虑某些数据库在唯一冲突后会把当前事务标记为失败，不能假设
-   捕获 Java 异常后事务仍可继续；
+4. 不能使用“先执行 `exists`，不存在再 `insert`”作为最终并发保证；
+5. `CrudChangeExecutor` 通过数据库方言的原子 `insertIfAbsent`、安全保存点或等价机制实现；数据库必须具有
+   对应唯一约束；
+6. 某数据库方言若不能在不破坏外层事务的情况下处理唯一冲突，该方言不能启用包含
+   `addIfAbsentItems` 的 `superCud`，不能捕获异常后继续使用已标记回滚的事务；
 7. 未新增时按相同唯一 Criteria 查询并返回既有实体；结果使用
    `CreateIfAbsentResult(created, entity)` 明确区分；
-8. 多条幂等新增不复用旧 `addBatchIfAbsentByCriteria(List<E>, C)`，而是通过 `BatchChange` 的
-   `conditionalCreates` 让每个实体携带自己的唯一 Criteria。
+8. 多条条件新增使用 `SuperCudReq.addIfAbsentItems`，每个 `AddIfAbsentItem` 携带自己的实体和唯一
+   Criteria，不能让多个实体共用一个含义不明的 Criteria。
 
 ### 5.6 批量修改
 
-`updateBatch` 是带入口注解的默认方法。单实体修改继续作为未发布的 Java 默认方法；所有路径最终进入
-`superCud`：
+`updateBatch` 是正式 Criteria 更新入口。单实体按 ID 修改作为未发布的 Java 默认方法，通过
+`SuperCudReq.updateEntities` 调用 `superCud`；带 Criteria 的更新使用
+`SuperCudReq.updateByCriteriaItems`：
 
 ```java
 @EntrypointOperation(
@@ -382,15 +382,16 @@ default CreateIfAbsentResult<E> createIfAbsent(
 default Integer updateBatch(
         @BodyParam Collection<E> entities,
         @QueryParam C criteria) {
-    return superCud(BatchChange.updates(entities, criteria)).updatedCount();
+    return superCud(SuperCudReq.updateByCriteria(entities, criteria))
+            .updateByCriteriaCounts().getFirst();
+}
+
+default Boolean update(E entity) {
+    return superCud(SuperCudReq.update(entity)).updateEntities().size() == 1;
 }
 
 default Integer update(E entity, C criteria) {
     return updateBatch(List.of(entity), criteria);
-}
-
-default Integer update(E entity) {
-    return update(entity, newCriteria());
 }
 
 default Integer updateAllColumns(E entity) {
@@ -406,7 +407,8 @@ default Integer requireUpdate(E entity, C criteria) {
 }
 ```
 
-正式请求的 Body 始终是集合。返回值表示受影响的当前实体记录数。
+正式请求的 Body 始终是集合，返回值表示受影响的当前实体记录数。一个 `SuperCudReq` 可以包含多个
+`UpdateByCriteriaItem`，每项拥有自己的实体集合和 Criteria。
 
 当前实体定位规则：
 
@@ -439,7 +441,7 @@ WHERE relation_key = :currentKey
 提交 ID 为空时省略 `NOT IN`。实现必须使用 Criteria 和参数化批量操作，不能拼接客户端 SQL，也不能绕过
 目标实体的逻辑删除、数据权限或 CRUD 生命周期。
 
-### 5.7 混合批量变更
+### 5.7 超级增删改
 
 旧 `batchSave(BatchSave<E>)` 升级并重命名为超级增删改正式入口 `superCud`：
 
@@ -447,69 +449,122 @@ WHERE relation_key = :currentKey
 @EntrypointOperation(
         operationName = "superCud",
         displayName = "超级增删改",
-        description = "在一个事务中批量新增、幂等新增、修改和删除数据",
+        description = "在一个事务中执行普通新增、条件新增、按 ID 或 Criteria 修改、按 ID 或 Criteria 删除",
         displayOrder = 202,
         httpMethod = HttpMethod.POST)
-BatchChangeResult<E> superCud(@BodyParam BatchChange<E, C> command);
+SuperCudResult<E> superCud(@BodyParam SuperCudReq<E, C> req);
 ```
 
-统一命令中的每一类操作都有完整参数，不能再让一组实体共享语义含混的条件：
+`SuperCudReq` 是请求实体 Record，但不是仅含旧 `BatchSave` 三个字段的重命名类型。它保留原来的普通
+新增、按 ID 更新、按 ID 删除三个分组，再增加条件新增、Criteria 更新、Criteria 删除三个分组，从而让
+同一个请求可以任意组合全部标准写能力。类型与旧 `BatchSave` 一样归属 `isass-nocode-core` 的
+`vip.isass.framework.nocode.entity` 包，但不实现持久化 `IEntity`，不参与 ORM 映射：
 
 ```java
-public record ConditionalCreate<E, C>(
+public record AddIfAbsentItem<E, C>(
         E entity,
-        C uniqueCriteria
+        C criteria
 ) {
 }
 
-public record UpdateGroup<E, C>(
+public record UpdateByCriteriaItem<E, C>(
         List<E> entities,
         C criteria
 ) {
 }
 
-public record BatchChange<E, C>(
-        List<E> creates,
-        List<ConditionalCreate<E, C>> conditionalCreates,
-        List<UpdateGroup<E, C>> updates,
-        List<C> deletes
+public record SuperCudReq<E, C>(
+        List<E> addEntities,
+        List<AddIfAbsentItem<E, C>> addIfAbsentItems,
+        List<E> updateEntities,
+        List<UpdateByCriteriaItem<E, C>> updateByCriteriaItems,
+        List<Serializable> deleteIds,
+        List<C> deleteCriteria
 ) {
+    public SuperCudReq {
+        addEntities = immutableList(addEntities);
+        addIfAbsentItems = immutableList(addIfAbsentItems);
+        updateEntities = immutableList(updateEntities);
+        updateByCriteriaItems = immutableList(updateByCriteriaItems);
+        deleteIds = immutableList(deleteIds);
+        deleteCriteria = immutableList(deleteCriteria);
+    }
 }
 
-public record CreateIfAbsentResult<E>(
-        boolean created,
-        E entity
-) {
-}
-
-public record BatchChangeResult<E>(
-        List<E> createdEntities,
-        List<CreateIfAbsentResult<E>> conditionalCreateResults,
-        int updatedCount,
-        int deletedCount
+public record SuperCudResult<E>(
+        List<E> addEntities,
+        List<CreateIfAbsentResult<E>> addIfAbsentResults,
+        List<E> updateEntities,
+        List<Integer> updateByCriteriaCounts,
+        List<Serializable> deleteIds,
+        List<Integer> deleteByCriteriaCounts
 ) {
 }
 ```
 
-`BatchChange` 同时提供 `creates(...)`、`createIfAbsent(...)`、`updates(...)` 和 `deletes(...)` 等类型安全的
-静态工厂，供标准默认方法构造只包含一种操作的命令；工厂方法只负责规范化命令，不执行数据库操作。
+`immutableList` 表示实现时使用统一工具把 `null` 规范化为空不可变列表，并对非空列表执行防御性复制。
+`SuperCudReq` 提供 `add/addAll/addIfAbsent/update/updateAll/updateByCriteria/delete/deleteAll/deleteByCriteria`
+等静态工厂，工厂只构造包含一个操作分组的请求实体；协作保存等场景使用规范化静态工厂或 Record 规范
+构造器填充多个分组。
+
+在线文档、表格编辑等协作场景由客户端先把本地操作日志归并成净变更集：新建后继续修改归入
+`addEntities`，已有记录的多次修改归并到 `updateEntities`，新建后又删除从请求移除，已有记录删除归入
+`deleteIds`。如果业务使用条件新增、条件修改或条件删除，则分别填入对应 Criteria 分组。归并后的六个
+分组可以在同一个请求中同时出现，不要求客户端按新增、修改、删除拆成多次调用。
+
+例如一次协作保存可以提交如下结构；未使用的分组仍显式按空数组处理：
+
+```json
+{
+  "addEntities": [
+    {"title": "新增记录"}
+  ],
+  "addIfAbsentItems": [
+    {
+      "entity": {"key": "system.default", "value": "1"},
+      "criteria": {"key": "system.default"}
+    }
+  ],
+  "updateEntities": [
+    {"id": 101, "title": "按 ID 修改"}
+  ],
+  "updateByCriteriaItems": [
+    {
+      "entities": [{"status": "PUBLISHED"}],
+      "criteria": {"idIn": [102, 103], "updateMode": "MERGE"}
+    }
+  ],
+  "deleteIds": [104],
+  "deleteCriteria": [
+    {"status": "DRAFT", "ownerId": 1001}
+  ]
+}
+```
+
+这六类变更不是六次请求，而是一个 `superCud` 请求中的六个可组合分组，共享同一次授权检查、静态校验
+和本地数据库事务。
 
 处理规则：
 
-1. 在写入前完整校验四部分数据、重复 ID、唯一 Criteria、数据权限和关系归属；
-2. `creates` 执行普通新增；
-3. `conditionalCreates` 逐项使用主键或 DDL 注册唯一键执行数据库原子 `insertIfAbsent`；
-4. `updates` 每组实体共享该组 Criteria，可以在同一命令中表达多个不同更新范围；
-5. `deletes` 是 Criteria 列表，单 ID 和多 ID 删除都先转换为 Criteria；
-6. 默认执行顺序固定为普通新增、幂等新增、修改、删除；同一已有 ID 不能同时出现在不同写入部分，冲突
-   直接拒绝，不能依赖顺序解释；
-7. 所有操作在同一个本地事务中完成，任一失败全部回滚；
+1. `addEntities` 普通新增；`addIfAbsentItems` 按各自唯一 Criteria 条件新增；
+2. `updateEntities` 必须全部具有 ID 并按 ID 更新；`updateByCriteriaItems` 按每项 Criteria 更新；
+3. `deleteIds` 按 ID 删除；`deleteCriteria` 按 Criteria 删除；空 Criteria 或没有有效 Where 的删除必须拒绝；
+4. 在写入前完整校验六个列表、空元素、重复 ID、直接可识别的跨组冲突、数据权限和关系归属；
+5. 执行顺序固定为普通新增、条件新增、按 ID 更新、Criteria 更新、按 ID 删除、Criteria 删除；Criteria
+   操作可以看到前序操作产生的数据，该顺序属于公开合同；
+6. 同一已有 ID 不能同时出现在 `updateEntities` 和 `deleteIds`；客户端应在提交协作变更集前合并同一记录
+   的多次编辑，并移除“新增后又删除”的净零变更；Criteria 与其他分组可能重叠时按固定顺序执行；
+7. 所有操作在同一个本地事务中完成，任一真实失败全部回滚；“条件新增时记录已存在”是正常分支，不是
+   失败；
 8. 执行器直接使用 Repository 和关联写入能力，不能反向调用 `createBatch`、`updateBatch` 或
    `deleteBatch`，防止递归；
-9. 返回普通新增实体、每条幂等新增结果和修改、删除数量。
+9. `SuperCudResult` 的六个结果分组与请求六个分组一一对应；三个 Criteria 结果列表严格按请求项索引
+   对齐；
+10. 全部静态校验必须在任何写入前完成；执行期数据库异常仍导致整个请求回滚。
+11. 六个分组全部为空时按合法的幂等 no-op 处理，不开启无意义的数据库写入，直接返回六个空结果分组；
+    这允许协作客户端在归并后没有净变更时安全提交保存。
 
-不能把 `superCud` 改成客户端依次调用 `createBatch`、`updateBatch` 和 `deleteBatch`，否则会丢失单事务
-语义。
+不能把 `superCud` 改成客户端依次调用新增、修改和删除入口，否则会丢失单事务语义。
 
 ### 5.8 统一执行器与切面边界
 
@@ -525,21 +580,21 @@ public interface ILocalCrudService<E, C, PK> extends ICrudService<E, C, PK> {
     CrudChangeExecutor<E, C, PK> crudChangeExecutor();
 
     @Override
-    default BatchChangeResult<E> superCud(BatchChange<E, C> command) {
-        return crudChangeExecutor().execute(this, command);
+    default SuperCudResult<E> superCud(SuperCudReq<E, C> req) {
+        return crudChangeExecutor().superCud(this, req);
     }
 }
 ```
 
 ```text
-Java 便捷写方法 / HTTP 或 gRPC 正式写入口
-  -> 直接或经正式批量入口规范化为 BatchChange
+create / createBatch / createIfAbsent / update / updateBatch / delete / deleteBatch
+  -> 构造 SuperCudReq
     -> superCud
-      -> 独立 Spring Bean CrudChangeExecutor.execute
+      -> 独立 Spring Bean CrudChangeExecutor.superCud
         -> 事务、授权、校验、生命周期、关联、Repository、审计和事件
 ```
 
-`CrudChangeExecutor.execute` 是真正的统一事务和切面边界。需要 Spring AOP 的能力拦截该独立 Bean；更核心
+`CrudChangeExecutor` 是真正的统一事务和切面边界。需要 Spring AOP 的能力拦截该独立 Bean；更核心
 的固定步骤直接由执行器模板编排。这样即使 Service 内部发生自调用，也一定会跨 Bean 进入执行器代理。
 
 客户端代理的规则也必须区分：带 `@EntrypointOperation` 的默认方法执行远程调用；只有未标注入口注解的
@@ -551,14 +606,13 @@ Java 便捷写方法 / HTTP 或 gRPC 正式写入口
 
 ```text
 delete(id)
-  -> deleteBatch(criteria.id)
-    -> superCud(deletes=[criteria])
-      -> CrudChangeExecutor.execute
+  -> superCud(deleteIds=[id])
+    -> CrudChangeExecutor.superCud
 ```
 
 ```java
 default Boolean delete(PK id) {
-    return deleteBatch(newCriteria().setId(id)) == 1;
+    return superCud(SuperCudReq.delete(id)).deleteIds().size() == 1;
 }
 
 @EntrypointOperation(
@@ -568,12 +622,12 @@ default Boolean delete(PK id) {
         displayOrder = 401,
         httpMethod = HttpMethod.DELETE)
 default Integer deleteBatch(@QueryParam C criteria) {
-    return superCud(BatchChange.deletes(List.of(criteria))).deletedCount();
+    return superCud(SuperCudReq.deleteByCriteria(criteria))
+            .deleteByCriteriaCounts().getFirst();
 }
 ```
 
-`deleteBatch` 必须拒绝没有任何有效 Where 条件的 Criteria；单 ID 删除由 `delete` 构造 ID Criteria 后复用
-该入口。
+`deleteBatch` 拒绝没有任何有效 Where 条件的 Criteria。单 ID 删除直接构造 `SuperCudReq.delete(id)`。
 
 删除当前实体时读取生成的方向性级联元数据：
 
@@ -597,7 +651,7 @@ default Integer deleteBatch(@QueryParam C criteria) {
         description = "根据查询条件返回分页列表",
         displayOrder = 301,
         httpMethod = HttpMethod.GET)
-IPage<E> page(@QueryParam C criteria);
+Page<E> page(@QueryParam C criteria);
 ```
 
 ### 6.2 `getOne`、`list` 和 `requireOne` 是默认方法
@@ -724,7 +778,7 @@ public record CursorPage<E, PK>(
 - 查询展开和保存都必须限制为已注册关系，禁止任意反射属性或客户端 SQL；
 - 跨服务关系只能最终一致，不能伪装成本地事务。
 
-## 8. 第一阶段实施范围
+## 8. 第一阶段实施结果
 
 1. 解析表级 `[关联表-单体-*]`、`[关联表-列表-*]` 和可选参数；
 2. 生成当前实体的单向非持久化属性及结构化查询、保存、删除元数据；
@@ -735,13 +789,16 @@ public record CursorPage<E, PK>(
 7. 实现 HTTP、gRPC 和本地 Java 调用统一的瞬态写入属性掩码，保证未提交字段和显式空值能够双向区分；
 8. 新增 `IUpdateCriteria`、`MERGE/REPLACE`、`NullValueMode` 和正式 `updateBatch`；
 9. 将单体新增、不存在时新增和单体删除定义为未标注入口注解的 Java 默认方法；将批量新增、批量修改和
-   批量删除定义为正式入口默认方法；所有写路径最终规范化为 `BatchChange` 后调用 `superCud`；
-10. 将 `batchSave` 升级为带结构化结果的超级增删改事务入口 `superCud`，并实现独立
-   `CrudChangeExecutor.execute` 作为统一事务和治理边界；
-11. 为主键或 DDL 注册唯一键实现数据库原子的 `createIfAbsent`，返回新建标记和最终实体；
-12. 实现 `getOne/list/requireOne` 等默认方法、`newCriteria()` 及 Criteria `copy()`；
-13. 实现支持 `id asc/id desc` 的 `cursorPage`；
-14. 增加 DDL 推断歧义、越权 ID、属性存在性、空集合、空值写入、条件新增并发、混合批量回滚、乐观锁、批量性能和
+   批量删除定义为正式入口；
+10. 将 `batchSave` 升级为超级增删改事务入口 `superCud`；`SuperCudReq` 保留 `addEntities`、
+    `updateEntities`、`deleteIds`，增加 `addIfAbsentItems`、`updateByCriteriaItems`、`deleteCriteria`，返回
+    六组对应结果的 `SuperCudResult`；
+11. 实现独立 `CrudChangeExecutor.superCud`，让普通新增、条件新增、按 ID 或 Criteria 修改、按 ID 或
+    Criteria 删除在同一个事务中完成；所有专项写方法只构造对应的 `SuperCudReq`；
+12. 为主键或 DDL 注册唯一键实现数据库原子的 `createIfAbsent`，返回新建标记和最终实体；
+13. 实现 `getOne/list/requireOne` 等默认方法、`newCriteria()` 及 Criteria `copy()`；
+14. 实现支持 `id asc/id desc` 的 `cursorPage`；
+15. 增加 DDL 推断歧义、越权 ID、属性存在性、空集合、空值写入、条件新增并发、混合批量回滚、乐观锁、批量性能和
     树循环测试。
 
 暂不实现跨微服务级联、跨数据中心事务、任意深度嵌套保存、共享资源生命周期推断和复杂业务状态机；这些
@@ -760,9 +817,14 @@ public record CursorPage<E, PK>(
 - `MERGE/REPLACE`、`IGNORE_NULL/WRITE_NULL`、批量定位、归属校验和回滚行为可重复验证；
 - 只有批量新增、批量修改、批量删除和 `superCud` 保留标准写入 HTTP/gRPC 入口；单体新增、不存在时新增
   和单体删除仅作为 Java 默认方法，并分别复用正式入口；
-- `superCud` 的普通新增、条件新增、修改和删除位于一个本地事务，并返回可核对的分项结果；
+- `SuperCudReq` 以 `addEntities`、`updateEntities`、`deleteIds` 为三个基础操作分组，并包含
+  `addIfAbsentItems`、`updateByCriteriaItems`、`deleteCriteria`；
+- 六个操作分组可以在同一个请求中任意组合；空变更集返回空结果且不产生数据库写入；
+- `SuperCudResult` 返回六个对应分组，Criteria 结果按请求索引对齐；
+- `superCud` 在一个本地事务内执行全部六种变更，支持前端汇总协作编辑产生的新增、修改、删除后一次
+  保存；
 - `createIfAbsent` 只接受主键或 DDL 注册唯一键，不使用“先查后插”，并能在多实例并发启动时保持幂等；
-- 所有标准写方法最终跨 Bean 进入 `CrudChangeExecutor.execute`，事务、授权、校验、生命周期、关联、审计
+- 所有标准写方法都构造 `SuperCudReq`，最终跨 Bean 进入 `CrudChangeExecutor.superCud`，事务、授权、校验、生命周期、关联、审计
   和事件不依赖 Service 自调用触发 Spring AOP；
 - 远程代理遇到带 `@EntrypointOperation` 的默认方法时发起远程请求，只在未标注的便捷默认方法上执行
   Java 默认方法体；

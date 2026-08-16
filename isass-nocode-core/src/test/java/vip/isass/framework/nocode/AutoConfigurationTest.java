@@ -3,43 +3,32 @@
 package vip.isass.framework.nocode;
 
 import org.junit.jupiter.api.Test;
-import vip.isass.framework.nocode.criteria.ICriteria;
-import vip.isass.framework.nocode.entity.IEntity;
-import vip.isass.framework.nocode.repository.IRepository;
-import vip.isass.framework.nocode.service.ILocalService;
+import vip.isass.framework.entrypoint.IEntrypoint;
+import vip.isass.framework.entrypoint.annotation.EntrypointOperation;
+import vip.isass.framework.entrypoint.metadata.HttpMethod;
+import vip.isass.framework.nocode.service.ICrudService;
 
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 class AutoConfigurationTest {
 
     @Test
-    void serviceRegistryUsesOnlyLocalServices() {
-        LocalService localService = new LocalService();
+    void classifierMarksOnlyStandardCrudOperationsAsNocode() {
+        var classifier = new AutoConfiguration().nocodeEntrypointClassifier();
+        var page = java.util.Arrays.stream(ICrudService.class.getMethods())
+                .filter(method -> method.getName().equals("page"))
+                .findFirst().orElseThrow();
+        var custom = java.util.Arrays.stream(CustomEntrypoint.class.getMethods())
+                .filter(method -> method.getName().equals("publish"))
+                .findFirst().orElseThrow();
 
-        ServiceRegistry registry = new AutoConfiguration()
-                .ServiceRegistry(List.of(localService));
-
-        assertSame(localService, registry.require(localService.service(), localService.entity()));
+        assertTrue(classifier.isNocode(ICrudService.class, page));
+        assertFalse(classifier.isNocode(ICrudService.class, custom));
     }
 
-    static final class LocalService implements ILocalService<Entity, Criteria> {
-
-        @Override
-        public IRepository<Entity, Criteria> getRepository() {
-            throw new UnsupportedOperationException();
-        }
-    }
-
-    static final class Entity implements IEntity<Entity> {
-
-        @Override
-        public Entity randomEntity() {
-            return this;
-        }
-    }
-
-    static final class Criteria implements ICriteria<Entity, Criteria> {
+    private interface CustomEntrypoint extends IEntrypoint {
+        @EntrypointOperation(operationName = "publish", displayName = "发布", httpMethod = HttpMethod.POST)
+        void publish();
     }
 }

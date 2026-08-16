@@ -30,7 +30,8 @@ public class ApiKeyAuthenticationProvider implements AuthenticationProvider {
             throw new BadCredentialsException("当前服务未配置 API Key 认证能力");
         }
         ApiKeyAuthenticationService.ApiKeyAuthenticationResult result = service.authenticate(
-                (String) authentication.getCredentials());
+                new ApiKeyAuthenticationService.ApiKeyAuthenticationRequest(
+                        (String) authentication.getCredentials()));
         if (result == null || result.principal() == null) {
             throw new BadCredentialsException("API Key 无效");
         }

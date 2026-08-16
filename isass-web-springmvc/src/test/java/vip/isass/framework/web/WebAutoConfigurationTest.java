@@ -9,6 +9,8 @@ import org.springframework.boot.webmvc.error.ErrorAttributes;
 import vip.isass.framework.web.exception.ExceptionAdvice;
 import vip.isass.framework.web.security.PermitUrlProvider;
 import vip.isass.framework.web.servicedocs.ServiceDocsController;
+import vip.isass.framework.entrypoint.registry.ServiceDefinitionRegistry;
+import tools.jackson.databind.ObjectMapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -17,6 +19,8 @@ class WebAutoConfigurationTest {
 
     private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
             .withBean(ErrorAttributes.class, () -> mock(ErrorAttributes.class))
+            .withBean(ServiceDefinitionRegistry.class, () -> mock(ServiceDefinitionRegistry.class))
+            .withBean(ObjectMapper.class, ObjectMapper::new)
             .withPropertyValues("spring.application.name=test-app")
             .withConfiguration(AutoConfigurations.of(WebAutoConfiguration.class));
 

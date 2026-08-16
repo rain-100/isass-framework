@@ -4,14 +4,52 @@
 
 ### 4.0.0-SNAPSHOT
 
+- **API Key 认证请求体收敛**：`ApiKeyAuthenticationService` 改用共享的
+  `ApiKeyAuthenticationRequest` 对象承载完整 API Key，BSP Entrypoint 可将认证参数固定映射到 POST Body，
+  避免凭证进入 URL、Query 日志和代理访问日志。
+- **NoCode 与数据库依赖解耦**：`isass-nocode-core` 移除 MyBatis-Plus、JSqlParser 和动态数据源依赖；
+  `MybatisPlusRepository`、Wrapper 适配、表元数据注册器及相关测试迁入
+  `isass-database-mybatisplus`，并由数据库模块注册 `TableMetaRegistrar`。不使用数据库的服务（如 apidoc）
+  现在可以依赖 NoCode、Entrypoint 和 Spring Boot Adapter，而不会触发 JDBC 或动态数据源自动配置。
+- 新增 ORM 无关的 `Page<T>` 分页结果，统一由 Repository、`ICrudService.page`、批处理工具和
+  自定义应用入口返回；`MybatisPlusRepository` 在基础设施边界把 MyBatis-Plus `IPage` 转换为
+  `Page`，业务接口、领域仓储和 OpenAPI 不再暴露 MyBatis-Plus 分页类型，并移除
+  `isass-core-common` 对 `mybatis-plus-core` 的无效依赖。运行时 OpenAPI Schema 同时支持泛型属性解析、
+  按实际泛型参数隔离组件名以及 `Map` 返回值，避免分页泛型退化为 `Object` 后再次触发 JavaBean 解析异常。
+- **Entrypoint 与 NoCode 破坏式重构落地**：新增 `isass-entrypoint-core/registry/http/grpc` 四个模块，以
+  `IEntrypoint`、`EntrypointInfo`、`EntrypointOperation` 和五类参数注解在运行时生成本地/HTTP/gRPC
+  入口与 OpenAPI；NoCode URL 固定为 `/{serviceName}/nocode/{contextName}/{resourceName}/{operationName}`，
+  自定义入口固定为不含 `nocode` 的同构路径，并全面禁止业务 Path 参数。删除旧 `IService`、Manager、
+  transport/contract 实现、`isass-nocode-http/grpc` 模块、Maven 合同生成 Goal 与
+  `nocode-contract.json`，不提供旧类型或旧 URL 兼容。标准 CRUD 仅发布 `createBatch`、`superCud`、
+  `updateBatch`、`deleteBatch`、`page`、`cursorPage`、`count`、`exists` 八个操作；新增六分组
+  `SuperCudReq/SuperCudResult`、独立事务执行器、嵌套保存点条件新增、`MERGE/REPLACE`、
+  `IGNORE_NULL/WRITE_NULL`、方向性关联/树形级联、字段出现性掩码和 ID 游标分页。字段出现信息能够在
+  Bean、record、集合、数组和 Map 中经 HTTP/gRPC 双向传递；生成实体 setter 会登记显式提交字段。
+  NoCode 初始化数据改用 `/{serviceName}/nocode/system/initialization/*` 基础设施入口并按运行时
+  Entrypoint 元数据拆分本地/远程实体。BSP 与 Asset 的应用服务已迁移到 Entrypoint/ICrudService，并增加
+  全接口合同解析测试。
+- 删除已被 Entrypoint 本地实现/远程代理选择机制取代的 `ApiService`、`ApiOrder`、`IsassOrder`、
+  `IsassOrderUtil`，同时删除旧公共请求日志服务接口及其无调用方的反射辅助类；v4 不再保留
+  “本地/Feign/Manager 按顺序聚合”的旧服务调用链。
+- 修复 Entrypoint HTTP 服务端把 `FileStream` 当作普通对象包装成 `{data:{}}` 的问题；文件流契约迁入
+  `isass-entrypoint-core`，HTTP 入口现在直接流式写出文件内容、媒体类型、长度及 UTF-8
+  `Content-Disposition`，预览与下载接口不再经过 JSON 包装。
+- 修复对象 Query 中出现不属于 Criteria 的公共参数时，整个 Criteria 退回 Jackson 绑定并丢失有效条件的
+  问题；HTTP 入口现在逐项忽略未知 Query 参数，同时继续调用已知条件的 setter，避免 `appId` 等公共参数
+  使分页查询退化为无条件查询。
 - 完善自动服务入口与 NoCode 边界设计讨论，确定 `IEntrypoint`、`EntrypointInfo`、含 `displayName`、`description`、`displayOrder` 的 `EntrypointOperation` 及五类参数注解；明确 `ICrudService` 直接继承 `IEntrypoint`，正式 CRUD 方法统一标注入口注解并沿用“增-批量”“查-分页列表”等展示名，单体新增、条件新增、单体删除和 `requireOne` 等默认便捷方法不发布远程入口；确定拆分 `isass-entrypoint-core/registry/http/grpc` 四个模块，registry 仅提供协议无关元数据；各微服务自行维护 Smart-doc 配置并按服务名隔离 OpenAPI 产物，由 `isass-apidoc-openapi3` 按微服务/单体配置合并静态文档和本地 Entrypoint，同时确定不兼容读取旧 `nocode-contract.json`；并补充对象 Query 双向绑定、NoCode 入口层级、固定 URL 鉴权、应用/领域分层、聚合所有权和级联写入方案。
 - 将工作区自有源码中重复的 LGPL/Apache 长 Header 规范化为短 SPDX 标识；新增安全优先的六项目 dry-run/apply/check 工具、生成器 SPDX 模板、第三方保护规则与边界测试，并补齐项目许可证构建元数据。
 - 修复零代码 HTTP 查询对象无法将同名多值参数绑定到数组 setter 的问题，`xxxIn` 等数组条件现在支持重复 query 参数。
 - 修复零代码 HTTP 文件预览和下载直接写入中文文件名导致 Tomcat 拒绝 `Content-Disposition` 响应头的问题；文件名现在按 UTF-8 RFC 5987 编码。
+- 修复同时包含标准 CRUD 与自定义业务方法的 Entrypoint 被整体归入 NoCode 命名空间的问题；命名空间、HTTP
+  客户端、OpenAPI 与二次鉴权现在均按操作判定，标准 CRUD 继续使用 `/nocode/`，同一资源上的自定义业务方法
+  使用普通业务路径。
 
 - **零代码初始化跨服务路由**：初始化 JSON 现在按实体所属微服务分组导入，`resources/init` 下的目录仅作分类，不再被误用为目标服务。一个 JSON 可同时包含本地与远程实体；本地直接导入，远程实体按服务合并为一次 HTTP 初始化调用。
 - **出站 API Key 与 ROLE 授权收紧**：
-  - `SpringApiKeyHeaderProvider` 仅对 `isass.http.endpoints.*.url` 声明的内部服务地址或服务发现实例附加 `X-ISASS-API-Key`，不再向对象存储、AI 平台等任意外部 URL 泄露服务凭证。
+  - `SpringApiKeyHeaderProvider` 从 `isass.security.bootstrap.api-key` 读取当前微服务应用凭证，并且仅对 `isass.entrypoint.http.services.*.url`、`isass.entrypoint.http.base-url` 声明的内部服务地址或服务发现实例附加 `X-ISASS-API-Key`，不再向对象存储、AI 平台等任意外部 URL 泄露服务凭证；旧 `isass.http.endpoints` 配置已删除。
+  - `DefaultSecurityMetadataSourceProvider` 直接使用 `IAuthorizationService`，单体/BSP 选择本地实现，业务微服务选择 Entrypoint 远程代理；删除旧 `IRoleCodeService`、Manager 与 BSP 适配器链。
   - `DynamicRoleAuthorizationManager` 在 `ROLE` 策略下改为默认拒绝；除 `PermitUrlProvider` 明确放行的 URL 外，接口必须存在资源、权限与角色关联才允许访问。
   - 接口资源匹配使用实际请求的“方法 + 路径”，避免 Spring MVC 泛型路径模板导致初始化接口等资源无法稳定匹配。
 - `isass-core-dependencies` 统一管理微信服务所需的 Bouncy Castle JDK 18+ 组件版本，业务微服务不得再直写该依赖版本。
@@ -87,7 +125,10 @@
   `cursorPage` 命名；逐项评审现有 `IService` 的 36 个 CRUD 方法，确定升级七个现有方法并新增
   `cursorPage`，最终形成八个正式入口，其余改为 Java 默认实现或删除；批量新增、批量修改和批量删除保留
   为带 `EntrypointOperation` 的默认方法，单体新增、不存在时新增和单体删除改为未标注入口注解的 Java
-  默认方法，并统一规范化到超级增删改接口 `superCud`；`createIfAbsent` 只接受主键或 DDL 注册唯一键并使用数据库原子语义；新增独立
+  默认方法；`superCud` 的请求实体 `SuperCudReq` 不局限于旧 `BatchSave` 的三个字段，在保留
+  `addEntities/updateEntities/deleteIds` 的基础上，新增 `addIfAbsentItems/updateByCriteriaItems/deleteCriteria`，
+  支持一个请求任意组合全部标准写操作及空变更集幂等保存，返回六组对应结果的 `SuperCudResult`；
+  `createIfAbsent` 只接受主键或 DDL 注册唯一键并使用数据库原子语义；新增独立
   `CrudChangeExecutor` 作为事务、授权、校验、生命周期、关联、审计和事件的统一执行边界，避免 Spring
   Bean 自调用绕过切面；同时补充 `newCriteria`、`NullValueMode` 以及非 CRUD 元数据方法、
   `IServiceManager` 的迁移结论。
@@ -96,9 +137,9 @@
   生成当前实体属性，不配置反向属性名称，反向关系由目标实体 DDL 另行声明；DDL 声明删除级联，不设置
   聚合写入开关或 DDL 更新模式；新增 `IUpdateCriteria` 并由 `FullTypeCriteria` 实现，以 Query 参数动态选择
   `MERGE/REPLACE`，并以 `IGNORE_NULL/WRITE_NULL` 控制普通字段空值写入；只发布批量更新入口，单实体
-  更新默认包装为单元素集合；标准新增、条件新增、修改和删除方法均由默认实现统一调用 `superCud`，
-  `batchSave` 升级为同事务执行普通新增、条件新增、修改和删除并返回分项结果的超级增删改接口 `superCud`；真正执行
-  统一委托给独立 `CrudChangeExecutor`，不依赖 Service 自调用切面；字段出现性由 HTTP、gRPC 和本地 Java
+  更新默认包装为单元素集合；`batchSave` 升级为在同一个事务中执行普通新增、条件新增、按 ID 或 Criteria
+  修改、按 ID 或 Criteria 删除的超级增删改接口 `superCud`；全部专项写方法只构造相应 `SuperCudReq`，统一
+  委托给独立 `CrudChangeExecutor.superCud`，不依赖 Service 自调用切面；字段出现性由 HTTP、gRPC 和本地 Java
   调用统一规范化为瞬态写入属性掩码，执行器不再依赖原始 JSON；当前实体有 ID 时由 ID 与
   Criteria 共同定位，无 ID 时由 Criteria 定位；关联对象有 ID 时更新、无 ID 时新增；`IParentIdEntity`
   固定提供 `parentId/parent/children`，无需 DDL 标记生成父、子属性；表级
@@ -132,6 +173,9 @@
 
 #### fix
 
+- **超级开发者动态 URL 授权**：`DynamicRoleAuthorizationManager` 在查询 URL 资源角色前优先识别
+  `ROLE_SUPER_DEV`，避免尚未绑定业务权限或未登记资源角色的接口错误拒绝超级开发者；普通已认证用户仍需匹配
+  URL 对应角色。
 - **API Key 跨微服务认证**：`ApiKeyAuthenticationResult` 使用可传输的具体主体类型，支持 BSP 认证契约通过 NoCode HTTP 代理返回认证主体及角色，无需业务微服务自行实现认证适配器；NoCode HTTP 对单个字符串请求体统一按 JSON 字符串发送，避免服务端因 `text/plain` 请求体无法解析 API Key。
 - **nocode 合同响应 Schema**：构建期合同生成器除实体与请求参数外，现同时收集自定义业务方法的返回类型及其泛型内部类型，确保 OpenAPI/Knife4j 可展示登录、业务 VO 等响应字段；补充 `ContractGeneratorTest` 回归覆盖。
 

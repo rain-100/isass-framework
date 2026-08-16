@@ -28,6 +28,16 @@
     <dependencies>
         <dependency>
             <groupId>vip.isass</groupId>
+            <artifactId>isass-entrypoint-core</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>vip.isass</groupId>
+            <artifactId>isass-entrypoint-http</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>vip.isass</groupId>
             <artifactId>isass-core-common</artifactId>
         </dependency>
 
@@ -42,22 +52,6 @@
             <artifactId>spring-webmvc</artifactId>
         </dependency>
 
-        <!-- MyBatis-Plus (for MybatisPlusRepository) -->
-        <dependency>
-            <groupId>com.baomidou</groupId>
-            <artifactId>mybatis-plus-spring-boot4-starter</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.baomidou</groupId>
-            <artifactId>mybatis-plus-jsqlparser-4.9</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.baomidou</groupId>
-            <artifactId>dynamic-datasource-spring-boot4-starter</artifactId>
-        </dependency>
-
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -67,7 +61,6 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-tx</artifactId>
-            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

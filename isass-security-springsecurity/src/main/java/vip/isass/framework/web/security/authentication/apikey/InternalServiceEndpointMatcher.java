@@ -20,8 +20,9 @@ import java.util.stream.StreamSupport;
 /** Matches outbound URLs that belong to configured or discovered ISASS microservices. */
 final class InternalServiceEndpointMatcher {
 
-    private static final String ENDPOINT_PREFIX = "isass.http.endpoints.";
+    private static final String ENDPOINT_PREFIX = "isass.entrypoint.http.services.";
     private static final String ENDPOINT_SUFFIX = ".url";
+    private static final String BASE_URL = "isass.entrypoint.http.base-url";
     private static final String DISCOVERY_CLIENT = "org.springframework.cloud.client.discovery.DiscoveryClient";
 
     private final Environment environment;
@@ -46,7 +47,8 @@ final class InternalServiceEndpointMatcher {
 
     private Collection<URI> explicitEndpoints() {
         if (!(environment instanceof ConfigurableEnvironment configurableEnvironment)) return List.of();
-        return StreamSupport.stream(configurableEnvironment.getPropertySources().spliterator(), false)
+        Stream<URI> serviceEndpoints = StreamSupport.stream(
+                        configurableEnvironment.getPropertySources().spliterator(), false)
                 .filter(EnumerablePropertySource.class::isInstance)
                 .map(EnumerablePropertySource.class::cast)
                 .flatMap(source -> java.util.Arrays.stream(source.getPropertyNames())
@@ -55,8 +57,9 @@ final class InternalServiceEndpointMatcher {
                         .filter(String.class::isInstance)
                         .map(String.class::cast)
                         .map(this::uriOrNull)
-                        .filter(Objects::nonNull))
-                .toList();
+                        .filter(Objects::nonNull));
+        URI baseUrl = uriOrNull(environment.getProperty(BASE_URL));
+        return Stream.concat(serviceEndpoints, Stream.ofNullable(baseUrl)).distinct().toList();
     }
 
     /** All service-discovery instances are trusted according to the configured deployment policy. */
@@ -109,6 +112,7 @@ final class InternalServiceEndpointMatcher {
     }
 
     private URI uriOrNull(String value) {
+        if (value == null || value.isBlank()) return null;
         try {
             return URI.create(value);
         } catch (IllegalArgumentException ignored) {

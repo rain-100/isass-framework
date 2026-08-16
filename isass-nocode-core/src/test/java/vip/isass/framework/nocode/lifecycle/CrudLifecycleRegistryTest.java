@@ -7,10 +7,11 @@ import vip.isass.framework.common.security.CurrentPrincipalUtil;
 import vip.isass.framework.common.security.DefaultAuthenticatedPrincipal;
 import vip.isass.framework.common.security.PrincipalType;
 import vip.isass.framework.nocode.criteria.impl.type.FullTypeCriteria;
+import vip.isass.framework.nocode.criteria.field.IIdCriteria;
 import vip.isass.framework.nocode.entity.IIdEntity;
 import vip.isass.framework.nocode.entity.ITenantEntity;
 import vip.isass.framework.nocode.repository.IRepository;
-import vip.isass.framework.nocode.service.ILocalService;
+import vip.isass.framework.nocode.service.ILocalCrudService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +31,7 @@ class CrudLifecycleRegistryTest {
         CrudLifecycleListener listener = listener(events);
         CrudLifecycleRegistry.register(listener);
         try {
-            new TestService(repository).add(new TestEntity());
+            new TestService(repository).create(new TestEntity());
             assertEquals(List.of("before", "success"), events);
         } finally {
             CrudLifecycleRegistry.unregister(listener);
@@ -45,7 +46,7 @@ class CrudLifecycleRegistryTest {
         CrudLifecycleListener listener = listener(events);
         CrudLifecycleRegistry.register(listener);
         try {
-            assertThrows(IllegalStateException.class, () -> new TestService(repository).add(new TestEntity()));
+            assertThrows(IllegalStateException.class, () -> new TestService(repository).create(new TestEntity()));
             assertEquals(List.of("before", "failure"), events);
         } finally {
             CrudLifecycleRegistry.unregister(listener);
@@ -62,7 +63,7 @@ class CrudLifecycleRegistryTest {
         try {
             TestEntity entity = new TestEntity();
 
-            new TestService(repository).add(entity);
+            new TestService(repository).create(entity);
 
             assertEquals(99L, entity.getTenantId());
         } finally {
@@ -89,7 +90,7 @@ class CrudLifecycleRegistryTest {
         };
     }
 
-    static class TestService implements ILocalService<TestEntity, TestCriteria> {
+    static class TestService implements ILocalCrudService<TestEntity, TestCriteria, Long> {
         private final IRepository<TestEntity, TestCriteria> repository;
 
         TestService(IRepository<TestEntity, TestCriteria> repository) {
@@ -99,6 +100,11 @@ class CrudLifecycleRegistryTest {
         @Override
         public IRepository<TestEntity, TestCriteria> getRepository() {
             return repository;
+        }
+
+        @Override
+        public TestCriteria newCriteria() {
+            return new TestCriteria();
         }
     }
 
@@ -132,6 +138,7 @@ class CrudLifecycleRegistryTest {
         }
     }
 
-    static class TestCriteria extends FullTypeCriteria<TestEntity, TestCriteria> {
+    static class TestCriteria extends FullTypeCriteria<TestEntity, TestCriteria>
+            implements IIdCriteria<Long, TestEntity, TestCriteria> {
     }
 }

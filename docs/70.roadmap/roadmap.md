@@ -226,12 +226,11 @@
     - 将 v2 生成模板迁移到 v3 查询模型。
     - 在 ORM adapter 中把 v3 criteria 转换为 MyBatis Plus/sqltoy 查询。
 
-- [~] **分页对象优化**
-  - 已完成步骤：
-    - 已新增纯 Java `NocodePageRequest` / `NocodePageResult`。
-  - 下一步：
-    - ORM adapter 将 MyBatis Plus、sqltoy 等分页对象转换为统一 v3 模型。
-    - Spring MVC controller 层只暴露 v3 分页对象，不直接绑定某个 ORM。
+- [x] **分页对象优化**
+  - 已新增纯 Java `Page<T>`，统一包含 `records`、`pageNum`、`pageSize`、`total` 和 `pageCount`。
+  - Repository、NoCode 应用服务、批处理工具和自定义 Entrypoint 只暴露 `Page`。
+  - `MybatisPlusRepository` 在 ORM 边界把 MyBatis-Plus `IPage` 转换为 `Page`；MyBatis-Plus
+    分页类型仅允许保留在 mapper 和基础设施实现内部。
 
 - [~] **自定义实体继承 v3 接口**
   - 已完成步骤：

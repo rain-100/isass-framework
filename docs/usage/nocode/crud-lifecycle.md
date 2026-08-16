@@ -1,76 +1,26 @@
-# CRUD Lifecycle Callbacks
+# NoCode 写入生命周期
 
-`ILocalService` provides lifecycle callbacks around every standard write operation without relying on Spring AOP or any other runtime framework. The feature is implemented by the pure Java `CrudLifecycleRegistry`, so another container only needs to create and register listeners.
+所有标准新增、修改和删除最终都构造 `SuperCudReq`，并跨 Bean 进入
+`CrudChangeExecutor.superCud`。该方法是唯一标准写事务和生命周期边界，`CrudOperation` 只有
+`SUPER_CUD`，不存在旧 `batchSave` 或各专项方法的重复回调。
 
-## Callback Order
-
-For a top-level standard CRUD call, callbacks run in this order:
-
-1. `before`: before the repository operation. Throw an exception here to prevent the write.
-2. `afterSuccess`: after the repository operation returns successfully. Use it for cache invalidation and lightweight business follow-up.
-3. `onFailure`: when the operation or an earlier callback throws. The original exception is preserved.
-
-Nested standard CRUD calls do not produce another callback sequence. For example, `batchSave` internally adds, updates and deletes records, but listeners receive one `BATCH_SAVE` context only.
-
-The registry is framework-independent and does not observe transaction commit. If an outer transaction rolls back after `afterSuccess`, a cache invalidation may cause one additional database read, but it cannot expose stale authorization data.
-
-## Register A Listener
-
-Create a listener and register it when the application starts. In a Spring application, the container may construct the listener, but the lifecycle mechanism itself does not depend on Spring.
-
-```java
-public final class UserCacheListener implements CrudLifecycleListener {
-
-    @Override
-    public boolean supports(CrudLifecycleContext context) {
-        return context.entityClass() == User.class;
-    }
-
-    @Override
-    public void before(CrudLifecycleContext context) {
-        // For deletes or criteria updates, query and store affected IDs here.
-        context.attributes().put("userIds", Set.of(1001L));
-    }
-
-    @Override
-    public void afterSuccess(CrudLifecycleContext context) {
-        Set<Long> userIds = (Set<Long>) context.attributes().get("userIds");
-        userIds.forEach(userCache::evict);
-    }
-
-    @Override
-    public void onFailure(CrudLifecycleContext context, Throwable error) {
-        // Release temporary state or record an audit event.
-    }
-}
-
-CrudLifecycleRegistry.register(new UserCacheListener());
+```text
+create/createBatch/update/updateBatch/delete/deleteBatch/createIfAbsent
+  -> 构造 SuperCudReq
+  -> ILocalCrudService.superCud
+  -> CrudChangeExecutor.superCud (@Transactional)
+  -> CrudLifecycleRegistry
+  -> Repository + 关联协调器
 ```
 
-Call `CrudLifecycleRegistry.unregister(listener)` when a runtime unloads the listener.
+监听器实现 `CrudLifecycleListener` 后向 `CrudLifecycleRegistry` 注册。回调上下文提供：
 
-## Context
+- `service()`：当前 `ILocalCrudService`；
+- `entityClass()`：当前实体类型；
+- `operation()`：固定为 `SUPER_CUD`；
+- `arguments()`：包含完整 `SuperCudReq`；
+- `result()`：成功后为 `SuperCudResult`；
+- `attributes()`：同一回调链共享的临时数据。
 
-`CrudLifecycleContext` contains:
-
-- `service()`: the current `ILocalService` implementation.
-- `entityClass()`: the model class handled by the service.
-- `operation()`: `ADD`, `ADD_BATCH`, `ADD_IF_ABSENT`, `ADD_OR_UPDATE`, `UPDATE`, `DELETE`, or `BATCH_SAVE`.
-- `methodName()` and `arguments()`: the original standard CRUD method invocation.
-- `result()`: available after the operation succeeds.
-- `attributes()`: a per-invocation map shared across callbacks.
-
-Use `attributes()` to capture old relationship data in `before`, especially for `deleteById`, `deleteByCriteria` and `updateByCriteria`.
-
-## Authorization Cache Example
-
-BSP uses this mechanism for authorization relationship caches:
-
-- `UserRole` clears `user-role-ids:{userId}`.
-- `OrgUser` clears `user-org-ids:{userId}`.
-- `OrgRole` clears `org-role-ids:{orgId}`.
-- `UserPosition` clears `user-position-ids:{userId}`.
-- `PositionRole` clears `position-role-ids:{positionId}`.
-- `Role` clears `role-code:{roleId}`.
-
-The listener snapshots affected relationship records in `before`, then removes only their keys in `afterSuccess`. This avoids global invalidation when a tenant has a large number of users.
+监听器不得重新调用同一服务的标准写方法制造嵌套变更；需要扩充写入时，应在执行前规范化同一个
+`SuperCudReq`，或由明确的应用服务编排。

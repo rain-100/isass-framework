@@ -9,7 +9,11 @@ import java.util.Collection;
 /** 由基础权限服务实现的 API Key 校验 SPI。 */
 public interface ApiKeyAuthenticationService {
 
-    ApiKeyAuthenticationResult authenticate(String apiKey);
+    ApiKeyAuthenticationResult authenticate(ApiKeyAuthenticationRequest request);
+
+    /** API Key 权威认证请求；完整凭证只能通过请求体传输。 */
+    record ApiKeyAuthenticationRequest(String apiKey) {
+    }
 
     /**
      * API Key 认证结果。

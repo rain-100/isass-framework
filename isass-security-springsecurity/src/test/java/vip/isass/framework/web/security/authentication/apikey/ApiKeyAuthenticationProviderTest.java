@@ -21,9 +21,12 @@ class ApiKeyAuthenticationProviderTest {
     @Test
     void authenticatesApplicationPrincipalAndRoles() {
         ObjectProvider<ApiKeyAuthenticationService> provider = mock(ObjectProvider.class);
-        ApiKeyAuthenticationService service = apiKey -> new ApiKeyAuthenticationService.ApiKeyAuthenticationResult(
-                new DefaultAuthenticatedPrincipal().setPrincipalType(PrincipalType.APPLICATION).setPrincipalId(10L),
-                List.of("ROLE_SERVICE"));
+        ApiKeyAuthenticationService service = request -> {
+            assertEquals("isass_sk_public_secret", request.apiKey());
+            return new ApiKeyAuthenticationService.ApiKeyAuthenticationResult(
+                    new DefaultAuthenticatedPrincipal().setPrincipalType(PrincipalType.APPLICATION).setPrincipalId(10L),
+                    List.of("ROLE_SERVICE"));
+        };
         when(provider.getIfAvailable()).thenReturn(service);
 
         ApiKeyAuthenticationToken result = (ApiKeyAuthenticationToken) new ApiKeyAuthenticationProvider(provider)

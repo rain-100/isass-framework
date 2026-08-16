@@ -8,6 +8,7 @@ import tools.jackson.databind.ser.std.ToStringSerializer;
 
 import java.beans.Transient;
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * @author Rain
@@ -33,6 +34,25 @@ public interface IParentIdEntity<PK extends Serializable, E extends IParentIdEnt
      * @param parentId parent id
      */
     void setParentId(PK parentId);
+
+    /** Non-persistent parent projection. */
+    E getParent();
+
+    void setParent(E parent);
+
+    /** Non-persistent direct-child projection. */
+    List<E> getChildren();
+
+    void setChildren(List<E> children);
+
+    @Override
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    default List<EntityAssociation> associations() {
+        Class<? extends IEntity<?>> type = (Class) getClass();
+        return List.of(
+                EntityAssociation.one("parent", type, "parentId", "id", false),
+                EntityAssociation.many("children", type, "id", "parentId", false));
+    }
 
     /**
      * 标记为顶级实体

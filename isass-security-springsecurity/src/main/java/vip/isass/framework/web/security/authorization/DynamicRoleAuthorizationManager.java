@@ -36,12 +36,14 @@ public class DynamicRoleAuthorizationManager implements AuthorizationManager<Req
         }
         String resourceUri = resolveResourceUri(context.getRequest());
         if (resourceUri == null) return new AuthorizationDecision(false);
-        Collection<String> requiredRoles = metadataSourceProviderManager.findRoleCodesByUri(resourceUri);
-        if (requiredRoles == null || requiredRoles.isEmpty()) return new AuthorizationDecision(false);
         Set<String> granted = authentication.getAuthorities().stream()
                 .map(authority -> authority.getAuthority()).collect(java.util.stream.Collectors.toSet());
-        boolean allowed = granted.contains(SecurityConst.ROLE_SUPER_DEV)
-                || requiredRoles.stream().anyMatch(granted::contains);
+        if (granted.contains(SecurityConst.ROLE_SUPER_DEV)) {
+            return new AuthorizationDecision(true);
+        }
+        Collection<String> requiredRoles = metadataSourceProviderManager.findRoleCodesByUri(resourceUri);
+        if (requiredRoles == null || requiredRoles.isEmpty()) return new AuthorizationDecision(false);
+        boolean allowed = requiredRoles.stream().anyMatch(granted::contains);
         return new AuthorizationDecision(allowed);
     }
 

@@ -4,6 +4,10 @@ package vip.isass.framework.nocode.criteria.impl.type;
 
 import lombok.Getter;
 import vip.isass.framework.nocode.criteria.ICriteria;
+import vip.isass.framework.nocode.criteria.IAssociationCriteria;
+import vip.isass.framework.nocode.criteria.IUpdateCriteria;
+import vip.isass.framework.nocode.criteria.NullValueMode;
+import vip.isass.framework.nocode.criteria.UpdateMode;
 import vip.isass.framework.nocode.criteria.WhereCondition;
 import vip.isass.framework.nocode.criteria.type.IOrderByCriteria;
 import vip.isass.framework.nocode.criteria.type.IPageCriteria;
@@ -14,6 +18,8 @@ import vip.isass.framework.nocode.entity.IEntity;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * 聚合了 selectColumn、whereCondition、page、orderBy 查询条件
@@ -24,7 +30,65 @@ public class FullTypeCriteria<E extends IEntity<E>, C extends FullTypeCriteria<E
         IWhereConditionCriteria<E, C>,
         IPageCriteria<E, C>,
         IOrderByCriteria<E, C>,
+        IAssociationCriteria<C>,
+        IUpdateCriteria<C>,
         ICriteria<E, C> {
+
+    private UpdateMode updateMode;
+
+    private NullValueMode nullValueMode;
+
+    private Collection<String> associationQueries;
+
+    private Map<String, Map<String, Object>> associationCriteria;
+
+    @Override
+    public Collection<String> getAssociationQueries() {
+        return associationQueries;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public C setAssociationQueries(Collection<String> associationQueries) {
+        this.associationQueries = associationQueries;
+        return (C) this;
+    }
+
+    @Override
+    public Map<String, Map<String, Object>> getAssociationCriteria() {
+        return associationCriteria;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public C setAssociationCriteria(Map<String, Map<String, Object>> associationCriteria) {
+        this.associationCriteria = associationCriteria;
+        return (C) this;
+    }
+
+    @Override
+    public UpdateMode getUpdateMode() {
+        return updateMode;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public C setUpdateMode(UpdateMode updateMode) {
+        this.updateMode = updateMode;
+        return (C) this;
+    }
+
+    @Override
+    public NullValueMode getNullValueMode() {
+        return nullValueMode;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public C setNullValueMode(NullValueMode nullValueMode) {
+        this.nullValueMode = nullValueMode;
+        return (C) this;
+    }
 
     // region selectColumn
 

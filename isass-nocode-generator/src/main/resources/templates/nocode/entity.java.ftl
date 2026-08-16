@@ -2,21 +2,7 @@
 
 <#assign enumStart = "[枚举--">
 <#assign javaTypeStart = "[javaType--">
-<#assign associationListStart = "[关联表-列表-">
-<#assign associationOneStart = "[关联表-单体-">
-<#assign tableDescription = (table.comment!"")>
-<#if tableDescription?contains(associationListStart)>
-    <#assign tableDescription = tableDescription?substring(0, tableDescription?index_of(associationListStart))>
-<#elseif tableDescription?contains(associationOneStart)>
-    <#assign tableDescription = tableDescription?substring(0, tableDescription?index_of(associationOneStart))>
-</#if>
-<#assign tableDescription = tableDescription?trim>
 <#include "./segment/EntityType.ftl">
-<#function associationTarget marker>
-    <#assign start = table.comment?index_of(marker) + marker?length>
-    <#assign end = table.comment?index_of("]", start)>
-    <#return table.comment?substring(start, end)?trim>
-</#function>
 package ${cfg.entityPackageName};
 <#function javaType field>
 <#if field.comment!?contains("${javaTypeStart}")>
@@ -67,7 +53,7 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 import vip.isass.framework.nocode.entity.IEntity;
-<#if table.comment!?contains(associationListStart) || table.comment!?contains(associationOneStart)>
+<#if associations?has_content || isParentIdEntity>
 import vip.isass.framework.nocode.entity.EntityAssociation;
 </#if>
 <#if isIdEntity>
@@ -130,10 +116,8 @@ import java.util.Collection;
 <#break>
 </#if>
 </#list>
-<#if table.comment!?contains(associationListStart)>
+<#if associations?has_content || isParentIdEntity>
 import java.util.Collection;
-</#if>
-<#if table.comment!?contains(associationListStart) || table.comment!?contains(associationOneStart)>
 import java.util.List;
 </#if>
 
@@ -194,27 +178,58 @@ public class ${entity} implements
     @JsonSerialize(using = ToStringSerializer.class)</#if>
     private <#if field.propertyName == "deleteFlag">Boolean<#elseif field.comment!?contains("${enumStart}")>${field.propertyName?cap_first}<#elseif field.comment!?contains("${javaTypeStart}")>${javaType(field)}<#elseif field.propertyType == "JsonNode">JsonNode<#else>${field.propertyType}</#if> ${field.propertyName};
 
+    public void set${field.propertyName?cap_first}(<#if field.propertyName == "deleteFlag">Boolean<#elseif field.comment!?contains("${enumStart}")>${field.propertyName?cap_first}<#elseif field.comment!?contains("${javaTypeStart}")>${javaType(field)}<#elseif field.propertyType == "JsonNode">JsonNode<#else>${field.propertyType}</#if> ${field.propertyName}) {
+        this.${field.propertyName} = ${field.propertyName};
+        markPresentProperty("${field.propertyName}");
+    }
+
 </#list>
 <#---------- END 定义字段 ---------->
-<#if table.comment!?contains(associationListStart)>
-    private Collection<${associationTarget(associationListStart)}> ${associationTarget(associationListStart)?uncap_first}s;
+<#list associations as association>
+<#if association.kind()?string == "MANY">
+    private Collection<${association.targetEntity()}> ${association.property()};
+
+    public void set${association.property()?cap_first}(Collection<${association.targetEntity()}> ${association.property()}) {
+        this.${association.property()} = ${association.property()};
+        markPresentProperty("${association.property()}");
+    }
+<#else>
+    private ${association.targetEntity()} ${association.property()};
+
+    public void set${association.property()?cap_first}(${association.targetEntity()} ${association.property()}) {
+        this.${association.property()} = ${association.property()};
+        markPresentProperty("${association.property()}");
+    }
+</#if>
+
+</#list>
+<#if isParentIdEntity>
+    private ${entity} parent;
+
+    public void setParent(${entity} parent) {
+        this.parent = parent;
+        markPresentProperty("parent");
+    }
+
+    private List<${entity}> children;
+
+    public void setChildren(List<${entity}> children) {
+        this.children = children;
+        markPresentProperty("children");
+    }
 
 </#if>
-<#if table.comment!?contains(associationOneStart)>
-    private ${associationTarget(associationOneStart)} ${associationTarget(associationOneStart)?uncap_first};
-
-</#if>
-<#if table.comment!?contains(associationListStart) || table.comment!?contains(associationOneStart)>
+<#if associations?has_content || isParentIdEntity>
     @Override
     public List<EntityAssociation> associations() {
         return List.of(
-<#if table.comment!?contains(associationListStart)>
-                EntityAssociation.many("${associationTarget(associationListStart)?uncap_first}s", ${associationTarget(associationListStart)}.class,
-                        "id", "${entity?uncap_first}Id")<#if table.comment!?contains(associationOneStart)>,</#if>
-</#if>
-<#if table.comment!?contains(associationOneStart)>
-                EntityAssociation.one("${associationTarget(associationOneStart)?uncap_first}", ${associationTarget(associationOneStart)}.class,
-                        "${associationTarget(associationOneStart)?uncap_first}Id", "id")
+<#list associations as association>
+                EntityAssociation.${(association.kind()?string == "MANY")?then("many", "one")}("${association.property()}", ${association.targetEntity()}.class,
+                        "${association.localKey()}", "${association.targetKey()}", ${association.cascadeDelete()?c})<#if association_has_next || isParentIdEntity>,</#if>
+</#list>
+<#if isParentIdEntity>
+                EntityAssociation.one("parent", ${entity}.class, "parentId", "id", false),
+                EntityAssociation.many("children", ${entity}.class, "id", "parentId", ${treeCascadeDelete?c})
 </#if>
         );
     }

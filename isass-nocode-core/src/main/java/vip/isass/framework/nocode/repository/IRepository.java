@@ -5,7 +5,7 @@ package vip.isass.framework.nocode.repository;
 import cn.hutool.core.util.StrUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.baomidou.mybatisplus.core.metadata.IPage;
+import vip.isass.framework.common.page.Page;
 import vip.isass.framework.nocode.criteria.ICriteria;
 import vip.isass.framework.nocode.entity.IEntity;
 import vip.isass.framework.nocode.entity.IIdEntity;
@@ -48,10 +48,6 @@ public interface IRepository<E extends IEntity<E>, C extends ICriteria<E, C>> {
         throw new UnsupportedOperationException();
     }
 
-    default E addOrUpdate(E entity, List<String> uniqueColumns) {
-        throw new UnsupportedOperationException();
-    }
-
     // ****************************** 删 start ******************************
 
     default boolean deleteById(Serializable id) {
@@ -62,8 +58,18 @@ public interface IRepository<E extends IEntity<E>, C extends ICriteria<E, C>> {
         throw new UnsupportedOperationException();
     }
 
+    /** Returns the exact affected-row count when the repository supports it. */
+    default int deleteCountByIds(Collection<? extends Serializable> ids) {
+        return deleteByIds(ids) ? ids.size() : 0;
+    }
+
     default boolean deleteByCriteria(ICriteria<E, C> criteria) {
         throw new UnsupportedOperationException();
+    }
+
+    /** Returns the exact affected-row count when the repository supports it. */
+    default int deleteCountByCriteria(ICriteria<E, C> criteria) {
+        return deleteByCriteria(criteria) ? 1 : 0;
     }
 
     //****************************** 改 start ******************************
@@ -78,6 +84,11 @@ public interface IRepository<E extends IEntity<E>, C extends ICriteria<E, C>> {
 
     default boolean updateByCriteria(E entity, ICriteria<E, C> criteria) {
         throw new UnsupportedOperationException();
+    }
+
+    /** Returns the exact affected-row count when the repository supports it. */
+    default int updateCountByCriteria(E entity, ICriteria<E, C> criteria) {
+        return updateByCriteria(entity, criteria) ? 1 : 0;
     }
 
     // ****************************** 查 start ******************************
@@ -106,7 +117,7 @@ public interface IRepository<E extends IEntity<E>, C extends ICriteria<E, C>> {
         throw new UnsupportedOperationException();
     }
 
-    default IPage<E> findPageByCriteria(ICriteria<E, C> criteria) {
+    default Page<E> findPageByCriteria(ICriteria<E, C> criteria) {
         throw new UnsupportedOperationException();
     }
 
@@ -139,14 +150,6 @@ public interface IRepository<E extends IEntity<E>, C extends ICriteria<E, C>> {
     }
 
     default void exceptionIfAbsentByCriteria(ICriteria<E, C> criteria) {
-        throw new UnsupportedOperationException();
-    }
-
-    default boolean addIfAbsentByCriteria(E entity, C criteria) {
-        throw new UnsupportedOperationException();
-    }
-
-    default boolean addIfAbsentByColumns(E entity, List<String> uniqueColumns) {
         throw new UnsupportedOperationException();
     }
 

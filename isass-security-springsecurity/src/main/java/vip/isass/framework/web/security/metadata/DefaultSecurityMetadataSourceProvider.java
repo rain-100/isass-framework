@@ -3,10 +3,9 @@
 package vip.isass.framework.web.security.metadata;
 
 import org.springframework.stereotype.Component;
-import vip.isass.framework.common.web.security.metadata.rolecode.IRoleCodeService;
-import vip.isass.framework.common.web.security.metadata.rolecode.UriRoleCodesReq;
+import vip.isass.framework.web.security.authorization.IAuthorizationService;
+import vip.isass.framework.web.security.authorization.UriRoleCodesRequest;
 
-import jakarta.annotation.Resource;
 import java.util.Collection;
 
 /**
@@ -17,15 +16,18 @@ import java.util.Collection;
 @Component
 public class DefaultSecurityMetadataSourceProvider implements SecurityMetadataSourceProvider {
 
-    @Resource
-    private IRoleCodeService roleCodeService;
+    private final IAuthorizationService authorizationService;
+
+    public DefaultSecurityMetadataSourceProvider(IAuthorizationService authorizationService) {
+        this.authorizationService = authorizationService;
+    }
 
     /**
      * 获取指定用户拥有的角色
      */
     @Override
     public Collection<String> findRoleCodesByUserId(String userId) {
-        return roleCodeService.findRoleCodesByUserId(userId);
+        return authorizationService.findRoleCodesByUserId(userId);
     }
 
     /**
@@ -33,7 +35,7 @@ public class DefaultSecurityMetadataSourceProvider implements SecurityMetadataSo
      */
     @Override
     public Collection<String> findRoleCodesByUri(String uri) {
-        return roleCodeService.findRoleCodesByUri(new UriRoleCodesReq().setUri(uri));
+        return authorizationService.findRoleCodesByUri(new UriRoleCodesRequest(uri));
     }
 
 }

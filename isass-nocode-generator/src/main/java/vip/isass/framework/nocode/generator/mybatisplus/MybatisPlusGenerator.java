@@ -20,6 +20,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import vip.isass.framework.nocode.entity.ILogicDeleteEntity;
 import vip.isass.framework.nocode.entity.IVersionEntity;
+import vip.isass.framework.nocode.generator.association.TableAssociationParser;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -129,6 +130,7 @@ public class MybatisPlusGenerator {
                 ? meta.getApiOutputDir() + "/src/main/java"
                 : meta.getOutputDir() + "/src/main/java";
         String basePackage = meta.getPackageName() + "." + meta.getContext();
+        String boundedContextName = meta.getContext().substring(meta.getContext().lastIndexOf('.') + 1);
         BeansWrapper wrapper = new BeansWrapperBuilder(new Version("2.3.28")).build();
         TemplateHashModel staticModels = wrapper.getStaticModels();
 
@@ -178,12 +180,21 @@ public class MybatisPlusGenerator {
                 .injectionConfig(builder -> {
                     try {
                         builder
+                                .beforeOutputFile((table, objectMap) -> {
+                                    objectMap.put("associations", TableAssociationParser.parse(
+                                            table.getEntityName(), table.getComment()));
+                                    objectMap.put("treeCascadeDelete",
+                                            TableAssociationParser.treeCascadeDelete(table.getComment()));
+                                    objectMap.put("tableDescription",
+                                            TableAssociationParser.description(table.getComment()));
+                                })
                                 .customMap(MapUtil.<String, Object>builder()
                                         .put("context", meta.getContext())
+                                        .put("boundedContextName", boundedContextName)
                                         .put("controllerPrefix", meta.getControllerPrefix())
                                         .put("package", meta.getPackageName())
                                         .put("serviceInfoPackageName", serviceInfoPackageName(meta))
-                                        .put("entityPackageName", basePackage + ".application.model")
+                                        .put("entityPackageName", basePackage + ".domain.model")
                                         .put("criteriaPackageName", basePackage + ".application.criteria")
                                         .put("mapperPackageName", basePackage + ".infrastructure.persistence.mybatisplus")
                                         .put("servicePackageName", basePackage + ".application.service")
@@ -200,7 +211,7 @@ public class MybatisPlusGenerator {
                                 .customFile(CollUtil.newArrayList(
                                         customFile(new CustomFile.Builder()
                                                         .templatePath("/templates/nocode/entity.java.ftl")
-                                                        .packageName("application.model")
+                                                        .packageName("domain.model")
                                                         .fileName(".java")
                                                         .formatNameFunction(tableInfo -> tableInfo.getEntityName()),
                                                 meta.isEntityFileOverride()),
@@ -231,6 +242,7 @@ public class MybatisPlusGenerator {
                 ? meta.getServiceOutputDir() + "/src/main/java"
                 : meta.getOutputDir() + "/src/main/java";
         String basePackage = meta.getPackageName() + "." + meta.getContext();
+        String boundedContextName = meta.getContext().substring(meta.getContext().lastIndexOf('.') + 1);
         BeansWrapper wrapper = new BeansWrapperBuilder(new Version("2.3.28")).build();
         TemplateHashModel staticModels = wrapper.getStaticModels();
 
@@ -281,12 +293,12 @@ public class MybatisPlusGenerator {
                         builder
                                 .customMap(MapUtil.<String, Object>builder()
                                         .put("context", meta.getContext())
+                                        .put("boundedContextName", boundedContextName)
                                         .put("controllerPrefix", meta.getControllerPrefix())
                                         .put("package", meta.getPackageName())
                                         .put("serviceInfoPackageName", serviceInfoPackageName(meta))
-                                        .put("entityPackageName", basePackage + ".application.model")
+                                        .put("entityPackageName", basePackage + ".domain.model")
                                         .put("criteriaPackageName", basePackage + ".application.criteria")
-                                        .put("aggregatePackageName", basePackage + ".domain.model")
                                         .put("repositoryPackageName", basePackage + ".domain.repository")
                                         .put("mapperPackageName", basePackage + ".infrastructure.persistence.mybatisplus")
                                         .put("servicePackageName", basePackage + ".application.service")
@@ -326,23 +338,11 @@ public class MybatisPlusGenerator {
                                                         .formatNameFunction(tableInfo -> "I" + tableInfo.getEntityName() + "Repository"),
                                                 false),
                                         customFile(new CustomFile.Builder()
-                                                        .templatePath("/templates/nocode/aggregate.java.ftl")
-                                                        .packageName("domain.model")
-                                                        .fileName("Agg.java")
-                                                        .formatNameFunction(tableInfo -> tableInfo.getEntityName()),
-                                                false),
-                                        customFile(new CustomFile.Builder()
                                                         .templatePath("/templates/nocode/localService.java.ftl")
                                                         .packageName("application.service")
                                                         .fileName("ApplicationService.java")
                                                         .formatNameFunction(tableInfo -> tableInfo.getEntityName()),
-                                                meta.isLocalServiceFileOverride()),
-                                        customFile(new CustomFile.Builder()
-                                                        .templatePath("/templates/nocode/controller.java.ftl")
-                                                        .packageName("interfaces.rest")
-                                                        .fileName("Controller.java")
-                                                        .formatNameFunction(tableInfo -> "" + tableInfo.getEntityName()),
-                                                meta.isControllerFileOverride())
+                                                meta.isLocalServiceFileOverride())
                                 ));
                     } catch (Exception e) {
                         throw new RuntimeException(e);

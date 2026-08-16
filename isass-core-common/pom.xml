@@ -31,12 +31,6 @@
             <artifactId>jackson-databind</artifactId>
         </dependency>
 
-        <!-- 用到 IPage -->
-        <dependency>
-            <groupId>com.baomidou</groupId>
-            <artifactId>mybatis-plus-core</artifactId>
-        </dependency>
-
         <dependency>
             <groupId>cglib</groupId>
             <artifactId>cglib</artifactId>

@@ -25,6 +25,10 @@ import vip.isass.framework.web.interceptor.TraceIdInterceptor;
 import vip.isass.framework.web.interceptor.UriMappingInterceptor;
 import vip.isass.framework.web.servicedocs.ServiceDocsController;
 import vip.isass.framework.web.servicedocs.OpenApiPermitUrlProvider;
+import vip.isass.framework.web.servicedocs.OpenApiDocumentAssembler;
+import vip.isass.framework.entrypoint.registry.ServiceDefinitionRegistry;
+import tools.jackson.databind.ObjectMapper;
+import org.springframework.core.env.Environment;
 import vip.isass.framework.web.security.PermitUrlProvider;
 import vip.isass.framework.web.uri.UriPrefixProvider;
 
@@ -94,6 +98,15 @@ public class WebAutoConfiguration {
     public RestTemplateInterceptor restTemplateInterceptor(
             @Autowired(required = false) List<AdditionalRequestHeaderProvider> additionalHeaderProviders) {
         return new RestTemplateInterceptor(additionalHeaderProviders);
+    }
+
+    @Bean
+    public OpenApiDocumentAssembler openApiDocumentAssembler(
+            ObjectMapper objectMapper,
+            ServiceDefinitionRegistry serviceDefinitionRegistry,
+            Environment environment
+    ) {
+        return new OpenApiDocumentAssembler(objectMapper, serviceDefinitionRegistry, environment);
     }
 
 }

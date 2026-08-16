@@ -78,16 +78,11 @@
 - [x] Add the Spring `@Component` provider in `isass-security-springsecurity`.
 - [x] Verify security module registers the provider as both `MsAuthenticationHeaderProvider` and `AdditionalRequestHeaderProvider`.
 
-### Task 7: Security Role Code Manager Split
+### Task 7: Security Role Code Manager Split（已被 Entrypoint 重构取代）
 
-**Files:**
-- Modify: `isass-framework-v4/isass-core-common/src/main/java/vip/isass/framework/common/web/security/metadata/rolecode/RoleCodeServiceManager.java`
-- Create: `isass-framework-v4/isass-security-springsecurity/src/main/java/vip/isass/framework/web/security/metadata/rolecode/SpringRoleCodeServiceManager.java`
-- Create: `isass-framework-v4/isass-security-springsecurity/src/test/java/vip/isass/framework/web/security/metadata/rolecode/SpringRoleCodeServiceManagerTest.java`
-
-- [x] Keep the core manager as a pure Java aggregator that accepts services through constructor or setter.
-- [x] Add the Spring `@Primary @Service` manager in `isass-security-springsecurity`.
-- [x] Verify the Spring manager delegates user and URI role-code lookups to configured services.
+- [x] 删除旧角色编码服务、聚合 Manager 和 Spring/BSP 适配器链。
+- [x] `DefaultSecurityMetadataSourceProvider` 直接依赖 Security 模块的 `IAuthorizationService`。
+- [x] BSP 使用本地授权实现，其他微服务由 Entrypoint registry 注入远程代理。
 
 ### Task 8: Common Select Option Manager Split
 

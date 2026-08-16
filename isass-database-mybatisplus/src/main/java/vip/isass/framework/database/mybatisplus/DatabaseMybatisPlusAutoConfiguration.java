@@ -27,12 +27,19 @@ import vip.isass.framework.database.mybatisplus.typehandler.StringArrayTypeHandl
 import vip.isass.framework.database.mybatisplus.typehandler.StringCollectionTypeHandler;
 import vip.isass.framework.database.mybatisplus.util.LongSequenceImpl;
 import vip.isass.framework.database.mybatisplus.util.SystemClockImpl;
+import vip.isass.framework.nocode.TableMetaRegistrar;
 
 /**
  * @author Rain
  */
 @Import(SqlSessionConfig.class)
 public class DatabaseMybatisPlusAutoConfiguration implements InitializingBean {
+
+    @Bean
+    @ConditionalOnMissingBean
+    public TableMetaRegistrar tableMetaRegistrar() {
+        return new TableMetaRegistrar();
+    }
 
     @Bean
     @ConditionalOnMissingBean

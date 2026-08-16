@@ -3,49 +3,108 @@
 package vip.isass.framework.nocode;
 
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import vip.isass.framework.nocode.service.IService;
-import vip.isass.framework.nocode.service.ILocalService;
-import vip.isass.framework.nocode.service.ILocalApplicationService;
-import vip.isass.framework.nocode.transport.ServiceProxyRegistrar;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import vip.isass.framework.entrypoint.registry.EntrypointClassifier;
+import vip.isass.framework.nocode.service.CrudChangeExecutor;
+import vip.isass.framework.nocode.service.CrudChangeExecutorProvider;
+import vip.isass.framework.nocode.service.ICrudService;
+import vip.isass.framework.nocode.service.ILocalCrudService;
+import vip.isass.framework.nocode.service.AssociationQueryCoordinator;
+import vip.isass.framework.nocode.service.AssociationQueryCoordinatorProvider;
+import vip.isass.framework.nocode.service.AssociationWriteCoordinator;
+import vip.isass.framework.nocode.security.NocodeAuthorizationContext;
+import vip.isass.framework.nocode.security.NocodePermissionEvaluator;
+import vip.isass.framework.nocode.initialization.NocodeInitializationController;
+import vip.isass.framework.nocode.initialization.NocodeInitializationDataService;
+import vip.isass.framework.nocode.initialization.NocodeInitializationProperties;
 
-import java.util.List;
-
-@Configuration
+@org.springframework.boot.autoconfigure.AutoConfiguration
+@EnableConfigurationProperties(NocodeInitializationProperties.class)
 public class AutoConfiguration {
 
-    /**
-     * nocode 服务注册表：启动时仅扫描本地 {@link ILocalService} Bean，构建 entity → IService 映射。
-     * 远程 {@link IService} 代理属于调用方能力，不能作为本服务的 HTTP/gRPC 服务端合同注册；
-     * 否则动态代理没有可反射的实体泛型，会在启动时解析失败。
-     * 注意：表元数据 {@link TableMeta} 由 {@link TableMetaRegistrar} 在 BDRPP 阶段独立完成，
-     * 不依赖本 Bean 的初始化时机，避免与 {@code SqlSessionFactory} 的创建顺序冲突。
-     */
     @Bean
-    public ServiceRegistry ServiceRegistry(
-            List<ILocalService<?, ?>> services,
-            List<ILocalApplicationService> applicationServices
+    public CrudChangeExecutor crudChangeExecutor(
+            AssociationWriteCoordinator associations,
+            ObjectProvider<PlatformTransactionManager> transactionManager
     ) {
-        return new ServiceRegistry(services, applicationServices);
+        return new CrudChangeExecutor(associations, transactionManager.getIfAvailable());
     }
 
-    /** Kept for programmatic callers that only register standard CRUD services. */
-    public ServiceRegistry ServiceRegistry(List<ILocalService<?, ?>> services) {
-        return new ServiceRegistry(services);
-    }
-
-    /**
-     * {@link TableMetaRegistrar} 在后置处理阶段扫描 {@link vip.isass.framework.nocode.entity.IEntity}
-     * 的所有实现类并填充元数据，保证在 MyBatis-Plus 构建 {@code TableInfo} 之前完成。
-     */
     @Bean
-    public TableMetaRegistrar TableMetaRegistrar() {
-        return new TableMetaRegistrar();
+    public CrudChangeExecutorProvider crudChangeExecutorProvider(CrudChangeExecutor executor) {
+        return new CrudChangeExecutorProvider(executor);
     }
 
-    /** Registers typed remote proxies for V4 service contracts with no local implementation. */
     @Bean
-    public static ServiceProxyRegistrar ServiceProxyRegistrar() {
-        return new ServiceProxyRegistrar();
+    public AssociationQueryCoordinator associationQueryCoordinator(
+            java.util.List<ILocalCrudService<?, ?, ?>> services) {
+        return new AssociationQueryCoordinator(services);
+    }
+
+    @Bean
+    public AssociationWriteCoordinator associationWriteCoordinator(
+            java.util.List<ILocalCrudService<?, ?, ?>> services) {
+        return new AssociationWriteCoordinator(services);
+    }
+
+    @Bean
+    public AssociationQueryCoordinatorProvider associationQueryCoordinatorProvider(
+            AssociationQueryCoordinator coordinator) {
+        return new AssociationQueryCoordinatorProvider(coordinator);
+    }
+
+    @Bean
+    public EntrypointClassifier nocodeEntrypointClassifier() {
+        return (serviceInterface, operationMethod) -> ICrudService.class.isAssignableFrom(serviceInterface)
+                && operationMethod.getDeclaringClass() == ICrudService.class;
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(NocodePermissionEvaluator.class)
+    public NocodePermissionEvaluator nocodePermissionEvaluator() {
+        return NocodePermissionEvaluator.ALLOW_ALL;
+    }
+
+    @Bean
+    public vip.isass.framework.entrypoint.registry.EntrypointInvocationAuthorizer nocodeInvocationAuthorizer(
+            NocodePermissionEvaluator permissionEvaluator
+    ) {
+        return (service, operation, arguments) -> {
+            if (operation.nocode()) {
+                permissionEvaluator.check(new NocodeAuthorizationContext(
+                        service.serviceName(), service.resourceName(), operation.operationName(),
+                        java.util.List.of(arguments)));
+            }
+        };
+    }
+
+    @Bean
+    public NocodeInitializationDataService nocodeInitializationDataService(
+            java.util.List<ILocalCrudService<?, ?, ?>> services,
+            tools.jackson.databind.ObjectMapper objectMapper) {
+        return new NocodeInitializationDataService(services, objectMapper);
+    }
+
+    @Bean
+    public NocodeInitializationController nocodeInitializationController(
+            NocodeInitializationDataService dataService) {
+        return new NocodeInitializationController(dataService);
+    }
+
+    @Bean
+    public org.springframework.boot.ApplicationRunner nocodeInitializationRunner(
+            NocodeInitializationDataService dataService,
+            vip.isass.framework.entrypoint.http.HttpEndpointResolver endpoints,
+            tools.jackson.databind.ObjectMapper objectMapper,
+            ObjectProvider<vip.isass.framework.common.web.header.AdditionalRequestHeaderProvider> headers,
+            NocodeInitializationProperties properties,
+            vip.isass.framework.entrypoint.registry.ServiceDefinitionRegistry definitions) {
+        var remote = new vip.isass.framework.nocode.initialization.NocodeInitializationRemoteClient(
+                endpoints, objectMapper, headers.orderedStream().toList());
+        return new vip.isass.framework.nocode.initialization.NocodeInitializationRunner(
+                dataService, remote, properties, definitions).runner();
     }
 }
