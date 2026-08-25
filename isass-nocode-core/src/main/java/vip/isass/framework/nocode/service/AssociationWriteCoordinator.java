@@ -23,7 +23,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 
-/** Saves direct aggregate members and applies fixed directional cascade-delete metadata. */
+/**
+ * Saves direct aggregate members and applies fixed directional cascade-delete metadata.
+ */
 public final class AssociationWriteCoordinator {
 
     private final Map<Class<?>, ILocalCrudService<?, ?, ?>> services;
@@ -186,7 +188,8 @@ public final class AssociationWriteCoordinator {
             return action.get();
         } finally {
             int value = nesting.get() - 1;
-            if (value == 0) nesting.remove(); else nesting.set(value);
+            if (value == 0) nesting.remove();
+            else nesting.set(value);
         }
     }
 

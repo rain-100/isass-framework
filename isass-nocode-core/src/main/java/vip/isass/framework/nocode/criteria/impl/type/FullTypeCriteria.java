@@ -38,6 +38,8 @@ public class FullTypeCriteria<E extends IEntity<E>, C extends FullTypeCriteria<E
 
     private NullValueMode nullValueMode;
 
+    private Collection<String> matchFields;
+
     private Collection<String> associationQueries;
 
     private Map<String, Map<String, Object>> associationCriteria;
@@ -87,6 +89,18 @@ public class FullTypeCriteria<E extends IEntity<E>, C extends FullTypeCriteria<E
     @SuppressWarnings("unchecked")
     public C setNullValueMode(NullValueMode nullValueMode) {
         this.nullValueMode = nullValueMode;
+        return (C) this;
+    }
+
+    @Override
+    public Collection<String> getMatchFields() {
+        return matchFields;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public C setMatchFields(Collection<String> matchFields) {
+        this.matchFields = matchFields == null ? null : List.copyOf(matchFields);
         return (C) this;
     }
 

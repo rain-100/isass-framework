@@ -10,6 +10,7 @@ import vip.isass.framework.nocode.criteria.IUpdateCriteria;
 import vip.isass.framework.nocode.criteria.field.IIdCriteria;
 import vip.isass.framework.nocode.criteria.type.IOrderByCriteria;
 import vip.isass.framework.nocode.criteria.type.IPageCriteria;
+import vip.isass.framework.nocode.entity.CrudQueryReq;
 import vip.isass.framework.nocode.entity.CursorPage;
 import vip.isass.framework.nocode.entity.IIdEntity;
 import vip.isass.framework.nocode.entity.ITenantEntity;
@@ -18,10 +19,7 @@ import vip.isass.framework.nocode.entity.SuperCudResult;
 import vip.isass.framework.nocode.repository.IRepository;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
-import java.util.Locale;
 
 /** Local implementation contract for one NoCode CRUD aggregate. */
 public interface ILocalCrudService<
@@ -46,54 +44,32 @@ public interface ILocalCrudService<
     }
 
     @Override
-    default SuperCudResult<E> superCud(SuperCudReq<E, C> request) {
-        return CrudChangeExecutorProvider.getRequired().superCud(this, request);
+    default SuperCudResult superCud(SuperCudReq<E, C> request) {
+        return CrudWriteExecutorProvider.getRequired().superCud(this, request);
     }
 
     @Override
     default Page<E> page(C criteria) {
-        Page<E> page = getRepository().findPageByCriteria(criteria);
-        AssociationQueryCoordinatorProvider.populate(page.getRecords(), criteria);
-        return page;
+        return CrudQueryExecutorProvider.getRequired()
+                .query(this, CrudQueryReq.<C, PK>page(criteria)).page();
     }
 
     @Override
     default CursorPage<E, PK> cursorPage(C criteria, PK cursorId, Long pageSize) {
-        C query = criteria.copy();
-        String orderBy = query.getOrderBy();
-        String normalized = orderBy == null || orderBy.isBlank()
-                ? "id asc"
-                : orderBy.trim().replaceAll("\\s+", " ").toLowerCase(Locale.ROOT);
-        if (!normalized.equals("id asc") && !normalized.equals("id desc")) {
-            throw new IllegalArgumentException("游标分页只允许 orderBy=id asc 或 id desc");
-        }
-        long size = pageSize == null ? 20L : pageSize;
-        if (size < 1 || size > 1000) {
-            throw new IllegalArgumentException("cursorPage.pageSize 必须在 1 到 1000 之间");
-        }
-        if (cursorId != null) {
-            if (normalized.endsWith("desc")) {
-                query.setIdLessThan(cursorId);
-            } else {
-                query.setIdGreaterThan(cursorId);
-            }
-        }
-        query.setOrderBy(normalized).setPageNum(1L).setPageSize(size + 1L).setSearchCountFlag(false);
-        List<E> fetched = page(query).getRecords();
-        boolean hasMore = fetched.size() > size;
-        List<E> records = hasMore ? new ArrayList<>(fetched.subList(0, (int) size)) : List.copyOf(fetched);
-        PK nextCursorId = records.isEmpty() ? cursorId : records.getLast().getId();
-        return new CursorPage<>(records, nextCursorId, hasMore);
+        return CrudQueryExecutorProvider.getRequired()
+                .query(this, CrudQueryReq.cursorPage(criteria, cursorId, pageSize)).cursorPage();
     }
 
     @Override
     default Long count(C criteria) {
-        return getRepository().countByCriteria(criteria).longValue();
+        return CrudQueryExecutorProvider.getRequired()
+                .query(this, CrudQueryReq.<C, PK>count(criteria)).count();
     }
 
     @Override
-    default Boolean exists(C criteria) {
-        return getRepository().isPresentByCriteria(criteria);
+    default boolean exists(C criteria) {
+        return CrudQueryExecutorProvider.getRequired()
+                .query(this, CrudQueryReq.<C, PK>exists(criteria)).exists();
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})

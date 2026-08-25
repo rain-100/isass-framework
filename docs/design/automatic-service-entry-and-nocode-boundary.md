@@ -45,7 +45,7 @@ OpenClaw 使用服务账号 API Key 调用 Asset 服务时，身份认证已经�
 | 代码生成器 | `isass-nocode-generator` 改为普通 `jar`，只保留 NoCode 源码生成 |
 | 领域模型 | 生成模型迁移到 `domain.model`，删除无行为的 `XxxAgg` 空壳类 |
 | 数据库关系 | 禁止数据库外键；关联和级联由 DDL 元数据及应用事务实现 |
-| 授权自举 | `findRoleCodesByUri` 使用已认证应用主体和固定内部角色，不再动态查询自身权限 |
+| 运行时授权 | 入口所需权限来自当前进程的本地 Java 权限定义，主体权限通过统一授权上下文获得，不再查询 URL—角色映射 |
 
 ## 3. 分层与接口边界
 
@@ -220,7 +220,7 @@ NoCode 的 `one`、`list`、`page`、`cursorPage` 等标准 `operationName` 不�
 /asset-service/nocode/sample/sampleGroup/cursorPage
 /asset-service/sample/taskExecution/claim
 /bsp-service/auth/authentication/publicKey
-/bsp-service/auth/authorization/findRoleCodesByUri
+/bsp-service/auth/authorization/jwtContext
 ```
 
 `/{serviceName}/nocode/**` 是可稳定识别的 NoCode 命名空间，用于路由、OpenAPI 分组、审计、限流和第二层
@@ -405,11 +405,11 @@ create / createBatch / createIfAbsent / update / updateBatch / delete / deleteBa
 一次提交多种增删改
   -> 构造包含多个操作分组的 SuperCudReq
     -> superCud
-      -> CrudChangeExecutor.superCud
+      -> CrudWriteExecutor.superCud
 ```
 
-`SuperCudReq` 不是仅含旧 `BatchSave` 三个字段的重命名类型。它保留 `addEntities`、`updateEntities`、
-`deleteIds`，并增加条件新增、Criteria 更新和 Criteria 删除分组，以覆盖标准 NoCode 的全部写能力。一次请求
+`SuperCudReq` 不是旧 `BatchSave` 的简单重命名类型。它包含 `addEntities`、`addByFields`、
+`updateEntities`、`updateCriteria`、`deleteIds` 和 `deleteCriteria`，以覆盖标准 NoCode 的全部写能力。一次请求
 可以同时填充任意多个操作分组。前端可以先在本地完成多次新增、修改、删除，再把归并后的最终变更集一次
 提交；服务端在同一个本地事务中验证并执行全部分组。专项方法只是构造单一分组请求的稳定 API，不维护
 第二套写入逻辑。
@@ -420,12 +420,12 @@ create / createBatch / createIfAbsent / update / updateBatch / delete / deleteBa
 
 | 方法 | 处理 | 原因 | 关键实现 |
 | --- | --- | --- | --- |
-| `add(E entity)` | 改为默认实现 | 单体新增是超级增删改中单元素新增的特例，无需单独发布前端入口。 | 重命名为未标注入口注解的 `create`：`default E create(E entity) { return superCud(SuperCudReq.add(entity)).addEntities().getFirst(); }`。 |
-| `addBatch(Collection<E> entities)` | 升级 | 批量新增是前端需要的正式入口，但实际写入应统一进入同一个执行器。 | 重命名为带入口注解的默认方法 `createBatch`。<br>`@EntrypointOperation(operationName="createBatch", displayName="增-批量", description="批量新增数据", displayOrder=101, httpMethod=HttpMethod.POST)`<br>`default List<E> createBatch(@BodyParam Collection<E> entities) { return superCud(SuperCudReq.addAll(entities)).addEntities(); }` |
+| `add(E entity)` | 改为默认实现 | 单体新增是超级增删改中单元素新增的特例，无需单独发布前端入口。 | 重命名为未标注入口注解的 `create`：先调用 `superCud(SuperCudReq.add(entity))`，再返回由持久化层回填后的输入实体。 |
+| `addBatch(Collection<E> entities)` | 升级 | 批量新增是前端需要的正式入口，但实际写入应统一进入同一个执行器。 | 重命名为带入口注解的默认方法 `createBatch`。<br>`@EntrypointOperation(operationName="createBatch", displayName="增-批量", description="批量新增数据", displayOrder=101, httpMethod=HttpMethod.POST)`<br>`default Long createBatch(@BodyParam Collection<E> entities) { return superCud(SuperCudReq.addAll(entities)).addedCount(); }` |
 | `addBatchByBatchSize(Collection<E> entities, int batchSize)` | 删除 | `batchSize` 是 Repository、驱动和运行环境的执行参数，不应由远程调用方控制。 | 从 CRUD 接口删除；Repository 根据框架配置和数据库能力分批执行，业务需要特殊批次时使用显式应用服务。 |
-| `addIfAbsentByCriteria(E entity, C criteria)` | 改为默认实现 | 微服务初始化、内置参数和字典等内部场景需要幂等新增，但前端无需独立入口。 | 重命名为未标注入口注解的 `createIfAbsent`：`return superCud(SuperCudReq.addIfAbsent(entity, criteria)).addIfAbsentResults().getFirst();`。Criteria 必须精确对应主键或 DDL 注册的唯一键。 |
-| `addIfAbsentByColumns(E entity, List<String> uniqueColumns)` | 删除 | 允许客户端提交任意列名既不类型安全，也会暴露数据库结构，并且当前实现不是原子操作。 | 唯一键由 Liquibase DDL 固定声明；确需通用能力时只能选择已注册的命名唯一键，不能接收任意列名。 |
-| `addBatchIfAbsentByCriteria(List<E> entities, C criteria)` | 删除 | 一组实体共用一个不存在条件，无法说明每个实体对应哪个唯一键，原合同语义不成立。 | 使用 `superCud.addIfAbsentItems`，每个 `AddIfAbsentItem` 分别携带实体和自己的唯一 Criteria。 |
+| `addIfAbsentByCriteria(E entity, C criteria)` | 改为默认实现 | 微服务初始化、内置参数和字典等内部场景需要幂等新增，但前端无需独立入口。 | 重命名为未标注入口注解的 `createIfAbsent`，调用方用字符串或 getter Lambda 指定 `addByFields`，方法返回是否实际新增。字段唯一性属于业务约束，框架不强制检查索引。 |
+| `addIfAbsentByColumns(E entity, List<String> uniqueColumns)` | 删除 | 不再保留旧的独立方法；条件新增统一由 `superCud` 管理生命周期。 | Java 便捷方法使用 getter Lambda，传输请求使用 Java 属性名；唯一性和索引由业务负责。 |
+| `addBatchIfAbsentByCriteria(List<E> entities, C criteria)` | 删除 | Criteria 中的固定值不能自动对应批次内每个实体。 | 使用 `SuperCudReq.addEntities + addByFields`；执行器遍历实体并按同一组属性分别生成不存在条件。 |
 | `addBatchIfAbsentByColumns(List<E> entities, List<String> uniqueColumns)` | 删除 | 任意列名、逐条探测和部分成功语义不适合作为标准 CRUD 合同。 | 移到专用导入/同步应用服务，明确事务模式、冲突策略和逐条结果。 |
 | `addOrUpdateByCriteria(E entity, C criteria)` | 删除 | “先更新、未命中再新增”在并发下不原子，Criteria 还可能匹配多条，新增时也没有稳定业务键。 | 使用显式应用服务；若未来增加标准 upsert，必须由 DDL 唯一键和数据库原子 upsert 支撑。 |
 | `addOrUpdateByColumns(E entity, List<String> uniqueColumns)` | 删除 | 客户端动态选择唯一列不安全，且不同数据库的 upsert 语义不同。 | 使用命名唯一键的显式业务入口，不保留任意 `uniqueColumns`。 |
@@ -435,20 +435,20 @@ create / createBatch / createIfAbsent / update / updateBatch / delete / deleteBa
 
 | 方法 | 处理 | 原因 | 关键实现 |
 | --- | --- | --- | --- |
-| `deleteById(Serializable id)` | 改为默认实现 | 单体删除是超级增删改中单 ID 删除的特例，无需单独发布前端入口。 | 重命名为未标注入口注解的 `delete`：`default Boolean delete(PK id) { return superCud(SuperCudReq.delete(id)).deleteIds().size() == 1; }`。 |
+| `deleteById(Serializable id)` | 改为默认实现 | 单体删除是超级增删改中单 ID 删除的特例，无需单独发布前端入口。 | 重命名为未标注入口注解的 `delete`：`return superCud(SuperCudReq.delete(id)).deletedCount() == 1;`。 |
 | `deleteByIds(Collection<Serializable> ids)` | 改为默认实现 | 多 ID 删除已经被 Criteria 的 `idIn` 覆盖，不需要第二个远程合同。 | `return deleteBatch(newCriteria().setIdIn(ids)) > 0;`。只在 Java 层提供；远程调用使用 `deleteBatch?idIn=...`。 |
-| `deleteByCriteria(C criteria)` | 升级 | Criteria 是前端批量删除的统一范围表达。 | 重命名为带入口注解的默认方法 `deleteBatch`。<br>`@EntrypointOperation(operationName="deleteBatch", displayName="删-批量", description="根据查询条件批量删除数据", displayOrder=401, httpMethod=HttpMethod.DELETE)`<br>`default Integer deleteBatch(@QueryParam C criteria) { return superCud(SuperCudReq.deleteByCriteria(criteria)).deleteByCriteriaCounts().getFirst(); }`<br>没有有效 Where 条件时必须拒绝。 |
+| `deleteByCriteria(C criteria)` | 升级 | Criteria 是前端批量删除的统一范围表达。 | 重命名为带入口注解的默认方法 `deleteBatch`。<br>`@EntrypointOperation(operationName="deleteBatch", displayName="删-批量", description="根据查询条件批量删除数据", displayOrder=401, httpMethod=HttpMethod.DELETE)`<br>`default Long deleteBatch(@QueryParam C criteria) { return superCud(SuperCudReq.deleteByCriteria(criteria)).deletedCount(); }`<br>没有有效 Where 条件时必须拒绝。 |
 
 #### 6.1.3 改
 
 | 方法 | 处理 | 原因 | 关键实现 |
 | --- | --- | --- | --- |
-| `updateById(E entity)` | 改为默认实现 | 单实体按 ID 更新是超级增删改中单元素更新的特例。 | 重命名为 `update(E entity)`：`return superCud(SuperCudReq.update(entity)).updateEntities().size() == 1;`。 |
+| `updateById(E entity)` | 改为默认实现 | 单实体按 ID 更新是超级增删改中单元素更新的特例。 | 重命名为 `update(E entity)`：`return superCud(SuperCudReq.update(entity)).updatedCount() > 0;`。 |
 | `updateAllColumnsById(E entity)` | 改为默认实现 | 与普通更新的唯一区别是普通字段的 `null` 是否写入数据库，不需要独立远程入口。 | 重命名为 `updateAllColumns(E entity)`：`return update(entity, newCriteria().setNullValueMode(WRITE_NULL));`；默认普通更新使用 `IGNORE_NULL`。 |
 | `updateByIdOrException(E entity)` | 改为默认实现 | “未更新则抛异常”是返回结果之上的 Java 便捷语义。 | 合并为 `requireUpdate(entity, newCriteria())`；内部调用 `update`，结果为 `0` 时抛 `AbsentException`。 |
-| `updateByCriteria(E entity, C criteria)` | 升级 | 前端需要正式 Criteria 更新入口。 | 重命名为带入口注解的默认方法 `updateBatch`，Body 永远是集合。<br>`@EntrypointOperation(operationName="updateBatch", displayName="改-批量", description="根据实体 ID 或查询条件批量修改数据", displayOrder=201, httpMethod=HttpMethod.PUT)`<br>`default Integer updateBatch(@BodyParam Collection<E> entities, @QueryParam C criteria) { return superCud(SuperCudReq.updateByCriteria(entities, criteria)).updateByCriteriaCounts().getFirst(); }` |
+| `updateByCriteria(E entity, C criteria)` | 升级 | 前端需要正式 Criteria 更新入口。 | 重命名为带入口注解的默认方法 `updateBatch`，Body 永远是集合。<br>`@EntrypointOperation(operationName="updateBatch", displayName="改-批量", description="根据实体 ID 或查询条件批量修改数据", displayOrder=201, httpMethod=HttpMethod.PUT)`<br>`default Long updateBatch(@BodyParam Collection<E> entities, @QueryParam C criteria) { return superCud(SuperCudReq.updateByCriteria(entities, criteria)).updatedCount(); }` |
 | `updateByCriteriaOrException(E entity, C criteria)` | 改为默认实现 | 与正式更新只有零影响行时抛异常的差异。 | 合并为 `requireUpdate(entity, criteria)`；内部调用 `update(entity, criteria)`。 |
-| `batchSave(BatchSave<E> batchSave)` | 升级 | 它升级为兼容全部标准增删改能力的统一变更集入口，并负责一个本地事务。 | 重命名为 `superCud` 并返回分项结果。<br>`@EntrypointOperation(operationName="superCud", displayName="超级增删改", description="在一个事务中执行普通新增、条件新增、按 ID 或 Criteria 修改、按 ID 或 Criteria 删除", displayOrder=202, httpMethod=HttpMethod.POST)`<br>`SuperCudResult<E> superCud(@BodyParam SuperCudReq<E, C> req);`<br>`ILocalCrudService` 的默认实现调用独立 `CrudChangeExecutor.superCud(service, req)`。 |
+| `batchSave(BatchSave<E> batchSave)` | 升级 | 它升级为兼容全部标准增删改能力的统一变更集入口，并负责一个本地事务。 | 重命名为 `superCud` 并返回汇总影响数量。<br>`@EntrypointOperation(operationName="superCud", displayName="超级增删改", description="在一个事务中执行新增、修改和删除", displayOrder=202, httpMethod=HttpMethod.POST)`<br>`SuperCudResult superCud(@BodyParam SuperCudReq<E, C> req);`<br>`ILocalCrudService` 的默认实现调用独立 `CrudWriteExecutor.superCud(service, req)`。 |
 
 #### 6.1.4 查
 
@@ -464,15 +464,15 @@ create / createBatch / createIfAbsent / update / updateBatch / delete / deleteBa
 | `findAll()` | 删除 | 无条件返回全部数据没有稳定上限，容易造成内存、网络和数据库风险；改成限制 9999 条又会悄悄改变原语义。 | 调用方明确选择 `list(newCriteria())`、`page`、`cursorPage` 或导出任务。 |
 | `countByCriteria(C criteria)` | 升级 | Criteria 可以统一表达条件统计和全表统计。 | 重命名为 `count`，返回 `Long`。<br>`@EntrypointOperation(operationName="count", displayName="查-数量", description="根据查询条件统计数据数量", displayOrder=303, httpMethod=HttpMethod.GET)`<br>`Long count(@QueryParam C criteria);` |
 | `countAll()` | 改为默认实现 | 全部数量是空 Criteria 的普通统计，不需要独立远程操作。 | `return count(newCriteria());`。 |
-| `isPresentById(Serializable id)` | 改为默认实现 | ID 是否存在是统一 `exists` 的便捷形式。 | `return exists(newCriteria().setId(id));`。 |
+| `isPresentById(Serializable id)` | 改为默认实现 | ID 是否存在是统一 `exists` 的便捷形式。 | 重命名为 `existsById`：`return exists(newCriteria().setId(id));`。 |
 | `isPresentByColumn(String propertyName, Object value)` | 删除 | 字符串属性名不类型安全，会暴露持久化属性并绕过 Criteria 的白名单和类型转换。 | 使用 `exists(new XxxCriteria().setXxx(value))`；不提供任意属性名入口。 |
-| `isPresentByCriteria(C criteria)` | 升级 | 是否存在是高频且可优化为 `SELECT 1 ... LIMIT 1` 的正式查询能力。 | 重命名为 `exists`。<br>`@EntrypointOperation(operationName="exists", displayName="查-是否存在", description="判断是否存在符合查询条件的数据", displayOrder=304, httpMethod=HttpMethod.GET)`<br>`Boolean exists(@QueryParam C criteria);` |
-| `isAbsentByColumn(String propertyName, Object value)` | 删除 | 与 `isPresentByColumn` 有相同的字符串属性风险，且否定语义可由 `exists` 推导。 | 使用类型安全 Criteria 和默认 `absent(criteria)`。 |
-| `isAbsentByCriteria(C criteria)` | 改为默认实现 | 是否不存在是 `exists` 的逻辑取反。 | 重命名为 `absent`：`return !exists(criteria);`。 |
+| `isPresentByCriteria(C criteria)` | 升级 | 是否存在是高频且可优化为 `SELECT 1 ... LIMIT 1` 的正式查询能力。 | 重命名为 `exists`。<br>`@EntrypointOperation(operationName="exists", displayName="查-是否存在", description="判断是否存在符合查询条件的数据", displayOrder=304, httpMethod=HttpMethod.GET)`<br>`boolean exists(@QueryParam C criteria);` |
+| `isAbsentByColumn(String propertyName, Object value)` | 删除 | 与 `isPresentByColumn` 有相同的字符串属性风险，且否定语义可由 `exists` 推导。 | 使用类型安全 Criteria 后直接调用 `!exists(criteria)`。 |
+| `isAbsentByCriteria(C criteria)` | 删除 | 它只是 `!exists(criteria)`，保留另一个 `absent` 词根会使存在性方法命名不统一。 | 调用方直接使用 `!exists(criteria)`；需要断言记录不存在时使用 `requireAbsent(criteria)`。 |
 | `exceptionIfPresentByCriteria(C criteria)` | 改为默认实现 | “存在则抛异常”是 Java 业务前置校验，不需要远程合同。 | 重命名为 `requireAbsent`；`exists(criteria)` 为 `true` 时抛 `AlreadyPresentException`。它不能代替数据库唯一约束。 |
 | `exceptionIfAbsentByCriteria(C criteria)` | 改为默认实现 | “不存在则抛异常”是 `exists` 上的便捷校验。 | 重命名为 `requireExists`；`exists(criteria)` 为 `false` 时抛 `AbsentException`。 |
 
-现有 36 个 CRUD 方法的处理统计为：升级 7 个、改为默认实现 18 个、删除 11 个；再新增一个正式
+现有 36 个 CRUD 方法的处理统计为：升级 7 个、改为默认实现 17 个、删除 12 个；再新增一个正式
 `cursorPage`，最终形成八个正式远程入口。
 
 ### 6.2 新增的方法和类型
@@ -486,11 +486,8 @@ create / createBatch / createIfAbsent / update / updateBatch / delete / deleteBa
 | `requireUpdate(E entity, C criteria)` | 默认实现 | 合并两个 `OrException` 更新方法。 | 调用 `update(entity, criteria)`；影响数量为 `0` 时抛 `AbsentException`。 |
 | `CursorPage<E, PK>` | 返回类型 | 表达无总数查询的游标结果。 | 包含 `records`、`nextCursorId` 和 `hasMore`。 |
 | `Page<E>` | 返回类型 | 普通分页结果不能让应用层、远程入口和 OpenAPI 强耦合 MyBatis-Plus。 | 包含 `records`、`pageNum`、`pageSize`、`total` 和 `pageCount`；ORM 分页对象只存在于基础设施内部。 |
-| `CreateIfAbsentResult<E>` | 返回类型 | 调用方需要区分本次新建还是记录原本已存在。 | 包含 `created` 和 `entity`；未新建时返回按唯一 Criteria 找到的既有实体。 |
-| `AddIfAbsentItem<E, C>` | 请求项 Record | 一次 `superCud` 可能包含多条条件新增，每条必须使用自己的唯一 Criteria。 | 包含 `entity` 和 `criteria`。 |
-| `UpdateByCriteriaItem<E, C>` | 请求项 Record | 一次 `superCud` 可能包含多个不同更新范围，不能让全部更新实体共享一个全局 Criteria。 | 包含 `entities` 和 `criteria`。 |
-| `SuperCudReq<E, C>` | 请求实体 Record | 取代旧 `BatchSave`；保留原有三类变更，并扩展为能够在一个请求中组合全部标准写能力。 | 包含 `addEntities`、`addIfAbsentItems`、`updateEntities`、`updateByCriteriaItems`、`deleteIds`、`deleteCriteria`；任意分组可以组合使用，所有集合规范化为空的不可变列表。 |
-| `SuperCudResult<E>` | 返回类型 Record | 旧 `batchSave` 没有结果，新增该类型让调用方按请求分组核对执行结果。 | 包含 `addEntities`、`addIfAbsentResults`、`updateEntities`、`updateByCriteriaCounts`、`deleteIds`、`deleteByCriteriaCounts`，结果列表与请求分组按索引对应。 |
+| `SuperCudReq<E, C>` | 请求实体 Record | 取代旧 `BatchSave`，以同一批次统一匹配规则组合标准写能力。 | 包含 `addEntities`、`addByFields`、`updateEntities`、`updateCriteria`、`deleteIds`、`deleteCriteria`；Builder 支持 getter Lambda，传输仍使用属性名字符串。 |
+| `SuperCudResult` | 返回类型 Record | 大批量保存无需回传实体副本或逐项结果。 | 只包含 `addedCount`、`updatedCount`、`deletedCount` 三个汇总影响数量。 |
 | `NullValueMode` | 更新策略 | 取代独立 `updateAllColumnsById` 入口，明确普通字段的 `null` 写入语义。 | `IGNORE_NULL` 为默认值，`WRITE_NULL` 表示把请求中显式提交的 `null` 写入数据库；由 `IUpdateCriteria.nullValueMode` 传递。 |
 
 升级后的 `ICrudService` 正式入口共八个：`createBatch`、`superCud`、`deleteBatch`、`updateBatch`、`page`、
@@ -514,24 +511,29 @@ create / createBatch / createIfAbsent / update / updateBatch / delete / deleteBa
 ### 6.4 其他接口和迁移建议
 
 - `IService` 重命名为 `ICrudService`；正式发布前删除旧接口，不同时注册新旧路由；
-- `ILocalService` 重命名为 `ILocalCrudService`，连接统一写执行器和 Repository，并提供八个正式 CRUD
-  入口；
+- `ILocalService` 重命名为 `ILocalCrudService`，连接统一写/查询执行器和 Repository，并提供八个正式
+  CRUD 入口；
 - 删除 `IServiceManager`。一个 Entrypoint 只能有一个权威本地实现；远程协议选择由统一代理和传输提供者
   负责，不能继续按多个 Service 的 `getOrder()` 逐个委托；
 - `IRepository` 保留本地持久化能力，可以包含批次大小、Wrapper 和数据库专用优化，但绝不生成远程入口；
-- `BatchSave` 被请求实体 Record `SuperCudReq` 取代；保留其三个旧字段并增加三个 Criteria 操作分组，结果
-  使用 `SuperCudResult`，迁移后删除旧类型；
+- `BatchSave` 被请求实体 Record `SuperCudReq` 取代；新增、修改分别使用一套批次级匹配规则，结果使用仅含
+  三类汇总影响数量的 `SuperCudResult`，迁移后删除旧类型；
 - `SuperCudReq` 与旧 `BatchSave` 一样放在 `isass-nocode-core` 的 `nocode.entity` 包，作为可传输的请求
   实体；它不实现持久化 `IEntity`，不对应数据库表，也不是领域聚合；
-- `SuperCudReq` 允许所有分组都为空。空变更集是合法的幂等 no-op，返回六个空结果分组，便于协作编辑器在
+- `SuperCudReq` 允许所有分组都为空。空变更集是合法的幂等 no-op，返回三个零值计数，便于协作编辑器在
   没有净变更时仍安全执行“保存”；
-- 保留基于主键或 DDL 注册唯一键的 `createIfAbsent`；删除任意列名形式和原语义含混的批量
-  `IfAbsent`；`AddOrUpdate` 仍不属于标准 CRUD；
+- 保留基于 Java 属性名的 `createIfAbsent`，Java Builder 可使用 getter Lambda；框架说明非唯一字段和并发
+  重复风险，但不在代码层强制唯一索引；`AddOrUpdate` 仍不属于标准 CRUD；
 - `superCud` 不直接把事务、权限和生命周期散落在 Service 默认方法中。`ILocalCrudService` 的
-  `superCud` 默认实现调用独立 Spring Bean `CrudChangeExecutor.superCud(service, req)`；事务、数据
+  `superCud` 默认实现调用独立 Spring Bean `CrudWriteExecutor.superCud(service, req)`；事务、数据
   权限、关联写入、CRUD 生命周期、审计和事件统一位于该执行器；
+- `page/cursorPage/count/exists` 统一构造 `CrudQueryReq` 并调用独立 Spring Bean
+  `CrudQueryExecutor.query(service, req)`；查询条件复制、数据范围、关联装配、观测和失败回调统一位于
+  该执行器；
 - 不能只给 Service 的 `superCud` 方法配置 Spring AOP 后依赖 `this.superCud(...)` 自调用，因为同一
-  Bean 内部调用会绕过代理。需要切面的能力应拦截独立 `CrudChangeExecutor`，或直接成为执行器内部步骤；
+  Bean 内部调用会绕过代理。需要切面的能力应拦截独立 `CrudWriteExecutor`，或直接成为执行器内部步骤；
+- 写/查询生命周期监听器都作为 Spring Bean 自动收集，不允许使用静态注册表；写生命周期区分事务内
+  `beforeExecute/afterExecute` 与真实事务完成后的 `afterCommit/afterRollback`；
 - `deleteBatch`、无 ID 的 `updateBatch` 必须要求至少一个有效 Where 条件；真正全表操作只能使用受控的
   管理应用服务；
 - `count` 返回 `Long`，批量增删改返回影响数量或结构化结果，不再使用无法区分具体结果的统一 `Boolean`；
@@ -619,13 +621,13 @@ META-INF/isass/openapi/user-service/openapi.json
 
 `IAuthorizationService` 及其简单传输类型位于 Security 模块，并直接继承 `IEntrypoint`：
 
-- `UriRoleCodesRequest`；
-- `FindAccessibleResourceRequest`；
-- `FindMenuRequest`；
-- `MenuTree`。
+- `ApiKeyAuthenticationRequest`、`ApiKeyAuthenticationResult`；
+- `PrincipalAuthorizationContext`；
+- `FindAccessibleResourceRequest`、`AuthorizationResource`；
+- `FindMenuRequest`、`MenuTree`。
 
-`DefaultSecurityMetadataSourceProvider` 直接依赖 `IAuthorizationService`。BSP 进程使用本地实现，其他微服务
-由 Entrypoint registry 注入远程代理；不再保留 `IRoleCodeService`、角色服务 Manager 或 BSP 适配器。
+BSP 进程使用本地实现，其他微服务由 Entrypoint registry 注入远程代理；不再保留
+`IBspApiKeyAuthenticationService`、`IRoleCodeService`、角色服务 Manager 或 BSP 适配器。
 
 当前 `findAccessibleResources` 返回 BSP 数据库实体 `AuthResource`，需要改为 Security 中的不可变公共类型
 `AuthorizationResource`，由 BSP 应用层转换。公共类型不能暴露 BSP 持久化模型。
@@ -642,49 +644,36 @@ public interface IAuthorizationService extends IEntrypoint {
 BSP 提供唯一权威本地实现 `AuthorizationApplicationService`。BSP 进程直接使用本地 Bean；Asset 等业务
 微服务获得自动 HTTP/gRPC 客户端代理，不再编写 `BspRoleCodeService` 等适配器。
 
-### 8.2 授权查询入口的固定自举规则
+### 8.2 统一授权上下文与本地权限解析
 
-`IAuthorizationService#findRoleCodesByUri` 是 Security 用于查询“访问某 URL 需要哪些角色”的内部服务入口：
-
-```text
-请求进入 asset-service
-  -> JWT 或 API Key 身份认证
-  -> DynamicRoleAuthorizationManager
-  -> BSP findRoleCodesByUri
-  -> 返回目标 URL 所需角色
-  -> asset-service 比较调用者角色
-```
-
-若 BSP 对 `findRoleCodesByUri` 本身再次执行动态 `ROLE` 查询，就会为了鉴权该入口而递归调用同一入口。
-因此确定采用最小范围的固定本地自举规则：
-
-1. 固定内部角色命名为 `ROLE_INTERNAL_AUTH_QUERY`；
-2. 只对 `findRoleCodesByUri` 的精确 Entrypoint 操作应用该规则；
-3. 调用者必须已经完成身份认证；
-4. `PrincipalType` 必须是 `APPLICATION`；
-5. 已认证主体必须直接携带 `ROLE_INTERNAL_AUTH_QUERY`；该检查只读取当前 `Authentication`，不能再调用
-   `IAuthorizationService`；
-6. 不允许匿名访问，不使用 `permitAll`，也不把全局策略改成 `NONE`；
-7. 业务微服务使用自己的内部服务凭证调用 BSP，不转发终端用户或 OpenClaw 的原始凭证；
-8. 记录调用服务、主体 ID、目标 URI、结果和时间，保留租户/应用边界审计；
-9. 其他业务入口继续执行动态 `ROLE` URL 鉴权。
-
-在 Spring Security 中，该精确匹配规则必须排在 `.anyRequest().access(dynamicRoleAuthorizationManager)` 之前。
-HTTP 与 gRPC 应共享同一项传输无关授权策略，不能只在 HTTP Filter 中特殊处理。
-
-`ROLE_INTERNAL_AUTH_QUERY` 的授予关系仍由 BSP 统一管理，并在身份认证结果中返回；但
-`findRoleCodesByUri` 入口“需要这个角色”的规则属于 Security 本地固定元数据，不能再从 `AuthResource` 或
-`IAuthorizationService` 动态查询。该角色不会因为主体类型是 `APPLICATION` 而自动获得，必须显式授予需要
-查询授权元数据的内部应用主体。
-
-当前入口是 `/bsp-service/authorization/role-codes/uri`，迁移后统一为：
+运行时不再远程查询“某个 URL 需要哪些角色”。调用主体与入口要求分别从两个稳定来源获得：
 
 ```text
-/bsp-service/auth/authorization/findRoleCodesByUri
+JWT 请求
+  -> JWT 建立 USER 主体
+  -> 首次鉴权时转发同一 JWT 调用 BSP jwtContext
+  -> 获得角色和 permissionCodes
+
+API Key 请求
+  -> 请求体调用 BSP apiKeyContext 验证完整 API Key
+  -> 建立 APPLICATION 主体并携带完整授权上下文
+
+业务请求
+  -> 当前进程 EntrypointPermissionResolver 匹配 HTTP Method + Path
+  -> DynamicPermissionAuthorizationManager 比较 required permissionCodes
 ```
 
-`ROLE_INTERNAL_AUTH_QUERY` 只授予确实需要查询 URL 授权元数据的内部应用主体，不授予用户主体或普通外部
-服务账号。身份认证入口本身继续复用现有认证自举机制，不由本规则匿名放开。
+确定以下规则：
+
+1. `/bsp-service/auth/authorization/apiKeyContext` 与 `jwtContext` 在 Web Security 层加入 `publicUrls`，但不是
+   匿名业务能力；实现方法分别校验完整 API Key，或要求当前请求已经建立 USER 主体；
+2. 用户 JWT 向下游传播时不得叠加微服务 API Key，避免一个请求出现两个主体；
+3. API Key 放在 `ApiKeyAuthenticationRequest` 请求体中，不放入 URL；
+4. 入口所需权限由当前进程本地 `EntrypointPermissionResolver` 提供，只包含当前进程的本地实现；
+5. 没有权限映射的普通业务入口默认拒绝，`ROLE_SUPER_DEV` 保留超级开发者旁路；
+6. `DynamicPermissionAuthorizationManager` 比较权限编码，不再比较 URL 对应的角色编码；
+7. 删除 `findRoleCodesByUri`、`DynamicRoleAuthorizationManager`、旧 URL—角色缓存和内部授权查询角色；
+8. 不增加独立的内部服务授权管理器；后续确有服务间业务入口时，按正常应用权限授权。
 
 ## 9. 目标依赖关系
 
@@ -746,10 +735,11 @@ bsp-service
 - `IService` 改名为 `ICrudService`，不保留双运行时入口；
 - 按第 6 章方法清单只发布八个正式 CRUD 入口，其余方法迁移为 Java 默认实现或删除；
 - `batchSave` 升级为超级增删改事务入口 `superCud`，增加 `SuperCudReq/SuperCudResult`；
-- 增加 `newCriteria()` 生成实现、`NullValueMode` 和基于唯一键的 `createIfAbsent`，删除字符串属性查询、
-  任意列形式的 `IfAbsent` 及通用 `AddOrUpdate`；
+- 增加 `newCriteria()` 生成实现、`NullValueMode` 和基于实体字段的 `createIfAbsent`，删除旧的独立
+  `IfAbsent` 及通用 `AddOrUpdate`；
 - `ILocalService` 改名为 `ILocalCrudService`，删除 `IServiceManager` 和基于 `getOrder()` 的多实现委托；
-- 新增独立 `CrudChangeExecutor`，让超级增删改及 Criteria 写方法经过同一个事务和治理执行器；
+- 新增独立 `CrudWriteExecutor` 和 `CrudQueryExecutor`，让全部写方法经过同一个事务与治理执行器，全部
+  查询方法经过同一个查询治理执行器；
 - 修改生成器模板并机械迁移消费端；
 - 模型迁移到 `domain.model`，删除 `XxxAgg`；
 - 路径迁移到固定 NoCode 命名空间，移除业务 Path 参数；
@@ -759,18 +749,17 @@ bsp-service
 
 ### 阶段 5：迁移 Security
 
-- 迁移 `IAuthorizationService` 和公共传输类型；
-- 新增 `AuthorizationResource`；
-- 初始化 `ROLE_INTERNAL_AUTH_QUERY`，只授予需要查询授权元数据的内部应用主体；
-- BSP 实现固定内部角色自举规则，入口所需角色不能从动态授权资源反查；
-- 删除一次性授权查询适配器；
-- 验证 HTTP 和 gRPC 的内部授权策略一致。
+- 迁移 `IAuthorizationService`、统一授权上下文和公共传输类型；
+- 新增 `AuthorizationResource`、`ApiKeyAuthenticationRequest/Result` 和 `PrincipalAuthorizationContext`；
+- 使用本地 `EntrypointPermissionResolver` 提供入口—权限映射；
+- 删除 `findRoleCodesByUri`、旧 URL—角色链路和一次性授权查询适配器；
+- 验证 JWT 与 API Key 最终都建立唯一主体并获得完整权限编码。
 
 ### 阶段 6：真实业务验证
 
 - 使用 OpenClaw 服务账号调用 Asset；
 - 验证 API Key 身份和业务角色；
-- 验证 Asset 使用自身内部应用凭证查询 BSP 授权元数据；
+- 验证 Asset 使用当前用户 JWT 或 API Key 授权上下文完成权限判断；
 - 验证腾讯提示词迁移权限、标签读取和写入不再返回 `403`；
 - 验证 BSP 本地调用不经过远程代理。
 
@@ -783,7 +772,9 @@ bsp-service
 - Query 对象重名、数组编码、文件流和泛型响应需要往返测试；
 - OpenAPI 合并必须检测路径和 Schema 冲突；
 - 生成器生成代码时，必须要防止业务代码被覆盖后无法恢复，运行代码生成器前，微服务必须先提交并推送一次代码；
-- 授权自举规则必须精确匹配操作，并证明不会递归调用 `findRoleCodesByUri`；
+- `apiKeyContext` 与 `jwtContext` 虽由 Web Security 放行，实现内部仍必须验证凭证或 USER 主体；
+- JWT 下游传播不得附加 API Key，且一个请求只能形成一个确定主体；
+- 本地入口缺少权限映射时必须默认拒绝；
 - 关联写入、`REPLACE`、乐观锁、越权 ID、事务回滚和循环展开按专项文档测试。
 
 ## 12. 验收标准
@@ -797,14 +788,18 @@ bsp-service
 - 未标注的方法不生成路由或 OpenAPI；
 - 正式 CRUD 入口只有 `createBatch`、`superCud`、`deleteBatch`、`updateBatch`、`page`、`cursorPage`、
   `count` 和 `exists`；
-- `getById/getOne/list/requireOne/update/requireUpdate/absent/requireExists/requireAbsent` 等便捷能力在
+- `getById/getOne/list/requireOne/existsById/update/requireUpdate/requireExists/requireAbsent` 等便捷能力在
   客户端执行默认实现，并只调用上述正式入口；
-- `createIfAbsent` 只接受主键或 DDL 注册唯一键，并由数据库方言提供原子“不存在则新增”；任意列
-  `IfAbsent`、通用 `AddOrUpdate` 和字符串属性查询不再属于标准 CRUD；
+- `createIfAbsent` 接受 Java 属性名或 getter Lambda；业务负责选择唯一字段并按并发要求建立唯一索引，
+  框架不在代码层强制索引；旧的独立 `IfAbsent`、通用 `AddOrUpdate` 和字符串属性查询不再属于标准 CRUD；
 - `create`、`createIfAbsent`、`update` 和 `delete` 是未标注入口注解的 Java 默认方法；`createBatch`、
   `updateBatch` 和 `deleteBatch` 是正式专项入口；它们都构造 `SuperCudReq` 并调用 `superCud`；
-- `superCud` 通过独立 `CrudChangeExecutor` 在一个本地事务中完成全部写入并返回分项结果，不依赖
+- `superCud` 通过独立 `CrudWriteExecutor` 在一个本地事务中完成全部写入并返回三类汇总数量，不依赖
   Service 自调用触发 Spring AOP；
+- `page/cursorPage/count/exists` 通过独立 `CrudQueryExecutor` 执行，`getById/getOne/list/requireOne`
+  等便捷方法复用正式查询入口；
+- `CrudWriteLifecycleListener` 和 `CrudQueryLifecycleListener` 由 Spring 自动收集；同一 Service 重入时
+  不重复触发生命周期，跨 Service 调用仍执行被调用服务的完整生命周期；
 - `IUpdateCriteria` 分别使用 `updateMode` 控制关联合并、`nullValueMode` 控制普通字段空值写入；
 - HTTP/gRPC/代理/OpenAPI 不再读取 `nocode-contract.json`；
 - 四个 Entrypoint 模块职责清晰且无循环依赖；
@@ -814,6 +809,5 @@ bsp-service
 - 生成模型位于 `domain.model`，不再生成空 `XxxAgg`；
 - 数据库无外键，关联和树形行为符合专项文档；
 - `IAuthorizationService` 公共模型不暴露 BSP 数据库实体；
-- `findRoleCodesByUri` 仅允许携带 `ROLE_INTERNAL_AUTH_QUERY` 的已认证 `APPLICATION` 主体调用，且不会
-  递归执行动态 URL 授权；
-- OpenClaw 真实业务请求能够完成身份认证、URL 角色查询和 NoCode 数据鉴权。
+- `findRoleCodesByUri`、旧 URL—角色缓存与 `DynamicRoleAuthorizationManager` 已删除；
+- OpenClaw 真实业务请求能够完成 API Key 身份认证、权限编码判断和 NoCode 数据鉴权。

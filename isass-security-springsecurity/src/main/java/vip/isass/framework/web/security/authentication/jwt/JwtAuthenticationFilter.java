@@ -42,6 +42,12 @@ public class JwtAuthenticationFilter extends AbstractAuthenticationFilter {
             return;
         }
 
+        // API Key 的 Bearer 兼容格式由后续 ApiKeyAuthenticationFilter 处理，不能先按 JWT 解析。
+        if (StrUtil.startWithIgnoreCase(header, "Bearer isass_sk_")) {
+            chain.doFilter(request, response);
+            return;
+        }
+
         String token;
         if (header.startsWith(JwtConst.PREFIX)) {
             token = header.replace(JwtConst.PREFIX, "");
@@ -85,6 +91,8 @@ public class JwtAuthenticationFilter extends AbstractAuthenticationFilter {
             onSuccessfulAuthentication(request, response, authResult);
         } catch (AuthenticationException failed) {
             onUnsuccessfulAuthentication(request, response, failed);
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "token错误或过期");
+            return;
         }
 
         chain.doFilter(request, response);

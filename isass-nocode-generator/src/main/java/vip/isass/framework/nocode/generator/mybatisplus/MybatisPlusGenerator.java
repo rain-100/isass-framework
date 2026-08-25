@@ -18,8 +18,6 @@ import freemarker.template.TemplateHashModel;
 import freemarker.template.Version;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import vip.isass.framework.nocode.entity.ILogicDeleteEntity;
-import vip.isass.framework.nocode.entity.IVersionEntity;
 import vip.isass.framework.nocode.generator.association.TableAssociationParser;
 
 import java.sql.Connection;
@@ -69,6 +67,9 @@ public class MybatisPlusGenerator {
                      connection.getCatalog(), meta.getSchemaName(), "%", new String[]{"TABLE"})) {
             while (tables.next()) {
                 String tableName = tables.getString("TABLE_NAME");
+                if (!isTableSelected(tableName, meta.getIncludeTables(), meta.getExcludeTables())) {
+                    continue;
+                }
                 String context = contextOf(tableName, meta.getTablePrefix());
                 if (context != null) {
                     tablesByContext.computeIfAbsent(context, ignored -> new ArrayList<>()).add(tableName);
@@ -81,6 +82,22 @@ public class MybatisPlusGenerator {
         return tablesByContext.entrySet().stream()
                 .map(entry -> metaForContext(meta, entry.getKey(), entry.getValue()))
                 .toList();
+    }
+
+    static boolean isTableSelected(String tableName, String[] includeTables, String[] excludeTables) {
+        if (includeTables != null && includeTables.length > 0) {
+            return matchesAny(tableName, includeTables);
+        }
+        return excludeTables == null || excludeTables.length == 0 || !matchesAny(tableName, excludeTables);
+    }
+
+    private static boolean matchesAny(String tableName, String[] patterns) {
+        for (String pattern : patterns) {
+            if (tableName.matches(pattern)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static String contextOf(String tableName, String[] tablePrefixes) {

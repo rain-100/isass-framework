@@ -2,8 +2,6 @@
 
 package vip.isass.framework.web.security.authentication.jwt;
 
-import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.util.StrUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -11,20 +9,13 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.CredentialsExpiredException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 import vip.isass.framework.common.exception.UnifiedException;
-import vip.isass.framework.common.exception.code.StatusMessageEnum;
-import vip.isass.framework.web.security.exception.SecurityCoreStatusEnum;
 import vip.isass.framework.common.security.jwt.JwtInfo;
 import vip.isass.framework.common.security.jwt.JwtUtil;
-import vip.isass.framework.web.security.IsassGrantedAuthority;
-import vip.isass.framework.web.security.metadata.SecurityMetadataSourceProviderManager;
+import vip.isass.framework.web.security.exception.SecurityCoreStatusEnum;
 
-import jakarta.annotation.Resource;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.stream.Collectors;
 
 /**
  * @author Rain
@@ -35,9 +26,6 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
 
     @Value("${isass.security.jwt.secret:" + JwtUtil.DEFAULT_SECRET + "}")
     private String secret;
-
-    @Resource
-    private SecurityMetadataSourceProviderManager securityMetadataSourceProviderManager;
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
@@ -55,17 +43,7 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
             throw new BadCredentialsException(e.getMessage());
         }
 
-        // 获取用户拥有的角色
-        Collection<GrantedAuthority> configAttributes = Collections.emptyList();
-        Collection<String> roleCodes = securityMetadataSourceProviderManager.findRoleCodesByUserId(String.valueOf(jwtInfo.getUid()));
-        if (!CollUtil.isEmpty(roleCodes)) {
-            configAttributes = roleCodes.stream()
-                .filter(StrUtil::isNotBlank)
-                .map(IsassGrantedAuthority::new)
-                .collect(Collectors.toList());
-        }
-
-        return new JwtAuthenticationToken(token, jwtInfo, configAttributes);
+        return new JwtAuthenticationToken(token, jwtInfo, Collections.emptyList());
     }
 
     @Override

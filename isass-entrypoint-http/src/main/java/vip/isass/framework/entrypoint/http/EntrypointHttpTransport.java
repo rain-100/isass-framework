@@ -21,6 +21,7 @@ import vip.isass.framework.entrypoint.metadata.ParameterSource;
 import vip.isass.framework.entrypoint.metadata.ServiceDefinition;
 import vip.isass.framework.entrypoint.transport.EntrypointTransport;
 import vip.isass.framework.entrypoint.transport.EntrypointTransportException;
+import vip.isass.framework.entrypoint.transport.EntrypointRemoteBusinessException;
 
 import java.lang.reflect.Array;
 import java.io.IOException;
@@ -106,7 +107,8 @@ public final class EntrypointHttpTransport implements EntrypointTransport {
             JsonNode response = request.retrieve().body(JsonNode.class);
             if (response == null) return null;
             if (response.has("success") && !response.path("success").asBoolean()) {
-                throw new EntrypointTransportException(response.path("message").asText("远程业务调用失败"), false);
+                throw new EntrypointRemoteBusinessException(
+                        response.path("message").asText("远程业务调用失败"));
             }
             JsonNode data = response.has("data") ? response.path("data") : response;
             if (data.isNull() || data.isMissingNode()) return null;

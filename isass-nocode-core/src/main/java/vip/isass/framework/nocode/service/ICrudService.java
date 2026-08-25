@@ -16,17 +16,19 @@ import vip.isass.framework.nocode.criteria.NullValueMode;
 import vip.isass.framework.nocode.criteria.field.IIdCriteria;
 import vip.isass.framework.nocode.criteria.type.IOrderByCriteria;
 import vip.isass.framework.nocode.criteria.type.IPageCriteria;
-import vip.isass.framework.nocode.entity.CreateIfAbsentResult;
 import vip.isass.framework.nocode.entity.CursorPage;
 import vip.isass.framework.nocode.entity.IIdEntity;
 import vip.isass.framework.nocode.entity.SuperCudReq;
 import vip.isass.framework.nocode.entity.SuperCudResult;
+import vip.isass.framework.nocode.property.PropertyGetter;
 
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 
-/** NoCode standard CRUD application entrypoint. */
+/**
+ * NoCode standard CRUD application entrypoint.
+ */
 public interface ICrudService<
         E extends IIdEntity<PK, E>,
         C extends ICriteria<E, C>
@@ -39,76 +41,43 @@ public interface ICrudService<
 
     C newCriteria();
 
+    // region create
+
     default E create(E entity) {
-        return superCud(SuperCudReq.<E, C>add(entity)).addEntities().getFirst();
+        superCud(SuperCudReq.<E, C>add(entity));
+        return entity;
     }
 
     @EntrypointOperation(operationName = "createBatch", displayName = "增-批量",
             description = "批量新增数据", displayOrder = 101, httpMethod = HttpMethod.POST)
-    default List<E> createBatch(@BodyParam Collection<E> entities) {
+    default Long createBatch(@BodyParam Collection<E> entities) {
         if (entities == null || entities.isEmpty()) {
             throw new IllegalArgumentException("createBatch.entities 不能为空");
         }
-        return superCud(SuperCudReq.<E, C>addAll(entities)).addEntities();
+        return superCud(SuperCudReq.<E, C>addAll(entities)).addedCount();
     }
 
-    default CreateIfAbsentResult<E> createIfAbsent(E entity, C criteria) {
-        return superCud(SuperCudReq.<E, C>addIfAbsent(entity, criteria))
-                .addIfAbsentResults().getFirst();
+    default boolean createIfAbsent(E entity, String firstField, String... remainingFields) {
+        String[] fields = new String[remainingFields.length + 1];
+        fields[0] = firstField;
+        System.arraycopy(remainingFields, 0, fields, 1, remainingFields.length);
+        return superCud(SuperCudReq.<E, C>builder()
+                .addEntity(entity)
+                .addByFields(fields)
+                .build()).addedCount() == 1;
     }
 
-    default boolean update(E entity) {
-        return superCud(SuperCudReq.<E, C>update(entity)).updateEntities().size() == 1;
+    default boolean createIfAbsent(
+            E entity, PropertyGetter<E, ?> firstField, PropertyGetter<E, ?>... remainingFields) {
+        return superCud(SuperCudReq.<E, C>builder()
+                .addEntity(entity)
+                .addByFields(firstField, remainingFields)
+                .build()).addedCount() == 1;
     }
 
-    default int update(E entity, C criteria) {
-        return updateBatch(List.of(entity), criteria);
-    }
+    // endregion
 
-    @EntrypointOperation(operationName = "updateBatch", displayName = "改-批量",
-            description = "根据实体 ID 或查询条件批量修改数据", displayOrder = 201,
-            httpMethod = HttpMethod.PUT)
-    default int updateBatch(@BodyParam Collection<E> entities, @QueryParam C criteria) {
-        if (entities == null || entities.isEmpty()) {
-            throw new IllegalArgumentException("updateBatch.entities 不能为空");
-        }
-        return superCud(SuperCudReq.<E, C>updateByCriteria(entities, criteria))
-                .updateByCriteriaCounts().getFirst();
-    }
-
-    default int requireUpdate(E entity, C criteria) {
-        int affected = update(entity, criteria);
-        if (affected == 0) {
-            throw new AbsentException("没有符合更新条件的记录");
-        }
-        return affected;
-    }
-
-    default boolean delete(PK id) {
-        return superCud(SuperCudReq.<E, C>delete(id)).deleteIds().size() == 1;
-    }
-
-    default boolean deleteIds(Collection<PK> ids) {
-        return deleteBatch(newCriteria().setIdIn(ids)) > 0;
-    }
-
-    default int updateAllColumns(E entity) {
-        entity.markAllPresentProperties();
-        return update(entity, newCriteria().setNullValueMode(NullValueMode.WRITE_NULL));
-    }
-
-    @EntrypointOperation(operationName = "deleteBatch", displayName = "删-批量",
-            description = "根据查询条件批量删除数据", displayOrder = 401,
-            httpMethod = HttpMethod.DELETE)
-    default int deleteBatch(@QueryParam C criteria) {
-        return superCud(SuperCudReq.<E, C>deleteByCriteria(criteria))
-                .deleteByCriteriaCounts().getFirst();
-    }
-
-    @EntrypointOperation(operationName = "superCud", displayName = "超级增删改",
-            description = "在一个事务中执行多种新增、修改和删除操作", displayOrder = 202,
-            httpMethod = HttpMethod.POST)
-    SuperCudResult<E> superCud(@BodyParam SuperCudReq<E, C> request);
+    // region read
 
     @EntrypointOperation(operationName = "page", displayName = "查-分页列表",
             description = "根据查询条件返回分页列表", displayOrder = 301,
@@ -130,7 +99,7 @@ public interface ICrudService<
     @EntrypointOperation(operationName = "exists", displayName = "查-是否存在",
             description = "判断是否存在符合查询条件的数据", displayOrder = 304,
             httpMethod = HttpMethod.GET)
-    Boolean exists(@QueryParam C criteria);
+    boolean exists(@QueryParam C criteria);
 
     default E getById(PK id) {
         return getOne(newCriteria().setId(id));
@@ -158,12 +127,8 @@ public interface ICrudService<
         return count(newCriteria());
     }
 
-    default Boolean isPresentById(PK id) {
+    default boolean existsById(PK id) {
         return exists(newCriteria().setId(id));
-    }
-
-    default boolean absent(C criteria) {
-        return !exists(criteria);
     }
 
     default void requireExists(C criteria) {
@@ -177,4 +142,66 @@ public interface ICrudService<
             throw new AlreadyPresentException("记录已存在");
         }
     }
+
+    // endregion
+
+    // region update
+
+    default boolean update(E entity) {
+        return superCud(SuperCudReq.<E, C>update(entity)).updatedCount() > 0;
+    }
+
+    default long update(E entity, C criteria) {
+        return updateBatch(List.of(entity), criteria);
+    }
+
+    @EntrypointOperation(operationName = "updateBatch", displayName = "改-批量",
+            description = "根据实体 ID 或查询条件批量修改数据", displayOrder = 201,
+            httpMethod = HttpMethod.PUT)
+    default Long updateBatch(@BodyParam Collection<E> entities, @QueryParam C criteria) {
+        if (entities == null || entities.isEmpty()) {
+            throw new IllegalArgumentException("updateBatch.entities 不能为空");
+        }
+        return superCud(SuperCudReq.<E, C>updateByCriteria(entities, criteria)).updatedCount();
+    }
+
+    default long requireUpdate(E entity, C criteria) {
+        long affected = update(entity, criteria);
+        if (affected == 0) {
+            throw new AbsentException("没有符合更新条件的记录");
+        }
+        return affected;
+    }
+
+    // endregion
+
+    // region delete
+
+    default boolean delete(PK id) {
+        return superCud(SuperCudReq.<E, C>delete(id)).deletedCount() == 1;
+    }
+
+    default boolean deleteIds(Collection<PK> ids) {
+        return deleteBatch(newCriteria().setIdIn(ids)) > 0;
+    }
+
+    default long updateAllColumns(E entity) {
+        entity.markAllPresentProperties();
+        return update(entity, newCriteria().setNullValueMode(NullValueMode.WRITE_NULL));
+    }
+
+    @EntrypointOperation(operationName = "deleteBatch", displayName = "删-批量",
+            description = "根据查询条件批量删除数据", displayOrder = 401,
+            httpMethod = HttpMethod.DELETE)
+    default Long deleteBatch(@QueryParam C criteria) {
+        return superCud(SuperCudReq.<E, C>deleteByCriteria(criteria)).deletedCount();
+    }
+
+    // endregion
+
+    @EntrypointOperation(operationName = "superCud", displayName = "超级增删改",
+            description = "在一个事务中执行多种新增、修改和删除操作", displayOrder = 202,
+            httpMethod = HttpMethod.POST)
+    SuperCudResult superCud(@BodyParam SuperCudReq<E, C> request);
+
 }

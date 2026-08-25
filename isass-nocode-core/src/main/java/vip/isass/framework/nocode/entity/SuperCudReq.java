@@ -2,7 +2,12 @@
 
 package vip.isass.framework.nocode.entity;
 
+import vip.isass.framework.nocode.criteria.IUpdateCriteria;
+import vip.isass.framework.nocode.property.PropertyGetter;
+import vip.isass.framework.nocode.property.PropertyNameResolver;
+
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -12,18 +17,17 @@ import java.util.List;
  */
 public record SuperCudReq<E, C>(
         List<E> addEntities,
-        List<AddIfAbsentItem<E, C>> addIfAbsentItems,
+        List<String> addByFields,
         List<E> updateEntities,
-        List<UpdateByCriteriaItem<E, C>> updateByCriteriaItems,
+        C updateCriteria,
         List<Serializable> deleteIds,
         List<C> deleteCriteria
 ) {
 
     public SuperCudReq {
         addEntities = immutableList(addEntities);
-        addIfAbsentItems = immutableList(addIfAbsentItems);
+        addByFields = normalizedFields(addByFields);
         updateEntities = immutableList(updateEntities);
-        updateByCriteriaItems = immutableList(updateByCriteriaItems);
         deleteIds = immutableList(deleteIds);
         deleteCriteria = immutableList(deleteCriteria);
     }
@@ -40,9 +44,14 @@ public record SuperCudReq<E, C>(
         return new SuperCudReq<>(copyOf(entities), null, null, null, null, null);
     }
 
-    public static <E, C> SuperCudReq<E, C> addIfAbsent(E entity, C criteria) {
-        return new SuperCudReq<>(null, List.of(new AddIfAbsentItem<>(entity, criteria)),
-                null, null, null, null);
+    public static <E, C> SuperCudReq<E, C> addIfAbsent(E entity, String... fields) {
+        return new SuperCudReq<>(List.of(entity), List.of(fields), null, null, null, null);
+    }
+
+    @SafeVarargs
+    public static <E, C extends IUpdateCriteria<C>> SuperCudReq<E, C> addIfAbsent(
+            E entity, PropertyGetter<E, ?> first, PropertyGetter<E, ?>... remaining) {
+        return SuperCudReq.<E, C>builder().addEntity(entity).addByFields(first, remaining).build();
     }
 
     public static <E, C> SuperCudReq<E, C> update(E entity) {
@@ -54,8 +63,7 @@ public record SuperCudReq<E, C>(
     }
 
     public static <E, C> SuperCudReq<E, C> updateByCriteria(Collection<E> entities, C criteria) {
-        return new SuperCudReq<>(null, null, null,
-                List.of(new UpdateByCriteriaItem<>(copyOf(entities), criteria)), null, null);
+        return new SuperCudReq<>(null, null, copyOf(entities), criteria, null, null);
     }
 
     public static <E, C> SuperCudReq<E, C> delete(Serializable id) {
@@ -70,11 +78,13 @@ public record SuperCudReq<E, C>(
         return new SuperCudReq<>(null, null, null, null, null, List.of(criteria));
     }
 
+    public static <E, C extends IUpdateCriteria<C>> Builder<E, C> builder() {
+        return new Builder<>();
+    }
+
     public boolean isEmpty() {
         return addEntities.isEmpty()
-                && addIfAbsentItems.isEmpty()
                 && updateEntities.isEmpty()
-                && updateByCriteriaItems.isEmpty()
                 && deleteIds.isEmpty()
                 && deleteCriteria.isEmpty();
     }
@@ -85,5 +95,105 @@ public record SuperCudReq<E, C>(
 
     private static <T> List<T> copyOf(Collection<? extends T> values) {
         return values == null ? List.of() : List.copyOf(values);
+    }
+
+    private static List<String> normalizedFields(Collection<String> fields) {
+        if (fields == null) {
+            return List.of();
+        }
+        return fields.stream()
+                .filter(field -> field != null && !field.isBlank())
+                .map(String::trim)
+                .distinct()
+                .toList();
+    }
+
+    public static final class Builder<E, C extends IUpdateCriteria<C>> {
+
+        private final List<E> addEntities = new ArrayList<>();
+        private final List<E> updateEntities = new ArrayList<>();
+        private final List<Serializable> deleteIds = new ArrayList<>();
+        private final List<C> deleteCriteria = new ArrayList<>();
+        private List<String> addByFields = List.of();
+        private C updateCriteria;
+
+        public Builder<E, C> addEntity(E entity) {
+            addEntities.add(entity);
+            return this;
+        }
+
+        public Builder<E, C> addEntities(Collection<? extends E> entities) {
+            if (entities != null) addEntities.addAll(entities);
+            return this;
+        }
+
+        public Builder<E, C> addByFields(String... fields) {
+            addByFields = normalizedFields(fields == null ? null : List.of(fields));
+            return this;
+        }
+
+        @SafeVarargs
+        public final Builder<E, C> addByFields(
+                PropertyGetter<E, ?> first, PropertyGetter<E, ?>... remaining) {
+            addByFields = propertyNames(first, remaining);
+            return this;
+        }
+
+        public Builder<E, C> updateEntity(E entity) {
+            updateEntities.add(entity);
+            return this;
+        }
+
+        public Builder<E, C> updateEntities(Collection<? extends E> entities) {
+            if (entities != null) updateEntities.addAll(entities);
+            return this;
+        }
+
+        public Builder<E, C> updateCriteria(C criteria) {
+            updateCriteria = criteria;
+            return this;
+        }
+
+        public Builder<E, C> updateByCriteria(C criteria) {
+            return updateCriteria(criteria);
+        }
+
+        @SafeVarargs
+        public final Builder<E, C> updateByCriteria(
+                C criteria, PropertyGetter<E, ?> first, PropertyGetter<E, ?>... remaining) {
+            criteria.setMatchFields(propertyNames(first, remaining));
+            return updateCriteria(criteria);
+        }
+
+        public Builder<E, C> deleteId(Serializable id) {
+            deleteIds.add(id);
+            return this;
+        }
+
+        public Builder<E, C> deleteIds(Collection<? extends Serializable> ids) {
+            if (ids != null) deleteIds.addAll(ids);
+            return this;
+        }
+
+        public Builder<E, C> deleteByCriteria(C criteria) {
+            deleteCriteria.add(criteria);
+            return this;
+        }
+
+        public SuperCudReq<E, C> build() {
+            return new SuperCudReq<>(addEntities, addByFields, updateEntities,
+                    updateCriteria, deleteIds, deleteCriteria);
+        }
+
+        @SafeVarargs
+        private static <E> List<String> propertyNames(
+                PropertyGetter<E, ?> first, PropertyGetter<E, ?>... remaining) {
+            List<String> result = new ArrayList<>(remaining.length + 1);
+            result.add(PropertyNameResolver.resolve(first));
+            for (PropertyGetter<E, ?> getter : remaining) {
+                result.add(PropertyNameResolver.resolve(getter));
+            }
+            return normalizedFields(result);
+        }
     }
 }

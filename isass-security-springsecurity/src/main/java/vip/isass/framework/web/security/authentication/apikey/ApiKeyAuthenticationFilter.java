@@ -3,20 +3,22 @@
 package vip.isass.framework.web.security.authentication.apikey;
 
 import cn.hutool.core.util.StrUtil;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.AuthenticationException;
-import vip.isass.framework.common.security.AuthenticatedPrincipal;
-import vip.isass.framework.web.security.authentication.AbstractAuthenticationFilter;
-import vip.isass.framework.web.security.authentication.PrincipalAuthenticationToken;
-
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContextHolder;
+import vip.isass.framework.common.security.AuthenticatedPrincipal;
+import vip.isass.framework.web.security.authentication.AbstractAuthenticationFilter;
+import vip.isass.framework.web.security.authentication.PrincipalAuthenticationToken;
+
 import java.io.IOException;
 
-/** 使用 API Key 认证应用主体。 */
+/**
+ * 使用 API Key 认证应用主体。
+ */
 public class ApiKeyAuthenticationFilter extends AbstractAuthenticationFilter {
 
     public static final String HEADER_NAME = "X-ISASS-API-Key";
@@ -27,8 +29,9 @@ public class ApiKeyAuthenticationFilter extends AbstractAuthenticationFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
-            throws IOException, ServletException {
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain chain) throws IOException, ServletException {
         String headerApiKey = request.getHeader(HEADER_NAME);
         String authorization = request.getHeader("Authorization");
         boolean authorizationApiKey = StrUtil.startWithIgnoreCase(authorization, AUTHORIZATION_PREFIX);
@@ -37,7 +40,8 @@ public class ApiKeyAuthenticationFilter extends AbstractAuthenticationFilter {
             return;
         }
         String apiKey = StrUtil.isBlank(headerApiKey) && authorizationApiKey
-                ? authorization.substring("Bearer ".length()).trim() : headerApiKey;
+                ? authorization.substring("Bearer ".length()).trim()
+                : headerApiKey;
         if (StrUtil.isBlank(apiKey)) {
             chain.doFilter(request, response);
             return;
@@ -50,11 +54,13 @@ public class ApiKeyAuthenticationFilter extends AbstractAuthenticationFilter {
         try {
             ApiKeyAuthenticationToken result = (ApiKeyAuthenticationToken) getAuthenticationManager()
                     .authenticate(new ApiKeyAuthenticationToken(apiKey));
-            AuthenticatedPrincipal principal = (AuthenticatedPrincipal) result.getPrincipal();
-            saveAuthentication(principal, result.getAuthorities());
+            AuthenticatedPrincipal principal = result.getPrincipal();
+            saveAuthentication(principal, result.getAuthorities(), result.getAuthorizationContext());
             onSuccessfulAuthentication(request, response, result);
         } catch (AuthenticationException failed) {
             onUnsuccessfulAuthentication(request, response, failed);
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "API Key 错误或已过期");
+            return;
         }
         chain.doFilter(request, response);
     }

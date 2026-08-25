@@ -4,9 +4,32 @@
 
 ### 4.0.0-SNAPSHOT
 
-- **API Key 认证请求体收敛**：`ApiKeyAuthenticationService` 改用共享的
-  `ApiKeyAuthenticationRequest` 对象承载完整 API Key，BSP Entrypoint 可将认证参数固定映射到 POST Body，
-  避免凭证进入 URL、Query 日志和代理访问日志。
+- **NoCode CRUD 生命周期收敛**：八个标准入口分别归一到 `CrudWriteExecutor.superCud` 和
+  `CrudQueryExecutor.query` 两个执行边界；新增强类型 `CrudWriteLifecycleContext`、
+  `CrudQueryLifecycleContext` 及查询请求/结果模型。生命周期监听器改为 Spring Bean 自动收集，删除静态
+  Registry 与手工注册；写回调明确区分事务内执行、真实提交和回滚，查询回调统一覆盖分页、游标分页、
+  计数与存在性查询，并仅抑制同一 Service 重入。BSP 缓存、权限约束、存储平台和关联同步监听器已迁移到
+  新模型。
+- **统一主体授权与本地权限映射**：删除框架旧 `ApiKeyAuthenticationService`、URL—角色元数据链路和
+  `DynamicRoleAuthorizationManager`；`IAuthorizationService` 统一发布 Body 承载的 `apiKeyContext` 与
+  JWT 主体读取的 `jwtContext`，`PrincipalAuthenticationToken` 同时持有已验证主体和授权上下文。
+  新增 `EntrypointPermissionResolver` 与 `DynamicPermissionAuthorizationManager`，业务进程只根据本地
+  Entrypoint—权限编码映射授权，未映射入口默认拒绝（平台超级开发者保留诊断通道）。JWT 下游调用传播
+  原 JWT 且不叠加 API Key；定时任务等无用户上下文的内部调用从
+  `isass.security.bootstrap.api-key` 附加服务凭证。API Key/JWT 一旦被识别但认证失败会立即返回 401，
+  同一请求出现多种 ISASS 凭证会被拒绝，并为 BSP Bootstrap 根信任安全分支提供可组合配置接口。
+- **统一认证远程错误语义**：Entrypoint HTTP 客户端新增 `EntrypointRemoteBusinessException`，显式区分
+  远端返回的统一业务失败与网络、协议、反序列化等传输故障；API Key 认证只把 BSP 明确返回的认证失败
+  转换为 401，基础设施不可用继续按服务故障上报，避免把 BSP 宕机伪装成无效凭证。
+- **单体权限解析与 NoCode 二次鉴权修正**：动态权限管理器聚合当前进程全部
+  `EntrypointPermissionResolver`，单体启动时可同时识别 BSP 与业务微服务的本地权限清单；NoCode
+  授权上下文补齐 `contextName/resourceName`，操作身份统一为
+  `service/context/resource#operation`，与 Java 权限 DSL 创建的 `AuthResource.uri` 完全一致，避免 HTTP
+  第一层授权通过后被 NoCode 第二层误拒绝。
+- **认证审计完善**：公共请求日志模型增加 `principalType`、`principalId`、`credentialId`，可区分用户、
+  服务账号及具体 API Key 凭证；MyBatis-Plus 审计字段继续统一从 `CurrentPrincipalUtil` 获取操作者。
+- 修复按限界上下文拆分代码生成任务时忽略 `includeTables/excludeTables` 的问题；数据库发现阶段现在先按
+  调用方配置过滤，再按上下文分组，单表增量生成不会误覆盖其他实体和 Criteria。
 - **NoCode 与数据库依赖解耦**：`isass-nocode-core` 移除 MyBatis-Plus、JSqlParser 和动态数据源依赖；
   `MybatisPlusRepository`、Wrapper 适配、表元数据注册器及相关测试迁入
   `isass-database-mybatisplus`，并由数据库模块注册 `TableMetaRegistrar`。不使用数据库的服务（如 apidoc）
@@ -52,6 +75,8 @@
   - `DefaultSecurityMetadataSourceProvider` 直接使用 `IAuthorizationService`，单体/BSP 选择本地实现，业务微服务选择 Entrypoint 远程代理；删除旧 `IRoleCodeService`、Manager 与 BSP 适配器链。
   - `DynamicRoleAuthorizationManager` 在 `ROLE` 策略下改为默认拒绝；除 `PermitUrlProvider` 明确放行的 URL 外，接口必须存在资源、权限与角色关联才允许访问。
   - 接口资源匹配使用实际请求的“方法 + 路径”，避免 Spring MVC 泛型路径模板导致初始化接口等资源无法稳定匹配。
+  - BSP Bootstrap 下游凭证排除范围收窄到 API Key 生成和 HMAC 注册两个根入口；注册诊断等普通授权入口
+    仍可携带服务 API Key，不再因共享 `/bootstrap/` 前缀而丢失认证信息。
 - `isass-core-dependencies` 统一管理微信服务所需的 Bouncy Castle JDK 18+ 组件版本，业务微服务不得再直写该依赖版本。
 - 修复 nocode MyBatis-Plus 代码生成器同时设置空 `exclude` 导致 `includeTables` 失效的问题；包含表与排除表现在严格二选一。
 - 修复生成器将 `ModuleInfo` 错误定位为上下文包的问题；默认从模块名首段推导微服务根包，并允许通过元数据覆盖。
@@ -125,11 +150,11 @@
   `cursorPage` 命名；逐项评审现有 `IService` 的 36 个 CRUD 方法，确定升级七个现有方法并新增
   `cursorPage`，最终形成八个正式入口，其余改为 Java 默认实现或删除；批量新增、批量修改和批量删除保留
   为带 `EntrypointOperation` 的默认方法，单体新增、不存在时新增和单体删除改为未标注入口注解的 Java
-  默认方法；`superCud` 的请求实体 `SuperCudReq` 不局限于旧 `BatchSave` 的三个字段，在保留
-  `addEntities/updateEntities/deleteIds` 的基础上，新增 `addIfAbsentItems/updateByCriteriaItems/deleteCriteria`，
-  支持一个请求任意组合全部标准写操作及空变更集幂等保存，返回六组对应结果的 `SuperCudResult`；
-  `createIfAbsent` 只接受主键或 DDL 注册唯一键并使用数据库原子语义；新增独立
-  `CrudChangeExecutor` 作为事务、授权、校验、生命周期、关联、审计和事件的统一执行边界，避免 Spring
+  默认方法；`superCud` 的请求实体 `SuperCudReq` 使用
+  `addEntities/addByFields/updateEntities/updateCriteria/deleteIds/deleteCriteria`，支持一个请求任意组合
+  全部标准写操作及空变更集幂等保存，返回新增、修改、删除三类汇总数量；`createIfAbsent` 使用批次统一的
+  实体匹配字段，Java 调用支持 getter Lambda，唯一索引和范围重叠策略由业务负责；新增独立
+  `CrudWriteExecutor` 作为事务、授权、校验、生命周期、关联、审计和事件的统一执行边界，避免 Spring
   Bean 自调用绕过切面；同时补充 `newCriteria`、`NullValueMode` 以及非 CRUD 元数据方法、
   `IServiceManager` 的迁移结论。
 - **级联、关联与树形 CRUD 设计**：将复杂场景库收敛为方向性删除级联、同事务关联编辑、方向性关联查询和
@@ -139,9 +164,9 @@
   `MERGE/REPLACE`，并以 `IGNORE_NULL/WRITE_NULL` 控制普通字段空值写入；只发布批量更新入口，单实体
   更新默认包装为单元素集合；`batchSave` 升级为在同一个事务中执行普通新增、条件新增、按 ID 或 Criteria
   修改、按 ID 或 Criteria 删除的超级增删改接口 `superCud`；全部专项写方法只构造相应 `SuperCudReq`，统一
-  委托给独立 `CrudChangeExecutor.superCud`，不依赖 Service 自调用切面；字段出现性由 HTTP、gRPC 和本地 Java
-  调用统一规范化为瞬态写入属性掩码，执行器不再依赖原始 JSON；当前实体有 ID 时由 ID 与
-  Criteria 共同定位，无 ID 时由 Criteria 定位；关联对象有 ID 时更新、无 ID 时新增；`IParentIdEntity`
+  委托给独立 `CrudWriteExecutor.superCud`，不依赖 Service 自调用切面；字段出现性由 HTTP、gRPC 和本地 Java
+  调用统一规范化为瞬态写入属性掩码，执行器不再依赖原始 JSON；`updateCriteria` 为空时按实体 ID 定位，
+  非空时使用批次公共范围并按 `matchFields` 追加当前实体等值条件；关联对象有 ID 时更新、无 ID 时新增；`IParentIdEntity`
   固定提供 `parentId/parent/children`，无需 DDL 标记生成父、子属性；表级
   `[树结构-cascadeDelete=true]` 专门控制删除当前节点时是否向下递归删除全部子孙节点；普通关联的
   级联参数继续使用 `cascadeDelete`，删除只沿当前实体 DDL 明确开启的方向级联；
@@ -154,6 +179,9 @@
 - 在 README 中补充模块命名规范，明确 `isass-分类-模块名` 格式。
 
 #### refactor
+
+- **NoCode 超级增删改请求精简**：`SuperCudReq` 收敛为 `addEntities/addByFields/updateEntities/updateCriteria/deleteIds/deleteCriteria`，删除逐项 `AddIfAbsentItem` 和 `UpdateByCriteriaItem`；同一新增或修改批次统一使用一套匹配规则，`updateCriteria.matchFields` 可把当前实体属性追加为等值条件，并保留 `createTime < xxx` 等公共范围条件；新增 Builder 及 getter Lambda 属性解析，本地调用保持类型安全，HTTP/gRPC 仍传 Java 属性名字符串；框架仅做属性和有效 WHERE 等必要校验，不强制唯一索引或更新范围互斥；`SuperCudResult` 改为仅返回新增、修改、删除汇总影响数量，避免批量写入回传实体副本。
+- **NoCode 存在性方法命名统一**：正式入口 `exists` 改为返回基本类型 `boolean`，Java ID 便捷方法由 `isPresentById` 重命名为 `existsById`，删除只封装逻辑取反的 `absent`；保留用于“不存在”前置断言的 `requireAbsent`。
 
 - **移除旧 EDB 双实体模型**：删除未被使用的 `IDbEntity`、`DbEntityConvert` 及 `WrapperUtil` 的 EDB QueryWrapper 方法；当前 nocode 实体直接作为 MyBatis-Plus 实体持久化。
 - **代码生成器**：Controller 模板生成的本地 Service 字段改为实体小驼峰名称，例如 `iconGroupService`，不再添加 `nocode` 前缀。

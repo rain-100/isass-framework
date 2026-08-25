@@ -23,6 +23,9 @@ class SpringApiKeyHeaderProviderTest {
                 new StaticListableBeanFactory());
 
         assertTrue(provider.support("POST", "https://bsp.internal:31010/bsp-service/nocode/system/initialization/importData"));
+        assertTrue(provider.support("GET", "https://bsp.internal:31010/bsp-service/bootstrap/applicationRegistration/diagnostics"));
+        assertFalse(provider.support("POST", "https://bsp.internal:31010/bsp-service/bootstrap/apiKey/generate"));
+        assertFalse(provider.support("POST", "https://bsp.internal:31010/bsp-service/bootstrap/applicationRegistration/register"));
         assertFalse(provider.support("POST", "https://storage.example/bucket/object"));
         assertFalse(provider.support("POST", "https://bsp.internal:31011/bsp-service/nocode/system/initialization/importData"));
     }

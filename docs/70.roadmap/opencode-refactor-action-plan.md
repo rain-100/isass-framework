@@ -101,7 +101,7 @@ git diff -- isass-net-admin/src/main/java/vip/isass/framework/net/admin/NetAdmin
 Expected:
 
 - The license header no longer appears in the diff.
-- The diff only removes `ComponentScan` / `Configuration`, adds `AutoConfiguration`, `ConditionalOnMissingBean`, `Bean`, `NetAdminController`, `ISessionService`, and adds the `netAdminController(...)` bean method.
+- The diff only removes `ComponentScan` / `Configuration`, adds `NocodeAutoConfiguration`, `ConditionalOnMissingBean`, `Bean`, `NetAdminController`, `ISessionService`, and adds the `netAdminController(...)` bean method.
 
 - [ ] **Step 4: Run green verification**
 

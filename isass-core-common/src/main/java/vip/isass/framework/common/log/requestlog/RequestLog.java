@@ -51,6 +51,33 @@ public class RequestLog {
 
     /**
      * <p>
+     * 认证主体类型
+     * </p>
+     * 数据库字段名: principal_type
+     * 数据库字段类型: varchar(16)
+     */
+    private String principalType;
+
+    /**
+     * <p>
+     * 认证主体 ID
+     * </p>
+     * 数据库字段名: principal_id
+     * 数据库字段类型: bigint(20)
+     */
+    private Long principalId;
+
+    /**
+     * <p>
+     * 服务账号凭证 ID
+     * </p>
+     * 数据库字段名: credential_id
+     * 数据库字段类型: bigint(20)
+     */
+    private Long credentialId;
+
+    /**
+     * <p>
      * 请求地址
      * </p>
      * 数据库字段名: uri

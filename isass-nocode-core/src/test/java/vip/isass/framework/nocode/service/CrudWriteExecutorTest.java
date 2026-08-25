@@ -5,10 +5,8 @@ package vip.isass.framework.nocode.service;
 import org.junit.jupiter.api.Test;
 import vip.isass.framework.nocode.criteria.field.IIdCriteria;
 import vip.isass.framework.nocode.criteria.impl.type.FullTypeCriteria;
-import vip.isass.framework.nocode.entity.AddIfAbsentItem;
 import vip.isass.framework.nocode.entity.IIdEntity;
 import vip.isass.framework.nocode.entity.SuperCudReq;
-import vip.isass.framework.nocode.entity.UpdateByCriteriaItem;
 import vip.isass.framework.nocode.repository.IRepository;
 
 import java.io.Serializable;
@@ -17,40 +15,36 @@ import java.util.Collection;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class CrudChangeExecutorTest {
+class CrudWriteExecutorTest {
 
     @Test
-    void executesAllGroupsInFixedOrderAndReturnsAlignedResults() {
+    void executesAllGroupsInFixedOrderAndReturnsAggregateCounts() {
         RecordingRepository repository = new RecordingRepository();
         LocalService service = new LocalService(repository);
-        Criteria addIfAbsentCriteria = new Criteria().setName("unique");
-        Criteria updateCriteria = new Criteria().setName("editable");
+        Criteria updateCriteria = new Criteria().lessThan(Entity::getId, 100L)
+                .setMatchFields(List.of("name"));
         Criteria deleteCriteria = new Criteria().setName("obsolete");
         SuperCudReq<Entity, Criteria> request = new SuperCudReq<>(
-                List.of(new Entity(1L, "add")),
-                List.of(new AddIfAbsentItem<>(new Entity(2L, "conditional"), addIfAbsentCriteria)),
-                List.of(new Entity(3L, "update")),
-                List.of(new UpdateByCriteriaItem<>(List.of(new Entity(4L, "scoped")), updateCriteria)),
+                List.of(new Entity(2L, "conditional")),
+                List.of("name"),
+                List.of(new Entity(4L, "scoped")),
+                updateCriteria,
                 List.of(5L),
                 List.of(deleteCriteria));
 
-        var result = new CrudChangeExecutor().superCud(service, request);
+        var result = new CrudWriteExecutor().superCud(service, request);
 
-        assertEquals(List.of("add", "addIfAbsent", "updateId", "updateCriteria", "deleteIds", "deleteCriteria"),
+        assertEquals(List.of("exists", "add", "updateCriteria", "deleteIds", "deleteCriteria"),
                 repository.operations);
-        assertEquals(List.of(1L), result.addEntities().stream().map(Entity::getId).toList());
-        assertTrue(result.addIfAbsentResults().getFirst().created());
-        assertEquals(2L, result.addIfAbsentResults().getFirst().entity().getId());
-        assertEquals(List.of(3L), result.updateEntities().stream().map(Entity::getId).toList());
-        assertEquals(List.of(1), result.updateByCriteriaCounts());
-        assertEquals(List.of(5L), result.deleteIds());
-        assertEquals(List.of(2), result.deleteByCriteriaCounts());
-        assertEquals(4L, repository.lastUpdateCriteria.getId());
-        assertEquals("editable", repository.lastUpdateCriteria.getName());
+        assertEquals(1, result.addedCount());
+        assertEquals(1, result.updatedCount());
+        assertEquals(3, result.deletedCount());
+        assertEquals(null, repository.lastUpdateCriteria.getId());
+        assertEquals("scoped", repository.lastUpdateCriteria.getName());
+        assertEquals(100L, repository.lastUpdateCriteria.getLessThan("id", Long.class));
     }
 
     @Test
@@ -58,16 +52,14 @@ class CrudChangeExecutorTest {
         RecordingRepository repository = new RecordingRepository();
         LocalService service = new LocalService(repository);
         SuperCudReq<Entity, Criteria> request = new SuperCudReq<>(
-                null, null,
-                List.of(new Entity(9L, "update")),
-                null,
-                List.of(9L),
-                null);
+                List.of(new Entity(1L, "add")), null,
+                List.of(new Entity(null, "update")), null,
+                null, null);
 
         IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
-                () -> new CrudChangeExecutor().superCud(service, request));
+                () -> new CrudWriteExecutor().superCud(service, request));
 
-        assertTrue(error.getMessage().contains("冲突 ID"));
+        assertTrue(error.getMessage().contains("updateEntities"));
         assertTrue(repository.operations.isEmpty());
     }
 
@@ -75,48 +67,62 @@ class CrudChangeExecutorTest {
     void acceptsAnEmptyChangeSetAsAnIdempotentNoOp() {
         RecordingRepository repository = new RecordingRepository();
 
-        var result = new CrudChangeExecutor().superCud(new LocalService(repository), SuperCudReq.empty());
+        var result = new CrudWriteExecutor().superCud(new LocalService(repository), SuperCudReq.empty());
 
-        assertTrue(result.addEntities().isEmpty());
-        assertTrue(result.addIfAbsentResults().isEmpty());
-        assertTrue(result.updateEntities().isEmpty());
-        assertTrue(result.updateByCriteriaCounts().isEmpty());
-        assertTrue(result.deleteIds().isEmpty());
-        assertTrue(result.deleteByCriteriaCounts().isEmpty());
+        assertEquals(0, result.addedCount());
+        assertEquals(0, result.updatedCount());
+        assertEquals(0, result.deletedCount());
         assertTrue(repository.operations.isEmpty());
     }
 
     @Test
     void reportsExistingConditionalCreateAsANormalResult() {
         RecordingRepository repository = new RecordingRepository();
-        repository.conditionalCreateSucceeds = false;
-        repository.existing = new Entity(11L, "existing");
+        repository.existingByCriteria = true;
 
-        var result = new CrudChangeExecutor().superCud(
+        var result = new CrudWriteExecutor().superCud(
                 new LocalService(repository),
-                SuperCudReq.addIfAbsent(new Entity(12L, "new"), new Criteria().setName("existing")));
+                SuperCudReq.<Entity, Criteria>builder()
+                        .addEntity(new Entity(12L, "new"))
+                        .addByFields(Entity::getName)
+                        .build());
 
-        assertFalse(result.addIfAbsentResults().getFirst().created());
-        assertEquals(11L, result.addIfAbsentResults().getFirst().entity().getId());
+        assertEquals(0, result.addedCount());
+        assertEquals(List.of("exists"), repository.operations);
     }
 
     @Test
     void updatesEntitiesByIdWithoutRequiringPublicCriteria() {
         RecordingRepository repository = new RecordingRepository();
 
-        var result = new CrudChangeExecutor().superCud(
+        var result = new CrudWriteExecutor().superCud(
                 new LocalService(repository),
-                SuperCudReq.updateByCriteria(List.of(new Entity(42L, "updated")), null));
+                SuperCudReq.update(new Entity(42L, "updated")));
 
-        assertEquals(List.of(1), result.updateByCriteriaCounts());
-        assertEquals(42L, repository.lastUpdateCriteria.getId());
+        assertEquals(1, result.updatedCount());
+        assertEquals(42L, repository.lastUpdatedId);
+    }
+
+    @Test
+    void allowsMultipleEntitiesToUseTheSameRangeCriteria() {
+        RecordingRepository repository = new RecordingRepository();
+        Criteria criteria = new Criteria().lessThan(Entity::getId, 100L);
+
+        var result = new CrudWriteExecutor().superCud(
+                new LocalService(repository),
+                SuperCudReq.updateByCriteria(List.of(
+                        new Entity(null, "first"),
+                        new Entity(null, "second")), criteria));
+
+        assertEquals(2, result.updatedCount());
+        assertEquals(List.of("updateCriteria", "updateCriteria"), repository.operations);
     }
 
     @Test
     void rejectsAnIdlessUpdateWithoutEffectiveCriteriaBeforeWriting() {
         RecordingRepository repository = new RecordingRepository();
 
-        assertThrows(IllegalArgumentException.class, () -> new CrudChangeExecutor().superCud(
+        assertThrows(IllegalArgumentException.class, () -> new CrudWriteExecutor().superCud(
                 new LocalService(repository),
                 SuperCudReq.updateByCriteria(List.of(new Entity(null, "updated")), null)));
 
@@ -145,31 +151,27 @@ class CrudChangeExecutorTest {
     static final class RecordingRepository implements IRepository<Entity, Criteria> {
 
         private final List<String> operations = new ArrayList<>();
-        private boolean conditionalCreateSucceeds = true;
-        private Entity existing;
+        private boolean existingByCriteria;
         private Criteria lastUpdateCriteria;
+        private Long lastUpdatedId;
 
         @Override
         public boolean add(Entity entity) {
-            if (!conditionalCreateSucceeds || entity.getId() != null && entity.getId() == 2L) {
-                operations.add("addIfAbsent");
-                if (!conditionalCreateSucceeds) {
-                    throw new org.springframework.dao.DuplicateKeyException("duplicate");
-                }
-            } else {
-                operations.add("add");
-            }
+            operations.add("add");
             return true;
         }
 
         @Override
-        public Entity getByCriteria(vip.isass.framework.nocode.criteria.ICriteria<Entity, Criteria> criteria) {
-            return existing;
+        public boolean isPresentByCriteria(
+                vip.isass.framework.nocode.criteria.ICriteria<Entity, Criteria> criteria) {
+            operations.add("exists");
+            return existingByCriteria;
         }
 
         @Override
         public boolean updateById(Entity entity) {
             operations.add("updateId");
+            lastUpdatedId = entity.getId();
             return true;
         }
 

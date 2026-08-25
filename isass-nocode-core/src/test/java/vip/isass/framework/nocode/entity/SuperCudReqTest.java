@@ -21,12 +21,42 @@ class SuperCudReqTest {
         entities.add("second");
 
         assertEquals(List.of("first"), request.addEntities());
-        assertTrue(request.addIfAbsentItems().isEmpty());
+        assertTrue(request.addByFields().isEmpty());
         assertTrue(request.updateEntities().isEmpty());
-        assertTrue(request.updateByCriteriaItems().isEmpty());
+        assertEquals(null, request.updateCriteria());
         assertTrue(request.deleteIds().isEmpty());
         assertTrue(request.deleteCriteria().isEmpty());
         assertThrows(UnsupportedOperationException.class, () -> request.addEntities().add("third"));
+    }
+
+    @Test
+    void builderResolvesLambdaPropertiesAndNormalizesFieldNames() {
+        TestCriteria criteria = new TestCriteria();
+
+        SuperCudReq<TestEntity, TestCriteria> request = SuperCudReq.<TestEntity, TestCriteria>builder()
+                .addEntity(new TestEntity())
+                .addByFields(TestEntity::getCode)
+                .updateEntity(new TestEntity())
+                .updateByCriteria(criteria, TestEntity::getCode)
+                .build();
+
+        assertEquals(List.of("code"), request.addByFields());
+        assertEquals(List.of("code"), criteria.resolveMatchFields());
+    }
+
+    static final class TestEntity implements IEntity<TestEntity> {
+        public String getCode() {
+            return "code";
+        }
+
+        @Override
+        public TestEntity randomEntity() {
+            return this;
+        }
+    }
+
+    static final class TestCriteria
+            extends vip.isass.framework.nocode.criteria.impl.type.FullTypeCriteria<TestEntity, TestCriteria> {
     }
 
 }

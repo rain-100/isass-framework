@@ -8,20 +8,24 @@ import vip.isass.framework.entrypoint.annotation.EntrypointOperation;
 import vip.isass.framework.entrypoint.metadata.HttpMethod;
 import vip.isass.framework.nocode.service.ICrudService;
 
+import java.util.Arrays;
+
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
-class AutoConfigurationTest {
+class NocodeAutoConfigurationTest {
 
     @Test
     void classifierMarksOnlyStandardCrudOperationsAsNocode() {
-        var classifier = new AutoConfiguration().nocodeEntrypointClassifier();
-        var page = java.util.Arrays.stream(ICrudService.class.getMethods())
+        var classifier = new NocodeAutoConfiguration().nocodeEntrypointClassifier();
+        var page = Arrays.stream(ICrudService.class.getMethods())
                 .filter(method -> method.getName().equals("page"))
-                .findFirst().orElseThrow();
-        var custom = java.util.Arrays.stream(CustomEntrypoint.class.getMethods())
+                .findFirst()
+                .orElseThrow();
+        var custom = Arrays.stream(CustomEntrypoint.class.getMethods())
                 .filter(method -> method.getName().equals("publish"))
-                .findFirst().orElseThrow();
+                .findFirst()
+                .orElseThrow();
 
         assertTrue(classifier.isNocode(ICrudService.class, page));
         assertFalse(classifier.isNocode(ICrudService.class, custom));

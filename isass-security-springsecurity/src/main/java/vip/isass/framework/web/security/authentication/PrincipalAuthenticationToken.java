@@ -5,6 +5,7 @@ package vip.isass.framework.web.security.authentication;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import vip.isass.framework.common.security.AuthenticatedPrincipal;
+import vip.isass.framework.web.security.authorization.PrincipalAuthorizationContext;
 
 import java.util.Collection;
 
@@ -14,12 +15,28 @@ import java.util.Collection;
 public class PrincipalAuthenticationToken extends AbstractAuthenticationToken {
 
     private final AuthenticatedPrincipal principal;
+    private volatile PrincipalAuthorizationContext authorizationContext;
 
     public PrincipalAuthenticationToken(AuthenticatedPrincipal principal,
                                         Collection<? extends GrantedAuthority> authorities) {
+        this(principal, authorities, null);
+    }
+
+    public PrincipalAuthenticationToken(AuthenticatedPrincipal principal,
+                                        Collection<? extends GrantedAuthority> authorities,
+                                        PrincipalAuthorizationContext authorizationContext) {
         super(authorities);
         this.principal = principal;
+        this.authorizationContext = authorizationContext;
         super.setAuthenticated(true);
+    }
+
+    public PrincipalAuthorizationContext getAuthorizationContext() {
+        return authorizationContext;
+    }
+
+    public void setAuthorizationContext(PrincipalAuthorizationContext authorizationContext) {
+        this.authorizationContext = authorizationContext;
     }
 
     @Override

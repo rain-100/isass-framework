@@ -2,40 +2,54 @@
 
 package vip.isass.framework.nocode;
 
-import org.springframework.context.annotation.Bean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Bean;
+import org.springframework.transaction.PlatformTransactionManager;
+import tools.jackson.databind.ObjectMapper;
+import vip.isass.framework.common.web.header.AdditionalRequestHeaderProvider;
+import vip.isass.framework.entrypoint.http.HttpEndpointResolver;
 import vip.isass.framework.entrypoint.registry.EntrypointClassifier;
-import vip.isass.framework.nocode.service.CrudChangeExecutor;
-import vip.isass.framework.nocode.service.CrudChangeExecutorProvider;
-import vip.isass.framework.nocode.service.ICrudService;
-import vip.isass.framework.nocode.service.ILocalCrudService;
-import vip.isass.framework.nocode.service.AssociationQueryCoordinator;
-import vip.isass.framework.nocode.service.AssociationQueryCoordinatorProvider;
-import vip.isass.framework.nocode.service.AssociationWriteCoordinator;
-import vip.isass.framework.nocode.security.NocodeAuthorizationContext;
-import vip.isass.framework.nocode.security.NocodePermissionEvaluator;
+import vip.isass.framework.entrypoint.registry.ServiceDefinitionRegistry;
 import vip.isass.framework.nocode.initialization.NocodeInitializationController;
 import vip.isass.framework.nocode.initialization.NocodeInitializationDataService;
 import vip.isass.framework.nocode.initialization.NocodeInitializationProperties;
+import vip.isass.framework.nocode.initialization.NocodeInitializationRemoteClient;
+import vip.isass.framework.nocode.initialization.NocodeInitializationRunner;
+import vip.isass.framework.nocode.lifecycle.CrudQueryLifecycleListener;
+import vip.isass.framework.nocode.lifecycle.CrudWriteLifecycleListener;
+import vip.isass.framework.nocode.security.NocodeAuthorizationContext;
+import vip.isass.framework.nocode.security.NocodePermissionEvaluator;
+import vip.isass.framework.nocode.service.AssociationQueryCoordinator;
+import vip.isass.framework.nocode.service.AssociationWriteCoordinator;
+import vip.isass.framework.nocode.service.CrudWriteExecutor;
+import vip.isass.framework.nocode.service.CrudWriteExecutorProvider;
+import vip.isass.framework.nocode.service.CrudQueryExecutor;
+import vip.isass.framework.nocode.service.CrudQueryExecutorProvider;
+import vip.isass.framework.nocode.service.ICrudService;
+import vip.isass.framework.nocode.service.ILocalCrudService;
 
-@org.springframework.boot.autoconfigure.AutoConfiguration
+import java.util.List;
+
+@AutoConfiguration
 @EnableConfigurationProperties(NocodeInitializationProperties.class)
-public class AutoConfiguration {
+public class NocodeAutoConfiguration {
 
     @Bean
-    public CrudChangeExecutor crudChangeExecutor(
+    public CrudWriteExecutor crudWriteExecutor(
             AssociationWriteCoordinator associations,
-            ObjectProvider<PlatformTransactionManager> transactionManager
+            ObjectProvider<PlatformTransactionManager> transactionManager,
+            ObjectProvider<CrudWriteLifecycleListener> listeners
     ) {
-        return new CrudChangeExecutor(associations, transactionManager.getIfAvailable());
+        return new CrudWriteExecutor(associations, transactionManager.getIfAvailable(),
+                listeners.orderedStream().toList());
     }
 
     @Bean
-    public CrudChangeExecutorProvider crudChangeExecutorProvider(CrudChangeExecutor executor) {
-        return new CrudChangeExecutorProvider(executor);
+    public CrudWriteExecutorProvider crudWriteExecutorProvider(CrudWriteExecutor executor) {
+        return new CrudWriteExecutorProvider(executor);
     }
 
     @Bean
@@ -51,9 +65,15 @@ public class AutoConfiguration {
     }
 
     @Bean
-    public AssociationQueryCoordinatorProvider associationQueryCoordinatorProvider(
-            AssociationQueryCoordinator coordinator) {
-        return new AssociationQueryCoordinatorProvider(coordinator);
+    public CrudQueryExecutor crudQueryExecutor(
+            AssociationQueryCoordinator associations,
+            ObjectProvider<CrudQueryLifecycleListener> listeners) {
+        return new CrudQueryExecutor(associations, listeners.orderedStream().toList());
+    }
+
+    @Bean
+    public CrudQueryExecutorProvider crudQueryExecutorProvider(CrudQueryExecutor executor) {
+        return new CrudQueryExecutorProvider(executor);
     }
 
     @Bean
@@ -75,7 +95,9 @@ public class AutoConfiguration {
         return (service, operation, arguments) -> {
             if (operation.nocode()) {
                 permissionEvaluator.check(new NocodeAuthorizationContext(
-                        service.serviceName(), service.contextName(), service.resourceName(),
+                        service.serviceName(),
+                        service.contextName(),
+                        service.resourceName(),
                         operation.operationName(),
                         java.util.List.of(arguments)));
             }
@@ -84,8 +106,8 @@ public class AutoConfiguration {
 
     @Bean
     public NocodeInitializationDataService nocodeInitializationDataService(
-            java.util.List<ILocalCrudService<?, ?, ?>> services,
-            tools.jackson.databind.ObjectMapper objectMapper) {
+            List<ILocalCrudService<?, ?, ?>> services,
+            ObjectMapper objectMapper) {
         return new NocodeInitializationDataService(services, objectMapper);
     }
 
@@ -98,14 +120,13 @@ public class AutoConfiguration {
     @Bean
     public org.springframework.boot.ApplicationRunner nocodeInitializationRunner(
             NocodeInitializationDataService dataService,
-            vip.isass.framework.entrypoint.http.HttpEndpointResolver endpoints,
-            tools.jackson.databind.ObjectMapper objectMapper,
-            ObjectProvider<vip.isass.framework.common.web.header.AdditionalRequestHeaderProvider> headers,
+            HttpEndpointResolver endpoints,
+            ObjectMapper objectMapper,
+            ObjectProvider<AdditionalRequestHeaderProvider> headers,
             NocodeInitializationProperties properties,
-            vip.isass.framework.entrypoint.registry.ServiceDefinitionRegistry definitions) {
-        var remote = new vip.isass.framework.nocode.initialization.NocodeInitializationRemoteClient(
+            ServiceDefinitionRegistry definitions) {
+        var remote = new NocodeInitializationRemoteClient(
                 endpoints, objectMapper, headers.orderedStream().toList());
-        return new vip.isass.framework.nocode.initialization.NocodeInitializationRunner(
-                dataService, remote, properties, definitions).runner();
+        return new NocodeInitializationRunner(dataService, remote, properties, definitions).runner();
     }
 }

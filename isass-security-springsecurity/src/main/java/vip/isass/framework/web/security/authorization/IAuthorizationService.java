@@ -20,6 +20,22 @@ import java.util.List;
 @EntrypointInfo(serviceName = "bsp-service", contextName = "auth", resourceName = "authorization")
 public interface IAuthorizationService extends IEntrypoint {
 
+    @EntrypointOperation(operationName = "apiKeyContext", displayName = "API Key 授权上下文",
+            httpMethod = HttpMethod.POST)
+    ApiKeyAuthenticationResult apiKeyContext(@BodyParam ApiKeyAuthenticationRequest request);
+
+    @EntrypointOperation(operationName = "jwtContext", displayName = "JWT 授权上下文",
+            httpMethod = HttpMethod.GET)
+    PrincipalAuthorizationContext jwtContext();
+
+    /**
+     * BSP 本地实现使用的统一计算入口，不生成 HTTP 或 OpenAPI。
+     */
+    PrincipalAuthorizationContext findAuthorizationContext(PrincipalType principalType,
+                                                           Long principalId,
+                                                           Long tenantId,
+                                                           Long appId);
+
     @EntrypointOperation(operationName = "findRoleCodes", displayName = "查询主体角色",
             httpMethod = HttpMethod.GET)
     Collection<String> findRoleCodes(@QueryParam("principalType") PrincipalType principalType,
@@ -28,10 +44,6 @@ public interface IAuthorizationService extends IEntrypoint {
     @EntrypointOperation(operationName = "findRoleCodesByUserId", displayName = "查询用户角色",
             httpMethod = HttpMethod.GET)
     Collection<String> findRoleCodesByUserId(@QueryParam("userId") String userId);
-
-    @EntrypointOperation(operationName = "findRoleCodesByUri", displayName = "查询资源所需角色",
-            httpMethod = HttpMethod.POST)
-    Collection<String> findRoleCodesByUri(@BodyParam UriRoleCodesRequest request);
 
     @EntrypointOperation(operationName = "clearAuthenticationCaches", displayName = "清空认证缓存",
             httpMethod = HttpMethod.POST)
