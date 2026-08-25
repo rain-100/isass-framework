@@ -75,7 +75,8 @@ public class AutoConfiguration {
         return (service, operation, arguments) -> {
             if (operation.nocode()) {
                 permissionEvaluator.check(new NocodeAuthorizationContext(
-                        service.serviceName(), service.resourceName(), operation.operationName(),
+                        service.serviceName(), service.contextName(), service.resourceName(),
+                        operation.operationName(),
                         java.util.List.of(arguments)));
             }
         };
