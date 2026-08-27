@@ -180,11 +180,19 @@ public @interface EntrypointOperation {
 
     /** HTTP 请求方法。 */
     HttpMethod httpMethod();
+
+    /** 是否允许未登录主体访问当前操作。 */
+    boolean allowAnonymous() default false;
 }
 ```
 
 `displayName` 必填；`description` 可空；相同 `displayOrder` 按 `operationName` 和 HTTP Method 稳定排序。
 这三个展示字段都不参与路由、服务发现或权限唯一标识。
+
+`allowAnonymous` 默认 `false`。设为 `true` 时，Web 层只把当前进程中具有本地实现的该操作 URL 自动加入
+Spring Security 匿名放行清单；远程代理定义不会影响本服务的安全规则。它只跳过统一身份和权限校验，HMAC、
+API Key、验证码等业务凭证仍必须由实现方法校验。手写 Controller 不使用该注解，继续通过
+`PermitUrlProvider` 明确声明匿名 URL。
 
 只有标注 `@EntrypointOperation` 的方法才注册 HTTP/gRPC 路由并进入 OpenAPI。方法是否为 Java `default`
 与是否发布远程入口是两个独立维度：
@@ -273,8 +281,8 @@ NoCode 的 `one`、`list`、`page`、`cursorPage` 等标准 `operationName` 不�
 
 ```text
 旧：GET    /{id}             -> 新：GET    /page?id=123&pageSize=1
-旧：DELETE /id/{id}          -> 新：DELETE /deleteBatch?id=123
-旧：DELETE /{ids}            -> 新：少量 ID 使用 deleteBatch 的重复 Query，大量 ID 使用 superCud Body
+旧：DELETE /id/{id}          -> 新：DELETE /delete?id=123
+旧：DELETE /{ids}            -> 新：少量 ID 使用 delete 的重复 Query，大量 ID 使用 superCud Body
 ```
 
 NoCode 鉴权顺序为：
@@ -398,7 +406,8 @@ isass:
 `SuperCudReq` 并进入同一个本地执行器：
 
 ```text
-create / createBatch / createIfAbsent / update / updateBatch / delete / deleteBatch
+create(E) / createBatch(Collection<E>) / createIfAbsent(...) /
+update(E) / update(E,C) / update(Collection<E>,C) / delete(PK) / delete(C)
   -> 构造只包含对应操作的 SuperCudReq
     -> superCud
 
@@ -436,8 +445,8 @@ create / createBatch / createIfAbsent / update / updateBatch / delete / deleteBa
 | 方法 | 处理 | 原因 | 关键实现 |
 | --- | --- | --- | --- |
 | `deleteById(Serializable id)` | 改为默认实现 | 单体删除是超级增删改中单 ID 删除的特例，无需单独发布前端入口。 | 重命名为未标注入口注解的 `delete`：`return superCud(SuperCudReq.delete(id)).deletedCount() == 1;`。 |
-| `deleteByIds(Collection<Serializable> ids)` | 改为默认实现 | 多 ID 删除已经被 Criteria 的 `idIn` 覆盖，不需要第二个远程合同。 | `return deleteBatch(newCriteria().setIdIn(ids)) > 0;`。只在 Java 层提供；远程调用使用 `deleteBatch?idIn=...`。 |
-| `deleteByCriteria(C criteria)` | 升级 | Criteria 是前端批量删除的统一范围表达。 | 重命名为带入口注解的默认方法 `deleteBatch`。<br>`@EntrypointOperation(operationName="deleteBatch", displayName="删-批量", description="根据查询条件批量删除数据", displayOrder=401, httpMethod=HttpMethod.DELETE)`<br>`default Long deleteBatch(@QueryParam C criteria) { return superCud(SuperCudReq.deleteByCriteria(criteria)).deletedCount(); }`<br>没有有效 Where 条件时必须拒绝。 |
+| `deleteByIds(Collection<Serializable> ids)` | 改为默认实现 | 多 ID 删除已经被 Criteria 的 `idIn` 覆盖，不需要第二个远程合同。 | `return delete(newCriteria().setIdIn(ids)) > 0;`。只在 Java 层提供；远程调用使用 `delete?idIn=...`。 |
+| `deleteByCriteria(C criteria)` | 升级 | Criteria 是前端批量删除的统一范围表达。 | 重命名为带入口注解的默认方法 `delete`。<br>`@EntrypointOperation(operationName="delete", displayName="删-批量", description="根据查询条件批量删除数据", displayOrder=401, httpMethod=HttpMethod.DELETE)`<br>`default Long delete(@QueryParam C criteria) { return superCud(SuperCudReq.deleteByCriteria(criteria)).deletedCount(); }`<br>没有有效 Where 条件时必须拒绝。 |
 
 #### 6.1.3 改
 
@@ -446,7 +455,7 @@ create / createBatch / createIfAbsent / update / updateBatch / delete / deleteBa
 | `updateById(E entity)` | 改为默认实现 | 单实体按 ID 更新是超级增删改中单元素更新的特例。 | 重命名为 `update(E entity)`：`return superCud(SuperCudReq.update(entity)).updatedCount() > 0;`。 |
 | `updateAllColumnsById(E entity)` | 改为默认实现 | 与普通更新的唯一区别是普通字段的 `null` 是否写入数据库，不需要独立远程入口。 | 重命名为 `updateAllColumns(E entity)`：`return update(entity, newCriteria().setNullValueMode(WRITE_NULL));`；默认普通更新使用 `IGNORE_NULL`。 |
 | `updateByIdOrException(E entity)` | 改为默认实现 | “未更新则抛异常”是返回结果之上的 Java 便捷语义。 | 合并为 `requireUpdate(entity, newCriteria())`；内部调用 `update`，结果为 `0` 时抛 `AbsentException`。 |
-| `updateByCriteria(E entity, C criteria)` | 升级 | 前端需要正式 Criteria 更新入口。 | 重命名为带入口注解的默认方法 `updateBatch`，Body 永远是集合。<br>`@EntrypointOperation(operationName="updateBatch", displayName="改-批量", description="根据实体 ID 或查询条件批量修改数据", displayOrder=201, httpMethod=HttpMethod.PUT)`<br>`default Long updateBatch(@BodyParam Collection<E> entities, @QueryParam C criteria) { return superCud(SuperCudReq.updateByCriteria(entities, criteria)).updatedCount(); }` |
+| `updateByCriteria(E entity, C criteria)` | 升级 | 前端需要正式 Criteria 更新入口。 | 重命名为带入口注解的默认方法 `update`，Body 永远是集合。<br>`@EntrypointOperation(operationName="update", displayName="改-批量", description="根据实体 ID 或查询条件批量修改数据", displayOrder=201, httpMethod=HttpMethod.PUT)`<br>`default Long update(@BodyParam Collection<E> entities, @QueryParam C criteria) { return superCud(SuperCudReq.updateByCriteria(entities, criteria)).updatedCount(); }` |
 | `updateByCriteriaOrException(E entity, C criteria)` | 改为默认实现 | 与正式更新只有零影响行时抛异常的差异。 | 合并为 `requireUpdate(entity, criteria)`；内部调用 `update(entity, criteria)`。 |
 | `batchSave(BatchSave<E> batchSave)` | 升级 | 它升级为兼容全部标准增删改能力的统一变更集入口，并负责一个本地事务。 | 重命名为 `superCud` 并返回汇总影响数量。<br>`@EntrypointOperation(operationName="superCud", displayName="超级增删改", description="在一个事务中执行新增、修改和删除", displayOrder=202, httpMethod=HttpMethod.POST)`<br>`SuperCudResult superCud(@BodyParam SuperCudReq<E, C> req);`<br>`ILocalCrudService` 的默认实现调用独立 `CrudWriteExecutor.superCud(service, req)`。 |
 
@@ -490,9 +499,9 @@ create / createBatch / createIfAbsent / update / updateBatch / delete / deleteBa
 | `SuperCudResult` | 返回类型 Record | 大批量保存无需回传实体副本或逐项结果。 | 只包含 `addedCount`、`updatedCount`、`deletedCount` 三个汇总影响数量。 |
 | `NullValueMode` | 更新策略 | 取代独立 `updateAllColumnsById` 入口，明确普通字段的 `null` 写入语义。 | `IGNORE_NULL` 为默认值，`WRITE_NULL` 表示把请求中显式提交的 `null` 写入数据库；由 `IUpdateCriteria.nullValueMode` 传递。 |
 
-升级后的 `ICrudService` 正式入口共八个：`createBatch`、`superCud`、`deleteBatch`、`updateBatch`、`page`、
-`cursorPage`、`count` 和 `exists`。`create`、`createIfAbsent`、`delete` 等其他保留方法均为未标注
-`@EntrypointOperation` 的 Java 默认方法。
+升级后的 `ICrudService` 正式入口共八个：`createBatch`、`superCud`、`delete`、`update`、`page`、
+`cursorPage`、`count` 和 `exists`。`create(E)`、`createIfAbsent(...)`、`update(E)`、`update(E,C)`、
+`delete(PK)` 等便捷重载均为未标注 `@EntrypointOperation` 的 Java 默认方法。
 
 ### 6.3 非 CRUD 成员的处理
 
@@ -534,7 +543,7 @@ create / createBatch / createIfAbsent / update / updateBatch / delete / deleteBa
   Bean 内部调用会绕过代理。需要切面的能力应拦截独立 `CrudWriteExecutor`，或直接成为执行器内部步骤；
 - 写/查询生命周期监听器都作为 Spring Bean 自动收集，不允许使用静态注册表；写生命周期区分事务内
   `beforeExecute/afterExecute` 与真实事务完成后的 `afterCommit/afterRollback`；
-- `deleteBatch`、无 ID 的 `updateBatch` 必须要求至少一个有效 Where 条件；真正全表操作只能使用受控的
+- `delete`、无 ID 的 `update` 必须要求至少一个有效 Where 条件；真正全表操作只能使用受控的
   管理应用服务；
 - `count` 返回 `Long`，批量增删改返回影响数量或结构化结果，不再使用无法区分具体结果的统一 `Boolean`；
 - `list` 最多返回 `9999` 条，超过上限使用 `page`、`cursorPage` 或导出任务；
@@ -786,14 +795,15 @@ bsp-service
 - NoCode 初始化数据使用 `/{serviceName}/nocode/system/initialization/{operationName}` 基础设施路径，
   由运行时 Entrypoint 元数据识别实体归属，不读取旧合同；
 - 未标注的方法不生成路由或 OpenAPI；
-- 正式 CRUD 入口只有 `createBatch`、`superCud`、`deleteBatch`、`updateBatch`、`page`、`cursorPage`、
+- 正式 CRUD 入口只有 `createBatch`、`superCud`、`delete`、`update`、`page`、`cursorPage`、
   `count` 和 `exists`；
 - `getById/getOne/list/requireOne/existsById/update/requireUpdate/requireExists/requireAbsent` 等便捷能力在
   客户端执行默认实现，并只调用上述正式入口；
 - `createIfAbsent` 接受 Java 属性名或 getter Lambda；业务负责选择唯一字段并按并发要求建立唯一索引，
   框架不在代码层强制索引；旧的独立 `IfAbsent`、通用 `AddOrUpdate` 和字符串属性查询不再属于标准 CRUD；
-- `create`、`createIfAbsent`、`update` 和 `delete` 是未标注入口注解的 Java 默认方法；`createBatch`、
-  `updateBatch` 和 `deleteBatch` 是正式专项入口；它们都构造 `SuperCudReq` 并调用 `superCud`；
+- `create(E)`、`createIfAbsent(...)`、`update(E)`、`update(E,C)` 和 `delete(PK)` 是未标注入口注解的 Java
+  默认方法；`createBatch(Collection<E>)`、`update(Collection<E>,C)` 和 `delete(C)` 是正式专项入口；它们都
+  构造 `SuperCudReq` 并调用 `superCud`；
 - `superCud` 通过独立 `CrudWriteExecutor` 在一个本地事务中完成全部写入并返回三类汇总数量，不依赖
   Service 自调用触发 Spring AOP；
 - `page/cursorPage/count/exists` 通过独立 `CrudQueryExecutor` 执行，`getById/getOne/list/requireOne`

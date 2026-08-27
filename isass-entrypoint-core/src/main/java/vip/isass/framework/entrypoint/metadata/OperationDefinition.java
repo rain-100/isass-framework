@@ -12,6 +12,7 @@ public record OperationDefinition(
         String description,
         int displayOrder,
         HttpMethod httpMethod,
+        boolean allowAnonymous,
         Method javaMethod,
         List<ParameterDefinition> parameters,
         Type returnType,

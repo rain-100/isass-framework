@@ -30,6 +30,7 @@ import vip.isass.framework.entrypoint.registry.ServiceDefinitionRegistry;
 import tools.jackson.databind.ObjectMapper;
 import org.springframework.core.env.Environment;
 import vip.isass.framework.web.security.PermitUrlProvider;
+import vip.isass.framework.web.security.EntrypointAnonymousUrlProvider;
 import vip.isass.framework.web.uri.UriPrefixProvider;
 
 import java.awt.image.BufferedImage;
@@ -55,6 +56,13 @@ public class WebAutoConfiguration {
             @org.springframework.beans.factory.annotation.Value("${spring.application.name:}") String applicationName
     ) {
         return new OpenApiPermitUrlProvider(applicationName);
+    }
+
+    @Bean
+    public EntrypointAnonymousUrlProvider entrypointAnonymousUrlProvider(
+            ServiceDefinitionRegistry serviceDefinitionRegistry
+    ) {
+        return new EntrypointAnonymousUrlProvider(serviceDefinitionRegistry);
     }
 
     @Bean

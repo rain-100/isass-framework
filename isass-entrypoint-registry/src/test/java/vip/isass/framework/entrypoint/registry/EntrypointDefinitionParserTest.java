@@ -14,7 +14,9 @@ import vip.isass.framework.entrypoint.metadata.ServiceDefinition;
 import java.lang.reflect.ParameterizedType;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class EntrypointDefinitionParserTest {
 
@@ -37,6 +39,15 @@ class EntrypointDefinitionParserTest {
         ParameterizedType resultType = assertInstanceOf(ParameterizedType.class, superCud.returnType());
         assertEquals(TestResult.class, resultType.getRawType());
         assertEquals(TestEntity.class, resultType.getActualTypeArguments()[0]);
+        assertFalse(superCud.allowAnonymous());
+    }
+
+    @Test
+    void parsesAnonymousAccessMetadata() {
+        ServiceDefinition definition = new EntrypointDefinitionParser(java.util.List.of())
+                .parse(AnonymousEntrypoint.class, true);
+
+        assertTrue(definition.operations().getFirst().allowAnonymous());
     }
 
     @EntrypointInfo(serviceName = "test-service", contextName = "sample", resourceName = "testEntity")
@@ -47,6 +58,13 @@ class EntrypointDefinitionParserTest {
         @EntrypointOperation(operationName = "superCud", displayName = "超级增删改",
                 httpMethod = HttpMethod.POST)
         TestResult<E> superCud(@BodyParam TestRequest<E, C> request);
+    }
+
+    @EntrypointInfo(serviceName = "test-service", contextName = "sample", resourceName = "anonymous")
+    private interface AnonymousEntrypoint extends IEntrypoint {
+        @EntrypointOperation(operationName = "login", displayName = "登录",
+                httpMethod = HttpMethod.POST, allowAnonymous = true)
+        void login(@BodyParam TestRequest<TestEntity, TestCriteria> request);
     }
 
     private record TestRequest<E, C>(E entity, C criteria) {}

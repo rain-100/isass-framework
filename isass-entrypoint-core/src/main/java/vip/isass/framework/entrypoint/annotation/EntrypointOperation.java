@@ -23,4 +23,11 @@ public @interface EntrypointOperation {
     int displayOrder() default 0;
 
     HttpMethod httpMethod();
+
+    /**
+     * Whether the current operation allows requests without an authenticated principal.
+     * Business credentials such as HMAC signatures or API keys must still be validated by
+     * the operation implementation when required.
+     */
+    boolean allowAnonymous() default false;
 }

@@ -19,7 +19,6 @@ public class UuidSequence implements Sequence<String> {
     public static String get() {
         return UUID.randomUUID().toString();
     }
-
     
     @Override
     public boolean support(Class<?> clazz) {

@@ -15,15 +15,16 @@ NoCode 基础路径固定为：
 | --- | --- | --- |
 | 批量新增 | `POST {base}/createBatch` | Body：实体数组 |
 | 超级增删改 | `POST {base}/superCud` | Body：`SuperCudReq` |
-| 批量修改 | `PUT {base}/updateBatch` | Body：实体数组；Query：Criteria 与更新策略 |
-| 批量删除 | `DELETE {base}/deleteBatch` | Query：Criteria |
+| 批量修改 | `PUT {base}/update` | Body：实体数组；Query：Criteria 与更新策略 |
+| 批量删除 | `DELETE {base}/delete` | Query：Criteria |
 | 分页查询 | `GET {base}/page` | Query：Criteria、页码与排序 |
 | 游标分页 | `GET {base}/cursorPage` | Query：Criteria、`cursorId`、`pageSize`、`orderBy=id asc|desc` |
 | 数量 | `GET {base}/count` | Query：Criteria |
 | 是否存在 | `GET {base}/exists` | Query：Criteria |
 
-`create`、`createIfAbsent`、`update`、`delete`、`getById`、`getOne`、`existsById`、`list`、`requireOne` 等都是 Java
-便捷方法，不生成 HTTP/gRPC 路由。
+`create(E)`、`createIfAbsent(...)`、`update(E)`、`update(E,C)`、`delete(PK)`、`getById`、`getOne`、
+`existsById`、`list`、`requireOne` 等都是 Java 便捷方法，不生成 HTTP/gRPC 路由。HTTP 对应的是正式重载
+`update(Collection<E>,C)` 与 `delete(C)`。
 
 ## SuperCudReq
 

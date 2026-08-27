@@ -93,7 +93,8 @@ public final class EntrypointDefinitionParser {
         boolean nocode = classifiers.stream()
                 .anyMatch(classifier -> classifier.isNocode(serviceInterface, method));
         return new OperationDefinition(annotation.operationName(), annotation.displayName(),
-                annotation.description(), annotation.displayOrder(), annotation.httpMethod(), method,
+                annotation.description(), annotation.displayOrder(), annotation.httpMethod(),
+                annotation.allowAnonymous(), method,
                 parameters, org.springframework.core.GenericTypeResolver.resolveType(
                         method.getGenericReturnType(), serviceInterface), nocode);
     }

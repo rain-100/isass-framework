@@ -4,12 +4,23 @@
 
 ### 4.0.0-SNAPSHOT
 
+- **稳定 Long ID 公共协议**：`Sequence` 新增静态 `stableLongId(identity)`，使用固定的
+  UTF-8、SHA-256、摘要前八字节大端序及正数映射协议，把带业务命名空间的字符串稳定映射为正数
+  `long`。该方法不依赖运行时 Sequence Provider，并以固定测试向量锁定持久化兼容性；业务仍须通过
+  唯一索引或固定 ID 内容校验处理理论哈希碰撞。
+- **Entrypoint 匿名访问声明**：`EntrypointOperation` 新增默认关闭的 `allowAnonymous` 元数据，Web 自动配置
+  只收集当前进程本地实现的匿名操作并生成精确 URL 放行清单；远程代理不会污染本服务安全规则，手写
+  Controller 继续使用 `PermitUrlProvider`。业务 HMAC、API Key 等校验仍由入口实现负责；BSP 的 API Key
+  生成与 HMAC 注册统一收敛到 `auth/bootstrap` 资源。
 - **NoCode CRUD 生命周期收敛**：八个标准入口分别归一到 `CrudWriteExecutor.superCud` 和
   `CrudQueryExecutor.query` 两个执行边界；新增强类型 `CrudWriteLifecycleContext`、
   `CrudQueryLifecycleContext` 及查询请求/结果模型。生命周期监听器改为 Spring Bean 自动收集，删除静态
   Registry 与手工注册；写回调明确区分事务内执行、真实提交和回滚，查询回调统一覆盖分页、游标分页、
   计数与存在性查询，并仅抑制同一 Service 重入。BSP 缓存、权限约束、存储平台和关联同步监听器已迁移到
   新模型。
+- **NoCode 写入口命名精简**：正式批量修改与 Criteria 删除入口由 `updateBatch`、`deleteBatch` 更名为
+  `update`、`delete`，URL 同步改为 `/update`、`/delete`；集合 Body 与 Criteria 的批量语义不变，不保留
+  旧方法或旧 URL 兼容。单实体 `update(E)`、`update(E,C)` 和 `delete(PK)` 继续作为未发布的 Java 便捷重载。
 - **统一主体授权与本地权限映射**：删除框架旧 `ApiKeyAuthenticationService`、URL—角色元数据链路和
   `DynamicRoleAuthorizationManager`；`IAuthorizationService` 统一发布 Body 承载的 `apiKeyContext` 与
   JWT 主体读取的 `jwtContext`，`PrincipalAuthenticationToken` 同时持有已验证主体和授权上下文。
@@ -45,7 +56,7 @@
   自定义入口固定为不含 `nocode` 的同构路径，并全面禁止业务 Path 参数。删除旧 `IService`、Manager、
   transport/contract 实现、`isass-nocode-http/grpc` 模块、Maven 合同生成 Goal 与
   `nocode-contract.json`，不提供旧类型或旧 URL 兼容。标准 CRUD 仅发布 `createBatch`、`superCud`、
-  `updateBatch`、`deleteBatch`、`page`、`cursorPage`、`count`、`exists` 八个操作；新增六分组
+  `update`、`delete`、`page`、`cursorPage`、`count`、`exists` 八个操作；新增六分组
   `SuperCudReq/SuperCudResult`、独立事务执行器、嵌套保存点条件新增、`MERGE/REPLACE`、
   `IGNORE_NULL/WRITE_NULL`、方向性关联/树形级联、字段出现性掩码和 ID 游标分页。字段出现信息能够在
   Bean、record、集合、数组和 Map 中经 HTTP/gRPC 双向传递；生成实体 setter 会登记显式提交字段。
@@ -75,8 +86,8 @@
   - `DefaultSecurityMetadataSourceProvider` 直接使用 `IAuthorizationService`，单体/BSP 选择本地实现，业务微服务选择 Entrypoint 远程代理；删除旧 `IRoleCodeService`、Manager 与 BSP 适配器链。
   - `DynamicRoleAuthorizationManager` 在 `ROLE` 策略下改为默认拒绝；除 `PermitUrlProvider` 明确放行的 URL 外，接口必须存在资源、权限与角色关联才允许访问。
   - 接口资源匹配使用实际请求的“方法 + 路径”，避免 Spring MVC 泛型路径模板导致初始化接口等资源无法稳定匹配。
-  - BSP Bootstrap 下游凭证排除范围收窄到 API Key 生成和 HMAC 注册两个根入口；注册诊断等普通授权入口
-    仍可携带服务 API Key，不再因共享 `/bootstrap/` 前缀而丢失认证信息。
+  - BSP Bootstrap 下游凭证排除范围收窄到 `auth/bootstrap` 资源中的 API Key 生成和 HMAC
+    注册两个根入口；注册诊断等普通授权入口仍可携带服务 API Key。
 - `isass-core-dependencies` 统一管理微信服务所需的 Bouncy Castle JDK 18+ 组件版本，业务微服务不得再直写该依赖版本。
 - 修复 nocode MyBatis-Plus 代码生成器同时设置空 `exclude` 导致 `includeTables` 失效的问题；包含表与排除表现在严格二选一。
 - 修复生成器将 `ModuleInfo` 错误定位为上下文包的问题；默认从模块名首段推导微服务根包，并允许通过元数据覆盖。

@@ -129,7 +129,7 @@ public final class AssociationWriteCoordinator {
                 IWhereConditionCriteria where = (IWhereConditionCriteria) targetCriteria;
                 where.equals(association.targetField(), sourceKey);
                 if (!submittedIds.isEmpty()) where.notIn("id", submittedIds);
-                nested(() -> targetService.deleteBatch((vip.isass.framework.nocode.criteria.ICriteria) targetCriteria));
+                nested(() -> targetService.delete((vip.isass.framework.nocode.criteria.ICriteria) targetCriteria));
             }
         }
     }
@@ -169,7 +169,7 @@ public final class AssociationWriteCoordinator {
             for (Object target : targets) {
                 if (target instanceof IEntity<?> entity) cascade(entity, visited, depth + 1);
             }
-            nested(() -> targetService.deleteBatch((vip.isass.framework.nocode.criteria.ICriteria) criteria));
+            nested(() -> targetService.delete((vip.isass.framework.nocode.criteria.ICriteria) criteria));
         }
         visited.remove(identity);
     }

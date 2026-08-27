@@ -152,15 +152,15 @@ public interface ICrudService<
     }
 
     default long update(E entity, C criteria) {
-        return updateBatch(List.of(entity), criteria);
+        return update(List.of(entity), criteria);
     }
 
-    @EntrypointOperation(operationName = "updateBatch", displayName = "改-批量",
+    @EntrypointOperation(operationName = "update", displayName = "改-批量",
             description = "根据实体 ID 或查询条件批量修改数据", displayOrder = 201,
             httpMethod = HttpMethod.PUT)
-    default Long updateBatch(@BodyParam Collection<E> entities, @QueryParam C criteria) {
+    default Long update(@BodyParam Collection<E> entities, @QueryParam C criteria) {
         if (entities == null || entities.isEmpty()) {
-            throw new IllegalArgumentException("updateBatch.entities 不能为空");
+            throw new IllegalArgumentException("update.entities 不能为空");
         }
         return superCud(SuperCudReq.<E, C>updateByCriteria(entities, criteria)).updatedCount();
     }
@@ -182,7 +182,7 @@ public interface ICrudService<
     }
 
     default boolean deleteIds(Collection<PK> ids) {
-        return deleteBatch(newCriteria().setIdIn(ids)) > 0;
+        return delete(newCriteria().setIdIn(ids)) > 0;
     }
 
     default long updateAllColumns(E entity) {
@@ -190,10 +190,10 @@ public interface ICrudService<
         return update(entity, newCriteria().setNullValueMode(NullValueMode.WRITE_NULL));
     }
 
-    @EntrypointOperation(operationName = "deleteBatch", displayName = "删-批量",
+    @EntrypointOperation(operationName = "delete", displayName = "删-批量",
             description = "根据查询条件批量删除数据", displayOrder = 401,
             httpMethod = HttpMethod.DELETE)
-    default Long deleteBatch(@QueryParam C criteria) {
+    default Long delete(@QueryParam C criteria) {
         return superCud(SuperCudReq.<E, C>deleteByCriteria(criteria)).deletedCount();
     }
 

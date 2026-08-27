@@ -21,11 +21,11 @@ import java.util.List;
 public interface IAuthorizationService extends IEntrypoint {
 
     @EntrypointOperation(operationName = "apiKeyContext", displayName = "API Key 授权上下文",
-            httpMethod = HttpMethod.POST)
+            httpMethod = HttpMethod.POST, allowAnonymous = true)
     ApiKeyAuthenticationResult apiKeyContext(@BodyParam ApiKeyAuthenticationRequest request);
 
     @EntrypointOperation(operationName = "jwtContext", displayName = "JWT 授权上下文",
-            httpMethod = HttpMethod.GET)
+            httpMethod = HttpMethod.GET, allowAnonymous = true)
     PrincipalAuthorizationContext jwtContext();
 
     /**

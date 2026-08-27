@@ -51,8 +51,8 @@ public class SpringApiKeyHeaderProvider implements AdditionalRequestHeaderProvid
     }
 
     private boolean excluded(String url) {
-        return url.contains("/bsp-service/bootstrap/apiKey/generate")
-                || url.contains("/bsp-service/bootstrap/applicationRegistration/register")
+        return url.contains("/bsp-service/auth/bootstrap/apiKey")
+                || url.contains("/bsp-service/auth/bootstrap/register")
                 || url.contains("/bsp-service/auth/authorization/apiKeyContext")
                 || url.contains("/bsp-service/auth/authorization/jwtContext");
     }

@@ -214,7 +214,7 @@ association.query=parent
 
 ### 5.1 请求属性存在性
 
-当前实体的 Java 便捷方法 `create`、正式入口 `createBatch`/`superCud` 和 `updateBatch` 都可以接收生成实体
+当前实体的 Java 便捷方法 `create`、正式入口 `createBatch`/`superCud` 和 `update` 都可以接收生成实体
 及其非持久化关联属性。是否处理某条关系，以原始请求是否携带该属性为准：
 
 | 请求状态 | 行为 |
@@ -366,18 +366,18 @@ getter Lambda，HTTP/gRPC 传输仍使用字符串属性名。
 
 ### 5.6 批量修改
 
-`updateBatch` 是正式 Criteria 更新入口。单实体按 ID 修改作为未发布的 Java 默认方法，通过
+`update` 是正式 Criteria 更新入口。单实体按 ID 修改作为未发布的 Java 默认方法，通过
 `SuperCudReq.updateEntities` 调用 `superCud`；带 Criteria 的更新使用批次共用的
 `SuperCudReq.updateCriteria`：
 
 ```java
 @EntrypointOperation(
-        operationName = "updateBatch",
+        operationName = "update",
         displayName = "改-批量",
         description = "根据实体 ID 或更新条件批量修改数据",
         displayOrder = 201,
         httpMethod = HttpMethod.PUT)
-default Long updateBatch(
+default Long update(
         @BodyParam Collection<E> entities,
         @QueryParam C criteria) {
     return superCud(SuperCudReq.updateByCriteria(entities, criteria))
@@ -389,7 +389,7 @@ default boolean update(E entity) {
 }
 
 default long update(E entity, C criteria) {
-    return updateBatch(List.of(entity), criteria);
+    return update(List.of(entity), criteria);
 }
 
 default long updateAllColumns(E entity) {
@@ -535,8 +535,8 @@ public record SuperCudResult(
    的多次编辑，并移除“新增后又删除”的净零变更；Criteria 与其他分组可能重叠时按固定顺序执行；
 7. 所有操作在同一个本地事务中完成，任一真实失败全部回滚；“条件新增时记录已存在”是正常分支，不是
    失败；
-8. 执行器直接使用 Repository 和关联写入能力，不能反向调用 `createBatch`、`updateBatch` 或
-   `deleteBatch`，防止递归；
+8. 执行器直接使用 Repository 和关联写入能力，不能反向调用 `createBatch`、`update` 或
+   `delete`，防止递归；
 9. `SuperCudResult` 仅返回新增、修改、删除三类汇总影响数量，不回传实体或逐项结果；
 10. 全部静态校验必须在任何写入前完成；执行期数据库异常仍导致整个请求回滚。
 11. 所有操作为空时按合法的幂等 no-op 处理，不开启无意义的数据库写入，直接返回三个零值计数；
@@ -568,7 +568,8 @@ public interface ILocalCrudService<E, C, PK> extends ICrudService<E, C, PK> {
 ```
 
 ```text
-create / createBatch / createIfAbsent / update / updateBatch / delete / deleteBatch
+create(E) / createBatch(Collection<E>) / createIfAbsent(...) /
+update(E) / update(E,C) / update(Collection<E>,C) / delete(PK) / delete(C)
   -> 构造 SuperCudReq
     -> superCud
       -> 独立 Spring Bean CrudWriteExecutor.superCud
@@ -604,18 +605,18 @@ default boolean delete(PK id) {
 }
 
 @EntrypointOperation(
-        operationName = "deleteBatch",
+        operationName = "delete",
         displayName = "删-批量",
         description = "根据查询条件批量删除数据",
         displayOrder = 401,
         httpMethod = HttpMethod.DELETE)
-default Long deleteBatch(@QueryParam C criteria) {
+default Long delete(@QueryParam C criteria) {
     return superCud(SuperCudReq.deleteByCriteria(criteria))
             .deletedCount();
 }
 ```
 
-`deleteBatch` 拒绝没有任何有效 Where 条件的 Criteria。单 ID 删除直接构造 `SuperCudReq.delete(id)`。
+`delete` 拒绝没有任何有效 Where 条件的 Criteria。单 ID 删除直接构造 `SuperCudReq.delete(id)`。
 
 删除当前实体时读取生成的方向性级联元数据：
 
@@ -775,7 +776,7 @@ public record CursorPage<E, PK>(
 5. 实现一层方向性关联批量查询和循环防护；
 6. 实现一个请求内当前实体与直接关联对象的事务保存；
 7. 实现 HTTP、gRPC 和本地 Java 调用统一的瞬态写入属性掩码，保证未提交字段和显式空值能够双向区分；
-8. 新增 `IUpdateCriteria`、`MERGE/REPLACE`、`NullValueMode` 和正式 `updateBatch`；
+8. 新增 `IUpdateCriteria`、`MERGE/REPLACE`、`NullValueMode` 和正式 `update`；
 9. 将单体新增、不存在时新增和单体删除定义为未标注入口注解的 Java 默认方法；将批量新增、批量修改和
    批量删除定义为正式入口；
 10. 将 `batchSave` 升级为超级增删改事务入口 `superCud`；`SuperCudReq` 使用 `addEntities`、

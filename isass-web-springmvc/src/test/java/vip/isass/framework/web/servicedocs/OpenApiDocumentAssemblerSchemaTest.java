@@ -25,7 +25,7 @@ class OpenApiDocumentAssemblerSchemaTest {
     void resolvesPageGenericRecordTypeWithoutIntrospectingOrmInterfaces() throws Exception {
         Method method = TestEntrypoint.class.getMethod("page");
         OperationDefinition operation = new OperationDefinition(
-                "page", "查-分页列表", "分页查询", 1, HttpMethod.GET,
+                "page", "查-分页列表", "分页查询", 1, HttpMethod.GET, false,
                 method, List.of(), method.getGenericReturnType(), true);
         ServiceDefinition service = new ServiceDefinition(
                 "schema-test-service", "sample", "sampleGroup", TestEntrypoint.class,

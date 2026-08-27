@@ -6,18 +6,20 @@ NoCode 只发布八个 HTTP/gRPC 正式入口：
 
 | 类型 | 正式入口 | 统一执行边界 |
 | --- | --- | --- |
-| 写入 | `createBatch`、`updateBatch`、`deleteBatch`、`superCud` | `CrudWriteExecutor.superCud` |
+| 写入 | `createBatch`、`update`、`delete`、`superCud` | `CrudWriteExecutor.superCud` |
 | 查询 | `page`、`cursorPage`、`count`、`exists` | `CrudQueryExecutor.query` |
 
-`create`、`createIfAbsent`、`update`、`delete`、`getById`、`getOne`、`existsById`、`requireOne`、`list` 等方法仅为
-Java 便捷方法，不标注 `@EntrypointOperation`，也不产生独立 HTTP、gRPC 或 OpenAPI 入口。
+`create(E)`、`createIfAbsent(...)`、`update(E)`、`update(E,C)`、`delete(PK)`、`getById`、`getOne`、
+`existsById`、`requireOne`、`list` 等方法仅为 Java 便捷方法，不标注 `@EntrypointOperation`，也不产生独立
+HTTP、gRPC 或 OpenAPI 入口。正式入口是同名重载 `update(Collection<E>,C)` 与 `delete(C)`。
 
 ## 2. 写入统一执行
 
 全部标准新增、修改和删除先规范化为一个 `SuperCudReq`，再跨 Bean 进入唯一的事务与生命周期边界：
 
 ```text
-create/createBatch/createIfAbsent/update/updateBatch/delete/deleteBatch/superCud
+create(E) / createBatch(Collection<E>) / createIfAbsent(...) /
+update(E) / update(E,C) / update(Collection<E>,C) / delete(PK) / delete(C) / superCud(...)
   -> 构造 SuperCudReq
   -> ILocalCrudService.superCud
   -> CrudWriteExecutor.superCud (@Transactional)
