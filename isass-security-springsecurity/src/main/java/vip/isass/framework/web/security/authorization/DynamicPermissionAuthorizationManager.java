@@ -13,6 +13,7 @@ import vip.isass.framework.common.security.PrincipalType;
 import vip.isass.framework.entrypoint.authorization.EntrypointPermissionResolver;
 import vip.isass.framework.web.security.SecurityConst;
 import vip.isass.framework.web.security.authentication.PrincipalAuthenticationToken;
+import vip.isass.framework.web.security.authorization.internal.InternalAccessRegistry;
 
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -28,12 +29,15 @@ public class DynamicPermissionAuthorizationManager
 
     private final IAuthorizationService authorizationService;
     private final Collection<EntrypointPermissionResolver> permissionResolvers;
+    private final InternalAccessRegistry internalAccessRegistry;
 
     public DynamicPermissionAuthorizationManager(
             IAuthorizationService authorizationService,
-            ObjectProvider<EntrypointPermissionResolver> permissionResolvers) {
+            ObjectProvider<EntrypointPermissionResolver> permissionResolvers,
+            InternalAccessRegistry internalAccessRegistry) {
         this.authorizationService = authorizationService;
         this.permissionResolvers = permissionResolvers.orderedStream().toList();
+        this.internalAccessRegistry = internalAccessRegistry;
     }
 
     @Override
@@ -43,6 +47,12 @@ public class DynamicPermissionAuthorizationManager
         if (!(authentication instanceof PrincipalAuthenticationToken token)
                 || !authentication.isAuthenticated()
                 || authentication instanceof AnonymousAuthenticationToken) {
+            return new AuthorizationDecision(false);
+        }
+        if (token.hasInternalServicePrincipal() && internalAccessRegistry.isAllowed(context.getRequest())) {
+            return new AuthorizationDecision(true);
+        }
+        if (!token.hasBusinessPrincipal()) {
             return new AuthorizationDecision(false);
         }
         PrincipalAuthorizationContext authorizationContext = context(token);
@@ -67,7 +77,8 @@ public class DynamicPermissionAuthorizationManager
         synchronized (token) {
             context = token.getAuthorizationContext();
             if (context == null) {
-                if (token.getPrincipal().getPrincipalType() != PrincipalType.USER) {
+                if (token.getPrincipal() == null
+                        || token.getPrincipal().getPrincipalType() != PrincipalType.USER) {
                     context = PrincipalAuthorizationContext.empty();
                 } else {
                     context = authorizationService.jwtContext();

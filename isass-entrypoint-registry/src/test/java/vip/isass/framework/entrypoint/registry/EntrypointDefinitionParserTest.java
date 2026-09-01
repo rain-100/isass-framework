@@ -4,6 +4,7 @@ package vip.isass.framework.entrypoint.registry;
 
 import org.junit.jupiter.api.Test;
 import vip.isass.framework.entrypoint.IEntrypoint;
+import vip.isass.framework.entrypoint.authorization.UrlAccessSecurityStrategy;
 import vip.isass.framework.entrypoint.annotation.BodyParam;
 import vip.isass.framework.entrypoint.annotation.EntrypointInfo;
 import vip.isass.framework.entrypoint.annotation.EntrypointOperation;
@@ -14,9 +15,7 @@ import vip.isass.framework.entrypoint.metadata.ServiceDefinition;
 import java.lang.reflect.ParameterizedType;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class EntrypointDefinitionParserTest {
 
@@ -39,7 +38,7 @@ class EntrypointDefinitionParserTest {
         ParameterizedType resultType = assertInstanceOf(ParameterizedType.class, superCud.returnType());
         assertEquals(TestResult.class, resultType.getRawType());
         assertEquals(TestEntity.class, resultType.getActualTypeArguments()[0]);
-        assertFalse(superCud.allowAnonymous());
+        assertEquals(UrlAccessSecurityStrategy.ROLE, superCud.accessStrategy());
     }
 
     @Test
@@ -47,7 +46,7 @@ class EntrypointDefinitionParserTest {
         ServiceDefinition definition = new EntrypointDefinitionParser(java.util.List.of())
                 .parse(AnonymousEntrypoint.class, true);
 
-        assertTrue(definition.operations().getFirst().allowAnonymous());
+        assertEquals(UrlAccessSecurityStrategy.NONE, definition.operations().getFirst().accessStrategy());
     }
 
     @EntrypointInfo(serviceName = "test-service", contextName = "sample", resourceName = "testEntity")
@@ -63,7 +62,7 @@ class EntrypointDefinitionParserTest {
     @EntrypointInfo(serviceName = "test-service", contextName = "sample", resourceName = "anonymous")
     private interface AnonymousEntrypoint extends IEntrypoint {
         @EntrypointOperation(operationName = "login", displayName = "登录",
-                httpMethod = HttpMethod.POST, allowAnonymous = true)
+                httpMethod = HttpMethod.POST, accessStrategy = UrlAccessSecurityStrategy.NONE)
         void login(@BodyParam TestRequest<TestEntity, TestCriteria> request);
     }
 

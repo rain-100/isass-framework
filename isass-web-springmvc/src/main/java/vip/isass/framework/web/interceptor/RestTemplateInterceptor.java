@@ -8,6 +8,7 @@ import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.ClientHttpResponse;
 import vip.isass.framework.common.web.header.AdditionalRequestHeaderProvider;
+import vip.isass.framework.common.web.header.AdditionalRequestHeaderContext;
 
 import java.io.IOException;
 import java.util.List;
@@ -33,17 +34,14 @@ public class RestTemplateInterceptor implements ClientHttpRequestInterceptor {
         }
 
         HttpHeaders headers = request.getHeaders();
-        additionalHeaderProviders.forEach(h -> {
-            if (!h.support(request.getMethod().name(), request.getURI().getHost())) {
-                return;
-            }
-            if (h.override()) {
-                headers.set(h.getHeaderName(), h.getValue());
-                return;
-            }
-            if (headers.getFirst(h.getHeaderName()) == null) {
-                headers.set(h.getHeaderName(), h.getValue());
-            }
+        AdditionalRequestHeaderContext context = new AdditionalRequestHeaderContext(
+                request.getMethod().name(), request.getURI(), body);
+        additionalHeaderProviders.forEach(provider -> {
+            provider.getHeaders(context).forEach((name, value) -> {
+                if (provider.override() || headers.getFirst(name) == null) {
+                    headers.set(name, value);
+                }
+            });
         });
         return execution.execute(request, body);
     }

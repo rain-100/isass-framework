@@ -33,9 +33,6 @@ public class MybatisPlusGeneratorMeta {
 
     private String packageName;
 
-    /** 服务根包（其中定义 ServiceInfo）；未设置时由 packageName 与 context 首段推导。 */
-    private String serviceInfoPackageName;
-
     private String[] tablePrefix;
 
     private String[] includeTables;

@@ -7,6 +7,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.client.RestClient;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
+import vip.isass.framework.common.web.header.AdditionalRequestHeaderContext;
 import vip.isass.framework.common.web.header.AdditionalRequestHeaderProvider;
 import vip.isass.framework.entrypoint.http.HttpEndpointResolver;
 
@@ -33,17 +34,19 @@ public final class NocodeInitializationRemoteClient {
         URI endpoint = endpoints.resolve(serviceName);
         if (endpoint == null) throw new IllegalStateException("未配置初始化目标地址: " + serviceName);
         URI uri = endpoint.resolve("/" + serviceName + "/nocode/system/initialization/importData");
+        byte[] serializedBody = objectMapper.writeValueAsBytes(document);
         HttpHeaders headers = new HttpHeaders();
+        AdditionalRequestHeaderContext headerContext = new AdditionalRequestHeaderContext(
+                "POST", uri, serializedBody);
         for (AdditionalRequestHeaderProvider provider : headerProviders) {
-            if (provider.support("POST", uri.toString())
-                    && (provider.override() || headers.getFirst(provider.getHeaderName()) == null)) {
-                headers.set(provider.getHeaderName(), provider.getValue());
-            }
+            provider.getHeaders(headerContext).forEach((name, value) -> {
+                if (provider.override() || headers.getFirst(name) == null) headers.set(name, value);
+            });
         }
         JsonNode response = RestClient.create().post().uri(uri)
                 .headers(target -> target.addAll(headers))
                 .contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
-                .body(document).retrieve().body(JsonNode.class);
+                .body(serializedBody).retrieve().body(JsonNode.class);
         if (response == null || !response.path("success").asBoolean()) {
             String message = response == null ? "无响应" : response.path("detailMessage").asText();
             if (message.isBlank() && response != null) message = response.path("message").asText();

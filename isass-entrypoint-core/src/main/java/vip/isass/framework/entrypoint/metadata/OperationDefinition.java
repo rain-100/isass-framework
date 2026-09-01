@@ -2,6 +2,8 @@
 
 package vip.isass.framework.entrypoint.metadata;
 
+import vip.isass.framework.entrypoint.authorization.UrlAccessSecurityStrategy;
+
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.List;
@@ -12,7 +14,7 @@ public record OperationDefinition(
         String description,
         int displayOrder,
         HttpMethod httpMethod,
-        boolean allowAnonymous,
+        UrlAccessSecurityStrategy accessStrategy,
         Method javaMethod,
         List<ParameterDefinition> parameters,
         Type returnType,
@@ -20,6 +22,9 @@ public record OperationDefinition(
 ) {
 
     public OperationDefinition {
+        if (accessStrategy == null) {
+            accessStrategy = UrlAccessSecurityStrategy.ROLE;
+        }
         parameters = List.copyOf(parameters);
     }
 }

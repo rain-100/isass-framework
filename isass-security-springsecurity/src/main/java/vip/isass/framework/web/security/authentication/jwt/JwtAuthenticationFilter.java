@@ -59,7 +59,8 @@ public class JwtAuthenticationFilter extends AbstractAuthenticationFilter {
         }
 
         if (SecurityContextHolder.getContext().getAuthentication()
-                instanceof vip.isass.framework.web.security.authentication.PrincipalAuthenticationToken) {
+                instanceof vip.isass.framework.web.security.authentication.PrincipalAuthenticationToken existing
+                && existing.hasBusinessPrincipal()) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "同一请求不能同时携带多个 ISASS 认证凭证");
             return;
         }

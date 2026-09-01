@@ -21,7 +21,10 @@ import vip.isass.framework.web.security.authentication.apikey.ApiKeyAuthenticati
 import vip.isass.framework.web.security.authentication.jwt.JwtAuthenticationFilter;
 import vip.isass.framework.web.security.authentication.multilogin.ShouldOfflineChecker;
 import vip.isass.framework.web.security.authorization.DynamicPermissionAuthorizationManager;
-import vip.isass.framework.web.security.authorization.RootTrustSecurityConfigurer;
+import vip.isass.framework.web.security.authorization.BusinessOrInternalAuthenticatedAuthorizationManager;
+import vip.isass.framework.web.security.authentication.internal.InternalHmacAuthenticationFilter;
+import vip.isass.framework.entrypoint.authorization.UrlAccessSecurityStrategy;
+import vip.isass.framework.web.security.EntrypointAuthenticatedUrlProvider;
 
 import java.util.Collection;
 import java.util.List;
@@ -47,16 +50,21 @@ public class WebSecurityConfig {
     private DynamicPermissionAuthorizationManager dynamicPermissionAuthorizationManager;
 
     @Resource
-    private ObjectProvider<RootTrustSecurityConfigurer> rootTrustSecurityConfigurerProvider;
+    private BusinessOrInternalAuthenticatedAuthorizationManager authenticatedAuthorizationManager;
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationManager authenticationManager) throws Exception {
+    public SecurityFilterChain filterChain(
+            HttpSecurity http,
+            AuthenticationManager authenticationManager,
+            ObjectProvider<EntrypointAuthenticatedUrlProvider> authenticatedUrlProvider) throws Exception {
         UrlAccessSecurityStrategy urlAccessSecurityStrategy = securityProperties.getUrlAccessSecurityStrategy();
         log.info("urlAccessSecurityStrategy: {}", urlAccessSecurityStrategy);
 
         Collection<String> permitUrls = permitUrlConfiguration.getPermitUrls();
-        RootTrustSecurityConfigurer rootTrust = rootTrustSecurityConfigurerProvider.getIfAvailable();
-
+        EntrypointAuthenticatedUrlProvider entrypointAuthenticatedUrls = authenticatedUrlProvider.getIfAvailable();
+        Collection<String> authenticatedUrls = entrypointAuthenticatedUrls == null
+                ? List.of()
+                : entrypointAuthenticatedUrls.getUrls();
         http
                 // 允许跨域
                 .cors(cors -> {
@@ -80,39 +88,28 @@ public class WebSecurityConfig {
                 // API Key 应用主体认证过滤器
                 .addFilter(new ApiKeyAuthenticationFilter(authenticationManager))
 
+                // 内部 HMAC 服务主体认证过滤器；保留已经解析的 JWT/API Key 业务主体
+                .addFilterBefore(new InternalHmacAuthenticationFilter(securityProperties), AuthorizationFilter.class)
+
                 // 允许匿名机制
                 .anonymous(_ -> {
                 });
 
-        if (rootTrust != null) {
-            http.addFilterBefore(rootTrust.authenticationFilter(), AuthorizationFilter.class);
-        }
-
         if (urlAccessSecurityStrategy == UrlAccessSecurityStrategy.NONE) {
-            http.authorizeHttpRequests(auth -> {
-                if (rootTrust != null) {
-                    auth.requestMatchers(rootTrust.protectedUrls().toArray(new String[0]))
-                            .access(rootTrust.authorizationManager());
-                }
-                auth.anyRequest().permitAll();
-            });
+            http.authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
         } else if (urlAccessSecurityStrategy == UrlAccessSecurityStrategy.ROLE) {
             http.authorizeHttpRequests(auth -> {
-                if (rootTrust != null) {
-                    auth.requestMatchers(rootTrust.protectedUrls().toArray(new String[0]))
-                            .access(rootTrust.authorizationManager());
-                }
                 auth.requestMatchers(permitUrls.toArray(new String[0])).permitAll();
+                if (!authenticatedUrls.isEmpty()) {
+                    auth.requestMatchers(authenticatedUrls.toArray(new String[0]))
+                            .access(authenticatedAuthorizationManager);
+                }
                 auth.anyRequest().access(dynamicPermissionAuthorizationManager);
             });
         } else {
             http.authorizeHttpRequests(auth -> {
-                if (rootTrust != null) {
-                    auth.requestMatchers(rootTrust.protectedUrls().toArray(new String[0]))
-                            .access(rootTrust.authorizationManager());
-                }
                 auth.requestMatchers(permitUrls.toArray(new String[0])).permitAll();
-                auth.anyRequest().authenticated();
+                auth.anyRequest().access(authenticatedAuthorizationManager);
             });
         }
 

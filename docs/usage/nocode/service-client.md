@@ -62,3 +62,12 @@ isass:
 - NoCode 标准入口：`/{serviceName}/nocode/{contextName}/{resourceName}/{operationName}`。
 
 业务参数只使用 Query、Body、Header 或 multipart，不使用 Path 参数。
+
+Body 中的 `Map` 遵循 JSON 对象键语义：传输树中的键统一为字符串。框架在字段出现性绑定与投影时，会按
+Java Map 键的序列化字符串匹配原值，因此 `Map<Long, ?>`、`Map<Integer, ?>` 等标量键类型可以安全跨
+HTTP/gRPC 传输，不会因传输树使用字符串键而丢失嵌套字段或触发有序 Map 的键类型异常。
+
+HTTP Query 的数组和集合固定序列化成一个英文逗号分隔参数，例如 `idIn=1,2,3`。服务端根据 Java 参数或
+对象属性的数组、集合类型反向拆分；单元素仍为 `idIn=1`。同名重复 Query 参数不属于 Entrypoint 合同并会被
+拒绝。英文逗号是保留分隔符，集合中的字符串元素不能包含字面量英文逗号；需要承载任意字符串集合时应改用
+Body，而不是 Query。

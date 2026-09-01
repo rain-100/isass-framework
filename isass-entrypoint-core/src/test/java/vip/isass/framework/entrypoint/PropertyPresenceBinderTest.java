@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -63,6 +64,27 @@ class PropertyPresenceBinderTest {
         Map<String, Object> entity = (Map<String, Object>) item.get("entity");
         assertTrue(entity.containsKey("name"));
         assertFalse(entity.containsKey("description"));
+    }
+
+    @Test
+    void matchesMapEntriesByTheirSerializedKey() {
+        Payload payload = new Payload();
+        Map<Long, Payload> values = new TreeMap<>();
+        values.put(123L, payload);
+
+        PropertyPresenceBinder.bind(values, Map.of(
+                "123", Map.of("name", "value")));
+
+        assertTrue(payload.isPropertyPresent("name"));
+        assertFalse(payload.isPropertyPresent("description"));
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> projected = (Map<String, Object>) PropertyPresenceBinder.project(values, Map.of(
+                "123", Map.of("name", "value", "description", "must-be-removed")));
+        @SuppressWarnings("unchecked")
+        Map<String, Object> projectedPayload = (Map<String, Object>) projected.get("123");
+        assertTrue(projectedPayload.containsKey("name"));
+        assertFalse(projectedPayload.containsKey("description"));
     }
 
     private Object nullValue() {

@@ -94,7 +94,7 @@ public final class EntrypointDefinitionParser {
                 .anyMatch(classifier -> classifier.isNocode(serviceInterface, method));
         return new OperationDefinition(annotation.operationName(), annotation.displayName(),
                 annotation.description(), annotation.displayOrder(), annotation.httpMethod(),
-                annotation.allowAnonymous(), method,
+                annotation.accessStrategy(), method,
                 parameters, org.springframework.core.GenericTypeResolver.resolveType(
                         method.getGenericReturnType(), serviceInterface), nocode);
     }

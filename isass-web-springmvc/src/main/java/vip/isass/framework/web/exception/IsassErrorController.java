@@ -17,10 +17,8 @@ import vip.isass.framework.common.exception.IStatusMapping;
 import vip.isass.framework.common.exception.UnifiedException;
 import vip.isass.framework.common.exception.code.IStatusMessage;
 import vip.isass.framework.common.exception.code.StatusMessageEnum;
-import vip.isass.framework.common.security.CurrentPrincipalUtil;
 import vip.isass.framework.common.support.IsassServiceLoader;
 import vip.isass.framework.common.web.Resp;
-import vip.isass.framework.web.security.authentication.jwt.JwtConst;
 
 // import javax.annotation.Resource;
 import jakarta.servlet.RequestDispatcher;
@@ -90,30 +88,21 @@ public class IsassErrorController implements ErrorController {
             if (statusCode == null) {
                 continue;
             }
-            if (statusCode == StatusMessageEnum.ACCESS_DENIED_403
-                    && StrUtil.isNotBlank(request.getHeader(JwtConst.HEADER_NAME))
-                    && CurrentPrincipalUtil.getPrincipal() == null) {
-                return new Resp<>()
-                        .setSuccess(false)
-                        .setStatus(StatusMessageEnum.JWT_TOKEN_ERROR.getStatus())
-                        .setMessage(StatusMessageEnum.JWT_TOKEN_ERROR.getMsg());
-            }
             return new Resp<>()
                     .setSuccess(false)
                     .setStatus(statusCode.getStatus())
-                    .setMessage(formatErrorMessage(statusCode.getMsg(), request, errorAttributes));
+                    .setMessage(formatErrorMessage(statusCode.getMsg(), errorAttributes));
         }
 
         return new Resp<>()
                 .setSuccess(false)
                 .setStatus(status)
-                .setMessage(StatusMessageEnum.UNDEFINED.getMsg() + " " + request.getMethod() + " " + errorAttributes.get("path") + " " + errorAttributes.get("error"));
+                .setMessage(formatErrorMessage(StatusMessageEnum.UNDEFINED.getMsg(), errorAttributes));
     }
 
-    private String formatErrorMessage(String statusMessage, HttpServletRequest request, Map<String, Object> errorAttributes) {
+    private String formatErrorMessage(String statusMessage, Map<String, Object> errorAttributes) {
         return java.util.stream.Stream.of(
                         statusMessage + ":",
-                        request.getMethod(),
                         errorAttributes.get("path"),
                         errorAttributes.get("error"),
                         errorAttributes.get("exception"),

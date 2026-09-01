@@ -9,6 +9,7 @@ import org.springframework.boot.webmvc.error.ErrorAttributes;
 import vip.isass.framework.web.exception.ExceptionAdvice;
 import vip.isass.framework.web.security.PermitUrlProvider;
 import vip.isass.framework.web.security.EntrypointAnonymousUrlProvider;
+import vip.isass.framework.web.security.EntrypointAuthenticatedUrlProvider;
 import vip.isass.framework.web.servicedocs.ServiceDocsController;
 import vip.isass.framework.entrypoint.registry.ServiceDefinitionRegistry;
 import tools.jackson.databind.ObjectMapper;
@@ -50,6 +51,12 @@ class WebAutoConfigurationTest {
     void entrypointAnonymousUrlProviderIsCreated() {
         contextRunner.run(context -> assertThat(context)
                 .hasSingleBean(EntrypointAnonymousUrlProvider.class));
+    }
+
+    @Test
+    void entrypointAuthenticatedUrlProviderIsCreated() {
+        contextRunner.run(context -> assertThat(context)
+                .hasSingleBean(EntrypointAuthenticatedUrlProvider.class));
     }
 
     @Test

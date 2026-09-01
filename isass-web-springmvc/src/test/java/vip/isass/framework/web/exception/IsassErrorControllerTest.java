@@ -37,7 +37,9 @@ class IsassErrorControllerTest {
 
         assertThat(resp.getSuccess()).isFalse();
         assertThat(resp.getStatus()).isEqualTo(404);
-        assertThat(resp.getMessage()).contains("GET").contains("/attachment-service/service-docs/missing");
+        assertThat(resp.getMessage())
+                .doesNotContain("GET")
+                .contains("/attachment-service/service-docs/missing");
     }
 
     @Test
@@ -58,7 +60,28 @@ class IsassErrorControllerTest {
 
         assertThat(resp.getSuccess()).isFalse();
         assertThat(resp.getStatus()).isEqualTo(StatusMessageEnum.NOT_FOUND_404.getStatus());
-        assertThat(resp.getMessage()).contains(StatusMessageEnum.NOT_FOUND_404.getMsg());
+        assertThat(resp.getMessage())
+                .doesNotContain("GET")
+                .contains(StatusMessageEnum.NOT_FOUND_404.getMsg());
+    }
+
+    @Test
+    void forbiddenResponseMustNotBeReclassifiedAsInvalidToken() {
+        IsassErrorController controller = new IsassErrorController(
+                errorAttributes(Map.of(
+                        "status", 403,
+                        "path", "/bsp-service/auth/tenantMembership/findAccessibleTenants",
+                        "error", "Forbidden"
+                )),
+                List.of(new WebStatusMapping())
+        );
+        MockHttpServletRequest request = jsonRequest();
+        request.addHeader("Authorization", "Bearer valid-token");
+
+        Resp<?> resp = controller.errorJson(request, new MockHttpServletResponse());
+
+        assertThat(resp.getStatus()).isEqualTo(StatusMessageEnum.ACCESS_DENIED_403.getStatus());
+        assertThat(resp.getMessage()).contains(StatusMessageEnum.ACCESS_DENIED_403.getMsg());
     }
 
     @Test

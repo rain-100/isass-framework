@@ -7,5 +7,11 @@ package vip.isass.framework.common.security;
  */
 public interface CurrentPrincipalService {
 
+    /** 返回 JWT 或 API Key 认证得到的业务主体。 */
     AuthenticatedPrincipal getPrincipal();
+
+    /** 返回 HMAC 认证得到的内部调用服务主体。 */
+    default InternalServicePrincipal getInternalServicePrincipal() {
+        return null;
+    }
 }

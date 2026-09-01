@@ -47,7 +47,8 @@ public class ApiKeyAuthenticationFilter extends AbstractAuthenticationFilter {
             return;
         }
         if (SecurityContextHolder.getContext().getAuthentication()
-                instanceof PrincipalAuthenticationToken) {
+                instanceof PrincipalAuthenticationToken existing
+                && existing.hasBusinessPrincipal()) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "同一请求不能同时携带多个 ISASS 认证凭证");
             return;
         }

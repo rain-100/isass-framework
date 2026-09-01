@@ -4,6 +4,7 @@ package vip.isass.framework.web.security;
 
 import org.junit.jupiter.api.Test;
 import vip.isass.framework.entrypoint.IEntrypoint;
+import vip.isass.framework.entrypoint.authorization.UrlAccessSecurityStrategy;
 import vip.isass.framework.entrypoint.metadata.HttpMethod;
 import vip.isass.framework.entrypoint.metadata.OperationDefinition;
 import vip.isass.framework.entrypoint.metadata.ServiceDefinition;
@@ -21,22 +22,23 @@ class EntrypointAnonymousUrlProviderTest {
     @Test
     void exposesOnlyAnonymousOperationsWithLocalImplementations() throws Exception {
         Method method = TestEntrypoint.class.getMethod("invoke");
-        OperationDefinition anonymous = operation(method, "publicOperation", true);
-        OperationDefinition protectedOperation = operation(method, "protectedOperation", false);
+        OperationDefinition anonymous = operation(method, "publicOperation", UrlAccessSecurityStrategy.NONE);
+        OperationDefinition protectedOperation = operation(method, "protectedOperation", UrlAccessSecurityStrategy.ROLE);
         ServiceDefinition local = new ServiceDefinition(
                 "test-service", "sample", "localResource", TestEntrypoint.class,
                 List.of(anonymous, protectedOperation), true);
         ServiceDefinition remote = new ServiceDefinition(
                 "remote-service", "sample", "remoteResource", TestEntrypoint.class,
-                List.of(operation(method, "publicOperation", true)), false);
+                List.of(operation(method, "publicOperation", UrlAccessSecurityStrategy.NONE)), false);
 
         assertThat(new EntrypointAnonymousUrlProvider(new TestRegistry(List.of(local, remote))).getUrls())
                 .containsExactly("/test-service/sample/localResource/publicOperation");
     }
 
-    private OperationDefinition operation(Method method, String operationName, boolean allowAnonymous) {
+    private OperationDefinition operation(Method method, String operationName,
+                                          UrlAccessSecurityStrategy accessStrategy) {
         return new OperationDefinition(operationName, operationName, "", 0, HttpMethod.GET,
-                allowAnonymous, method, List.of(), method.getGenericReturnType(), false);
+                accessStrategy, method, List.of(), method.getGenericReturnType(), false);
     }
 
     private interface TestEntrypoint extends IEntrypoint {

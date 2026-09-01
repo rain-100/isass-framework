@@ -14,6 +14,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import vip.isass.framework.common.web.header.AdditionalRequestHeaderProvider;
+import vip.isass.framework.common.web.header.AdditionalRequestHeaderContext;
 import vip.isass.framework.entrypoint.PropertyPresenceBinder;
 import vip.isass.framework.entrypoint.metadata.OperationDefinition;
 import vip.isass.framework.entrypoint.metadata.ParameterDefinition;
@@ -27,6 +28,7 @@ import java.lang.reflect.Array;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 
 public final class EntrypointHttpTransport implements EntrypointTransport {
@@ -92,18 +94,22 @@ public final class EntrypointHttpTransport implements EntrypointTransport {
         URI uri = UriComponentsBuilder.fromUri(endpoint)
                 .path(service.pathPrefix(operation)).pathSegment(operation.operationName())
                 .queryParams(query).build().encode().toUri();
+        byte[] serializedBody = body == null ? new byte[0] : objectMapper.writeValueAsBytes(body);
+        AdditionalRequestHeaderContext headerContext = new AdditionalRequestHeaderContext(
+                operation.httpMethod().name(), uri, serializedBody, multipart);
         for (AdditionalRequestHeaderProvider provider : headerProviders) {
-            if (provider.support(operation.httpMethod().name(), uri.toString())
-                    && (provider.override() || headers.getFirst(provider.getHeaderName()) == null)) {
-                headers.set(provider.getHeaderName(), provider.getValue());
-            }
+            provider.getHeaders(headerContext).forEach((name, value) -> {
+                if (provider.override() || headers.getFirst(name) == null) {
+                    headers.set(name, value);
+                }
+            });
         }
         try {
             RestClient.RequestBodySpec request = restClient.method(
                             org.springframework.http.HttpMethod.valueOf(operation.httpMethod().name()))
                     .uri(uri).headers(target -> target.addAll(headers)).accept(MediaType.APPLICATION_JSON);
             if (multipart) request.contentType(MediaType.MULTIPART_FORM_DATA).body(form);
-            else if (body != null) request.contentType(MediaType.APPLICATION_JSON).body(body);
+            else if (body != null) request.contentType(MediaType.APPLICATION_JSON).body(serializedBody);
             JsonNode response = request.retrieve().body(JsonNode.class);
             if (response == null) return null;
             if (response.has("success") && !response.path("success").asBoolean()) {
@@ -231,23 +237,32 @@ public final class EntrypointHttpTransport implements EntrypointTransport {
 
     private void addValues(MultiValueMap<String, String> query, String name, Object value) {
         if (value == null) return;
+        List<String> values = new ArrayList<>();
+        collectValues(values, name, value);
+        if (!values.isEmpty()) {
+            query.add(name, String.join(",", values));
+        }
+    }
+
+    private void collectValues(List<String> values, String name, Object value) {
+        if (value == null) return;
         if (value instanceof JsonNode node) {
             if (node.isNull() || node.isMissingNode()) return;
             if (node.isArray()) {
-                node.forEach(item -> addValues(query, name, item));
+                node.forEach(item -> collectValues(values, name, item));
             } else if (node.isValueNode()) {
-                query.add(name, node.asText());
+                values.add(node.asText());
             } else if (!node.isEmpty()) {
                 throw new IllegalArgumentException("Query 对象只允许展开一层，属性不能是复杂对象: " + name);
             }
         } else if (value instanceof Iterable<?> iterable) {
-            iterable.forEach(item -> addValues(query, name, item));
+            iterable.forEach(item -> collectValues(values, name, item));
         } else if (value.getClass().isArray()) {
             for (int index = 0; index < Array.getLength(value); index++) {
-                addValues(query, name, Array.get(value, index));
+                collectValues(values, name, Array.get(value, index));
             }
         } else if (isSimple(value.getClass())) {
-            query.add(name, String.valueOf(value));
+            values.add(String.valueOf(value));
         } else {
             throw new IllegalArgumentException("Query 对象只允许展开一层，属性不能是复杂对象: " + name);
         }

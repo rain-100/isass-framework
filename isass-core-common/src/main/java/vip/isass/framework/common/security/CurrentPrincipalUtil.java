@@ -29,13 +29,7 @@ public final class CurrentPrincipalUtil {
     }
 
     public static AuthenticatedPrincipal getPrincipal() {
-        if (service == null) {
-            try {
-                service = serviceProvider.get();
-            } catch (Exception ignored) {
-                // The web security module is optional for non-web applications.
-            }
-        }
+        currentService();
         return service == null ? null : service.getPrincipal();
     }
 
@@ -45,6 +39,28 @@ public final class CurrentPrincipalUtil {
             throw new UnifiedException(StatusMessageEnum.UN_LOGIN);
         }
         return principal;
+    }
+
+    /** 返回当前请求的内部调用服务主体；不存在时返回 {@code null}。 */
+    public static InternalServicePrincipal getInternalServicePrincipal() {
+        currentService();
+        return service == null ? null : service.getInternalServicePrincipal();
+    }
+
+    public static InternalServicePrincipal getInternalServicePrincipalOrException() {
+        InternalServicePrincipal principal = getInternalServicePrincipal();
+        if (principal == null) {
+            throw new UnifiedException(StatusMessageEnum.UN_LOGIN);
+        }
+        return principal;
+    }
+
+    public static boolean isInternalService() {
+        return getInternalServicePrincipal() != null;
+    }
+
+    public static String getInternalServiceNameOrException() {
+        return getInternalServicePrincipalOrException().serviceName();
     }
 
     public static void checkAuthenticated() {
@@ -91,5 +107,15 @@ public final class CurrentPrincipalUtil {
             throw new UnifiedException(StatusMessageEnum.UN_LOGIN);
         }
         return principal.getPrincipalId();
+    }
+
+    private static void currentService() {
+        if (service == null) {
+            try {
+                service = serviceProvider.get();
+            } catch (Exception ignored) {
+                // The web security module is optional for non-web applications.
+            }
+        }
     }
 }

@@ -15,6 +15,7 @@ import vip.isass.framework.nocode.entity.IEntity;
 import vip.isass.framework.nocode.entity.EntityAssociation;
 import vip.isass.framework.nocode.entity.IIdEntity;
 import vip.isass.framework.nocode.entity.ILogicDeleteEntity;
+import vip.isass.framework.nocode.entity.IParentIdEntity;
 import vip.isass.framework.nocode.entity.ITenantEntity;
 import vip.isass.framework.nocode.repository.IRepository;
 
@@ -66,6 +67,16 @@ class TableMetaRegistrarTest {
         new TableMetaRegistrar().postTableInfo(tableInfo, configuration);
 
         assertEquals(List.of("name"), tableInfo.getFieldList().stream().map(TableFieldInfo::getProperty).toList());
+    }
+
+    @Test
+    void alwaysExcludesTreeProjectionsWhenEntityOverridesAssociations() throws Exception {
+        Method registerEntity = TableMetaRegistrar.class.getDeclaredMethod("registerEntity", Class.class);
+        registerEntity.setAccessible(true);
+        registerEntity.invoke(null, TreeEntityWithCustomAssociation.class);
+
+        assertEquals(Set.of("detail", "parent", "children"),
+                tableMetas().get(TreeEntityWithCustomAssociation.class).associationFields());
     }
 
     @Test
@@ -154,6 +165,29 @@ class TableMetaRegistrarTest {
         @Override public Long getId() { return id; }
         @Override public void setId(Long id) { this.id = id; }
         @Override public ChildEntity randomEntity() { return this; }
+    }
+
+    static class TreeEntityWithCustomAssociation
+            implements IIdEntity<Long, TreeEntityWithCustomAssociation>,
+            IParentIdEntity<Long, TreeEntityWithCustomAssociation> {
+        private Long id;
+        private Long parentId;
+        private TreeEntityWithCustomAssociation parent;
+        private List<TreeEntityWithCustomAssociation> children;
+        private ChildEntity detail;
+
+        @Override public Long getId() { return id; }
+        @Override public void setId(Long id) { this.id = id; }
+        @Override public Long getParentId() { return parentId; }
+        @Override public void setParentId(Long parentId) { this.parentId = parentId; }
+        @Override public TreeEntityWithCustomAssociation getParent() { return parent; }
+        @Override public void setParent(TreeEntityWithCustomAssociation parent) { this.parent = parent; }
+        @Override public List<TreeEntityWithCustomAssociation> getChildren() { return children; }
+        @Override public void setChildren(List<TreeEntityWithCustomAssociation> children) { this.children = children; }
+        @Override public TreeEntityWithCustomAssociation randomEntity() { return this; }
+        @Override public List<EntityAssociation> associations() {
+            return List.of(EntityAssociation.one("detail", ChildEntity.class, "id", "parentId"));
+        }
     }
 
     static class RepositoryEntity implements IEntity<RepositoryEntity> {

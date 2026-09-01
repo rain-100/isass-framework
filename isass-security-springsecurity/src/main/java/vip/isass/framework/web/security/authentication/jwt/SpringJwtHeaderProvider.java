@@ -48,6 +48,7 @@ public class SpringJwtHeaderProvider implements AdditionalRequestHeaderProvider 
             return false;
         }
         if (!(SecurityContextHolder.getContext().getAuthentication() instanceof PrincipalAuthenticationToken token)
+                || token.getPrincipal() == null
                 || token.getPrincipal().getPrincipalType() != PrincipalType.USER) {
             return false;
         }

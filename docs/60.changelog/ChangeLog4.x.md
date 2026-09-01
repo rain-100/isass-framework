@@ -4,14 +4,53 @@
 
 ### 4.0.0-SNAPSHOT
 
+- **内部基础设施路由开放**：`InternalAccessBuilder` 新增受限的 `allowRoute`，允许服务通过 Java Provider
+  精确开放没有 Entrypoint 接口的框架基础设施 Controller；普通业务入口仍必须使用类型安全的方法引用。
+  NoCode 远程初始化客户端改用完整请求上下文生成附加请求头，并发送与签名完全一致的序列化 Body，使内部 HMAC
+  可覆盖跨微服务初始化数据导入。
+- **Entrypoint Map 键投影修复**：`PropertyPresenceBinder` 在 HTTP/gRPC 请求字段出现性绑定与投影时，
+  统一按 JSON 序列化后的字符串键匹配 Java Map，支持 `Map<Long, ?>` 等标量键类型，避免有序 Map 因
+  字符串键查询触发 `ClassCastException`，并防止嵌套对象字段在传输边界被错误过滤。
+- **内部访问路由与错误语义修复**：`InternalAccessBuilder` 改为复用统一 Entrypoint 元数据注册表，按具体 operation
+  区分 NoCode 与自定义路由；继承 `ICrudService` 的业务接口中，自定义方法不再被错误登记为 `/nocode` 路径。
+  同时收窄内部 HMAC 过滤器的异常捕获范围，只把签名认证失败转换为 401，下游权限拒绝和业务异常保留原始语义。
+- **Agent 规则与使用文档统一维护**：将数据库结构、Liquibase 注释 DSL、NoCode CRUD/关联/生命周期、
+  初始化 JSON ID 和业务价值测试等通用规则收敛到 `docs/usage/`；框架、工作区、业务微服务及项目生成模板的
+  `AGENTS.md` 仅保留执行摘要、项目专有规则和文档入口，避免框架升级时在多个服务同步复制规则。同步清理
+  初始化文档中允许数据库外键及关联文档反向依赖工作区 `AGENTS.md` 的过时描述，并在源码许可证已统一为
+  简短 SPDX 后删除各项目重复的“源文件读取优化”章节。
+- **Entrypoint 集合 Query 统一为逗号分隔**：HTTP 客户端、服务端、OpenAPI 与前端请求工具统一使用单参数
+  英文逗号分隔格式，例如 `idIn=1,2,3`；OpenAPI 数组 Query 声明为 `style=form, explode=false`。
+  同名重复 Query 参数不再兼容并会被服务端拒绝，避免重复字段造成 URL 冗长和各端序列化规则不一致。
+- **统一内部微服务 HMAC 认证**：删除 Bootstrap 专用 Body 签名和后台任务自带 API Key 的旧链路；Entrypoint
+  HTTP 调用统一签名方法、路径、Query 与请求体摘要，并在用户或外部应用请求中继续透传原 JWT/API Key。
+  新增 Java `InternalAccessProvider` 精确声明目标服务允许内部访问的 operation，`ROLE/AUTHENTICATED` 采用
+  “业务主体授权或内部 HMAC operation 授权”语义，不维护调用方服务名单。`CurrentPrincipalUtil` 分别暴露
+  业务主体与可共存的内部服务主体，Auth Bootstrap 复用同一机制且不再使用独立认证过滤器。
+- **授权角色展示信息**：`PrincipalAuthorizationContext` 新增按角色编码和名称组成的 `roles` 集合；
+  `roleCodes` 继续作为程序鉴权依据，管理端无需维护不完整的角色编码中文映射即可统一显示数据库角色名称。
+- **NoCode 生成器服务包自动推导**：删除调用方配置的 `serviceInfoPackageName`，生成器从追加限界上下文后的
+  完整 `context` 自动取得服务根包；服务名映射为多段 Java 包（例如 `order-processing` →
+  `order.processing`）时也能正确引用 `ServiceInfo`。
+- **错误响应文案校正**：统一错误响应不再输出错误分发阶段不可靠的 HTTP Method，只保留状态信息、原始路径
+  和错误详情，避免 POST 请求在 `/error` 二次分发后被误报为 GET。
+- **NoCode 多层关联查询**：`association.query` 支持 `rolePermissions.permission` 点分路径，自动补齐父路径并
+  按层批量装载，每条路径只执行一次目标查询；嵌套 Criteria 使用完整路径命名空间。新增空路径、未知关系
+  与最大 16 层深度校验，保持默认不展开、未显式关系不递归的安全边界。
+- **设计文档收敛**：删除已经实施完成且与 AGENTS、使用文档及当前代码重复的 Entrypoint/NoCode 讨论稿、
+  CRUD 场景实施稿和关联查询设计稿；后续功能变更只维护当前代码、测试、必要使用说明及本更新日志。
 - **稳定 Long ID 公共协议**：`Sequence` 新增静态 `stableLongId(identity)`，使用固定的
   UTF-8、SHA-256、摘要前八字节大端序及正数映射协议，把带业务命名空间的字符串稳定映射为正数
   `long`。该方法不依赖运行时 Sequence Provider，并以固定测试向量锁定持久化兼容性；业务仍须通过
   唯一索引或固定 ID 内容校验处理理论哈希碰撞。
-- **Entrypoint 匿名访问声明**：`EntrypointOperation` 新增默认关闭的 `allowAnonymous` 元数据，Web 自动配置
-  只收集当前进程本地实现的匿名操作并生成精确 URL 放行清单；远程代理不会污染本服务安全规则，手写
-  Controller 继续使用 `PermitUrlProvider`。业务 HMAC、API Key 等校验仍由入口实现负责；BSP 的 API Key
-  生成与 HMAC 注册统一收敛到 `auth/bootstrap` 资源。
+- **Entrypoint 访问策略声明**：`UrlAccessSecurityStrategy` 下沉至 `isass-entrypoint-core`，成为全局安全
+  配置与单个 `EntrypointOperation.accessStrategy` 共用的策略枚举；操作默认使用 `ROLE` 动态权限校验，
+  `NONE` 生成匿名放行 URL，`AUTHENTICATED` 只要求主体认证。Web 自动配置仅收集当前进程本地实现，
+  远程代理不会污染本服务规则；手写 Controller 继续使用 `PermitUrlProvider`。原 `allowAnonymous` 布尔字段
+  已删除，BSP 登录、HMAC Bootstrap 等入口迁移为 `NONE`，登录后租户选择入口迁移为 `AUTHENTICATED`。
+- **403 错误语义修正**：`IsassErrorController` 删除“403、携带 Authorization 且错误分发阶段无 Principal
+  即判定 token 失效”的不可靠推断；动态权限拒绝现在稳定返回 403/权限不足，真正的 JWT 认证失败继续由
+  JWT 过滤器明确返回 401。
 - **NoCode CRUD 生命周期收敛**：八个标准入口分别归一到 `CrudWriteExecutor.superCud` 和
   `CrudQueryExecutor.query` 两个执行边界；新增强类型 `CrudWriteLifecycleContext`、
   `CrudQueryLifecycleContext` 及查询请求/结果模型。生命周期监听器改为 Spring Bean 自动收集，删除静态
@@ -74,7 +113,7 @@
   使分页查询退化为无条件查询。
 - 完善自动服务入口与 NoCode 边界设计讨论，确定 `IEntrypoint`、`EntrypointInfo`、含 `displayName`、`description`、`displayOrder` 的 `EntrypointOperation` 及五类参数注解；明确 `ICrudService` 直接继承 `IEntrypoint`，正式 CRUD 方法统一标注入口注解并沿用“增-批量”“查-分页列表”等展示名，单体新增、条件新增、单体删除和 `requireOne` 等默认便捷方法不发布远程入口；确定拆分 `isass-entrypoint-core/registry/http/grpc` 四个模块，registry 仅提供协议无关元数据；各微服务自行维护 Smart-doc 配置并按服务名隔离 OpenAPI 产物，由 `isass-apidoc-openapi3` 按微服务/单体配置合并静态文档和本地 Entrypoint，同时确定不兼容读取旧 `nocode-contract.json`；并补充对象 Query 双向绑定、NoCode 入口层级、固定 URL 鉴权、应用/领域分层、聚合所有权和级联写入方案。
 - 将工作区自有源码中重复的 LGPL/Apache 长 Header 规范化为短 SPDX 标识；新增安全优先的六项目 dry-run/apply/check 工具、生成器 SPDX 模板、第三方保护规则与边界测试，并补齐项目许可证构建元数据。
-- 修复零代码 HTTP 查询对象无法将同名多值参数绑定到数组 setter 的问题，`xxxIn` 等数组条件现在支持重复 query 参数。
+- NoCode `xxxIn` 等集合条件统一使用 `xxxIn=1,2,3`，不再发布或接受同名重复 Query 参数。
 - 修复零代码 HTTP 文件预览和下载直接写入中文文件名导致 Tomcat 拒绝 `Content-Disposition` 响应头的问题；文件名现在按 UTF-8 RFC 5987 编码。
 - 修复同时包含标准 CRUD 与自定义业务方法的 Entrypoint 被整体归入 NoCode 命名空间的问题；命名空间、HTTP
   客户端、OpenAPI 与二次鉴权现在均按操作判定，标准 CRUD 继续使用 `/nocode/`，同一资源上的自定义业务方法

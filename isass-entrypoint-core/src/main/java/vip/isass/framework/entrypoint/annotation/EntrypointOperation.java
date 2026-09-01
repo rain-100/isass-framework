@@ -2,6 +2,7 @@
 
 package vip.isass.framework.entrypoint.annotation;
 
+import vip.isass.framework.entrypoint.authorization.UrlAccessSecurityStrategy;
 import vip.isass.framework.entrypoint.metadata.HttpMethod;
 
 import java.lang.annotation.ElementType;
@@ -24,10 +25,6 @@ public @interface EntrypointOperation {
 
     HttpMethod httpMethod();
 
-    /**
-     * Whether the current operation allows requests without an authenticated principal.
-     * Business credentials such as HMAC signatures or API keys must still be validated by
-     * the operation implementation when required.
-     */
-    boolean allowAnonymous() default false;
+    /** 当前操作的访问安全策略；默认要求动态权限。 */
+    UrlAccessSecurityStrategy accessStrategy() default UrlAccessSecurityStrategy.ROLE;
 }

@@ -8,6 +8,7 @@ import vip.isass.framework.entrypoint.annotation.BodyParam;
 import vip.isass.framework.entrypoint.annotation.EntrypointInfo;
 import vip.isass.framework.entrypoint.annotation.EntrypointOperation;
 import vip.isass.framework.entrypoint.annotation.QueryParam;
+import vip.isass.framework.entrypoint.authorization.UrlAccessSecurityStrategy;
 import vip.isass.framework.entrypoint.metadata.HttpMethod;
 
 import java.util.Collection;
@@ -21,11 +22,11 @@ import java.util.List;
 public interface IAuthorizationService extends IEntrypoint {
 
     @EntrypointOperation(operationName = "apiKeyContext", displayName = "API Key 授权上下文",
-            httpMethod = HttpMethod.POST, allowAnonymous = true)
+            httpMethod = HttpMethod.POST, accessStrategy = UrlAccessSecurityStrategy.NONE)
     ApiKeyAuthenticationResult apiKeyContext(@BodyParam ApiKeyAuthenticationRequest request);
 
     @EntrypointOperation(operationName = "jwtContext", displayName = "JWT 授权上下文",
-            httpMethod = HttpMethod.GET, allowAnonymous = true)
+            httpMethod = HttpMethod.GET, accessStrategy = UrlAccessSecurityStrategy.NONE)
     PrincipalAuthorizationContext jwtContext();
 
     /**

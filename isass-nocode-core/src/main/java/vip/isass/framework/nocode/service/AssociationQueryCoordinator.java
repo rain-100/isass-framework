@@ -18,8 +18,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/** Loads explicitly requested direct associations in batches. */
+/** Loads explicitly requested association paths in batches, one query per path level. */
 public final class AssociationQueryCoordinator {
+
+    private static final int MAX_ASSOCIATION_DEPTH = 16;
 
     private final Map<Class<?>, ILocalCrudService<?, ?, ?>> services;
 
@@ -36,28 +38,87 @@ public final class AssociationQueryCoordinator {
 
     public <E extends IEntity<E>> List<E> populate(List<E> records, Object criteria) {
         if (records == null || records.isEmpty()
-                || !(criteria instanceof IAssociationCriteria<?> associationCriteria)
-                || associationCriteria.getAssociationQueries() == null
-                || associationCriteria.getAssociationQueries().isEmpty()) {
+                || !(criteria instanceof IAssociationCriteria<?> associationCriteria)) {
             return records;
         }
-        Map<String, EntityAssociation> definitions = new LinkedHashMap<>();
-        for (EntityAssociation association : records.getFirst().associations()) {
-            definitions.put(association.property(), association);
-        }
-        for (String requested : new LinkedHashSet<>(associationCriteria.getAssociationQueries())) {
-            EntityAssociation association = definitions.get(requested);
-            if (association == null) {
-                throw new IllegalArgumentException("未声明的关联属性: " + requested);
+        LinkedHashSet<String> requestedPaths = requestedPaths(associationCriteria);
+        if (requestedPaths.isEmpty()) return records;
+
+        Map<String, List<?>> loadedByPath = new LinkedHashMap<>();
+        loadedByPath.put("", records);
+        Map<String, Map<String, Object>> associationCriteriaByPath =
+                associationCriteria.getAssociationCriteria() == null
+                        ? Map.of() : associationCriteria.getAssociationCriteria();
+        for (String requestedPath : requestedPaths) {
+            String parentPath = parentPath(requestedPath);
+            String property = propertyName(requestedPath);
+            List<?> sources = loadedByPath.getOrDefault(parentPath, List.of());
+            if (sources.isEmpty()) {
+                loadedByPath.put(requestedPath, List.of());
+                continue;
             }
-            populate(records, association, associationCriteria.getAssociationCriteria() == null
-                    ? Map.of() : associationCriteria.getAssociationCriteria().getOrDefault(requested, Map.of()));
+            EntityAssociation association = association(sources.getFirst(), property);
+            if (association == null) {
+                throw new IllegalArgumentException("未声明的关联属性: " + requestedPath);
+            }
+            loadedByPath.put(requestedPath, populate(sources, association,
+                    associationCriteriaByPath.getOrDefault(requestedPath, Map.of())));
         }
         return records;
     }
 
+    private LinkedHashSet<String> requestedPaths(IAssociationCriteria<?> criteria) {
+        LinkedHashSet<String> requested = new LinkedHashSet<>();
+        if (criteria.getAssociationQueries() != null) {
+            criteria.getAssociationQueries().forEach(path -> addPathAndParents(requested, path));
+        }
+        if (criteria.getAssociationCriteria() != null) {
+            criteria.getAssociationCriteria().keySet().forEach(path -> addPathAndParents(requested, path));
+        }
+        return requested;
+    }
+
+    private void addPathAndParents(Set<String> requested, String rawPath) {
+        if (rawPath == null || rawPath.isBlank()) {
+            throw new IllegalArgumentException("关联查询路径不能为空");
+        }
+        String[] properties = rawPath.trim().split("\\.", -1);
+        if (properties.length > MAX_ASSOCIATION_DEPTH) {
+            throw new IllegalArgumentException("关联查询路径超过最大深度 " + MAX_ASSOCIATION_DEPTH + ": " + rawPath);
+        }
+        StringBuilder path = new StringBuilder();
+        for (String property : properties) {
+            if (property.isBlank()) {
+                throw new IllegalArgumentException("关联查询路径格式错误: " + rawPath);
+            }
+            if (!path.isEmpty()) path.append('.');
+            path.append(property);
+            requested.add(path.toString());
+        }
+    }
+
+    private String parentPath(String path) {
+        int separator = path.lastIndexOf('.');
+        return separator < 0 ? "" : path.substring(0, separator);
+    }
+
+    private String propertyName(String path) {
+        int separator = path.lastIndexOf('.');
+        return separator < 0 ? path : path.substring(separator + 1);
+    }
+
+    private EntityAssociation association(Object source, String property) {
+        if (!(source instanceof IEntity<?> entity)) {
+            throw new IllegalStateException("关联源对象未实现 IEntity: " + source.getClass().getName());
+        }
+        return entity.associations().stream()
+                .filter(candidate -> candidate.property().equals(property))
+                .findFirst()
+                .orElse(null);
+    }
+
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private void populate(List<?> sources, EntityAssociation association, Map<String, Object> filters) {
+    private List<?> populate(List<?> sources, EntityAssociation association, Map<String, Object> filters) {
         ILocalCrudService targetService = services.get(association.targetType());
         if (targetService == null) {
             throw new IllegalStateException("关联目标没有本地 ILocalCrudService: "
@@ -71,7 +132,7 @@ public final class AssociationQueryCoordinator {
         if (keys.isEmpty()) {
             sources.forEach(source -> write(source, association.property(),
                     association.kind() == EntityAssociation.Kind.MANY ? List.of() : null));
-            return;
+            return List.of();
         }
         Object criteria = targetService.newCriteria();
         if (!(criteria instanceof IWhereConditionCriteria where)) {
@@ -95,6 +156,7 @@ public final class AssociationQueryCoordinator {
             write(source, association.property(), association.kind() == EntityAssociation.Kind.MANY
                     ? List.copyOf(matches) : matches.isEmpty() ? null : matches.getFirst());
         }
+        return targets;
     }
 
     private Object read(Object bean, String property) {

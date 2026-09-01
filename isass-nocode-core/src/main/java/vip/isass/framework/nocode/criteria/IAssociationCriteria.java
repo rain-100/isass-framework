@@ -5,7 +5,7 @@ package vip.isass.framework.nocode.criteria;
 import java.util.Collection;
 import java.util.Map;
 
-/** Optional, explicit one-level association expansion requested by a caller. */
+/** Optional, explicit association-path expansion requested by a caller. */
 public interface IAssociationCriteria<C extends IAssociationCriteria<C>> {
 
     Collection<String> getAssociationQueries();

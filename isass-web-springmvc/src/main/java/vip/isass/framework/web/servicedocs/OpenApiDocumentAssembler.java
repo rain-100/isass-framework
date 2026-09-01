@@ -186,7 +186,7 @@ public final class OpenApiDocumentAssembler {
         node.set("schema", schemaFor(type, schemas, new HashSet<>()));
         if (isCollection(type)) {
             node.put("style", "form");
-            node.put("explode", true);
+            node.put("explode", false);
         }
         return node;
     }

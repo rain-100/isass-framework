@@ -33,7 +33,8 @@ public final class PropertyPresenceBinder {
             return;
         }
         if (value instanceof Map<?, ?> values && decodedTree instanceof Map<?, ?> nodes) {
-            nodes.forEach((key, node) -> bind(values.get(key), node));
+            Map<String, Object> valuesBySerializedKey = indexBySerializedKey(values);
+            nodes.forEach((key, node) -> bind(valuesBySerializedKey.get(String.valueOf(key)), node));
             return;
         }
         if (!(decodedTree instanceof Map<?, ?> nodes)) return;
@@ -65,8 +66,10 @@ public final class PropertyPresenceBinder {
             return projected;
         }
         if (value instanceof Map<?, ?> values && encodedTree instanceof Map<?, ?> nodes) {
+            Map<String, Object> valuesBySerializedKey = indexBySerializedKey(values);
             Map<Object, Object> projected = new LinkedHashMap<>();
-            nodes.forEach((key, node) -> projected.put(key, project(values.get(key), node)));
+            nodes.forEach((key, node) -> projected.put(
+                    key, project(valuesBySerializedKey.get(String.valueOf(key)), node)));
             return projected;
         }
         if (!(encodedTree instanceof Map<?, ?> nodes)) return encodedTree;
@@ -80,6 +83,13 @@ public final class PropertyPresenceBinder {
             projected.put(key, project(propertyValue, node));
         });
         return projected;
+    }
+
+    /** JSON/gRPC object-tree keys are strings even when the declared Java Map key type is Long or another scalar. */
+    private static Map<String, Object> indexBySerializedKey(Map<?, ?> values) {
+        Map<String, Object> indexed = new LinkedHashMap<>();
+        values.forEach((key, value) -> indexed.put(String.valueOf(key), value));
+        return indexed;
     }
 
     private static Object readProperty(Object value, String property) {

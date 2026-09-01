@@ -125,7 +125,6 @@ public class MybatisPlusGenerator {
                 .setOutputDir(source.getOutputDir())
                 .setContext(source.getContext() + "." + context)
                 .setPackageName(source.getPackageName())
-                .setServiceInfoPackageName(source.getServiceInfoPackageName())
                 .setTablePrefix(source.getTablePrefix())
                 .setIncludeTables(includeTables.toArray(String[]::new))
                 .setApiOutputDir(source.getApiOutputDir())
@@ -210,7 +209,7 @@ public class MybatisPlusGenerator {
                                         .put("boundedContextName", boundedContextName)
                                         .put("controllerPrefix", meta.getControllerPrefix())
                                         .put("package", meta.getPackageName())
-                                        .put("serviceInfoPackageName", serviceInfoPackageName(meta))
+                                        .put("serviceRootPackageName", serviceRootPackageName(meta))
                                         .put("entityPackageName", basePackage + ".domain.model")
                                         .put("criteriaPackageName", basePackage + ".application.criteria")
                                         .put("mapperPackageName", basePackage + ".infrastructure.persistence.mybatisplus")
@@ -313,7 +312,7 @@ public class MybatisPlusGenerator {
                                         .put("boundedContextName", boundedContextName)
                                         .put("controllerPrefix", meta.getControllerPrefix())
                                         .put("package", meta.getPackageName())
-                                        .put("serviceInfoPackageName", serviceInfoPackageName(meta))
+                                        .put("serviceRootPackageName", serviceRootPackageName(meta))
                                         .put("entityPackageName", basePackage + ".domain.model")
                                         .put("criteriaPackageName", basePackage + ".application.criteria")
                                         .put("repositoryPackageName", basePackage + ".domain.repository")
@@ -376,14 +375,11 @@ public class MybatisPlusGenerator {
         return builder.build();
     }
 
-    private static String serviceInfoPackageName(MybatisPlusGeneratorMeta meta) {
-        if (meta.getServiceInfoPackageName() != null && !meta.getServiceInfoPackageName().isBlank()) {
-            return meta.getServiceInfoPackageName();
-        }
+    static String serviceRootPackageName(MybatisPlusGeneratorMeta meta) {
         String context = meta.getContext();
-        int separator = context.indexOf('.');
-        String service = separator < 0 ? context : context.substring(0, separator);
-        return meta.getPackageName() + "." + service;
+        int separator = context.lastIndexOf('.');
+        String serviceContext = separator < 0 ? context : context.substring(0, separator);
+        return meta.getPackageName() + "." + serviceContext;
     }
 
 

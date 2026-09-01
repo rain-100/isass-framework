@@ -50,5 +50,7 @@ Criteria：
 `SuperCudResult` 只返回 `addedCount`、`updatedCount`、`deletedCount` 三个汇总影响数量，避免大批量写入返回
 实体副本。全部操作在服务端同一事务提交；空请求是合法幂等 no-op。
 
-Query 集合使用同名重复参数，例如 `idIn=1&idIn=2`；对象 Query 会把非空成员展开为同名参数，服务端按同一
-规则反向绑定。`WRITE_NULL` 会根据请求字段出现性区分“未提交”和“显式 null”。
+Query 集合固定使用一个参数，并以英文逗号分隔元素，例如 `idIn=1,2,3`；单元素仍使用 `idIn=1`。
+同名重复参数不是合法的 Entrypoint 请求格式，服务端会直接拒绝。对象 Query 会把非空成员展开后按同一规则
+双向绑定；英文逗号是集合分隔符，集合的字符串元素不能包含字面量英文逗号。`WRITE_NULL` 会根据请求字段
+出现性区分“未提交”和“显式 null”。

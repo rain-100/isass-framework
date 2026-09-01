@@ -54,8 +54,9 @@ public class EntrypointHttpServerTest {
                 ignored -> URI.create("http://localhost"), objectMapper, List.of());
         SearchQuery query = new SearchQuery();
         query.setTags(List.of());
+        query.setIdIn(List.of(2081264465512599554L, 2081264465512599555L));
         query.setWhereConditions(List.of(new QueryCondition("name", "EQUAL", "rain")));
-        mockServer.expect(requestTo("http://localhost/sample-service/demo/test/search?name=rain"))
+        mockServer.expect(requestTo("http://localhost/sample-service/demo/test/search?idIn=2081264465512599554,2081264465512599555&name=rain"))
                 .andRespond(withSuccess("{\"success\":true,\"data\":\"ok\"}",
                         org.springframework.http.MediaType.APPLICATION_JSON));
 
@@ -64,7 +65,7 @@ public class EntrypointHttpServerTest {
     }
 
     @Test
-    void bindsRepeatedObjectQueryParametersAndUsesNocodeNamespace() throws Exception {
+    void rejectsRepeatedObjectQueryParametersAndUsesNocodeNamespace() throws Exception {
         TestServiceImpl implementation = new TestServiceImpl();
         DefaultServiceDefinitionRegistry registry = registry(implementation);
         EntrypointHttpServer server = new EntrypointHttpServer(registry, registry, new ObjectMapper());
@@ -76,16 +77,54 @@ public class EntrypointHttpServerTest {
         query.add("tags", "two");
         query.add("appId", "2084540564932513794");
 
-        var response = server.invoke("sample-service", "demo", "test", "search", query, request,
-                new MockHttpServletResponse());
-
-        assertEquals("rain:one,two", assertInstanceOf(Resp.class, response).getData());
+        assertThrows(IllegalArgumentException.class, () -> server.invoke(
+                "sample-service", "demo", "test", "search", query, request,
+                new MockHttpServletResponse()));
         assertThrows(IllegalArgumentException.class, () -> {
             MockHttpServletRequest wrong = new MockHttpServletRequest("GET",
                     "/sample-service/demo/test/search");
             server.invoke("sample-service", "demo", "test", "search", query, wrong,
                     new MockHttpServletResponse());
         });
+    }
+
+    @Test
+    void bindsCommaSeparatedObjectQueryParameterToCollectionProperty() throws Exception {
+        TestServiceImpl implementation = new TestServiceImpl();
+        DefaultServiceDefinitionRegistry registry = registry(implementation);
+        EntrypointHttpServer server = new EntrypointHttpServer(registry, registry, new ObjectMapper());
+        MockHttpServletRequest request = new MockHttpServletRequest("GET",
+                "/sample-service/nocode/demo/test/search");
+        LinkedMultiValueMap<String, String> query = new LinkedMultiValueMap<>();
+        query.add("name", "rain");
+        query.add("tags", "one,two");
+        query.add("idIn", "2081264465512599554,2081264465512599555");
+
+        var response = server.invoke("sample-service", "demo", "test", "search", query, request,
+                new MockHttpServletResponse());
+
+        assertEquals("rain:one,two:2081264465512599554,2081264465512599555",
+                assertInstanceOf(Resp.class, response).getData());
+    }
+
+    @Test
+    void bindsCommaSeparatedSimpleQueryParameterAndRejectsRepeatedValues() throws Exception {
+        TestServiceImpl implementation = new TestServiceImpl();
+        DefaultServiceDefinitionRegistry registry = registry(implementation);
+        EntrypointHttpServer server = new EntrypointHttpServer(registry, registry, new ObjectMapper());
+        MockHttpServletRequest request = new MockHttpServletRequest("GET",
+                "/sample-service/nocode/demo/test/ids");
+        LinkedMultiValueMap<String, String> query = new LinkedMultiValueMap<>();
+        query.add("idIn", "1,2,3");
+
+        var response = server.invoke("sample-service", "demo", "test", "ids", query, request,
+                new MockHttpServletResponse());
+
+        assertEquals("1,2,3", assertInstanceOf(Resp.class, response).getData());
+        query.add("idIn", "4");
+        assertThrows(IllegalArgumentException.class, () -> server.invoke(
+                "sample-service", "demo", "test", "ids", query, request,
+                new MockHttpServletResponse()));
     }
 
     @Test
@@ -187,12 +226,17 @@ public class EntrypointHttpServerTest {
 
         @EntrypointOperation(operationName = "download", displayName = "下载", httpMethod = HttpMethod.GET)
         FileStream download();
+
+        @EntrypointOperation(operationName = "ids", displayName = "查询 ID", httpMethod = HttpMethod.GET)
+        String ids(@QueryParam("idIn") List<Long> ids);
     }
 
     static final class TestServiceImpl implements TestService {
         @Override
         public String search(SearchQuery query) {
-            return query.getName() + ":" + String.join(",", query.getTags());
+            String result = query.getName() + ":" + String.join(",", query.getTags());
+            return query.getIdIn() == null ? result : result + ":" + query.getIdIn().stream()
+                    .map(String::valueOf).collect(java.util.stream.Collectors.joining(","));
         }
 
         @Override
@@ -216,11 +260,17 @@ public class EntrypointHttpServerTest {
             return new FileStream("测试.txt", "text/plain", 4L, false,
                     output -> output.write("data".getBytes(StandardCharsets.UTF_8)));
         }
+
+        @Override
+        public String ids(List<Long> ids) {
+            return ids.stream().map(String::valueOf).collect(java.util.stream.Collectors.joining(","));
+        }
     }
 
     static final class SearchQuery {
         private String name;
         private List<String> tags;
+        private List<Long> idIn;
         private List<QueryCondition> whereConditions;
 
         @java.beans.Transient
@@ -228,6 +278,8 @@ public class EntrypointHttpServerTest {
         public SearchQuery setName(String name) { this.name = name; return this; }
         public List<String> getTags() { return tags; }
         public void setTags(List<String> tags) { this.tags = tags; }
+        public List<Long> getIdIn() { return idIn; }
+        public void setIdIn(List<Long> idIn) { this.idIn = idIn; }
         public List<QueryCondition> getWhereConditions() { return whereConditions; }
         public void setWhereConditions(List<QueryCondition> whereConditions) { this.whereConditions = whereConditions; }
     }

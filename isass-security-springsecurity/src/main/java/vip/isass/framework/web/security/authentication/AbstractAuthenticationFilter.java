@@ -35,11 +35,14 @@ public abstract class AbstractAuthenticationFilter extends BasicAuthenticationFi
                                       Collection<GrantedAuthority> authorities,
                                       PrincipalAuthorizationContext authorizationContext) {
         Authentication current = SecurityContextHolder.getContext().getAuthentication();
-        if (current instanceof PrincipalAuthenticationToken) {
+        if (current instanceof PrincipalAuthenticationToken token && token.hasBusinessPrincipal()) {
             throw new IllegalStateException("不允许同时使用多种 ISASS 认证凭证");
         }
+        vip.isass.framework.common.security.InternalServicePrincipal internalPrincipal =
+                current instanceof PrincipalAuthenticationToken token
+                        ? token.getInternalServicePrincipal() : null;
         SecurityContextHolder.getContext().setAuthentication(
-                new PrincipalAuthenticationToken(principal, authorities, authorizationContext));
+                new PrincipalAuthenticationToken(principal, internalPrincipal, authorities, authorizationContext));
     }
 
     @Override
@@ -47,6 +50,7 @@ public abstract class AbstractAuthenticationFilter extends BasicAuthenticationFi
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication instanceof PrincipalAuthenticationToken principalAuthenticationToken) {
             AuthenticatedPrincipal principal = principalAuthenticationToken.getPrincipal();
+            if (principal == null) return;
             log.debug("认证成功[{}], 正在访问[{} {}], userId[{}], name[{}], 拥有角色{}, 源ip[{}]",
                     this.getClass().getSimpleName(),
                     request.getMethod(),

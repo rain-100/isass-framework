@@ -26,7 +26,6 @@ import vip.isass.framework.entrypoint.registry.EntrypointInvocationGateway;
 import vip.isass.framework.entrypoint.registry.ServiceDefinitionRegistry;
 
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -113,7 +112,7 @@ public final class EntrypointHttpServer {
         return switch (parameter.source()) {
             case QUERY -> parameter.objectQuery()
                     ? bindQueryObject(parameter.javaType(), query)
-                    : convertQueryValues(parameter.javaType(), query.get(parameter.name()));
+                    : convertQueryParameter(parameter.name(), parameter.javaType(), query.get(parameter.name()));
             case BODY -> bindBody(parameter, request);
             case HEADER -> convertQueryValues(parameter.javaType(),
                     java.util.Collections.list(request.getHeaders(parameter.name())));
@@ -156,9 +155,9 @@ public final class EntrypointHttpServer {
         Map<String, Object> source = new LinkedHashMap<>();
         Map<String, Map<String, Object>> associationCriteria = new LinkedHashMap<>();
         query.forEach((name, values) -> {
-            Object value = values.size() == 1 ? values.getFirst() : values;
+            String value = requireSingleQueryValue(name, values);
             if (name.equals("association.query")) {
-                source.put("associationQueries", values);
+                source.put("associationQueries", value);
             } else if (name.startsWith("association.") && name.contains(".criteria.")) {
                 String remainder = name.substring("association.".length());
                 int separator = remainder.indexOf(".criteria.");
@@ -187,7 +186,7 @@ public final class EntrypointHttpServer {
                 }
                 Type parameterType = org.springframework.core.GenericTypeResolver.resolveType(
                         setter.getGenericParameterTypes()[0], raw);
-                Object value = objectMapper.convertValue(entry.getValue(),
+                Object value = objectMapper.convertValue(normalizeQueryValue(parameterType, entry.getValue()),
                         objectMapper.getTypeFactory().constructType(parameterType));
                 if (!setter.canAccess(target)) setter.setAccessible(true);
                 setter.invoke(target, value);
@@ -208,11 +207,44 @@ public final class EntrypointHttpServer {
                 .orElse(null);
     }
 
+    private Object normalizeQueryValue(Type type, Object value) {
+        if (value == null) return null;
+        Class<?> raw = rawClass(type);
+        boolean multiValue = raw.isArray() || Iterable.class.isAssignableFrom(raw);
+        if (multiValue) {
+            return splitCommaSeparatedQueryValue(value);
+        }
+        return value;
+    }
+
     private Object convertQueryValues(Type type, List<String> values) {
         if (values == null || values.isEmpty()) return null;
         Class<?> raw = rawClass(type);
         Object source = raw.isArray() || Iterable.class.isAssignableFrom(raw) ? values : values.getFirst();
         return objectMapper.convertValue(source, objectMapper.getTypeFactory().constructType(type));
+    }
+
+    private Object convertQueryParameter(String name, Type type, List<String> values) {
+        if (values == null || values.isEmpty()) return null;
+        String value = requireSingleQueryValue(name, values);
+        Class<?> raw = rawClass(type);
+        Object source = raw.isArray() || Iterable.class.isAssignableFrom(raw)
+                ? splitCommaSeparatedQueryValue(value) : value;
+        return objectMapper.convertValue(source, objectMapper.getTypeFactory().constructType(type));
+    }
+
+    private String requireSingleQueryValue(String name, List<String> values) {
+        if (values.size() != 1) {
+            throw new IllegalArgumentException("Query 参数必须只出现一次，集合值请使用英文逗号分隔: " + name);
+        }
+        return values.getFirst();
+    }
+
+    private List<String> splitCommaSeparatedQueryValue(Object value) {
+        if (!(value instanceof String text)) {
+            throw new IllegalArgumentException("集合 Query 参数必须使用英文逗号分隔的字符串");
+        }
+        return Arrays.asList(text.split(",", -1));
     }
 
     private Class<?> rawClass(Type type) {

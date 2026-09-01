@@ -31,6 +31,7 @@ import tools.jackson.databind.ObjectMapper;
 import org.springframework.core.env.Environment;
 import vip.isass.framework.web.security.PermitUrlProvider;
 import vip.isass.framework.web.security.EntrypointAnonymousUrlProvider;
+import vip.isass.framework.web.security.EntrypointAuthenticatedUrlProvider;
 import vip.isass.framework.web.uri.UriPrefixProvider;
 
 import java.awt.image.BufferedImage;
@@ -63,6 +64,13 @@ public class WebAutoConfiguration {
             ServiceDefinitionRegistry serviceDefinitionRegistry
     ) {
         return new EntrypointAnonymousUrlProvider(serviceDefinitionRegistry);
+    }
+
+    @Bean
+    public EntrypointAuthenticatedUrlProvider entrypointAuthenticatedUrlProvider(
+            ServiceDefinitionRegistry serviceDefinitionRegistry
+    ) {
+        return new EntrypointAuthenticatedUrlProvider(serviceDefinitionRegistry);
     }
 
     @Bean

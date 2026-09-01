@@ -63,6 +63,36 @@ class AssociationCoordinatorTest {
         assertEquals(1, children.queryCount);
     }
 
+    @Test
+    void loadsExplicitNestedPathAndAutomaticallyLoadsItsParentPath() {
+        ParentRepository parents = new ParentRepository();
+        ChildRepository children = new ChildRepository();
+        DetailRepository details = new DetailRepository();
+        Child firstChild = new Child(10L, 1L, "one");
+        firstChild.setDetailId(100L);
+        Child secondChild = new Child(20L, 2L, "two");
+        secondChild.setDetailId(200L);
+        children.rows.put(10L, firstChild);
+        children.rows.put(20L, secondChild);
+        details.rows.put(100L, new Detail(100L, "first detail"));
+        details.rows.put(200L, new Detail(200L, "second detail"));
+        AssociationQueryCoordinator coordinator = new AssociationQueryCoordinator(List.of(
+                new ParentService(parents), new ChildService(children), new DetailService(details)));
+        Parent first = new Parent(1L);
+        Parent second = new Parent(2L);
+        ParentCriteria criteria = new ParentCriteria()
+                .setAssociationQueries(List.of("children.detail"));
+
+        coordinator.populate(List.of(first, second), criteria);
+
+        assertEquals(List.of(10L), first.getChildren().stream().map(Child::getId).toList());
+        assertEquals("first detail", first.getChildren().iterator().next().getDetail().getName());
+        assertEquals(List.of(20L), second.getChildren().stream().map(Child::getId).toList());
+        assertEquals("second detail", second.getChildren().iterator().next().getDetail().getName());
+        assertEquals(1, children.queryCount);
+        assertEquals(1, details.queryCount);
+    }
+
     static final class Parent implements IIdEntity<Long, Parent> {
         private Long id;
         private Collection<Child> children;
@@ -85,6 +115,8 @@ class AssociationCoordinatorTest {
         private Long id;
         private Long parentId;
         private String name;
+        private Long detailId;
+        private Detail detail;
 
         Child(Long id, Long parentId, String name) {
             this.id = id;
@@ -97,6 +129,28 @@ class AssociationCoordinatorTest {
         public void setParentId(Long parentId) { this.parentId = parentId; }
         public String getName() { return name; }
         public void setName(String name) { this.name = name; }
+        public Long getDetailId() { return detailId; }
+        public void setDetailId(Long detailId) { this.detailId = detailId; }
+        public Detail getDetail() { return detail; }
+        public void setDetail(Detail detail) { this.detail = detail; }
+        @Override public List<EntityAssociation> associations() {
+            return List.of(EntityAssociation.one("detail", Detail.class,
+                    "detailId", "id", false));
+        }
+    }
+
+    static final class Detail implements IIdEntity<Long, Detail> {
+        private Long id;
+        private String name;
+
+        Detail(Long id, String name) {
+            this.id = id;
+            this.name = name;
+        }
+        @Override public Long getId() { return id; }
+        @Override public void setId(Long id) { this.id = id; }
+        public String getName() { return name; }
+        public void setName(String name) { this.name = name; }
     }
 
     static final class ParentCriteria extends FullTypeCriteria<Parent, ParentCriteria>
@@ -107,6 +161,10 @@ class AssociationCoordinatorTest {
             implements IIdCriteria<Long, Child, ChildCriteria> {
     }
 
+    static final class DetailCriteria extends FullTypeCriteria<Detail, DetailCriteria>
+            implements IIdCriteria<Long, Detail, DetailCriteria> {
+    }
+
     record ParentService(ParentRepository repository)
             implements ILocalCrudService<Parent, ParentCriteria, Long> {
         @Override public IRepository<Parent, ParentCriteria> getRepository() { return repository; }
@@ -115,6 +173,11 @@ class AssociationCoordinatorTest {
     record ChildService(ChildRepository repository)
             implements ILocalCrudService<Child, ChildCriteria, Long> {
         @Override public IRepository<Child, ChildCriteria> getRepository() { return repository; }
+    }
+
+    record DetailService(DetailRepository repository)
+            implements ILocalCrudService<Detail, DetailCriteria, Long> {
+        @Override public IRepository<Detail, DetailCriteria> getRepository() { return repository; }
     }
 
     static final class ParentRepository implements IRepository<Parent, ParentCriteria> {
@@ -160,6 +223,17 @@ class AssociationCoordinatorTest {
                     .toList();
             deleting.forEach(rows::remove);
             return deleting.size();
+        }
+    }
+
+    static final class DetailRepository implements IRepository<Detail, DetailCriteria> {
+        private final Map<Long, Detail> rows = new LinkedHashMap<>();
+        private int queryCount;
+
+        @Override public List<Detail> findByCriteria(
+                vip.isass.framework.nocode.criteria.ICriteria<Detail, DetailCriteria> criteria) {
+            queryCount++;
+            return new ArrayList<>(rows.values());
         }
     }
 }

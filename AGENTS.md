@@ -19,6 +19,7 @@
 ## 框架约定
 
 - 框架使用文档放在 `docs/usage/<topic>/`；架构与设计记录放在 `docs/design/`；开发计划与规范放在 `docs/superpowers/`。
+- 共享机制的完整规则只在框架 `docs/usage/` 维护；框架和业务项目的 `AGENTS.md` 只保留执行摘要、项目专有规则和文档链接。规则归属见 `docs/usage/agent/rule-ownership.md`。
 - `isass-nocode-generator` 负责生成 model、Criteria、mapper 及契约约定。应修改 `isass-nocode-generator/src/main/resources/templates/` 下的模板并重新生成使用方；不要把手工维护生成产物作为长期修复方案。
 - 面向应用的字段和 Criteria 使用 Java camelCase 属性及 lambda 引用。数据库列名属于 ORM 的职责范围；只有自动属性到列的映射确实存在歧义时，才添加显式元数据。
 - NoCode 支持高级响应投影和关联查询。其公开 Query 参数应保持 camelCase，任何新增行为都要记录到 `docs/usage/nocode/`。
@@ -26,15 +27,17 @@
 - 框架配置使用 `isass.<module>.<feature>...` 层级。新增可复用配置时，不得引入一次性的根前缀。
 - 不要在框架模块中放置特定服务的初始化数据或业务规则。
 
-## 源文件读取优化
+## 统一规则入口
 
-源文件开头可能包含版权或许可证声明。
+- 服务模块与 DDD 分层：`docs/usage/architecture/service-ddd.md`
+- 数据库、Liquibase 注释 DSL 与生成模型：`docs/usage/database/table-design.md`
+- Liquibase 运行和变更边界：`docs/usage/database/liquibase-multi-mode-migration.md`
+- NoCode 生成器：`docs/usage/database/nocode-mybatis-plus-generator.md`
+- NoCode 八个正式入口、统一执行与生命周期：`docs/usage/nocode/crud-lifecycle.md`
+- 关联查询与关联写入：`docs/usage/nocode/association-query.md`
+- 初始化 JSON、导入导出与 ID 分配：`docs/usage/nocode/initialization-data.md`
+- Entrypoint 服务调用：`docs/usage/nocode/service-client.md`
+- 内部微服务 HMAC：`docs/usage/security/internal-service-hmac.md`
+- 业务价值测试：`docs/usage/testing/business-value-tests.md`
 
-当任务与许可证无关时：
-
-- 将开头的版权或许可证注释视为法律样板内容，避免在上下文中反复加载相同文本。
-- 优先从第一个有实际意义的源代码声明处开始定向读取，再按需扩大范围。
-- 不要假设固定行数可以覆盖文件头或实现内容。
-- 除非任务明确要求，否则绝不能删除、修改、移动或格式化法律声明。
-
-处理许可证、版权、再分发、来源、第三方代码或合规工作时，必须完整阅读源文件头、仓库许可证，以及所有 NOTICE 或第三方许可证文件。
+修改上述共享机制前必须阅读对应文档；实现变化时同步更新文档和 ChangeLog。业务微服务不得复制这些规则正文，只引用对应入口并记录服务专有差异。

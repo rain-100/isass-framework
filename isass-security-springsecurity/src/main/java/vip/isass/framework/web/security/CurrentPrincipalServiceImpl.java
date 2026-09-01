@@ -7,6 +7,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import vip.isass.framework.common.security.AuthenticatedPrincipal;
 import vip.isass.framework.common.security.CurrentPrincipalService;
+import vip.isass.framework.common.security.InternalServicePrincipal;
 import vip.isass.framework.web.security.authentication.PrincipalAuthenticationToken;
 
 /** Reads the authenticated principal from Spring Security's request context. */
@@ -17,5 +18,12 @@ public class CurrentPrincipalServiceImpl implements CurrentPrincipalService {
     public AuthenticatedPrincipal getPrincipal() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         return authentication instanceof PrincipalAuthenticationToken token ? token.getPrincipal() : null;
+    }
+
+    @Override
+    public InternalServicePrincipal getInternalServicePrincipal() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return authentication instanceof PrincipalAuthenticationToken token
+                ? token.getInternalServicePrincipal() : null;
     }
 }

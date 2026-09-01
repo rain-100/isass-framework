@@ -31,11 +31,13 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.Collection;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * 启动时扫描所有 {@link ILocalCrudService} 和 {@link IRepository} 实现类的 BeanDefinition，
@@ -450,12 +452,22 @@ public class TableMetaRegistrar
     }
 
     private static void detectAssociations(TableMeta meta, Class<?> entityClass) {
+        Set<String> associationFields = new LinkedHashSet<>();
         try {
             IEntity<?> entity = (IEntity<?>) entityClass.getDeclaredConstructor().newInstance();
-            meta.associationFields(entity.associations().stream().map(EntityAssociation::property)
-                    .collect(java.util.stream.Collectors.toSet()));
+            entity.associations().stream()
+                    .map(EntityAssociation::property)
+                    .forEach(associationFields::add);
         } catch (ReflectiveOperationException ignored) {
             // Entity metadata remains usable even if an entity has no default constructor.
         }
+        // A generated entity may override IEntity.associations() to declare ordinary
+        // table relations. Do not rely on that override retaining IParentIdEntity's
+        // default tree projections: parent/children are never physical columns.
+        if (IParentIdEntity.class.isAssignableFrom(entityClass)) {
+            associationFields.add("parent");
+            associationFields.add("children");
+        }
+        meta.associationFields(associationFields);
     }
 }

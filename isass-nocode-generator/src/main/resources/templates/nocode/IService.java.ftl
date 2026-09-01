@@ -3,7 +3,7 @@
 
 package ${cfg.package}.${cfg.context}.application.service;
 
-import ${cfg.serviceInfoPackageName}.ServiceInfo;
+import ${cfg.serviceRootPackageName}.ServiceInfo;
 import ${cfg.criteriaPackageName}.${entity}Criteria;
 import ${cfg.entityPackageName}.${entity};
 import vip.isass.framework.entrypoint.annotation.EntrypointInfo;

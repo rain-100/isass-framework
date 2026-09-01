@@ -31,4 +31,13 @@ class MybatisPlusGeneratorMetaTest {
 
         assertEquals("attachment", meta.getContext());
     }
+
+    @Test
+    void derivesServiceRootPackageFromMultiSegmentServiceContext() {
+        MybatisPlusGeneratorMeta meta = new MybatisPlusGeneratorMeta()
+                .setPackageName("com.acme")
+                .setContext("order.processing.catalog");
+
+        assertEquals("com.acme.order.processing", MybatisPlusGenerator.serviceRootPackageName(meta));
+    }
 }
