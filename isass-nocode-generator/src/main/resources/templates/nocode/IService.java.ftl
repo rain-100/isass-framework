@@ -20,7 +20,8 @@ import vip.isass.framework.nocode.service.ICrudService;
 @EntrypointInfo(
         serviceName = ServiceInfo.SERVICE_FULL_NAME,
         contextName = "${cfg.boundedContextName}",
-        resourceName = "${entity?uncap_first}")
+        resourceName = "${entity?uncap_first}",
+        tag = ${entity}.COMMENT)
 public interface I${entity}Service
         extends ICrudService<${entity}, ${entity}Criteria, ${idEntityPropertyType}> {
 

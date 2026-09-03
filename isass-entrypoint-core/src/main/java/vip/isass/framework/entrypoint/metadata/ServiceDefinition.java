@@ -10,6 +10,8 @@ public record ServiceDefinition(
         String serviceName,
         String contextName,
         String resourceName,
+        String tag,
+        int displayOrder,
         Class<? extends IEntrypoint> serviceInterface,
         List<OperationDefinition> operations,
         boolean localImplementation
@@ -17,6 +19,20 @@ public record ServiceDefinition(
 
     public ServiceDefinition {
         operations = List.copyOf(operations);
+    }
+
+    public ServiceDefinition(String serviceName, String contextName, String resourceName,
+                             Class<? extends IEntrypoint> serviceInterface,
+                             List<OperationDefinition> operations, boolean localImplementation) {
+        this(serviceName, contextName, resourceName, contextName + "/" + resourceName, 1000,
+                serviceInterface, operations, localImplementation);
+    }
+
+    public ServiceDefinition(String serviceName, String contextName, String resourceName, String tag,
+                             Class<? extends IEntrypoint> serviceInterface,
+                             List<OperationDefinition> operations, boolean localImplementation) {
+        this(serviceName, contextName, resourceName, tag, 1000,
+                serviceInterface, operations, localImplementation);
     }
 
     public String key() {

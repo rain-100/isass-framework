@@ -63,7 +63,11 @@ public final class EntrypointDefinitionParser {
                         .thenComparing(OperationDefinition::operationName)
                         .thenComparing(operation -> operation.httpMethod().name()))
                 .toList();
-        return new ServiceDefinition(info.serviceName(), info.contextName(), info.resourceName(),
+        String tag = info.tag() == null || info.tag().isBlank()
+                ? info.contextName() + "/" + info.resourceName()
+                : info.tag().trim();
+        return new ServiceDefinition(info.serviceName(), info.contextName(), info.resourceName(), tag,
+                info.displayOrder(),
                 serviceInterface, sorted, localImplementation);
     }
 

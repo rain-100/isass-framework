@@ -6,7 +6,11 @@
 接口必须使用运行时注解声明地址：
 
 ```java
-@EntrypointInfo(serviceName = "bsp-service", contextName = "config", resourceName = "dictionaryType")
+@EntrypointInfo(
+        serviceName = "bsp-service",
+        contextName = "config",
+        resourceName = "dictionaryType",
+        tag = "字典类型")
 public interface IDictionaryTypeService
         extends ICrudService<DictionaryType, DictionaryTypeCriteria, Long> {
 

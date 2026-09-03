@@ -4,6 +4,23 @@
 
 ### 4.0.0-SNAPSHOT
 
+- **Entrypoint API 文档分组排序**：`EntrypointInfo` 新增 `displayOrder`，运行时元数据和 OpenAPI 顶层 tags
+  按该值排序，并通过 `x-order` 暴露给 Knife4j；默认值为 `1000`，NoCode 生成服务沿用默认值。
+- **NoCode OpenAPI 分组置顶**：即使只有 NoCode 接口，也会在 OpenAPI 顶层 tags 中声明“零代码接口”
+  `x-order=1`，避免 Knife4j 将该分组显示在末尾。
+- **Knife4j 分组排序值解析修复**：修复前端将数值排序值误判为空值的问题，确保“零代码接口”的
+  `x-order=1` 实际参与分组排序并位于第一项。
+- **NoCode 分组同序置顶**：当其他 Entrypoint 分组同样使用 `displayOrder=1` 时，OpenAPI 仍优先输出“零代码接口”，
+  避免同序分组按注册顺序将其插入中间。
+- **Entrypoint OpenAPI 路径修复**：运行时文档组装器改为按字面量写入完整 URL path key，避免 Jackson
+  把以 `/` 开头的 Entrypoint 路径误当作 JSON Pointer 并展开成多层对象；`/v3/api-docs` 现在输出符合
+  OpenAPI 规范的 `paths["/service/context/resource/operation"]`，Knife4j 可以正常识别并展示接口。
+- **Entrypoint OpenAPI 分组与动态 NoCode 投影恢复**：NoCode 八个标准操作统一归入“零代码接口”单一分组，
+  每种操作只生成一份 `/{service}/nocode/{entity}/{operationName}` 文档，并恢复 service/entity 下拉、
+  Criteria 参数过滤和请求体模型切换元数据，避免每个 CRUD 资源重复出现“增-批量”等接口；实际运行路由仍为
+  具体服务和资源路径。只有自定义业务操作才按 `EntrypointInfo.tag` 形成中文独立分组；NoCode 生成器使用实体
+  中文注释填充 `tag`，实体下拉显示小驼峰 `resourceName`（值仍为 `contextName/resourceName`），自定义操作的
+  `displayName` 统一使用简短中文名称。
 - **内部基础设施路由开放**：`InternalAccessBuilder` 新增受限的 `allowRoute`，允许服务通过 Java Provider
   精确开放没有 Entrypoint 接口的框架基础设施 Controller；普通业务入口仍必须使用类型安全的方法引用。
   NoCode 远程初始化客户端改用完整请求上下文生成附加请求头，并发送与签名完全一致的序列化 Body，使内部 HMAC

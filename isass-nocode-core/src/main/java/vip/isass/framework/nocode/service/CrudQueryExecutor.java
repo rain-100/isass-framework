@@ -23,7 +23,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-/** Executes every standard NoCode query facade through one normalized lifecycle boundary. */
+/**
+ * Executes every standard NoCode query facade through one normalized lifecycle boundary.
+ */
 public final class CrudQueryExecutor {
 
     private static final ThreadLocal<Set<Object>> ACTIVE_SERVICES = ThreadLocal.withInitial(
@@ -46,10 +48,13 @@ public final class CrudQueryExecutor {
             C extends ICriteria<E, C> & IIdCriteria<PK, E, C> & IUpdateCriteria<C>
                     & IPageCriteria<E, C> & IOrderByCriteria<E, C>> CrudQueryResult<E, PK> query(
             ILocalCrudService<E, C, PK> service,
-            CrudQueryReq<C, PK> request
-    ) {
-        if (service == null) throw new IllegalArgumentException("service 不能为空");
-        if (request == null) throw new IllegalArgumentException("request 不能为空");
+            CrudQueryReq<C, PK> request) {
+        if (service == null) {
+            throw new IllegalArgumentException("service 不能为空");
+        }
+        if (request == null) {
+            throw new IllegalArgumentException("request 不能为空");
+        }
         C criteria = request.criteria() == null ? service.newCriteria() : request.criteria().copy();
         CrudQueryReq<C, PK> normalized = new CrudQueryReq<>(
                 request.queryType(), criteria, request.cursorId(), request.pageSize());
@@ -81,8 +86,7 @@ public final class CrudQueryExecutor {
             C extends ICriteria<E, C> & IIdCriteria<PK, E, C> & IUpdateCriteria<C>
                     & IPageCriteria<E, C> & IOrderByCriteria<E, C>> CrudQueryResult<E, PK> execute(
             ILocalCrudService<E, C, PK> service,
-            CrudQueryReq<C, PK> request
-    ) {
+            CrudQueryReq<C, PK> request) {
         return switch (request.queryType()) {
             case PAGE -> CrudQueryResult.page(page(service, request.criteria()));
             case CURSOR_PAGE -> CrudQueryResult.cursorPage(
@@ -99,7 +103,9 @@ public final class CrudQueryExecutor {
                     & IPageCriteria<E, C> & IOrderByCriteria<E, C>> Page<E> page(
             ILocalCrudService<E, C, PK> service, C criteria) {
         Page<E> page = service.getRepository().findPageByCriteria(criteria);
-        if (associations != null) associations.populate(page.getRecords(), criteria);
+        if (associations != null) {
+            associations.populate(page.getRecords(), criteria);
+        }
         return page;
     }
 
@@ -120,8 +126,11 @@ public final class CrudQueryExecutor {
             throw new IllegalArgumentException("cursorPage.pageSize 必须在 1 到 1000 之间");
         }
         if (cursorId != null) {
-            if (normalized.endsWith("desc")) query.setIdLessThan(cursorId);
-            else query.setIdGreaterThan(cursorId);
+            if (normalized.endsWith("desc")) {
+                query.setIdLessThan(cursorId);
+            } else {
+                query.setIdGreaterThan(cursorId);
+            }
         }
         query.setOrderBy(normalized).setPageNum(1L).setPageSize(size + 1L).setSearchCountFlag(false);
         List<E> fetched = page(service, query).getRecords();

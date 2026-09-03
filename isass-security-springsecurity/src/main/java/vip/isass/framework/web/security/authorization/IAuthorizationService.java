@@ -18,7 +18,7 @@ import java.util.List;
  * Framework-level authorization entrypoint implemented by bsp-service.
  * Consumers inject this interface directly; the entrypoint registry chooses a local bean or a remote proxy.
  */
-@EntrypointInfo(serviceName = "bsp-service", contextName = "auth", resourceName = "authorization")
+@EntrypointInfo(serviceName = "bsp-service", contextName = "auth", resourceName = "authorization", tag = "授权管理")
 public interface IAuthorizationService extends IEntrypoint {
 
     @EntrypointOperation(operationName = "apiKeyContext", displayName = "API Key 授权上下文",

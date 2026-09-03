@@ -39,6 +39,8 @@ class EntrypointDefinitionParserTest {
         assertEquals(TestResult.class, resultType.getRawType());
         assertEquals(TestEntity.class, resultType.getActualTypeArguments()[0]);
         assertEquals(UrlAccessSecurityStrategy.ROLE, superCud.accessStrategy());
+        assertEquals("测试实体", definition.tag());
+        assertEquals(42, definition.displayOrder());
     }
 
     @Test
@@ -47,9 +49,11 @@ class EntrypointDefinitionParserTest {
                 .parse(AnonymousEntrypoint.class, true);
 
         assertEquals(UrlAccessSecurityStrategy.NONE, definition.operations().getFirst().accessStrategy());
+        assertEquals(1000, definition.displayOrder());
     }
 
-    @EntrypointInfo(serviceName = "test-service", contextName = "sample", resourceName = "testEntity")
+    @EntrypointInfo(serviceName = "test-service", contextName = "sample", resourceName = "testEntity",
+            tag = "测试实体", displayOrder = 42)
     private interface TestCrudService extends GenericEntrypoint<TestEntity, TestCriteria> {
     }
 

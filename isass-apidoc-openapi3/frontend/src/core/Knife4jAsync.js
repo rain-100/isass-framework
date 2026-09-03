@@ -2624,7 +2624,7 @@ SwaggerBootstrapUi.prototype.analysisDefinition = function (menu) {
       if (KUtils.strNotBlank(tagauth)) {
         swuTag.author = tagauth;
       }
-      if (KUtils.strNotBlank(tagorder)) {
+      if (tagorder !== undefined && tagorder !== null && tagorder !== '') {
         swuTag.order = parseInt(tagorder);
       }
       tmpTags.push(swuTag);

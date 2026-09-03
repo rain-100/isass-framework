@@ -22,19 +22,22 @@ import java.io.UncheckedIOException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashSet;
-import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /** Merges service-isolated Smart-doc resources with local Entrypoint metadata. */
 public final class OpenApiDocumentAssembler {
 
     private static final String RESOURCE_PATTERN =
             "classpath*:META-INF/isass/openapi/*/openapi.json";
+    private static final String NOCODE_TAG = "零代码接口";
 
     private final ObjectMapper objectMapper;
     private final ServiceDefinitionRegistry registry;
@@ -51,11 +54,15 @@ public final class OpenApiDocumentAssembler {
     public String assemble() {
         ObjectNode target = emptyDocument();
         loadStaticDocuments().forEach(source -> mergeDocument(target, source));
-        registry.all().stream()
+        List<ServiceDefinition> services = registry.all().stream()
                 .filter(ServiceDefinition::localImplementation)
                 .filter(this::inScope)
-                .sorted(Comparator.comparing(ServiceDefinition::key))
-                .forEach(service -> appendEntrypoint(target, service));
+                .sorted(Comparator.comparingInt(ServiceDefinition::displayOrder)
+                        .thenComparing(ServiceDefinition::key))
+                .toList();
+        appendEntrypointTags(target, services);
+        services.forEach(service -> appendCustomEntrypoints(target, service));
+        appendNocodeEntrypoints(target, services);
         try {
             return objectMapper.writeValueAsString(target);
         } catch (RuntimeException exception) {
@@ -119,33 +126,252 @@ public final class OpenApiDocumentAssembler {
         });
     }
 
-    private void appendEntrypoint(ObjectNode root, ServiceDefinition service) {
+    private void appendCustomEntrypoints(ObjectNode root, ServiceDefinition service) {
+        for (OperationDefinition operation : service.operations()) {
+            if (operation.nocode()) continue;
+            appendConcreteEntrypoint(root, service, operation);
+        }
+    }
+
+    private void appendEntrypointTags(ObjectNode root, List<ServiceDefinition> services) {
+        Map<String, Integer> tagOrders = new LinkedHashMap<>();
+        for (ServiceDefinition service : services) {
+            if (service.operations().stream().anyMatch(operation -> !operation.nocode())) {
+                tagOrders.merge(service.tag(), service.displayOrder(), Math::min);
+            }
+        }
+        if (services.stream().anyMatch(service ->
+                service.operations().stream().anyMatch(OperationDefinition::nocode))) {
+            tagOrders.put(NOCODE_TAG, 1);
+        }
+        if (tagOrders.isEmpty()) return;
+
+        ArrayNode tags = root.putArray("tags");
+        tagOrders.entrySet().stream()
+                .sorted(Map.Entry.<String, Integer>comparingByValue()
+                        .thenComparing(entry -> NOCODE_TAG.equals(entry.getKey()) ? 0 : 1)
+                        .thenComparing(Map.Entry.comparingByKey()))
+                .forEach(entry -> tags.addObject()
+                        .put("name", entry.getKey())
+                        .put("x-order", entry.getValue()));
+    }
+
+    private void appendConcreteEntrypoint(ObjectNode root, ServiceDefinition service,
+                                          OperationDefinition operation) {
         ObjectNode paths = root.withObject("/paths");
         ObjectNode schemas = root.withObject("/components").withObject("/schemas");
-        for (OperationDefinition operation : service.operations()) {
-            String path = service.pathPrefix(operation) + "/" + operation.operationName();
-            ObjectNode pathItem = paths.withObject(path);
-            String method = operation.httpMethod().name().toLowerCase(Locale.ROOT);
-            if (pathItem.has(method)) {
-                throw new IllegalStateException("Entrypoint OpenAPI 路由冲突: " + method + " " + path);
-            }
-            ObjectNode api = pathItem.putObject(method);
-            api.put("summary", operation.displayName());
-            api.put("description", operation.description());
-            api.put("operationId", service.serviceName() + "_" + service.contextName() + "_"
-                    + service.resourceName() + "_" + operation.operationName());
-            api.put("x-order", operation.displayOrder());
-            ArrayNode tags = api.putArray("tags");
-            tags.add(service.contextName() + "/" + service.resourceName());
-            ArrayNode parameters = api.putArray("parameters");
-            for (ParameterDefinition parameter : operation.parameters()) {
-                appendParameter(api, parameters, schemas, parameter);
-            }
-            ObjectNode response = api.putObject("responses").putObject("200");
-            response.put("description", "成功");
-            response.putObject("content").putObject("application/json")
-                    .set("schema", schemaFor(operation.returnType(), schemas, new HashSet<>()));
+        String path = service.pathPrefix(operation) + "/" + operation.operationName();
+        ObjectNode api = operationNode(paths, path, operation);
+        api.put("operationId", service.serviceName() + "_" + service.contextName() + "_"
+                + service.resourceName() + "_" + operation.operationName());
+        api.putArray("tags").add(service.tag());
+        ArrayNode parameters = api.putArray("parameters");
+        for (ParameterDefinition parameter : operation.parameters()) {
+            appendParameter(api, parameters, schemas, parameter);
         }
+        appendResponse(api, schemaFor(operation.returnType(), schemas, new HashSet<>()));
+    }
+
+    private void appendNocodeEntrypoints(ObjectNode root, List<ServiceDefinition> services) {
+        Map<String, List<NocodeBinding>> grouped = new LinkedHashMap<>();
+        for (ServiceDefinition service : services) {
+            for (OperationDefinition operation : service.operations()) {
+                if (!operation.nocode()) continue;
+                grouped.computeIfAbsent(operation.operationName(), ignored -> new ArrayList<>())
+                        .add(new NocodeBinding(service, operation));
+            }
+        }
+        grouped.values().stream()
+                .sorted(Comparator
+                        .comparingInt((List<NocodeBinding> bindings) -> bindings.getFirst().operation().displayOrder())
+                        .thenComparing(bindings -> bindings.getFirst().operation().operationName()))
+                .forEach(bindings -> appendNocodeEntrypoint(root, bindings));
+    }
+
+    private void appendNocodeEntrypoint(ObjectNode root, List<NocodeBinding> bindings) {
+        OperationDefinition canonical = bindings.getFirst().operation();
+        validateNocodeBindings(bindings, canonical);
+
+        ObjectNode paths = root.withObject("/paths");
+        ObjectNode schemas = root.withObject("/components").withObject("/schemas");
+        String path = "/{service}/nocode/{entity}/" + canonical.operationName();
+        ObjectNode api = operationNode(paths, path, canonical);
+        api.put("operationId", "nocode_" + canonical.operationName());
+        api.putArray("tags").add(NOCODE_TAG);
+
+        ArrayNode parameters = api.putArray("parameters");
+        parameters.add(pathParameter("service"));
+        parameters.add(pathParameter("entity"));
+
+        ObjectNode serviceEntities = api.putObject("x-isass-service-entities");
+        ObjectNode entityOptions = api.putObject("x-isass-entity-options");
+        ObjectNode criteriaParameters = api.putObject("x-isass-criteria-parameters");
+        Map<String, ObjectNode> uniqueParameters = new LinkedHashMap<>();
+        Map<String, ObjectNode> requestSchemas = new LinkedHashMap<>();
+        Map<String, ObjectNode> responseSchemas = new LinkedHashMap<>();
+        Map<String, String> entityLabels = entityLabels(bindings);
+        Map<String, String> requestSchemaEntities = new LinkedHashMap<>();
+
+        for (NocodeBinding binding : bindings) {
+            String entity = binding.entity();
+            addUnique(serviceEntities.withArray(binding.service().serviceName()), entity);
+            entityOptions.put(entityLabels.get(binding.key()), entity);
+            ObjectNode entityCriteria = literalObjectProperty(
+                    criteriaParameters, entity, "NoCode Criteria 参数映射");
+
+            ObjectNode temporaryApi = objectMapper.createObjectNode();
+            ArrayNode temporaryParameters = objectMapper.createArrayNode();
+            for (ParameterDefinition parameter : binding.operation().parameters()) {
+                if (parameter.source() == ParameterSource.BODY) {
+                    ObjectNode schema = schemaFor(parameter.javaType(), schemas, new HashSet<>());
+                    requestSchemas.putIfAbsent(schema.toString(), schema);
+                    String schemaName = referencedSchemaName(schema);
+                    if (schemaName != null) requestSchemaEntities.put(schemaName, entity);
+                    continue;
+                }
+                appendParameter(temporaryApi, temporaryParameters, schemas, parameter);
+            }
+            for (JsonNode parameter : temporaryParameters) {
+                String key = parameter.path("in").asText() + ":" + parameter.path("name").asText();
+                uniqueParameters.putIfAbsent(key, (ObjectNode) parameter.deepCopy());
+                entityCriteria.set(parameter.path("name").asText(), parameter.deepCopy());
+            }
+            ObjectNode responseSchema = schemaFor(binding.operation().returnType(), schemas, new HashSet<>());
+            responseSchemas.putIfAbsent(responseSchema.toString(), responseSchema);
+        }
+        uniqueParameters.values().forEach(parameters::add);
+        appendAggregatedRequestBody(api, requestSchemas.values(), requestSchemaEntities);
+        appendResponse(api, combinedSchema(responseSchemas.values()));
+    }
+
+    private ObjectNode operationNode(ObjectNode paths, String path, OperationDefinition operation) {
+        ObjectNode pathItem = literalObjectProperty(paths, path, "OpenAPI path");
+        String method = operation.httpMethod().name().toLowerCase(Locale.ROOT);
+        if (pathItem.has(method)) {
+            throw new IllegalStateException("Entrypoint OpenAPI 路由冲突: " + method + " " + path);
+        }
+        ObjectNode api = pathItem.putObject(method);
+        api.put("summary", operation.displayName());
+        api.put("description", operation.description());
+        api.put("x-order", operation.displayOrder());
+        return api;
+    }
+
+    private void appendResponse(ObjectNode api, ObjectNode schema) {
+        ObjectNode response = api.putObject("responses").putObject("200");
+        response.put("description", "成功");
+        response.putObject("content").putObject("application/json").set("schema", schema);
+    }
+
+    private ObjectNode pathParameter(String name) {
+        ObjectNode parameter = objectMapper.createObjectNode();
+        parameter.put("name", name);
+        parameter.put("in", "path");
+        parameter.put("required", true);
+        parameter.putObject("schema").put("type", "string");
+        return parameter;
+    }
+
+    private void appendAggregatedRequestBody(ObjectNode api, Collection<ObjectNode> candidates,
+                                             Map<String, String> schemaEntities) {
+        if (candidates.isEmpty()) return;
+        ObjectNode media = api.putObject("requestBody").put("required", true)
+                .putObject("content").putObject("application/json");
+        media.set("schema", combinedSchema(candidates));
+        ObjectNode mapping = media.putObject("x-isass-oneof-mapping");
+        schemaEntities.forEach(mapping::put);
+    }
+
+    private ObjectNode combinedSchema(Collection<ObjectNode> candidates) {
+        if (candidates.isEmpty()) return objectMapper.createObjectNode();
+        if (candidates.size() == 1) return candidates.iterator().next().deepCopy();
+        ObjectNode schema = objectMapper.createObjectNode();
+        ArrayNode oneOf = schema.putArray("oneOf");
+        candidates.forEach(candidate -> oneOf.add(candidate.deepCopy()));
+        return schema;
+    }
+
+    private String referencedSchemaName(ObjectNode schema) {
+        JsonNode reference = schema.get("$ref");
+        if (reference == null && schema.path("type").asText().equals("array")) {
+            reference = schema.path("items").get("$ref");
+        }
+        if (reference == null || !reference.isTextual()) return null;
+        String value = reference.asText();
+        return value.substring(value.lastIndexOf('/') + 1);
+    }
+
+    private Map<String, String> entityLabels(List<NocodeBinding> bindings) {
+        Map<String, Long> counts = bindings.stream().collect(Collectors.groupingBy(
+                binding -> binding.service().resourceName(), LinkedHashMap::new, Collectors.counting()));
+        Map<String, String> labels = new LinkedHashMap<>();
+        for (NocodeBinding binding : bindings) {
+            String resourceName = binding.service().resourceName();
+            String label = resourceName;
+            // Entity is a frontend-facing value. Keep it in the generated Java
+            // small-camel form instead of exposing a localized business label.
+            // Only add a camel-case scope when two resources share the same name.
+            if (counts.getOrDefault(resourceName, 0L) > 1) {
+                label = toLowerCamel(binding.service().contextName())
+                        + upperFirst(resourceName);
+                if (labels.containsValue(label)) {
+                    label = toLowerCamel(binding.service().serviceName())
+                            + upperFirst(toLowerCamel(binding.service().contextName()))
+                            + upperFirst(resourceName);
+                }
+            }
+            labels.put(binding.key(), label);
+        }
+        return labels;
+    }
+
+    private String upperFirst(String value) {
+        if (value == null || value.isBlank()) return value;
+        return Character.toUpperCase(value.charAt(0)) + value.substring(1);
+    }
+
+    private String toLowerCamel(String value) {
+        if (value == null || value.isBlank()) return value;
+        StringBuilder result = new StringBuilder();
+        boolean capitalize = false;
+        for (char character : value.toCharArray()) {
+            if (!Character.isLetterOrDigit(character)) {
+                capitalize = result.length() > 0;
+                continue;
+            }
+            if (result.isEmpty()) {
+                result.append(Character.toLowerCase(character));
+            } else if (capitalize) {
+                result.append(Character.toUpperCase(character));
+                capitalize = false;
+            } else {
+                result.append(character);
+            }
+        }
+        return result.toString();
+    }
+
+    private void addUnique(ArrayNode values, String value) {
+        for (JsonNode existing : values) {
+            if (existing.asText().equals(value)) return;
+        }
+        values.add(value);
+    }
+
+    private void validateNocodeBindings(List<NocodeBinding> bindings, OperationDefinition canonical) {
+        for (NocodeBinding binding : bindings) {
+            OperationDefinition operation = binding.operation();
+            if (operation.httpMethod() != canonical.httpMethod()) {
+                throw new IllegalStateException("NoCode 标准操作 HTTP 方法不一致: " + canonical.operationName());
+            }
+        }
+    }
+
+    private ObjectNode literalObjectProperty(ObjectNode parent, String propertyName, String kind) {
+        JsonNode existing = parent.get(propertyName);
+        if (existing == null) return parent.putObject(propertyName);
+        if (existing instanceof ObjectNode object) return object;
+        throw new IllegalStateException(kind + " 必须是对象: " + propertyName);
     }
 
     private void appendParameter(ObjectNode api, ArrayNode parameters, ObjectNode schemas,
@@ -302,6 +528,16 @@ public final class OpenApiDocumentAssembler {
     private static final class CollectionLike {
         static boolean isCollection(Class<?> type) {
             return Iterable.class.isAssignableFrom(type) || java.util.Collection.class.isAssignableFrom(type);
+        }
+    }
+
+    private record NocodeBinding(ServiceDefinition service, OperationDefinition operation) {
+        String entity() {
+            return service.contextName() + "/" + service.resourceName();
+        }
+
+        String key() {
+            return service.key();
         }
     }
 }

@@ -48,8 +48,8 @@ public interface ICrudService<
         return entity;
     }
 
-    @EntrypointOperation(operationName = "createBatch", displayName = "增-批量",
-            description = "批量新增数据", displayOrder = 101, httpMethod = HttpMethod.POST)
+    @EntrypointOperation(operationName = "createBatch", displayName = "新增",
+            description = "批量新增数据", displayOrder = 201, httpMethod = HttpMethod.POST)
     default Long createBatch(@BodyParam Collection<E> entities) {
         if (entities == null || entities.isEmpty()) {
             throw new IllegalArgumentException("createBatch.entities 不能为空");
@@ -79,25 +79,25 @@ public interface ICrudService<
 
     // region read
 
-    @EntrypointOperation(operationName = "page", displayName = "查-分页列表",
-            description = "根据查询条件返回分页列表", displayOrder = 301,
+    @EntrypointOperation(operationName = "page", displayName = "查询分页列表",
+            description = "根据查询条件返回分页列表", displayOrder = 101,
             httpMethod = HttpMethod.GET)
     Page<E> page(@QueryParam C criteria);
 
-    @EntrypointOperation(operationName = "cursorPage", displayName = "查-游标分页",
-            description = "按 ID 指定方向返回下一页", displayOrder = 302,
+    @EntrypointOperation(operationName = "cursorPage", displayName = "查询分页(游标)",
+            description = "用于深分页场景，按 ID 指定方向返回下一页", displayOrder = 102,
             httpMethod = HttpMethod.GET)
     CursorPage<E, PK> cursorPage(@QueryParam C criteria,
                                  @QueryParam("cursorId") PK cursorId,
                                  @QueryParam("pageSize") Long pageSize);
 
-    @EntrypointOperation(operationName = "count", displayName = "查-数量",
-            description = "根据查询条件统计数据数量", displayOrder = 303,
+    @EntrypointOperation(operationName = "count", displayName = "查询数量",
+            description = "根据查询条件统计数据数量", displayOrder = 103,
             httpMethod = HttpMethod.GET)
     Long count(@QueryParam C criteria);
 
-    @EntrypointOperation(operationName = "exists", displayName = "查-是否存在",
-            description = "判断是否存在符合查询条件的数据", displayOrder = 304,
+    @EntrypointOperation(operationName = "exists", displayName = "查询是否存在",
+            description = "判断是否存在符合查询条件的数据", displayOrder = 104,
             httpMethod = HttpMethod.GET)
     boolean exists(@QueryParam C criteria);
 
@@ -155,8 +155,8 @@ public interface ICrudService<
         return update(List.of(entity), criteria);
     }
 
-    @EntrypointOperation(operationName = "update", displayName = "改-批量",
-            description = "根据实体 ID 或查询条件批量修改数据", displayOrder = 201,
+    @EntrypointOperation(operationName = "update", displayName = "修改",
+            description = "根据实体 ID 或查询条件批量修改数据", displayOrder = 301,
             httpMethod = HttpMethod.PUT)
     default Long update(@BodyParam Collection<E> entities, @QueryParam C criteria) {
         if (entities == null || entities.isEmpty()) {
@@ -190,7 +190,7 @@ public interface ICrudService<
         return update(entity, newCriteria().setNullValueMode(NullValueMode.WRITE_NULL));
     }
 
-    @EntrypointOperation(operationName = "delete", displayName = "删-批量",
+    @EntrypointOperation(operationName = "delete", displayName = "删除",
             description = "根据查询条件批量删除数据", displayOrder = 401,
             httpMethod = HttpMethod.DELETE)
     default Long delete(@QueryParam C criteria) {
