@@ -210,8 +210,8 @@ public class MybatisPlusGenerator {
                                         .put("controllerPrefix", meta.getControllerPrefix())
                                         .put("package", meta.getPackageName())
                                         .put("serviceRootPackageName", serviceRootPackageName(meta))
-                                        .put("entityPackageName", basePackage + ".domain.model")
-                                        .put("criteriaPackageName", basePackage + ".application.criteria")
+                                        .put("entityPackageName", basePackage + ".domain.model.entity")
+                                        .put("criteriaPackageName", basePackage + ".domain.model.criteria")
                                         .put("mapperPackageName", basePackage + ".infrastructure.persistence.mybatisplus")
                                         .put("servicePackageName", basePackage + ".application.service")
                                         .put("tablePrefix", meta.getTablePrefix())
@@ -227,13 +227,13 @@ public class MybatisPlusGenerator {
                                 .customFile(CollUtil.newArrayList(
                                         customFile(new CustomFile.Builder()
                                                         .templatePath("/templates/nocode/entity.java.ftl")
-                                                        .packageName("domain.model")
+                                                        .packageName("domain.model.entity")
                                                         .fileName(".java")
                                                         .formatNameFunction(tableInfo -> tableInfo.getEntityName()),
                                                 meta.isEntityFileOverride()),
                                         customFile(new CustomFile.Builder()
                                                         .templatePath("/templates/nocode/criteria.java.ftl")
-                                                        .packageName("application.criteria")
+                                                        .packageName("domain.model.criteria")
                                                         .fileName("Criteria.java")
                                                         .formatNameFunction(tableInfo -> tableInfo.getEntityName()),
                                                 meta.isCriteriaFileOverride()),
@@ -313,8 +313,8 @@ public class MybatisPlusGenerator {
                                         .put("controllerPrefix", meta.getControllerPrefix())
                                         .put("package", meta.getPackageName())
                                         .put("serviceRootPackageName", serviceRootPackageName(meta))
-                                        .put("entityPackageName", basePackage + ".domain.model")
-                                        .put("criteriaPackageName", basePackage + ".application.criteria")
+                                        .put("entityPackageName", basePackage + ".domain.model.entity")
+                                        .put("criteriaPackageName", basePackage + ".domain.model.criteria")
                                         .put("repositoryPackageName", basePackage + ".domain.repository")
                                         .put("mapperPackageName", basePackage + ".infrastructure.persistence.mybatisplus")
                                         .put("servicePackageName", basePackage + ".application.service")
@@ -381,6 +381,7 @@ public class MybatisPlusGenerator {
         String serviceContext = separator < 0 ? context : context.substring(0, separator);
         return meta.getPackageName() + "." + serviceContext;
     }
+
 
 
 }

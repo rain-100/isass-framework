@@ -4,6 +4,8 @@
 
 ### 4.0.0-SNAPSHOT
 
+- **OpenAPI 文档能力迁移**：将 OpenAPI 运行时组装、文档 Controller、权限放行和 Knife4j UI 从通用
+  `isass-web-springmvc` 迁移至 `isass-service-apidoc`；未依赖 `apidoc-service` 的 Web 应用不再自动暴露 API 文档。
 - **Entrypoint API 文档分组排序**：`EntrypointInfo` 新增 `displayOrder`，运行时元数据和 OpenAPI 顶层 tags
   按该值排序，并通过 `x-order` 暴露给 Knife4j；默认值为 `1000`，NoCode 生成服务沿用默认值。
 - **NoCode OpenAPI 分组置顶**：即使只有 NoCode 接口，也会在 OpenAPI 顶层 tags 中声明“零代码接口”
@@ -12,6 +14,25 @@
   `x-order=1` 实际参与分组排序并位于第一项。
 - **NoCode 分组同序置顶**：当其他 Entrypoint 分组同样使用 `displayOrder=1` 时，OpenAPI 仍优先输出“零代码接口”，
   避免同序分组按注册顺序将其插入中间。
+- **单体 API 文档按服务切换**：单体启动时根据 classpath 静态文档和本地 Entrypoint 元数据发现嵌入服务，
+  `swagger-config` 为每个服务生成可切换分组，并通过 `/{serviceName}/v3/api-docs` 返回该服务独立文档，避免依赖服务
+  的接口全部混入当前应用文档。
+- **NoCode Criteria 与 Schema 展示修复**：分页列表等对象型 Query Criteria 改为按 getter 展开，兼容 fluent setter，
+  恢复实体切换后的 Criteria 条件；OpenAPI Schema 默认使用 Java 简单类名，避免调试页面显示完整包路径。
+- **NoCode Criteria 参数按操作裁剪**：隐藏内部的 `whereConditions` 和 `associationCriteria`，仅在修改接口展示
+  `updateMode`、`nullValueMode`、`matchFields`，仅在分页查询展示 `selectColumns` 和关联查询；关联查询使用实际
+  HTTP 参数名 `association.query`，Knife4j 不再为可选数组参数自动填充 `[""]`。
+- **NoCode Criteria 泛型字段类型修复**：按具体 Criteria 实现类解析继承泛型 getter 的返回类型，避免 `id`、
+  `createUserId`、`modifyUserId` 等 Long 类型查询参数退化为 `Serializable` 空对象并在 Knife4j 中显示 `{}`。
+- **NoCode OpenAPI 说明与表单参数修复**：生成实体和 Criteria 的字段注释元数据，运行时补充模型、属性和参数说明；
+  对象型 `FORM_FIELD` 参数展开为独立 query 参数，`FORM_FILE` 参数按 binary 文件参数输出。
+- **API 模型说明注解**：新增 `vip.isass.framework.entrypoint.annotation.ApiDoc`，支持在模型类、字段、记录组件和 Criteria
+  getter 上声明 API 文档说明；NoCode 生成器据此输出文档元数据，不再通过实体上的 `PROPERTY_COMMENTS` 静态映射定义字段说明。
+- **DDD 模型目录规范**：NoCode 生成器将实体和 Criteria 分别输出到 `domain.model.entity` 与
+  `domain.model.criteria`；业务项目模板为 `domain.model.*` 和 `application.model.*` 同步提供
+  `entity`、`criteria`、`vo`、`dto`、`req`、`resp`、`enums` 分类目录。
+- **Entrypoint record 请求体 Schema 修复**：OpenAPI 组装器补充 Java `record` 组件访问器解析，登录等使用
+  record 请求对象的接口不再将请求示例生成为 `{}`，可以展示具体请求字段。
 - **Entrypoint OpenAPI 路径修复**：运行时文档组装器改为按字面量写入完整 URL path key，避免 Jackson
   把以 `/` 开头的 Entrypoint 路径误当作 JSON Pointer 并展开成多层对象；`/v3/api-docs` 现在输出符合
   OpenAPI 规范的 `paths["/service/context/resource/operation"]`，Knife4j 可以正常识别并展示接口。

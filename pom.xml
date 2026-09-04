@@ -61,7 +61,6 @@
         <subproject>isass-serialization-protobuf</subproject>
 
         <!-- web -->
-        <subproject>isass-apidoc-openapi3</subproject>
         <subproject>isass-web-springmvc</subproject>
 
         <!-- adapter -->

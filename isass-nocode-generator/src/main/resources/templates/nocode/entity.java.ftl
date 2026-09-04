@@ -53,6 +53,7 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 import vip.isass.framework.nocode.entity.IEntity;
+import vip.isass.framework.entrypoint.annotation.ApiDoc;
 <#if associations?has_content || isParentIdEntity>
 import vip.isass.framework.nocode.entity.EntityAssociation;
 </#if>
@@ -129,6 +130,7 @@ import java.util.List;
  *
  * @author ${author}
  */
+@ApiDoc(description = "<#if table.comment?trim?length gt 0>${table.comment?j_string}<#else>${entity?j_string}</#if>")
 @Getter
 @Setter
 @ToString
@@ -176,6 +178,7 @@ public class ${entity} implements
      * 数据库字段类型: ${field.metaInfo.typeName}
      */<#if field.propertyName!?ends_with("Id") && field.propertyType == "Long">
     @JsonSerialize(using = ToStringSerializer.class)</#if>
+    @ApiDoc(description = "<#if field.comment?trim?length gt 0>${field.comment?trim?j_string}<#else>${field.propertyName?j_string}</#if>")
     private <#if field.propertyName == "deleteFlag">Boolean<#elseif field.comment!?contains("${enumStart}")>${field.propertyName?cap_first}<#elseif field.comment!?contains("${javaTypeStart}")>${javaType(field)}<#elseif field.propertyType == "JsonNode">JsonNode<#else>${field.propertyType}</#if> ${field.propertyName};
 
     public void set${field.propertyName?cap_first}(<#if field.propertyName == "deleteFlag">Boolean<#elseif field.comment!?contains("${enumStart}")>${field.propertyName?cap_first}<#elseif field.comment!?contains("${javaTypeStart}")>${javaType(field)}<#elseif field.propertyType == "JsonNode">JsonNode<#else>${field.propertyType}</#if> ${field.propertyName}) {
@@ -292,8 +295,9 @@ public class ${entity} implements
 <#---------- END 添加枚举类 ---------->
 <#---------- START 添加IdEntity的方法 ---------->
 <#if isIdEntity>
-<#-- 当主键字段名与默认主键字段名不一致时，添加默认主键字段名的get、set方法 -->
-<#if idEntityColumnName != "id">
+<#-- 当主键属性名与默认主键属性名不一致时，添加默认主键字段名的get、set方法。
+     数据库元数据中的列名可能是大写的 ID，不能用列名判断默认主键。 -->
+<#if idEntityPropertyName != "id">
     @Override
     public ${idEntityPropertyType} getId() {
         return this.${idEntityPropertyName};

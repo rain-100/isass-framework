@@ -39,7 +39,7 @@ trade_order_order_item
 ## 模型与持久化分层
 
 - 生成的持久化领域模型放在 API 模块的 `domain.model.entity`，Repository 接口放在 service 模块的 `domain.repository`，Mapper 和 Repository 实现放在 `infrastructure`。
-- `application.model` 只放 Command、Query、DTO、View 和跨聚合结果，不放 ORM 专用模型。
+- `application.model` 可按需放置应用服务专属或跨聚合编排使用的 `entity`、`criteria`、`vo`、`dto`、`req`、`resp`、`enums` 等模型；数据库生成的 ORM 持久化实体仍统一放在 `domain.model.entity`，不在应用层复制。
 - 不生成或保留没有领域行为的 `XxxAgg extends Xxx` 空壳类。一个表对应的生成模型本身就是该聚合的模型；组合多个聚合时由应用层模型或应用服务编排。
 - 生成模型不得使用 ORM 注解。ORM 字段映射、非持久化关联属性排除和分页对象转换由基础设施层处理。
 - 生成模型、Criteria、Repository、Mapper 和标准 CRUD Service 由 Liquibase DDL 与 NoCode 生成器维护。结构问题应修改 DDL、生成器解析逻辑或模板后重新生成，不能把手工修改生成文件作为长期方案。

@@ -23,8 +23,10 @@ import vip.isass.framework.nocode.criteria.field.ITraceCriteria;
 import vip.isass.framework.nocode.criteria.field.IVersionCriteria;
 </#if>
 import vip.isass.framework.nocode.criteria.impl.type.FullTypeCriteria;
+import vip.isass.framework.entrypoint.annotation.ApiDoc;
 
 import java.beans.Transient;
+import java.util.Map;
 <#list table.fields as field>
 <#if field.propertyType == "BigDecimal">
 import java.math.BigDecimal;
@@ -58,6 +60,7 @@ import java.util.Collection;
  *
  * @author ${author}
  */
+@ApiDoc(description = "<#if table.comment?trim?length gt 0>${table.comment?j_string} 查询条件<#else>${entity?j_string} 查询条件</#if>")
 public class ${entity}Criteria
         extends FullTypeCriteria<${entity}, ${entity}Criteria>
         implements
@@ -85,6 +88,7 @@ public class ${entity}Criteria
     <#if field.propertyType == "JsonNode"><#continue></#if>
     // region ${field.propertyName}
 
+    @ApiDoc(description = "<#if field.comment?trim?length gt 0>${field.comment?trim?j_string}<#else>${field.propertyName?j_string}</#if>")
     @Transient
     public ${field.propertyType} get${field.propertyName?cap_first}() {
         return getEquals(propertyName(${entity}::get${field.propertyName?cap_first}), ${field.propertyType}.class);

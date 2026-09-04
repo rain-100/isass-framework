@@ -22,6 +22,10 @@ NoCode 基础路径固定为：
 | 数量 | `GET {base}/count` | Query：Criteria |
 | 是否存在 | `GET {base}/exists` | Query：Criteria |
 
+Criteria 参数按操作裁剪：`whereConditions`、`associationCriteria` 是内部结构，不在 NoCode 文档中显示；
+`updateMode`、`nullValueMode`、`matchFields` 仅用于 `update`；`selectColumns` 和关联查询仅用于返回实体的
+`page`/`cursorPage`，其中关联查询通过 `association.query` 传递关联路径。
+
 `create(E)`、`createIfAbsent(...)`、`update(E)`、`update(E,C)`、`delete(PK)`、`getById`、`getOne`、
 `existsById`、`list`、`requireOne` 等都是 Java 便捷方法，不生成 HTTP/gRPC 路由。HTTP 对应的是正式重载
 `update(Collection<E>,C)` 与 `delete(C)`。

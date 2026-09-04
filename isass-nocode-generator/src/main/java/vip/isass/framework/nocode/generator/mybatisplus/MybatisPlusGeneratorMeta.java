@@ -33,6 +33,7 @@ public class MybatisPlusGeneratorMeta {
 
     private String packageName;
 
+
     private String[] tablePrefix;
 
     private String[] includeTables;

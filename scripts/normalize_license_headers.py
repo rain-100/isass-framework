@@ -203,16 +203,16 @@ def workspace_projects() -> dict[str, ProjectConfig]:
             framework_root,
             "LGPL-3.0-only",
             ("*/src",),
-            (
-                "isass-apidoc-openapi3/frontend/**",
-                "isass-apidoc-openapi3/src/main/resources/META-INF/resources/**",
-            ),
         ),
         "isass-service-apidoc": ProjectConfig(
             "isass-service-apidoc",
             isass_root / "isass-service-apidoc",
             "LGPL-3.0-only",
             ("*/src",),
+            (
+                "apidoc-openapi3/frontend/**",
+                "apidoc-openapi3/src/main/resources/META-INF/resources/**",
+            ),
         ),
         "isass-service-bsp": ProjectConfig(
             "isass-service-bsp",

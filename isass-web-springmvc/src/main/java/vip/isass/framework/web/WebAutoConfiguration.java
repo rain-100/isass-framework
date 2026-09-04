@@ -5,7 +5,6 @@ package vip.isass.framework.web;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
@@ -23,13 +22,7 @@ import vip.isass.framework.web.response.AdvancedFeatureResponseAdvice;
 import vip.isass.framework.web.interceptor.RestTemplateInterceptor;
 import vip.isass.framework.web.interceptor.TraceIdInterceptor;
 import vip.isass.framework.web.interceptor.UriMappingInterceptor;
-import vip.isass.framework.web.servicedocs.ServiceDocsController;
-import vip.isass.framework.web.servicedocs.OpenApiPermitUrlProvider;
-import vip.isass.framework.web.servicedocs.OpenApiDocumentAssembler;
 import vip.isass.framework.entrypoint.registry.ServiceDefinitionRegistry;
-import tools.jackson.databind.ObjectMapper;
-import org.springframework.core.env.Environment;
-import vip.isass.framework.web.security.PermitUrlProvider;
 import vip.isass.framework.web.security.EntrypointAnonymousUrlProvider;
 import vip.isass.framework.web.security.EntrypointAuthenticatedUrlProvider;
 import vip.isass.framework.web.uri.UriPrefixProvider;
@@ -43,7 +36,6 @@ import java.util.List;
 @Import({
         ObjectMapperConfiguration.class,
         WebConfig.class,
-        ServiceDocsController.class,
         IsassErrorController.class,
         ExceptionAdvice.class,
         UriPrefixProvider.class
@@ -51,13 +43,6 @@ import java.util.List;
 public class WebAutoConfiguration {
 
     public static final int READ_TIMEOUT_IN_MILLIS = 50_000;
-
-    @Bean
-    public PermitUrlProvider openApiPermitUrlProvider(
-            @org.springframework.beans.factory.annotation.Value("${spring.application.name:}") String applicationName
-    ) {
-        return new OpenApiPermitUrlProvider(applicationName);
-    }
 
     @Bean
     public EntrypointAnonymousUrlProvider entrypointAnonymousUrlProvider(
@@ -114,15 +99,6 @@ public class WebAutoConfiguration {
     public RestTemplateInterceptor restTemplateInterceptor(
             @Autowired(required = false) List<AdditionalRequestHeaderProvider> additionalHeaderProviders) {
         return new RestTemplateInterceptor(additionalHeaderProviders);
-    }
-
-    @Bean
-    public OpenApiDocumentAssembler openApiDocumentAssembler(
-            ObjectMapper objectMapper,
-            ServiceDefinitionRegistry serviceDefinitionRegistry,
-            Environment environment
-    ) {
-        return new OpenApiDocumentAssembler(objectMapper, serviceDefinitionRegistry, environment);
     }
 
 }

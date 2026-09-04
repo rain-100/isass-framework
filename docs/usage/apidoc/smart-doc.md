@@ -14,11 +14,13 @@ META-INF/isass/openapi/bsp-service/openapi.json
 ```
 
 运行时通过 `classpath*:META-INF/isass/openapi/**/openapi.json` 读取静态 Controller 文档，再与当前进程中
-具有本地实现的 Entrypoint 元数据合并。`ServiceDocsController` 最终只提供一份 `/v3/api-docs`：
+具有本地实现的 Entrypoint 元数据合并。运行时组装和 `/v3/api-docs` 暴露由
+`isass-service-apidoc/apidoc-service` 提供，`ServiceDocsController` 在单体模式下按服务提供文档：
 
 - `isass.boot.microservice.enabled=true` 时，只合并 `spring.application.name` 对应的静态文档和本服务本地
-  Entrypoint；
-- 单体模式下，合并 classpath 中所有服务静态文档和当前进程全部本地 Entrypoint；
+-  Entrypoint，`/v3/api-docs` 和 `/{serviceName}/v3/api-docs` 指向本服务文档；
+- 单体模式下，`/v3/api-docs` 指向当前应用，`/{serviceName}/v3/api-docs` 按服务名只合并对应的静态文档和本地
+  Entrypoint；`/v3/api-docs/swagger-config` 会把 classpath 静态文档及本地 Entrypoint 中发现的服务列为可切换分组；
 - 路径或 Schema 冲突直接失败，不静默覆盖。
 
 Entrypoint 文档来自运行时注解：
@@ -53,6 +55,12 @@ void publish(@QueryParam("id") Long id);
 - OpenAPI 操作通过 `x-isass-service-entities`、`x-isass-entity-options`、
   `x-isass-criteria-parameters` 和 `x-isass-oneof-mapping` 提供资源下拉、Criteria 参数过滤及请求体模型切换；
   新的 OpenAPI 组装实现不得删除这些扩展元数据。
+- Criteria 使用对象型 `@QueryParam` 时，文档根据 Criteria 的 getter 展开查询参数，兼容返回自身类型的 fluent setter；
+  因此切换实体后，前端可依据 `x-isass-criteria-parameters[contextName/resourceName]` 恢复对应条件。NoCode 文档会隐藏
+  内部的 `whereConditions`、`associationCriteria`；`updateMode`、`nullValueMode`、`matchFields` 只在 `update`
+  接口显示；`selectColumns` 和关联查询只在 `page`/`cursorPage` 显示，关联查询的对外参数名为 `association.query`。
+- OpenAPI Schema 默认使用 Java 类型的简单类名（例如 `ApproveSampleTaskReq`）；泛型类型在此基础上拼接泛型参数名，
+  例如 `Page__ApproveSampleTaskReq`，不再把完整包名编码进调试页面的类型名称。
 - `x-isass-entity-options` 的显示标签使用实体 `resourceName` 的小驼峰值（例如 `sampleGroup`、`modelFace`），
   不使用中文实体名；选项值仍为 `contextName/resourceName`（例如 `sample/sampleGroup`），用于拼接实际请求路径。
 - 自定义 `EntrypointOperation` 使用所属 `EntrypointInfo.tag` 作为中文分组名，每个实际包含自定义操作的业务

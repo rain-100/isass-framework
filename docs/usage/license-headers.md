@@ -48,7 +48,7 @@ python3 scripts/normalize_license_headers.py --all-projects --report license-rep
 
 框架中的以下内容按第三方或生成产物处理：
 
-- `isass-apidoc-openapi3/frontend/`、打包后的 `META-INF/resources/` 及 `LICENSE-KNIFE4J`；
+- `isass-service-apidoc/apidoc-openapi3/frontend/`、打包后的 `META-INF/resources/` 及 `LICENSE-KNIFE4J`；
 - `isass-net-socketio/src/main/resources/static/socket.io.js` 的 MIT 与 Guillermo Rauch 版权声明；
 - Protobuf 生成的 `NetworkFrame.java`。
 

@@ -59,6 +59,14 @@ echo "RUN_AS_NOHUP=$RUN_AS_NOHUP"
 : ${KEEP_DOCKER_RUNNING:="false"}
 echo "KEEP_DOCKER_RUNNING=$KEEP_DOCKER_RUNNING"
 
+# 打印日志到控制台
+: ${WRITE_LOG_STDOUT:="false"}
+echo "WRITE_LOG_STDOUT=$WRITE_LOG_STDOUT"
+
+# 打印日志到日志文件
+: ${WRITE_LOG_TO_FILE:="true"}
+echo "WRITE_LOG_TO_FILE=$WRITE_LOG_TO_FILE"
+
 # java 程序生成日志文件的目录，不能随便改
 LOG_PATH="./logs/"
 echo "LOG_PATH=$LOG_PATH"
@@ -144,6 +152,14 @@ start() {
     fi
     if [ -n "$JMX_PORT" ]; then
         jvm_params="${jvm_params} -Djava.rmi.server.hostname=${JMX_HOSTNAME} -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=$JMX_PORT -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false"
+    fi
+
+    if [ -n "$WRITE_LOG_STDOUT" ]; then
+        jvm_params="${jvm_params} -DWRITE_LOG_STDOUT=$WRITE_LOG_STDOUT"
+    fi
+
+    if [ -n "$WRITE_LOG_TO_FILE" ]; then
+        jvm_params="${jvm_params} -DWRITE_LOG_TO_FILE=$WRITE_LOG_TO_FILE"
     fi
 
     cmd="java ${jvm_params} -jar ${project_jar}"

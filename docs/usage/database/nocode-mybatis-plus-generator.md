@@ -12,7 +12,7 @@
 
 ```text
 {context}/domain/model/entity/Xxx.java
-{context}/domain/criteria/XxxCriteria.java
+{context}/domain/model/criteria/XxxCriteria.java
 {context}/application/service/IXxxService.java
 {context}/infrastructure/persistence/mybatisplus/XxxMapper.java
 {context}/infrastructure/persistence/mybatisplus/XxxMapper.xml

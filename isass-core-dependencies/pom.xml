@@ -313,12 +313,6 @@
 
             <dependency>
                 <groupId>vip.isass</groupId>
-                <artifactId>isass-apidoc-openapi3</artifactId>
-                <version>${isass.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>vip.isass</groupId>
                 <artifactId>isass-adapter-springboot</artifactId>
                 <version>${isass.version}</version>
             </dependency>

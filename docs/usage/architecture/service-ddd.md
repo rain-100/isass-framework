@@ -40,15 +40,27 @@ Maven install/deploy 发布。BSP 使用与附件服务一致的 `isass-core-bui
 ```text
 {service}-api/src/main/java/vip/isass/{service}/{context}/
 ├── util/
-├── application/service/
+├── application/
+│   ├── model/
+│   │   ├── entity/
+│   │   ├── criteria/
+│   │   ├── vo/
+│   │   ├── dto/
+│   │   ├── req/
+│   │   ├── resp/
+│   │   └── enums/
+│   └── service/
 └── domain/
-    ├── model/entity/
-    ├── criteria/
-    ├── req/
-    ├── vo/
+    ├── model/
+    │   ├── entity/
+    │   ├── criteria/
+    │   ├── vo/
+    │   ├── dto/
+    │   ├── req/
+    │   ├── resp/
+    │   └── enums/
     ├── event/
-    ├── exception/
-    └── enums/
+    └── exception/
 
 {service}-service/src/main/java/vip/isass/{service}/{context}/
 ├── interfaces/
@@ -60,9 +72,24 @@ Maven install/deploy 发布。BSP 使用与附件服务一致的 `isass-core-bui
 │   │   └── redis/{pubsub,stream}/
 │   └── job/
 ├── application/
+│   ├── model/
+│   │   ├── entity/
+│   │   ├── criteria/
+│   │   ├── vo/
+│   │   ├── dto/
+│   │   ├── req/
+│   │   ├── resp/
+│   │   └── enums/
 │   └── service/
 ├── domain/
-│   ├── model/entity/
+│   ├── model/
+│   │   ├── entity/
+│   │   ├── criteria/
+│   │   ├── vo/
+│   │   ├── dto/
+│   │   ├── req/
+│   │   ├── resp/
+│   │   └── enums/
 │   └── repository/
 └── infrastructure/
     ├── db/liquibase/
@@ -70,7 +97,9 @@ Maven install/deploy 发布。BSP 使用与附件服务一致的 `isass-core-bui
     └── xxx/
 ```
 
-`interfaces` 使用复数形式，避免使用 Java 关键字 `interface` 作为包名。API 中的 `req`、`vo`、`criteria` 与零代码实体是公开领域契约模型；标准零代码实体放在 API 的 `domain/model/entity`。仅服务端内部使用、不会跨模块传递的持久化实体才放在 service 的 `domain/model/entity`。
+`interfaces` 使用复数形式，避免使用 Java 关键字 `interface` 作为包名。`domain.model` 和 `application.model` 都可以包含
+`entity`、`criteria`、`vo`、`dto`、`req`、`resp`、`enums` 等模型分类。领域模型只服务于领域及聚合边界；应用模型用于跨聚合编排或应用服务专属的数据传递。
+标准零代码实体和 Criteria 放在 API 的 `domain/model/entity`、`domain/model/criteria`。仅服务端内部使用、不会跨模块传递的持久化实体才放在 service 的对应 `domain/model/entity`。
 
 零代码的简单表可以保持应用服务与 Repository 的轻量实现。只有确有复杂业务规则的场景才引入聚合、值对象、领域服务和事件。
 
