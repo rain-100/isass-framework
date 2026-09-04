@@ -21,6 +21,8 @@
 {context}/interfaces/rest/XxxController.java
 ```
 
+生成的本地 NoCode CRUD 实现统一命名为 `${Entity}Service`；`ApplicationService` 仅用于手写的业务用例编排服务。
+
 ## 示例
 
 ```java

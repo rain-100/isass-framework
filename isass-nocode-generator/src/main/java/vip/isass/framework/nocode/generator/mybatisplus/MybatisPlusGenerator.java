@@ -356,7 +356,7 @@ public class MybatisPlusGenerator {
                                         customFile(new CustomFile.Builder()
                                                         .templatePath("/templates/nocode/localService.java.ftl")
                                                         .packageName("application.service")
-                                                        .fileName("ApplicationService.java")
+                                                        .fileName("Service.java")
                                                         .formatNameFunction(tableInfo -> tableInfo.getEntityName()),
                                                 meta.isLocalServiceFileOverride())
                                 ));

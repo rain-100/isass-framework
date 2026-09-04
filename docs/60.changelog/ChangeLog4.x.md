@@ -227,6 +227,7 @@
 
 #### docs
 
+- **NoCode 生成服务命名**：本地 CRUD 实现统一由 `${Entity}ApplicationService` 更名为 `${Entity}Service`，将 `ApplicationService` 保留给手写业务用例编排服务。
 - **自动服务入口与 NoCode 边界设计**：由 `ICrudService` 继承关系唯一识别 NoCode 标准入口，并要求
   自定义业务操作使用独立 `IApplicationService`；确定将
   `isass-nocode-generator` 改为普通 `jar`，只保留领域模型、Criteria、Repository、Mapper、CRUD Service、

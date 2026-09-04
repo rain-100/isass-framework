@@ -20,7 +20,7 @@ import vip.isass.framework.nocode.service.ILocalCrudService;
  */
 @Slf4j
 @Service
-public class ${entity}ApplicationService
+public class ${entity}Service
         implements I${entity}Service, ILocalCrudService<${entity}, ${entity}Criteria, ${idEntityPropertyType}> {
 
     @Autowired
