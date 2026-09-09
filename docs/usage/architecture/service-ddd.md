@@ -11,9 +11,11 @@ isass-service-{service}
 └── {service}-boot
 ```
 
-`api` 和 `service` 是可发布到 Maven 的普通 jar：前者提供跨服务稳定契约，后者提供单体模式所需的本地 Spring 实现。`boot` 只负责启动、运行配置和部署制品，必须设置 `maven.install.skip`、`maven.deploy.skip`，不得作为其他服务的依赖。
+`api` 和 `service` 是可发布到 Maven 的普通 jar：前者提供跨服务稳定契约，后者提供可按运行模式启用的本地 Spring 实现。`boot` 只负责启动、运行配置和部署制品，必须设置 `maven.install.skip`、`maven.deploy.skip`，不得作为其他服务的依赖。
 
-调用方在单体模式依赖 `{service}-service`，分布式模式只依赖 `{service}-api`。当前正式服务实现选择优先级为本地实现、HTTP 远程实现。动态 gRPC 合同代码仍作为遗留预研保留，但未部署 gRPC Server，不得配置为运行时 endpoint 或作为 V4 验收前提。
+一个部署制品可以同时包含依赖服务的 `api` 与 `service` jar，并通过 `isass.boot.microservice.enabled` 在运行时切换而无需重新构建：微服务模式只注册 API 侧能力和远程 Entrypoint 代理，依赖服务的实现类即使位于 classpath 也不得注册为 Bean；单体模式再启用依赖服务的本地实现，本地实现优先于 HTTP 远程实现。源码编译依赖仍应面向对方 `api` 契约，依赖服务的 `service` jar 由 boot 装配进入部署制品。动态 gRPC 合同代码仍作为遗留预研保留，但未部署 gRPC Server，不得配置为运行时 endpoint 或作为 V4 验收前提。
+
+每个服务的 `{Service}ServiceAutoConfiguration` 是本地实现总入口：当前应用名等于该服务名时，无论运行模式均启用；当前应用为其他服务时，仅 `isass.boot.microservice.enabled=false` 才启用。该配置由 `AutoConfiguration.imports` 统一加载，服务自己的 Boot 入口不再重复显式导入；`{Service}ApiAutoConfiguration` 不受运行模式条件限制。配置缺失时按微服务隔离处理，不能意外启用依赖服务的本地实现。
 
 ### Boot 部署制品
 
