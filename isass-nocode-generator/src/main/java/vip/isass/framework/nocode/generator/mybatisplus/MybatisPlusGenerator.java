@@ -18,6 +18,7 @@ import freemarker.template.TemplateHashModel;
 import freemarker.template.Version;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import vip.isass.framework.nocode.generator.association.GeneratorAssociation;
 import vip.isass.framework.nocode.generator.association.TableAssociationParser;
 
 import java.sql.Connection;
@@ -25,12 +26,20 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.regex.Pattern;
 
 @Slf4j
 public class MybatisPlusGenerator {
+
+    private static final Pattern CONTEXT_NAME = Pattern.compile("[a-z][a-z0-9]*");
+    private static final Pattern ENTITY_NAME = Pattern.compile("[a-z][a-z0-9]*(?:_[a-z0-9]+)*");
+
+    record GenerationScope(String context, String domain, String subdomain) {
+    }
 
     private static final INameConvert CONTEXT_FREE_ENTITY_NAME_CONVERT = new INameConvert() {
         @Override
@@ -50,17 +59,24 @@ public class MybatisPlusGenerator {
 
     @SneakyThrows
     public static void generate(MybatisPlusGeneratorMeta meta) {
-        generationMetas(meta).forEach(contextMeta -> {
-            generateApiFiles(contextMeta);
+        List<MybatisPlusGeneratorMeta> contextMetas = generationMetas(meta);
+        Map<String, String> entityPackages = entityPackages(contextMetas);
+        contextMetas.forEach(contextMeta -> {
+            generateApiFiles(contextMeta, entityPackages);
             generateServiceFiles(contextMeta);
         });
     }
 
     /**
-     * 按服务表名的第二段划分限界上下文，例如 {@code bsp_auth_access_key} 对应 {@code auth}。
+     * 按服务表名的第二段和表注释领域标记划分限界上下文、领域与可选子域，例如
+     * {@code bsp_auth_role} + {@code [--domain:authorization;--subdomain:role]} 对应
+     * {@code bsp.auth.domain.authorization.role}。
      */
     private static List<MybatisPlusGeneratorMeta> generationMetas(MybatisPlusGeneratorMeta meta) throws SQLException {
-        Map<String, List<String>> tablesByContext = new TreeMap<>();
+        Map<GenerationScope, List<String>> tablesByScope = new TreeMap<>(Comparator
+                .comparing(GenerationScope::context)
+                .thenComparing(GenerationScope::domain)
+                .thenComparing(GenerationScope::subdomain, Comparator.nullsFirst(String::compareTo)));
         try (Connection connection = DriverManager.getConnection(
                 meta.getDataSourceUrl(), meta.getDataSourceUserName(), meta.getDataSourcePassword());
              ResultSet tables = connection.getMetaData().getTables(
@@ -70,17 +86,18 @@ public class MybatisPlusGenerator {
                 if (!isTableSelected(tableName, meta.getIncludeTables(), meta.getExcludeTables())) {
                     continue;
                 }
-                String context = contextOf(tableName, meta.getTablePrefix());
-                if (context != null) {
-                    tablesByContext.computeIfAbsent(context, ignored -> new ArrayList<>()).add(tableName);
-                }
+                GenerationScope scope = generationScopeOf(
+                        tableName, tables.getString("REMARKS"), meta.getTablePrefix());
+                if (scope == null) continue;
+                tablesByScope.computeIfAbsent(scope, ignored -> new ArrayList<>()).add(tableName);
             }
         }
-        if (tablesByContext.isEmpty()) {
-            throw new IllegalStateException("未发现符合表前缀及限界上下文命名规则的数据库表");
+        if (tablesByScope.isEmpty()) {
+            throw new IllegalStateException(
+                    "未发现符合 service_context_entity 命名规则并声明 [--domain:{domain}] 的数据库表");
         }
-        return tablesByContext.entrySet().stream()
-                .map(entry -> metaForContext(meta, entry.getKey(), entry.getValue()))
+        return tablesByScope.entrySet().stream()
+                .map(entry -> metaForGenerationScope(meta, entry.getKey(), entry.getValue()))
                 .toList();
     }
 
@@ -100,22 +117,81 @@ public class MybatisPlusGenerator {
         return false;
     }
 
-    private static String contextOf(String tableName, String[] tablePrefixes) {
+    static String contextOf(String tableName, String[] tablePrefixes) {
         for (String tablePrefix : tablePrefixes) {
             if (!tableName.startsWith(tablePrefix)) {
                 continue;
             }
             String suffix = tableName.substring(tablePrefix.length());
-            int separator = suffix.indexOf('_');
-            if (separator > 0) {
-                return suffix.substring(0, separator);
+            int contextSeparator = suffix.indexOf('_');
+            if (contextSeparator > 0 && contextSeparator < suffix.length() - 1) {
+                String context = suffix.substring(0, contextSeparator);
+                String entity = suffix.substring(contextSeparator + 1);
+                if (CONTEXT_NAME.matcher(context).matches() && ENTITY_NAME.matcher(entity).matches()) {
+                    return context;
+                }
             }
         }
         return null;
     }
 
-    private static MybatisPlusGeneratorMeta metaForContext(
-            MybatisPlusGeneratorMeta source, String context, List<String> includeTables) {
+    static GenerationScope generationScopeOf(String tableName, String remarks, String[] tablePrefixes) {
+        if (!hasTablePrefix(tableName, tablePrefixes)) return null;
+        String context = contextOf(tableName, tablePrefixes);
+        if (context == null) {
+            throw new IllegalStateException("表名不符合 service_context_entity 规则: " + tableName);
+        }
+        TableAssociationParser.DomainMetadata domainMetadata;
+        try {
+            domainMetadata = TableAssociationParser.domainMetadata(remarks);
+        } catch (IllegalArgumentException exception) {
+            throw new IllegalStateException("表 " + tableName + " 的 domain/subdomain 标记无效", exception);
+        }
+        if (domainMetadata == null) {
+            throw new IllegalStateException("表 " + tableName + " 缺少领域标记 [--domain:{domain}]");
+        }
+        return new GenerationScope(context, domainMetadata.domain(), domainMetadata.subdomain());
+    }
+
+    private static boolean hasTablePrefix(String tableName, String[] tablePrefixes) {
+        for (String tablePrefix : tablePrefixes) {
+            if (tableName.startsWith(tablePrefix)) return true;
+        }
+        return false;
+    }
+
+    static String entityNameOf(String tableName, String[] tablePrefixes) {
+        String suffix = tableName;
+        for (String tablePrefix : tablePrefixes) {
+            if (suffix.startsWith(tablePrefix)) {
+                suffix = suffix.substring(tablePrefix.length());
+                break;
+            }
+        }
+        int contextSeparator = suffix.indexOf('_');
+        String entityPart = contextSeparator < 0 ? suffix : suffix.substring(contextSeparator + 1);
+        return NamingStrategy.capitalFirst(NamingStrategy.underlineToCamel(entityPart));
+    }
+
+    private static Map<String, String> entityPackages(List<MybatisPlusGeneratorMeta> metas) {
+        Map<String, String> result = new TreeMap<>();
+        for (MybatisPlusGeneratorMeta meta : metas) {
+            String entityPackage = meta.getPackageName() + "." + meta.getContext() + ".domain.model.entity";
+            for (String table : meta.getIncludeTables()) {
+                String entityName = entityNameOf(table, meta.getTablePrefix());
+                String existingPackage = result.putIfAbsent(entityName, entityPackage);
+                if (existingPackage != null && !existingPackage.equals(entityPackage)) {
+                    throw new IllegalStateException("实体简单类名 " + entityName + " 同时属于 "
+                            + existingPackage + " 和 " + entityPackage
+                            + "，关联目标无法唯一解析，请调整实体命名");
+                }
+            }
+        }
+        return result;
+    }
+
+    private static MybatisPlusGeneratorMeta metaForGenerationScope(
+            MybatisPlusGeneratorMeta source, GenerationScope scope, List<String> includeTables) {
         return new MybatisPlusGeneratorMeta()
                 .setDbType(source.getDbType())
                 .setDataSourceUserName(source.getDataSourceUserName())
@@ -123,30 +199,40 @@ public class MybatisPlusGenerator {
                 .setDataSourceUrl(source.getDataSourceUrl())
                 .setSchemaName(source.getSchemaName())
                 .setOutputDir(source.getOutputDir())
-                .setContext(source.getContext() + "." + context)
+                .setContext(generationContext(
+                        source.getContext(), scope.context(), scope.domain(), scope.subdomain()))
                 .setPackageName(source.getPackageName())
                 .setTablePrefix(source.getTablePrefix())
                 .setIncludeTables(includeTables.toArray(String[]::new))
                 .setApiOutputDir(source.getApiOutputDir())
                 .setServiceOutputDir(source.getServiceOutputDir())
-                .setControllerPrefix(source.getControllerPrefix() + "/" + context)
                 .setEntityFileOverride(source.isEntityFileOverride())
                 .setCriteriaFileOverride(source.isCriteriaFileOverride())
                 .setMapperFileOverride(source.isMapperFileOverride())
                 .setMapperXmlFileOverride(source.isMapperXmlFileOverride())
                 .setRepositoryFileOverride(source.isRepositoryFileOverride())
                 .setServiceInterfaceFileOverride(source.isServiceInterfaceFileOverride())
-                .setLocalServiceFileOverride(source.isLocalServiceFileOverride())
-                .setControllerFileOverride(source.isControllerFileOverride());
+                .setLocalServiceFileOverride(source.isLocalServiceFileOverride());
+    }
+
+    static String generationContext(String serviceContext, String boundedContext, String domain) {
+        return generationContext(serviceContext, boundedContext, domain, null);
+    }
+
+    static String generationContext(
+            String serviceContext, String boundedContext, String domain, String subdomain) {
+        String domainContext = serviceContext + "." + boundedContext + ".domain." + domain;
+        return subdomain == null ? domainContext : domainContext + "." + subdomain;
     }
 
     @SneakyThrows
-    private static void generateApiFiles(MybatisPlusGeneratorMeta meta) {
+    private static void generateApiFiles(MybatisPlusGeneratorMeta meta, Map<String, String> entityPackages) {
         String outputDir = meta.getApiOutputDir() != null
                 ? meta.getApiOutputDir() + "/src/main/java"
                 : meta.getOutputDir() + "/src/main/java";
         String basePackage = meta.getPackageName() + "." + meta.getContext();
-        String boundedContextName = meta.getContext().substring(meta.getContext().lastIndexOf('.') + 1);
+        String servicePackageName = applicationServicePackageName(meta);
+        String boundedContextName = boundedContextName(meta);
         BeansWrapper wrapper = new BeansWrapperBuilder(new Version("2.3.28")).build();
         TemplateHashModel staticModels = wrapper.getStaticModels();
 
@@ -197,8 +283,21 @@ public class MybatisPlusGenerator {
                     try {
                         builder
                                 .beforeOutputFile((table, objectMap) -> {
-                                    objectMap.put("associations", TableAssociationParser.parse(
-                                            table.getEntityName(), table.getComment()));
+                                    List<GeneratorAssociation> associations =
+                                            TableAssociationParser.parse(table.getEntityName(), table.getComment());
+                                    objectMap.put("associations", associations);
+                                    String entityPackage = meta.getPackageName() + "." + meta.getContext()
+                                            + ".domain.model.entity";
+                                    objectMap.put("associationImports", associations.stream()
+                                            .map(association -> {
+                                                String targetPackage = entityPackages.get(association.targetEntity());
+                                                return targetPackage == null || targetPackage.equals(entityPackage)
+                                                        ? null
+                                                        : targetPackage + "." + association.targetEntity();
+                                            })
+                                            .filter(importName -> importName != null)
+                                            .distinct()
+                                            .toList());
                                     objectMap.put("treeCascadeDelete",
                                             TableAssociationParser.treeCascadeDelete(table.getComment()));
                                     objectMap.put("tableDescription",
@@ -207,13 +306,12 @@ public class MybatisPlusGenerator {
                                 .customMap(MapUtil.<String, Object>builder()
                                         .put("context", meta.getContext())
                                         .put("boundedContextName", boundedContextName)
-                                        .put("controllerPrefix", meta.getControllerPrefix())
                                         .put("package", meta.getPackageName())
                                         .put("serviceRootPackageName", serviceRootPackageName(meta))
                                         .put("entityPackageName", basePackage + ".domain.model.entity")
                                         .put("criteriaPackageName", basePackage + ".domain.model.criteria")
                                         .put("mapperPackageName", basePackage + ".infrastructure.persistence.mybatisplus")
-                                        .put("servicePackageName", basePackage + ".application.service")
+                                        .put("servicePackageName", servicePackageName)
                                         .put("tablePrefix", meta.getTablePrefix())
 
                                         .put("idEntity", staticModels.get("vip.isass.framework.nocode.entity.IIdEntity"))
@@ -239,7 +337,8 @@ public class MybatisPlusGenerator {
                                                 meta.isCriteriaFileOverride()),
                                         customFile(new CustomFile.Builder()
                                                         .templatePath("/templates/nocode/IService.java.ftl")
-                                                        .packageName("application.service")
+                                                        .filePath(outputDir)
+                                                        .packageName(servicePackageName)
                                                         .fileName("Service.java")
                                                         .formatNameFunction(tableInfo -> "I" + tableInfo.getEntityName()),
                                                 meta.isServiceInterfaceFileOverride())
@@ -258,7 +357,8 @@ public class MybatisPlusGenerator {
                 ? meta.getServiceOutputDir() + "/src/main/java"
                 : meta.getOutputDir() + "/src/main/java";
         String basePackage = meta.getPackageName() + "." + meta.getContext();
-        String boundedContextName = meta.getContext().substring(meta.getContext().lastIndexOf('.') + 1);
+        String servicePackageName = applicationServicePackageName(meta);
+        String boundedContextName = boundedContextName(meta);
         BeansWrapper wrapper = new BeansWrapperBuilder(new Version("2.3.28")).build();
         TemplateHashModel staticModels = wrapper.getStaticModels();
 
@@ -307,17 +407,18 @@ public class MybatisPlusGenerator {
                 .injectionConfig(builder -> {
                     try {
                         builder
+                                .beforeOutputFile((table, objectMap) -> objectMap.put(
+                                        "tableDescription", TableAssociationParser.description(table.getComment())))
                                 .customMap(MapUtil.<String, Object>builder()
                                         .put("context", meta.getContext())
                                         .put("boundedContextName", boundedContextName)
-                                        .put("controllerPrefix", meta.getControllerPrefix())
                                         .put("package", meta.getPackageName())
                                         .put("serviceRootPackageName", serviceRootPackageName(meta))
                                         .put("entityPackageName", basePackage + ".domain.model.entity")
                                         .put("criteriaPackageName", basePackage + ".domain.model.criteria")
                                         .put("repositoryPackageName", basePackage + ".domain.repository")
                                         .put("mapperPackageName", basePackage + ".infrastructure.persistence.mybatisplus")
-                                        .put("servicePackageName", basePackage + ".application.service")
+                                        .put("servicePackageName", servicePackageName)
                                         .put("tablePrefix", meta.getTablePrefix())
 
                                         .put("idEntity", staticModels.get("vip.isass.framework.nocode.entity.IIdEntity"))
@@ -355,7 +456,8 @@ public class MybatisPlusGenerator {
                                                 false),
                                         customFile(new CustomFile.Builder()
                                                         .templatePath("/templates/nocode/localService.java.ftl")
-                                                        .packageName("application.service")
+                                                        .filePath(outputDir)
+                                                        .packageName(servicePackageName)
                                                         .fileName("Service.java")
                                                         .formatNameFunction(tableInfo -> tableInfo.getEntityName()),
                                                 meta.isLocalServiceFileOverride())
@@ -377,9 +479,34 @@ public class MybatisPlusGenerator {
 
     static String serviceRootPackageName(MybatisPlusGeneratorMeta meta) {
         String context = meta.getContext();
-        int separator = context.lastIndexOf('.');
+        int separator = context.indexOf('.');
         String serviceContext = separator < 0 ? context : context.substring(0, separator);
         return meta.getPackageName() + "." + serviceContext;
+    }
+
+    static String applicationServicePackageName(MybatisPlusGeneratorMeta meta) {
+        String context = meta.getContext();
+        String domainMarker = ".domain.";
+        int domainMarkerIndex = context.indexOf(domainMarker);
+        if (domainMarkerIndex < 0) {
+            throw new IllegalStateException("生成上下文缺少 domain 层级: " + context);
+        }
+        String applicationContext = context.substring(0, domainMarkerIndex)
+                + ".application."
+                + context.substring(domainMarkerIndex + domainMarker.length());
+        return meta.getPackageName() + "." + applicationContext + ".service";
+    }
+
+    private static String boundedContextName(MybatisPlusGeneratorMeta meta) {
+        String context = meta.getContext();
+        int serviceSeparator = context.indexOf('.');
+        if (serviceSeparator < 0) {
+            return context;
+        }
+        int domainSeparator = context.indexOf('.', serviceSeparator + 1);
+        return domainSeparator < 0
+                ? context.substring(serviceSeparator + 1)
+                : context.substring(serviceSeparator + 1, domainSeparator);
     }
 
 

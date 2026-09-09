@@ -10,7 +10,7 @@ import ${cfg.repositoryPackageName}.I${entity}Repository;
 
 /**
  * <p>
- * <#if table.comment?trim?length gt 0>${table.comment}<#else>${entity}</#if> 数据仓库
+ * <#if tableDescription?trim?length gt 0>${tableDescription}<#else>${entity}</#if> 数据仓库
  * </p>
  *
  * @author ${author}

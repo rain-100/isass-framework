@@ -2,7 +2,7 @@
 
 ## 1. 边界与地址
 
-`ICrudService<E, C, PK>` 是围绕单个聚合的标准应用入口，并继承 `IEntrypoint`。生成的本地 CRUD 实现统一命名为 `${Entity}Service`；审批、发布、登录、上传等业务操作属于独立的 `IApplicationService`，不能混入标准 CRUD Service。
+`ICrudService<E, C, PK>` 是围绕单个聚合提供标准 CRUD 的应用入口，并继承 `IEntrypoint`。生成的本地实现统一命名为 `${Entity}Service`。业务首先复用下述八个 NoCode 标准入口；只要需求能由标准 CRUD、Criteria、关联能力和生命周期完整表达，就不得新增同义的查询、新增、修改或删除 Entrypoint。生命周期可以协调同一限界上下文内其他聚合或领域。只有无法用这些机制表达的独立业务用例才增加手写 Entrypoint，并显式声明 `@EntrypointOperation`。
 
 标准地址固定为：
 

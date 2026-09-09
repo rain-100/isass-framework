@@ -44,8 +44,6 @@ public class MybatisPlusGeneratorMeta {
 
     private String serviceOutputDir;
 
-    private String controllerPrefix;
-
     private boolean entityFileOverride = true;
 
     private boolean criteriaFileOverride = true;
@@ -59,7 +57,5 @@ public class MybatisPlusGeneratorMeta {
     private boolean serviceInterfaceFileOverride = false;
 
     private boolean localServiceFileOverride = false;
-
-    private boolean controllerFileOverride = false;
 
 }

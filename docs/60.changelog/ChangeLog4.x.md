@@ -4,6 +4,26 @@
 
 ### 4.0.0-SNAPSHOT
 
+- **NoCode Entity 结构顺序统一**：生成实体先集中声明数据库字段和关联字段，再声明内部枚举与字段 setter；
+  `associations()`、`tableName()` 等生产元数据方法置于随机测试数据方法之前，并移除无生产用途的 `main()`。
+- **BSP file 上下文示例同步**：DDD、表设计和 NoCode 生成器文档中的 BSP 示例改为以 `file` 作为限界上下文、
+  `attachment` 作为领域，表名使用 `bsp_file_*`，避免示例继续表达已废弃的 attachment 上下文结构。
+- **NoCode CRUD Service 应用层归位**：生成的 `I{Entity}Service` 与 `{Entity}Service` 从领域包内部迁至
+  `{context}/application/{domain}[/{subdomain}]/service`，继续按表注释中的领域和子域分组；Entity、Criteria、
+  Repository、Mapper 及其他领域实现路径保持不变。
+- **NoCode 一级子域生成**：表注释支持 `[--domain:{domain};--subdomain:{subdomain}]`，生成器在既有领域目录下增加
+  可选子域层，并继续兼容仅声明 `domain` 的表；子域只影响 Java 包结构，不进入物理表名。生成分组改为结构化范围，
+  同名实体跨范围冲突时直接失败，避免关联导入被静默覆盖。
+- **AuthInit 能力统一命名**：将当前认证授权幂等初始化能力从 `Auth Bootstrap` 统一命名为 `AuthInit`，公共 API
+  使用 `auth.application.authinit` 包和 `IAuthInitService`，外部资源路径更新为 `/auth/authInit/**`；`register`、
+  `apiKey`、`diagnostics` operationName 保持不变，配置键、审计表和稳定权限 ID/编码不变。
+- **NoCode CRUD Service 扩展边界**：明确生成的 Service 接口和实现是 application 层的“生成骨架＋手写扩展点”，
+  可以协调同一限界上下文内其他聚合或领域的 Repository、应用服务与端口；跨上下文仍通过公开契约或事件协作，
+  可复用业务不变量下沉领域服务，Service 默认不覆盖以避免重新生成时丢失手写逻辑；能够由标准 CRUD、Criteria、
+  关联能力和生命周期表达的能力不得重复增加自定义 Entrypoint。同步删除生成器文档中“跨聚合必须另建
+  application capability”的旧规则，明确业务主体归属而非依赖数量才是 Service 边界的判据。
+- **Liquibase 初始化索引布局规范**：`*-init.xml` 的 `createIndex` 必须紧跟对应的 `createTable`，不得集中堆放在
+  changeSet 末尾；同时明确二者为同级 change，避免生成无效的嵌套 XML。
 - **OpenAPI 文档能力迁移**：将 OpenAPI 运行时组装、文档 Controller、权限放行和 Knife4j UI 从通用
   `isass-web-springmvc` 迁移至 `isass-service-apidoc`；未依赖 `apidoc-service` 的 Web 应用不再自动暴露 API 文档。
 - **Entrypoint API 文档分组排序**：`EntrypointInfo` 新增 `displayOrder`，运行时元数据和 OpenAPI 顶层 tags
@@ -28,9 +48,10 @@
   对象型 `FORM_FIELD` 参数展开为独立 query 参数，`FORM_FILE` 参数按 binary 文件参数输出。
 - **API 模型说明注解**：新增 `vip.isass.framework.entrypoint.annotation.ApiDoc`，支持在模型类、字段、记录组件和 Criteria
   getter 上声明 API 文档说明；NoCode 生成器据此输出文档元数据，不再通过实体上的 `PROPERTY_COMMENTS` 静态映射定义字段说明。
-- **DDD 模型目录规范**：NoCode 生成器将实体和 Criteria 分别输出到 `domain.model.entity` 与
-  `domain.model.criteria`；业务项目模板为 `domain.model.*` 和 `application.model.*` 同步提供
-  `entity`、`criteria`、`vo`、`dto`、`req`、`resp`、`enums` 分类目录。
+- **DDD 模型目录规范**：NoCode 生成器将领域模块统一输出到限界上下文的 `domain/{domain}` 命名空间，实体和 Criteria
+  分别位于领域模块内部的 `domain.model.entity` 与 `domain.model.criteria`；业务项目模板不再预建无上下文归属的根级
+  `application/domain` 占位目录，领域事件模型统一使用 `domain.model.event`。同步移除已停用的 Controller
+  生成配置，并校正生成器类和 Mapper XML 的目录说明。
 - **Entrypoint record 请求体 Schema 修复**：OpenAPI 组装器补充 Java `record` 组件访问器解析，登录等使用
   record 请求对象的接口不再将请求示例生成为 `{}`，可以展示具体请求字段。
 - **Entrypoint OpenAPI 路径修复**：运行时文档组装器改为按字面量写入完整 URL path key，避免 Jackson
@@ -227,9 +248,12 @@
 
 #### docs
 
+- **应用层按能力纵向分包**：手写领域内应用代码使用 `{context}/domain/{domain}/application/{capability}/{technical-role}`，跨领域应用代码使用 `{context}/application/{capability}/{technical-role}`；生成的标准 CRUD 服务由后续“应用层归位”变更统一迁至 `{context}/application/{domain}[/{subdomain}]/service`。
+- **稳定表名与领域注释分包**：业务表恢复使用 `${service}_${context}_${entity}`；NoCode 生成器从表注释 `[--domain:{domain}]` 读取领域归属，使领域重划分不再要求重命名物理表。
 - **NoCode 生成服务命名**：本地 CRUD 实现统一由 `${Entity}ApplicationService` 更名为 `${Entity}Service`，将 `ApplicationService` 保留给手写业务用例编排服务。
-- **自动服务入口与 NoCode 边界设计**：由 `ICrudService` 继承关系唯一识别 NoCode 标准入口，并要求
-  自定义业务操作使用独立 `IApplicationService`；确定将
+- **自动服务入口与 NoCode 边界设计**：由 `ICrudService` 继承关系唯一识别 NoCode 标准入口；自定义业务操作
+  优先扩展业务主体对应的生成 `I{Entity}Service`，只有没有明确实体或聚合主体的独立能力才使用单独的
+  `IApplicationService`。确定将
   `isass-nocode-generator` 改为普通 `jar`，只保留领域模型、Criteria、Repository、Mapper、CRUD Service、
   关联及级联元数据等源码生成能力，删除合同与 Smart-doc 配置生成 Goal 及其实现；HTTP/gRPC 客户端采用
   全局传输顺序和按服务覆盖，不提供操作级覆盖且不在请求发出后跨协议重试；当前阶段不提供静态 `.proto`、

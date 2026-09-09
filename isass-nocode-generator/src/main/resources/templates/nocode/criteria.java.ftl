@@ -55,12 +55,12 @@ import java.util.Collection;
 
 /**
  * <p>
- * <#if table.comment?trim?length gt 0>${table.comment}<#else>${entity}</#if> 查询条件
+ * <#if tableDescription?trim?length gt 0>${tableDescription}<#else>${entity}</#if> 查询条件
  * </p>
  *
  * @author ${author}
  */
-@ApiDoc(description = "<#if table.comment?trim?length gt 0>${table.comment?j_string} 查询条件<#else>${entity?j_string} 查询条件</#if>")
+@ApiDoc(description = "<#if tableDescription?trim?length gt 0>${tableDescription?j_string} 查询条件<#else>${entity?j_string} 查询条件</#if>")
 public class ${entity}Criteria
         extends FullTypeCriteria<${entity}, ${entity}Criteria>
         implements

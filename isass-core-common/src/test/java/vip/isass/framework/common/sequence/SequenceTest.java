@@ -12,8 +12,8 @@ class SequenceTest {
     @Test
     void stableLongIdKeepsPersistentProtocolCompatible() {
         assertEquals(4819283706837468048L, Sequence.stableLongId("tenant-app:1:2"));
-        assertEquals(7986022554257708212L,
-                Sequence.stableLongId("auth-resource:bsp-service/auth/bootstrap#register"));
+        assertEquals(1292918846807560095L,
+                Sequence.stableLongId("auth-resource:bsp-service/auth/authInit#register"));
         assertEquals(2097458424736379321L, Sequence.stableLongId("permission-resource:1:2"));
     }
 

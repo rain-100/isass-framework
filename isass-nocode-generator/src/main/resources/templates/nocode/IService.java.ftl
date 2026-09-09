@@ -1,7 +1,7 @@
 <#include "./segment/copyright.ftl">
 <#include "./segment/EntityType.ftl">
 
-package ${cfg.package}.${cfg.context}.application.service;
+package ${cfg.servicePackageName};
 
 import ${cfg.serviceRootPackageName}.ServiceInfo;
 import ${cfg.criteriaPackageName}.${entity}Criteria;
@@ -11,11 +11,11 @@ import vip.isass.framework.nocode.service.ICrudService;
 
 /**
  * <p>
- * <#if table.comment??>${table.comment}<#else>${table.name}</#if> 应用服务接口
+ * <#if tableDescription?trim?length gt 0>${tableDescription}<#else>${table.name}</#if> 应用服务接口
  * </p>
  *
  * @author ${author}
- * @tag <#if table.comment?trim?length gt 0>${table.comment?replace("\\([^)]*\\)|\\[[^]]*\\]|（[^）]*）|【[^】]*】", "", "r")?trim}<#else>${entity}</#if>
+ * @tag <#if tableDescription?trim?length gt 0>${tableDescription?replace("\\([^)]*\\)|\\[[^]]*\\]|（[^）]*）|【[^】]*】", "", "r")?trim}<#else>${entity}</#if>
  */
 @EntrypointInfo(
         serviceName = ServiceInfo.SERVICE_FULL_NAME,

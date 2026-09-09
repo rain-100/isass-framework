@@ -1,7 +1,7 @@
 <#include "./segment/copyright.ftl">
 <#include "./segment/EntityType.ftl">
 
-package ${cfg.package}.${cfg.context}.application.service;
+package ${cfg.servicePackageName};
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +13,7 @@ import vip.isass.framework.nocode.service.ILocalCrudService;
 
 /**
  * <p>
- * <#if table.comment?trim?length gt 0>${table.comment}<#else>${entity}</#if> 本地实现服务
+ * <#if tableDescription?trim?length gt 0>${tableDescription}<#else>${entity}</#if> 本地实现服务
  * </p>
  *
  * @author ${author}

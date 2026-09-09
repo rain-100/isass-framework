@@ -4,6 +4,9 @@
 <#assign javaTypeStart = "[javaType--">
 <#include "./segment/EntityType.ftl">
 package ${cfg.entityPackageName};
+<#list associationImports as associationImport>
+import ${associationImport};
+</#list>
 <#function javaType field>
 <#if field.comment!?contains("${javaTypeStart}")>
     <#assign start = field.comment?index_of("${javaTypeStart}") + javaTypeStart?length>
@@ -125,12 +128,12 @@ import java.util.List;
 <#------------ BEGIN 定义类名 ------------>
 /**
  * <p>
- * <#if table.comment?trim?length gt 0>${table.comment}<#else>${entity}</#if> 数据模型
+ * <#if tableDescription?trim?length gt 0>${tableDescription}<#else>${entity}</#if> 数据模型
  * </p>
  *
  * @author ${author}
  */
-@ApiDoc(description = "<#if table.comment?trim?length gt 0>${table.comment?j_string}<#else>${entity?j_string}</#if>")
+@ApiDoc(description = "<#if tableDescription?trim?length gt 0>${tableDescription?j_string}<#else>${entity?j_string}</#if>")
 @Getter
 @Setter
 @ToString
@@ -160,12 +163,12 @@ public class ${entity} implements
 
 <#------------ END 定义类名 ------------>
 <#------------ BEGIN 定义公共字段 ------------>
+    private static final long serialVersionUID = 1L;
+
     public static final ${entity} EMPTY = new ${entity}();
 
     /** 数据库表注释，用于管理端、初始化数据和接口文档展示。 */
     public transient static final String COMMENT = "${tableDescription?j_string}";
-
-    private static final long serialVersionUID = 1L;
 
 <#------------ END 定义公共字段 ------------>
 <#---------- BEGIN 定义字段 ------------>
@@ -181,63 +184,24 @@ public class ${entity} implements
     @ApiDoc(description = "<#if field.comment?trim?length gt 0>${field.comment?trim?j_string}<#else>${field.propertyName?j_string}</#if>")
     private <#if field.propertyName == "deleteFlag">Boolean<#elseif field.comment!?contains("${enumStart}")>${field.propertyName?cap_first}<#elseif field.comment!?contains("${javaTypeStart}")>${javaType(field)}<#elseif field.propertyType == "JsonNode">JsonNode<#else>${field.propertyType}</#if> ${field.propertyName};
 
-    public void set${field.propertyName?cap_first}(<#if field.propertyName == "deleteFlag">Boolean<#elseif field.comment!?contains("${enumStart}")>${field.propertyName?cap_first}<#elseif field.comment!?contains("${javaTypeStart}")>${javaType(field)}<#elseif field.propertyType == "JsonNode">JsonNode<#else>${field.propertyType}</#if> ${field.propertyName}) {
-        this.${field.propertyName} = ${field.propertyName};
-        markPresentProperty("${field.propertyName}");
-    }
-
 </#list>
 <#---------- END 定义字段 ---------->
+<#---------- BEGIN 定义关联字段 ---------->
 <#list associations as association>
 <#if association.kind()?string == "MANY">
     private Collection<${association.targetEntity()}> ${association.property()};
-
-    public void set${association.property()?cap_first}(Collection<${association.targetEntity()}> ${association.property()}) {
-        this.${association.property()} = ${association.property()};
-        markPresentProperty("${association.property()}");
-    }
 <#else>
     private ${association.targetEntity()} ${association.property()};
-
-    public void set${association.property()?cap_first}(${association.targetEntity()} ${association.property()}) {
-        this.${association.property()} = ${association.property()};
-        markPresentProperty("${association.property()}");
-    }
 </#if>
 
 </#list>
 <#if isParentIdEntity>
     private ${entity} parent;
 
-    public void setParent(${entity} parent) {
-        this.parent = parent;
-        markPresentProperty("parent");
-    }
-
     private List<${entity}> children;
 
-    public void setChildren(List<${entity}> children) {
-        this.children = children;
-        markPresentProperty("children");
-    }
-
 </#if>
-<#if associations?has_content || isParentIdEntity>
-    @Override
-    public List<EntityAssociation> associations() {
-        return List.of(
-<#list associations as association>
-                EntityAssociation.${(association.kind()?string == "MANY")?then("many", "one")}("${association.property()}", ${association.targetEntity()}.class,
-                        "${association.localKey()}", "${association.targetKey()}", ${association.cascadeDelete()?c})<#if association_has_next || isParentIdEntity>,</#if>
-</#list>
-<#if isParentIdEntity>
-                EntityAssociation.one("parent", ${entity}.class, "parentId", "id", false),
-                EntityAssociation.many("children", ${entity}.class, "id", "parentId", ${treeCascadeDelete?c})
-</#if>
-        );
-    }
-
-</#if>
+<#---------- END 定义关联字段 ---------->
 <#---------- START 添加枚举类 ---------->
 <#list table.fields as field>
     <#if field.comment!?contains("${enumStart}")>
@@ -293,6 +257,41 @@ public class ${entity} implements
     </#if>
 </#list>
 <#---------- END 添加枚举类 ---------->
+<#---------- START 添加字段 setter ---------->
+<#list table.fields as field>
+    public void set${field.propertyName?cap_first}(<#if field.propertyName == "deleteFlag">Boolean<#elseif field.comment!?contains("${enumStart}")>${field.propertyName?cap_first}<#elseif field.comment!?contains("${javaTypeStart}")>${javaType(field)}<#elseif field.propertyType == "JsonNode">JsonNode<#else>${field.propertyType}</#if> ${field.propertyName}) {
+        this.${field.propertyName} = ${field.propertyName};
+        markPresentProperty("${field.propertyName}");
+    }
+
+</#list>
+<#list associations as association>
+<#if association.kind()?string == "MANY">
+    public void set${association.property()?cap_first}(Collection<${association.targetEntity()}> ${association.property()}) {
+        this.${association.property()} = ${association.property()};
+        markPresentProperty("${association.property()}");
+    }
+<#else>
+    public void set${association.property()?cap_first}(${association.targetEntity()} ${association.property()}) {
+        this.${association.property()} = ${association.property()};
+        markPresentProperty("${association.property()}");
+    }
+</#if>
+
+</#list>
+<#if isParentIdEntity>
+    public void setParent(${entity} parent) {
+        this.parent = parent;
+        markPresentProperty("parent");
+    }
+
+    public void setChildren(List<${entity}> children) {
+        this.children = children;
+        markPresentProperty("children");
+    }
+
+</#if>
+<#---------- END 添加字段 setter ---------->
 <#---------- START 添加IdEntity的方法 ---------->
 <#if isIdEntity>
 <#-- 当主键属性名与默认主键属性名不一致时，添加默认主键字段名的get、set方法。
@@ -311,6 +310,31 @@ public class ${entity} implements
 </#if>
 </#if>
 <#---------- END 添加IdEntity的方法 ---------->
+<#---------- START 添加关联元数据方法 ---------->
+<#if associations?has_content || isParentIdEntity>
+    @Override
+    public List<EntityAssociation> associations() {
+        return List.of(
+<#list associations as association>
+                EntityAssociation.${(association.kind()?string == "MANY")?then("many", "one")}("${association.property()}", ${association.targetEntity()}.class,
+                        "${association.localKey()}", "${association.targetKey()}", ${association.cascadeDelete()?c})<#if association_has_next || isParentIdEntity>,</#if>
+</#list>
+<#if isParentIdEntity>
+                EntityAssociation.one("parent", ${entity}.class, "parentId", "id", false),
+                EntityAssociation.many("children", ${entity}.class, "id", "parentId", ${treeCascadeDelete?c})
+</#if>
+        );
+    }
+
+</#if>
+<#---------- END 添加关联元数据方法 ---------->
+<#---------- START 添加Entity的tableName方法，避免依赖 MyBatis-Plus 注解而从 iv3Entity 接口契约中推断元数据 ---------->
+    @Override
+    public String tableName() {
+        return "${table.name}";
+    }
+
+<#---------- END 添加Entity的tableName方法 ---------->
 <#---------- START 添加Entity的randomEntity方法 ---------->
     @Override
     public ${entity} randomEntity() {
@@ -356,15 +380,4 @@ public class ${entity} implements
     }
 
 <#---------- END 添加Entity的randomEntity方法 ---------->
-<#---------- START 添加Entity的tableName方法，避免依赖 MyBatis-Plus 注解而从 iv3Entity 接口契约中推断元数据 ---------->
-    @Override
-    public String tableName() {
-        return "${table.name}";
-    }
-
-<#---------- END 添加Entity的tableName方法 ---------->
-    public static void main(String[] args) {
-        System.out.println(new ${entity}().randomEntity());
-    }
-
 }

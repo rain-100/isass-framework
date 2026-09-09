@@ -36,7 +36,7 @@ class SpringApiKeyHeaderProviderTest {
         RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
         SecurityContextHolder.getContext().setAuthentication(applicationToken());
 
-        assertTrue(provider.support("POST", "https://bsp.internal:31010/bsp-service/auth/bootstrap/register"));
+        assertTrue(provider.support("POST", "https://bsp.internal:31010/bsp-service/auth/authInit/register"));
         assertEquals("isass_sk_identifier_secret", provider.getValue());
         assertFalse(provider.support("POST", "https://storage.example/object"));
     }

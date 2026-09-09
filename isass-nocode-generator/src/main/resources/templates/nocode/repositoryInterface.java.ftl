@@ -8,7 +8,7 @@ import vip.isass.framework.nocode.repository.IRepository;
 
 /**
  * <p>
- * <#if table.comment?trim?length gt 0>${table.comment}<#else>${entity}</#if> 领域数据仓库。
+ * <#if tableDescription?trim?length gt 0>${tableDescription}<#else>${entity}</#if> 领域数据仓库。
  * </p>
  *
  * @author ${author}

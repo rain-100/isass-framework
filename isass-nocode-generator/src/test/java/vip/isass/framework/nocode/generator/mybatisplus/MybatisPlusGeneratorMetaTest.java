@@ -21,7 +21,6 @@ class MybatisPlusGeneratorMetaTest {
         assertFalse(meta.isRepositoryFileOverride());
         assertFalse(meta.isServiceInterfaceFileOverride());
         assertFalse(meta.isLocalServiceFileOverride());
-        assertFalse(meta.isControllerFileOverride());
     }
 
     @Test
@@ -36,8 +35,8 @@ class MybatisPlusGeneratorMetaTest {
     void derivesServiceRootPackageFromMultiSegmentServiceContext() {
         MybatisPlusGeneratorMeta meta = new MybatisPlusGeneratorMeta()
                 .setPackageName("com.acme")
-                .setContext("order.processing.catalog");
+                .setContext("order.processing.domain.catalog");
 
-        assertEquals("com.acme.order.processing", MybatisPlusGenerator.serviceRootPackageName(meta));
+        assertEquals("com.acme.order", MybatisPlusGenerator.serviceRootPackageName(meta));
     }
 }

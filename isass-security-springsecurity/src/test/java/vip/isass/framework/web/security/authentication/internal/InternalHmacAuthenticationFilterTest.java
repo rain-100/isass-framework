@@ -97,7 +97,7 @@ class InternalHmacAuthenticationFilterTest {
 
     private MockHttpServletRequest request(byte[] body) {
         MockHttpServletRequest request = new MockHttpServletRequest(
-                "POST", "/bsp-service/auth/bootstrap/register");
+                "POST", "/bsp-service/auth/authInit/register");
         request.setQueryString("b=2&a=1");
         request.setContent(body);
         long timestamp = System.currentTimeMillis();

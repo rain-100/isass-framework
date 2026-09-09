@@ -8,7 +8,7 @@ import org.apache.ibatis.annotations.Mapper;
 
 /**
  * <p>
- * <#if table.comment?trim?length gt 0>${table.comment}<#else>${entity}</#if> mapper
+ * <#if tableDescription?trim?length gt 0>${tableDescription}<#else>${entity}</#if> mapper
  * </p>
  *
  * @author ${author}

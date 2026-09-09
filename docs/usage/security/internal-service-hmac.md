@@ -42,7 +42,7 @@ nonce。文件表单使用 `UNSIGNED-PAYLOAD`，因此必须使用受信任内�
 public final class BspInternalAccessProvider implements InternalAccessProvider {
     @Override
     public void defineInternalAccess(InternalAccessBuilder access) {
-        access.allow(IAuthBootstrapService.class,
+        access.allow(IAuthInitService.class,
                         service -> service.register(null))
                 .allow(IParameterService.class,
                         service -> service.getCodeValuesByKey(null));
