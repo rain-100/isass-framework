@@ -3,17 +3,21 @@
 package vip.isass.framework.nocode.service;
 
 import vip.isass.framework.common.page.Page;
+import vip.isass.framework.nocode.criteria.IAssociationCriteria;
 import vip.isass.framework.nocode.criteria.ICriteria;
 import vip.isass.framework.nocode.criteria.IUpdateCriteria;
 import vip.isass.framework.nocode.criteria.field.IIdCriteria;
 import vip.isass.framework.nocode.criteria.type.IOrderByCriteria;
 import vip.isass.framework.nocode.criteria.type.IPageCriteria;
+import vip.isass.framework.nocode.criteria.type.ISelectColumnCriteria;
 import vip.isass.framework.nocode.entity.CrudQueryReq;
 import vip.isass.framework.nocode.entity.CrudQueryResult;
 import vip.isass.framework.nocode.entity.CursorPage;
 import vip.isass.framework.nocode.entity.IIdEntity;
+import vip.isass.framework.nocode.entity.IParentIdEntity;
 import vip.isass.framework.nocode.lifecycle.CrudQueryLifecycleContext;
 import vip.isass.framework.nocode.lifecycle.CrudQueryLifecycleListener;
+import vip.isass.framework.nocode.util.TreeEntityUtil;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -95,7 +99,63 @@ public final class CrudQueryExecutor {
                     service.getRepository().countByCriteria(request.criteria()).longValue());
             case EXISTS -> CrudQueryResult.exists(
                     service.getRepository().isPresentByCriteria(request.criteria()));
+            case TREE -> CrudQueryResult.tree(tree(service, request.criteria()));
         };
+    }
+
+    private <PK extends Serializable, E extends IIdEntity<PK, E>,
+            C extends ICriteria<E, C> & IIdCriteria<PK, E, C> & IUpdateCriteria<C>
+                    & IPageCriteria<E, C> & IOrderByCriteria<E, C>> List<E> tree(
+            ILocalCrudService<E, C, PK> service, C criteria) {
+        if (!(service instanceof ILocalTreeQueryService<?, ?, ?>)) {
+            throw new IllegalArgumentException("TREE 查询要求服务实现 ILocalTreeQueryService: "
+                    + service.getClass().getName());
+        }
+        validateTreeAssociationPaths(criteria);
+        criteria.orderByIfBlank("id", "asc");
+        if (criteria instanceof ISelectColumnCriteria<?, ?> selectColumns
+                && !selectColumns.getSelectColumns().isEmpty()) {
+            selectColumns.addSelectColumn("id");
+            selectColumns.addSelectColumn("parentId");
+        }
+        List<E> records = service.getRepository().findByCriteria(criteria);
+        if (associations != null) {
+            associations.populate(records, criteria);
+        }
+        return assembleTree(records);
+    }
+
+    private void validateTreeAssociationPaths(Object criteria) {
+        if (!(criteria instanceof IAssociationCriteria<?> associations)) return;
+        List<String> paths = new ArrayList<>();
+        if (associations.getAssociationQueries() != null) {
+            paths.addAll(associations.getAssociationQueries());
+        }
+        if (associations.getAssociationCriteria() != null) {
+            paths.addAll(associations.getAssociationCriteria().keySet());
+        }
+        for (String path : paths) {
+            if (path == null || path.isBlank()) continue;
+            String root = path.trim().split("\\.", 2)[0];
+            if (root.equals("parent") || root.equals("children")) {
+                throw new IllegalArgumentException("tree 查询由框架装配 parent/children，不能重复请求关联: " + path);
+            }
+        }
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private <PK extends Serializable, E extends IIdEntity<PK, E>> List<E> assembleTree(List<E> records) {
+        if (records == null || records.isEmpty()) return List.of();
+        if (records.stream().anyMatch(record -> !(record instanceof IParentIdEntity))) {
+            throw new IllegalStateException("TREE 查询实体必须实现 IParentIdEntity");
+        }
+        return TreeEntityUtil.toEntityTree(
+                records,
+                IIdEntity::getId,
+                entity -> ((IParentIdEntity) entity).getParentId(),
+                (entity, parent) -> ((IParentIdEntity) entity).setParent((IParentIdEntity) parent),
+                entity -> (List<E>) ((IParentIdEntity) entity).getChildren(),
+                (entity, children) -> ((IParentIdEntity) entity).setChildren(children));
     }
 
     private <PK extends Serializable, E extends IIdEntity<PK, E>,

@@ -10,6 +10,9 @@ import ${cfg.criteriaPackageName}.${entity}Criteria;
 import ${cfg.entityPackageName}.${entity};
 import ${cfg.repositoryPackageName}.I${entity}Repository;
 import vip.isass.framework.nocode.service.ILocalCrudService;
+<#if isParentIdEntity>
+import vip.isass.framework.nocode.service.ILocalTreeQueryService;
+</#if>
 
 /**
  * <p>
@@ -21,7 +24,8 @@ import vip.isass.framework.nocode.service.ILocalCrudService;
 @Slf4j
 @Service
 public class ${entity}Service
-        implements I${entity}Service, ILocalCrudService<${entity}, ${entity}Criteria, ${idEntityPropertyType}> {
+        implements I${entity}Service, ILocalCrudService<${entity}, ${entity}Criteria, ${idEntityPropertyType}><#if isParentIdEntity>,
+                ILocalTreeQueryService<${entity}, ${entity}Criteria, ${idEntityPropertyType}></#if> {
 
     @Autowired
     private I${entity}Repository repository;

@@ -2,7 +2,7 @@
 
 ## 1. 边界与地址
 
-`ICrudService<E, C, PK>` 是围绕单个聚合提供标准 CRUD 的应用入口，并继承 `IEntrypoint`。生成的本地实现统一命名为 `${Entity}Service`。业务首先复用下述八个 NoCode 标准入口；只要需求能由标准 CRUD、Criteria、关联能力和生命周期完整表达，就不得新增同义的查询、新增、修改或删除 Entrypoint。生命周期可以协调同一限界上下文内其他聚合或领域。只有无法用这些机制表达的独立业务用例才增加手写 Entrypoint，并显式声明 `@EntrypointOperation`。
+`ICrudService<E, C, PK>` 是围绕单个聚合提供标准 CRUD 的应用入口，并继承 `IEntrypoint`。生成的本地实现统一命名为 `${Entity}Service`。业务首先复用 NoCode 的八个基础 CRUD 入口及实体具备的可选通用能力；只要需求能由标准 CRUD、Criteria、关联、能力接口和生命周期完整表达，就不得新增同义的查询、新增、修改或删除 Entrypoint。生命周期可以协调同一限界上下文内其他聚合或领域。只有无法用这些机制表达的独立业务用例才增加手写 Entrypoint，并显式声明 `@EntrypointOperation`。
 
 标准地址固定为：
 
@@ -14,14 +14,18 @@
 
 只有 `@EntrypointOperation` 标注的方法生成 HTTP/gRPC 路由和 OpenAPI。未标注的默认方法只提供 Java/远程代理调用便利。
 
-## 2. 正式入口
+## 2. 正式入口与可选能力
 
-NoCode 只发布八个 HTTP/gRPC 正式入口：
+`ICrudService` 固定发布八个 HTTP/gRPC 基础入口：
 
 | 类型 | 正式入口 | 统一执行边界 |
 | --- | --- | --- |
 | 写入 | `createBatch`、`update`、`delete`、`superCud` | `CrudWriteExecutor.superCud` |
 | 查询 | `page`、`cursorPage`、`count`、`exists` | `CrudQueryExecutor.query` |
+
+通用能力使用原子接口按实体特征组合，不把不适用的方法塞入 `ICrudService`。当前层级实体可额外实现
+`ITreeQueryService`，发布 `tree` 和 `descendantIds` 查询入口；本地实现组合 `ILocalTreeQueryService`。后续通用能力也应使用
+独立能力接口，禁止建立 `ITreeExportCrudService` 一类组合接口。
 
 `create(E)`、`createIfAbsent(...)`、`update(E)`、`update(E,C)`、`delete(PK)`、`getById`、`getOne`、
 `existsById`、`requireOne`、`list` 等方法仅为 Java 便捷方法，不标注 `@EntrypointOperation`，也不产生独立
@@ -81,18 +85,20 @@ update(E) / update(E,C) / update(Collection<E>,C) / delete(PK) / delete(C) / sup
 
 ## 4. 查询统一执行
 
-四个查询正式入口都规范化为 `CrudQueryReq`：
+四个基础查询及可选的树查询都规范化为 `CrudQueryReq`：
 
 ```text
-page/cursorPage/count/exists
+page/cursorPage/count/exists/tree/descendantIds
   -> CrudQueryReq(queryType, criteria, cursorId, pageSize)
   -> CrudQueryExecutor.query
   -> 查询生命周期 + Repository + 关联查询协调器
   -> CrudQueryResult
 ```
 
-`CrudQueryExecutor` 会复制调用方 Criteria，防止分页、游标和监听器处理污染原对象。`CrudQueryType` 固定为
-`PAGE`、`CURSOR_PAGE`、`COUNT`、`EXISTS`；生命周期替换查询结果时，结果类型必须与请求类型一致。
+`CrudQueryExecutor` 会复制调用方 Criteria，防止分页、游标和监听器处理污染原对象。`CrudQueryType` 包含
+`PAGE`、`CURSOR_PAGE`、`COUNT`、`EXISTS`、`TREE`；生命周期替换查询结果时，结果类型必须与请求类型一致。
+`CrudQueryResult.records()` 统一返回本次查询涉及的全部实体，树结果按先序展开，结果脱敏等监听器不应只处理
+`page` 与 `cursorPage` 两种容器。
 
 业务监听器实现 `CrudQueryLifecycleListener` 并注册为 Spring Bean，可使用以下回调：
 
@@ -108,6 +114,22 @@ page/cursorPage/count/exists
 - 第一页 `cursorId` 可为空，后续使用上一页 `nextCursorId`；实现多取一条计算 `hasMore`，不执行 `count(*)`。
 - 连续翻页必须保持 Criteria 和排序方向不变；ID 必须稳定、唯一、可比较且写入后不变化。
 - 高频附加过滤条件应建立与查询匹配的联合索引，否则游标分页只能消除 offset 成本，不能消除过滤扫描成本。
+
+### 树查询
+
+- 只有同时实现 `IIdEntity`、`IParentIdEntity` 的实体服务才组合 `ITreeQueryService`；生成器根据 `parent_id`
+  自动选择能力接口，普通实体不暴露 `tree`。
+- `tree(criteria)` 先查询符合 Criteria 的全部实体，再按 `id/parentId` 在内存中组装完整森林，不应用分页参数；
+  `orderBy` 同时决定根节点与同级子节点顺序，未指定时使用 `id asc`。
+- `id` 与 `parentId` 是树装配必需字段。调用方使用 `selectColumns` 时，执行器自动补充这两个 Java 属性。
+- `parentId` 为 `null`、`0`，或父节点不在当前过滤结果中时，节点作为当前结果森林的根；因此 Criteria 可以只
+  返回一个局部结果集。查询会拒绝空 ID、重复 ID 和父子循环，并在每次装配前清空 `parent`、重建 `children`，
+  避免序列化时形成双向循环。
+- `children` 与 `parent` 由树查询负责，不得同时通过 `association.query` 请求；其他显式关联仍对全部树节点
+  批量装载。
+- `descendantIds(rootId, criteria)` 复用同一次 `tree(criteria)` 查询和生命周期，在过滤后的森林中按广度优先顺序
+  返回指定节点的全部后代 ID，不包含节点自身；`rootId` 不在结果森林中时明确失败。该派生查询不增加新的
+  `CrudQueryType`，其排序、数据范围、缺失/重复 ID 和循环校验语义与 `tree` 一致。
 
 ## 5. 关联写入与查询
 

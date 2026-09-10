@@ -46,7 +46,7 @@ void publish(@QueryParam("id") Long id);
 
 ## 接口分组
 
-- `ICrudService` 提供的八个 NoCode 标准操作统一使用“零代码接口” tag，并且每种操作在 Knife4j 中只显示
+- `ICrudService` 提供的八个基础 CRUD 操作，以及 `ITreeQueryService` 等可选 NoCode 能力统一使用“零代码接口” tag，并且每种操作在 Knife4j 中只显示
   一次。文档使用 `/{service}/nocode/{entity}/{operationName}` 动态投影，调试页通过下拉框选择实际
   `service` 和 `contextName/resourceName`；不能把每个资源的同名 CRUD 操作重复展开。
 - 动态文档路径只用于合并展示和调试。实际 HTTP 路由仍是
@@ -58,7 +58,8 @@ void publish(@QueryParam("id") Long id);
 - Criteria 使用对象型 `@QueryParam` 时，文档根据 Criteria 的 getter 展开查询参数，兼容返回自身类型的 fluent setter；
   因此切换实体后，前端可依据 `x-isass-criteria-parameters[contextName/resourceName]` 恢复对应条件。NoCode 文档会隐藏
   内部的 `whereConditions`、`associationCriteria`；`updateMode`、`nullValueMode`、`matchFields` 只在 `update`
-  接口显示；`selectColumns` 和关联查询只在 `page`/`cursorPage` 显示，关联查询的对外参数名为 `association.query`。
+  接口显示；`selectColumns` 和关联查询只在 `page`/`cursorPage`/`tree` 显示，`orderBy` 在这三个查询及
+  `descendantIds` 中显示，关联查询的对外参数名为 `association.query`；`tree` 和 `descendantIds` 不显示分页参数。
 - OpenAPI Schema 默认使用 Java 类型的简单类名（例如 `ApproveSampleTaskReq`）；泛型类型在此基础上拼接泛型参数名，
   例如 `Page__ApproveSampleTaskReq`，不再把完整包名编码进调试页面的类型名称。
 - `x-isass-entity-options` 的显示标签使用实体 `resourceName` 的小驼峰值（例如 `sampleGroup`、`modelFace`），

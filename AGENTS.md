@@ -33,7 +33,7 @@
 - 数据库、Liquibase 注释 DSL 与生成模型：`docs/usage/database/table-design.md`
 - Liquibase 运行和变更边界：`docs/usage/database/liquibase-multi-mode-migration.md`
 - NoCode 生成器：`docs/usage/database/nocode-mybatis-plus-generator.md`
-- NoCode 八个正式入口、统一执行与生命周期：`docs/usage/nocode/crud-lifecycle.md`
+- NoCode 标准 CRUD、可选查询能力、统一执行与生命周期：`docs/usage/nocode/crud-lifecycle.md`
 - 关联查询与关联写入：`docs/usage/nocode/association-query.md`
 - 初始化 JSON、导入导出与 ID 分配：`docs/usage/nocode/initialization-data.md`
 - Entrypoint 服务调用：`docs/usage/nocode/service-client.md`

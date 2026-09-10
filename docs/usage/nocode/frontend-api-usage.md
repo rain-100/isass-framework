@@ -9,7 +9,7 @@ NoCode 基础路径固定为：
 自定义业务入口不带 `nocode` 段，具体地址由 `EntrypointInfo` 与 `EntrypointOperation` 决定。前端应以
 `/v3/api-docs` 为最终合同，不拼接旧实体路径，也不使用 Path 参数。
 
-## 八个正式标准入口
+## 基础标准入口
 
 | 操作 | 方法与路径 | 参数 |
 | --- | --- | --- |
@@ -22,9 +22,21 @@ NoCode 基础路径固定为：
 | 数量 | `GET {base}/count` | Query：Criteria |
 | 是否存在 | `GET {base}/exists` | Query：Criteria |
 
+存在 `parent_id` 的层级实体还会发布两个可选查询：
+
+- `GET {base}/tree`：Query 使用该实体 Criteria，返回实体数组组成的森林，每个节点通过 `children` 递归包含
+  下级；
+- `GET {base}/descendantIds`：Query 使用 `rootId` 和该实体 Criteria，按广度优先顺序返回指定节点的全部后代
+  ID，不包含指定节点本身。
+
+两者都不分页，`orderBy` 控制根节点和同级节点顺序，默认 `id asc`。筛选后父节点不在结果中的节点成为当前
+结果的根节点；`descendantIds` 只沿过滤后仍然连通的父子关系遍历。
+
 Criteria 参数按操作裁剪：`whereConditions`、`associationCriteria` 是内部结构，不在 NoCode 文档中显示；
 `updateMode`、`nullValueMode`、`matchFields` 仅用于 `update`；`selectColumns` 和关联查询仅用于返回实体的
-`page`/`cursorPage`，其中关联查询通过 `association.query` 传递关联路径。
+`page`/`cursorPage`/`tree`，其中关联查询通过 `association.query` 传递关联路径。`tree` 的 `parent/children`
+由框架装配，不能再作为关联路径提交。`descendantIds` 只返回 ID，不接收返回字段或关联投影参数，但可使用
+普通过滤条件和 `orderBy`。
 
 `create(E)`、`createIfAbsent(...)`、`update(E)`、`update(E,C)`、`delete(PK)`、`getById`、`getOne`、
 `existsById`、`list`、`requireOne` 等都是 Java 便捷方法，不生成 HTTP/gRPC 路由。HTTP 对应的是正式重载

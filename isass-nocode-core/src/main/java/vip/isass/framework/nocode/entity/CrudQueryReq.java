@@ -33,4 +33,8 @@ public record CrudQueryReq<C, PK extends Serializable>(
     public static <C, PK extends Serializable> CrudQueryReq<C, PK> exists(C criteria) {
         return new CrudQueryReq<>(CrudQueryType.EXISTS, criteria, null, null);
     }
+
+    public static <C, PK extends Serializable> CrudQueryReq<C, PK> tree(C criteria) {
+        return new CrudQueryReq<>(CrudQueryType.TREE, criteria, null, null);
+    }
 }

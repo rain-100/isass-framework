@@ -7,6 +7,7 @@ import vip.isass.framework.entrypoint.IEntrypoint;
 import vip.isass.framework.entrypoint.annotation.EntrypointOperation;
 import vip.isass.framework.entrypoint.metadata.HttpMethod;
 import vip.isass.framework.nocode.service.ICrudService;
+import vip.isass.framework.nocode.service.ITreeQueryService;
 
 import java.util.Arrays;
 
@@ -16,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 class NocodeAutoConfigurationTest {
 
     @Test
-    void classifierMarksOnlyStandardCrudOperationsAsNocode() {
+    void classifierMarksStandardCrudAndTreeCapabilityOperationsAsNocode() {
         var classifier = new NocodeAutoConfiguration().nocodeEntrypointClassifier();
         var page = Arrays.stream(ICrudService.class.getMethods())
                 .filter(method -> method.getName().equals("page"))
@@ -26,8 +27,18 @@ class NocodeAutoConfigurationTest {
                 .filter(method -> method.getName().equals("publish"))
                 .findFirst()
                 .orElseThrow();
+        var tree = Arrays.stream(ITreeQueryService.class.getMethods())
+                .filter(method -> method.getName().equals("tree"))
+                .findFirst()
+                .orElseThrow();
+        var descendantIds = Arrays.stream(ITreeQueryService.class.getMethods())
+                .filter(method -> method.getName().equals("descendantIds"))
+                .findFirst()
+                .orElseThrow();
 
         assertTrue(classifier.isNocode(ICrudService.class, page));
+        assertTrue(classifier.isNocode(ITreeQueryService.class, tree));
+        assertTrue(classifier.isNocode(ITreeQueryService.class, descendantIds));
         assertFalse(classifier.isNocode(ICrudService.class, custom));
     }
 

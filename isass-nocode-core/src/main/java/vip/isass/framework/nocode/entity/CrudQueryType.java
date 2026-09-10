@@ -7,5 +7,6 @@ public enum CrudQueryType {
     PAGE,
     CURSOR_PAGE,
     COUNT,
-    EXISTS
+    EXISTS,
+    TREE
 }

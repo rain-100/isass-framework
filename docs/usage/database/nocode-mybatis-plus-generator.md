@@ -21,6 +21,8 @@
 ```
 
 生成的本地 NoCode CRUD 实现统一命名为 `${Entity}Service`；`ApplicationService` 仅用于手写的业务用例编排服务。
+存在 `parent_id` 的实体除基础 `ICrudService` 外自动组合 `ITreeQueryService`，本地实现使用
+`ILocalTreeQueryService`，并获得标准 `tree` 与 `descendantIds` 查询；普通实体不生成该能力。
 生成器按表名的 `{service}_{context}_{entity}` 三段规则解析限界上下文，并从表级注释
 `[--domain:{domain}]` 或 `[--domain:{domain};--subdomain:{subdomain}]` 解析领域及可选一级子域；`entity` 可以包含下划线。
 子域只影响 Java 包路径，不进入物理表名；未声明子域时保持原有目录结构。

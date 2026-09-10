@@ -30,6 +30,7 @@ import vip.isass.framework.nocode.service.CrudQueryExecutor;
 import vip.isass.framework.nocode.service.CrudQueryExecutorProvider;
 import vip.isass.framework.nocode.service.ICrudService;
 import vip.isass.framework.nocode.service.ILocalCrudService;
+import vip.isass.framework.nocode.service.ITreeQueryService;
 
 import java.util.List;
 
@@ -78,8 +79,11 @@ public class NocodeAutoConfiguration {
 
     @Bean
     public EntrypointClassifier nocodeEntrypointClassifier() {
-        return (serviceInterface, operationMethod) -> ICrudService.class.isAssignableFrom(serviceInterface)
-                && operationMethod.getDeclaringClass() == ICrudService.class;
+        return (serviceInterface, operationMethod) ->
+                (ICrudService.class.isAssignableFrom(serviceInterface)
+                        && operationMethod.getDeclaringClass() == ICrudService.class)
+                || (ITreeQueryService.class.isAssignableFrom(serviceInterface)
+                        && operationMethod.getDeclaringClass() == ITreeQueryService.class);
     }
 
     @Bean

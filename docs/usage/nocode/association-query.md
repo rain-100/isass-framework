@@ -38,6 +38,11 @@ association.rolePermissions.permission.criteria.enabledFlag=true
 路径最大 16 层，且每一段都必须是对应实体通过 DDL 声明的关系。框架只展开显式路径及其父路径，不会因为
 目标实体存在反向关系而继续递归。
 
+层级实体的 `children` 也是一条普通自关联，因此 `association.query=children` 只展开一层，
+`association.query=children.children` 只展开两层，并不等价于完整树。需要任意深度的完整树时，使用实体服务按
+`ITreeQueryService` 发布的标准 `tree` 查询；只需要指定节点的全部后代 ID 时使用 `descendantIds`。两者复用
+同一树装配语义，不能再请求 `parent/children` 关联路径。
+
 写入时，实体关系属性的请求出现性决定是否处理：
 
 - 未提交关系属性：不处理；

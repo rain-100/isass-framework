@@ -12,14 +12,20 @@ import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
+import vip.isass.framework.nocode.entity.IParentIdEntity;
 
 import java.io.Serializable;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
@@ -45,6 +51,150 @@ import java.util.function.Function;
 public final class TreeEntityUtil {
 
     private TreeEntityUtil() {
+    }
+
+    /**
+     * Converts generated parent-id entities to a forest while preserving query order.
+     * Missing parents are treated as roots so filtered result sets remain representable.
+     */
+    public static <E> List<E> toEntityTree(
+            List<E> entities,
+            Function<E, ?> idGetter,
+            Function<E, ?> parentIdGetter,
+            BiConsumer<E, E> parentSetter,
+            Function<E, List<E>> childrenGetter,
+            BiConsumer<E, List<E>> childrenSetter) {
+        if (CollUtil.isEmpty(entities)) return List.of();
+
+        Map<Object, E> entitiesById = new LinkedHashMap<>();
+        for (E entity : entities) {
+            Object id = entity == null ? null : idGetter.apply(entity);
+            if (id == null) {
+                throw new IllegalStateException("树查询结果存在缺少 ID 的实体");
+            }
+            if (entitiesById.putIfAbsent(id, entity) != null) {
+                throw new IllegalStateException("树查询结果存在重复实体 ID: " + id);
+            }
+            parentSetter.accept(entity, null);
+            childrenSetter.accept(entity, new ArrayList<>());
+        }
+
+        Map<Object, VisitState> states = new HashMap<>();
+        for (E entity : entities) {
+            validateNoCycle(entity, idGetter, parentIdGetter, entitiesById, states);
+        }
+
+        List<E> roots = new ArrayList<>();
+        for (E entity : entities) {
+            Object parentId = parentIdGetter.apply(entity);
+            E parent = isTopParentId(parentId) ? null : entitiesById.get(parentId);
+            if (parent == null) {
+                roots.add(entity);
+            } else {
+                childrenGetter.apply(parent).add(entity);
+            }
+        }
+        return List.copyOf(roots);
+    }
+
+    /**
+     * Returns every descendant ID below one node in breadth-first order.
+     * The root itself is not included; sibling order follows the supplied forest.
+     */
+    public static <PK, E> List<PK> descendantIds(
+            List<E> forest,
+            PK rootId,
+            Function<E, PK> idGetter,
+            Function<E, List<E>> childrenGetter) {
+        if (rootId == null) throw new IllegalArgumentException("根节点 ID 必填");
+        if (idGetter == null) throw new IllegalArgumentException("idGetter 不能为空");
+        if (childrenGetter == null) throw new IllegalArgumentException("childrenGetter 不能为空");
+
+        E root = findNode(forest, rootId, idGetter, childrenGetter);
+        if (root == null) {
+            throw new IllegalArgumentException("树查询结果中不存在节点: " + rootId);
+        }
+
+        List<PK> result = new ArrayList<>();
+        ArrayDeque<E> pending = new ArrayDeque<>(safeChildren(root, childrenGetter));
+        Set<PK> visited = new HashSet<>();
+        visited.add(rootId);
+        while (!pending.isEmpty()) {
+            E current = pending.removeFirst();
+            PK id = idGetter.apply(current);
+            if (id == null) {
+                throw new IllegalStateException("树查询结果存在缺少 ID 的实体");
+            }
+            if (!visited.add(id)) {
+                throw new IllegalStateException("树查询结果存在重复或循环实体 ID: " + id);
+            }
+            result.add(id);
+            pending.addAll(safeChildren(current, childrenGetter));
+        }
+        return List.copyOf(result);
+    }
+
+    private static <PK, E> E findNode(
+            List<E> forest,
+            PK id,
+            Function<E, PK> idGetter,
+            Function<E, List<E>> childrenGetter) {
+        if (CollUtil.isEmpty(forest)) return null;
+        ArrayDeque<E> pending = new ArrayDeque<>(forest);
+        Set<PK> visited = new HashSet<>();
+        while (!pending.isEmpty()) {
+            E current = pending.removeFirst();
+            PK currentId = idGetter.apply(current);
+            if (currentId == null) {
+                throw new IllegalStateException("树查询结果存在缺少 ID 的实体");
+            }
+            if (!visited.add(currentId)) {
+                throw new IllegalStateException("树查询结果存在重复或循环实体 ID: " + currentId);
+            }
+            if (id.equals(currentId)) return current;
+            pending.addAll(safeChildren(current, childrenGetter));
+        }
+        return null;
+    }
+
+    private static <E> List<E> safeChildren(E entity, Function<E, List<E>> childrenGetter) {
+        List<E> children = childrenGetter.apply(entity);
+        return children == null ? List.of() : children;
+    }
+
+    private static <E> void validateNoCycle(
+            E entity,
+            Function<E, ?> idGetter,
+            Function<E, ?> parentIdGetter,
+            Map<Object, E> entitiesById,
+            Map<Object, VisitState> states) {
+        Object id = idGetter.apply(entity);
+        VisitState state = states.get(id);
+        if (state == VisitState.VISITED) return;
+        if (state == VisitState.VISITING) {
+            throw new IllegalStateException("树查询结果存在父子循环，实体 ID: " + id);
+        }
+        states.put(id, VisitState.VISITING);
+        Object parentId = parentIdGetter.apply(entity);
+        if (!isTopParentId(parentId)) {
+            E parent = entitiesById.get(parentId);
+            if (parent != null) {
+                validateNoCycle(parent, idGetter, parentIdGetter, entitiesById, states);
+            }
+        }
+        states.put(id, VisitState.VISITED);
+    }
+
+    private static boolean isTopParentId(Object parentId) {
+        return parentId == null
+                || IParentIdEntity.TOP_ID_STRING_VALUE.equals(parentId)
+                || IParentIdEntity.TOP_ID_INTEGER_VALUE.equals(parentId)
+                || IParentIdEntity.TOP_ID_LONG_VALUE.equals(parentId);
+    }
+
+    private enum VisitState {
+        VISITING,
+        VISITED
     }
 
     // ==================== toTree: 函数式 ====================

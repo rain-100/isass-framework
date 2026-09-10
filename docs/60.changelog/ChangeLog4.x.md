@@ -4,6 +4,10 @@
 
 ### 4.0.0-SNAPSHOT
 
+- **NoCode 原子树查询能力**：新增可组合的 `ITreeQueryService` / `ILocalTreeQueryService`，生成器只为
+  `parent_id` 层级实体发布标准 `tree` 与 `descendantIds` 入口；树查询复用统一查询生命周期和权限路径，支持
+  Criteria、排序、非树关联及完整森林装配，并校验空/重复 ID 与父子循环；后代 ID 查询从树结果统一派生，
+  不再由各业务服务重复实现树或层级遍历方法。
 - **服务运行模式改为同制品切换**：部署制品可以同时包含依赖服务的 API 与实现 jar；微服务模式只注册 API
   能力和远程 Entrypoint 代理，单体模式再启用 classpath 中依赖服务的本地实现，不再把运行模式错误描述成
   两套 Maven 依赖或两次构建。服务自身启动时始终启用自身 Service 自动配置；该配置作为其他服务的依赖时
