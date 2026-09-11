@@ -20,6 +20,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -106,7 +107,7 @@ public final class AssociationWriteCoordinator {
             ILocalCrudService targetService = targetService(association);
             for (Object target : targets) {
                 write(target, association.targetField(), sourceKey);
-                Serializable targetId = id(target);
+                Serializable targetId = resolveTargetId(target, association, targetService, sourceKey);
                 if (targetId == null) {
                     nested(() -> targetService.create((IIdEntity) target));
                     targetId = id(target);
@@ -116,7 +117,7 @@ public final class AssociationWriteCoordinator {
                     submittedIds.add(targetId);
                 } else {
                     Object existing = targetService.getRepository().getEntityById(targetId);
-                    if (existing == null || !java.util.Objects.equals(
+                    if (existing == null || !Objects.equals(
                             read(existing, association.targetField()), sourceKey)) {
                         throw new IllegalArgumentException("关联对象不存在或不属于当前实体: " + targetId);
                     }
@@ -132,6 +133,32 @@ public final class AssociationWriteCoordinator {
                 nested(() -> targetService.delete((vip.isass.framework.nocode.criteria.ICriteria) targetCriteria));
             }
         }
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private Serializable resolveTargetId(Object target, EntityAssociation association,
+                                         ILocalCrudService targetService, Object sourceKey) {
+        Serializable targetId = id(target);
+        if (targetId != null || association.kind() != EntityAssociation.Kind.ONE) {
+            return targetId;
+        }
+        Object targetCriteria = targetService.newCriteria();
+        ((IWhereConditionCriteria) targetCriteria).equals(association.targetField(), sourceKey);
+        List<?> existingTargets = targetService.getRepository().findByCriteria(
+                (vip.isass.framework.nocode.criteria.ICriteria) targetCriteria);
+        if (existingTargets.size() > 1) {
+            throw new IllegalStateException("单体关联存在多条目标记录: "
+                    + association.targetType().getName() + "." + association.targetField() + "=" + sourceKey);
+        }
+        if (existingTargets.isEmpty()) {
+            return null;
+        }
+        targetId = id(existingTargets.getFirst());
+        if (targetId == null) {
+            throw new IllegalStateException("单体关联目标记录 ID 为空: " + association.targetType().getName());
+        }
+        ((IIdEntity) target).setId(targetId);
+        return targetId;
     }
 
     private boolean submitted(IEntity<?> source, EntityAssociation association,
@@ -197,7 +224,7 @@ public final class AssociationWriteCoordinator {
         if (!(value instanceof Collection<?> values)) {
             throw new IllegalArgumentException("列表关联属性必须是 Collection");
         }
-        if (values.stream().anyMatch(java.util.Objects::isNull)) {
+        if (values.stream().anyMatch(Objects::isNull)) {
             throw new IllegalArgumentException("关联集合不能包含 null");
         }
         return new ArrayList<>(values);

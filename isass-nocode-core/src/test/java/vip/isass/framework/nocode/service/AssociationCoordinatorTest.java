@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
 class AssociationCoordinatorTest {
 
@@ -42,6 +43,27 @@ class AssociationCoordinatorTest {
         assertEquals(1L, added.getParentId());
         assertEquals("updated", children.rows.get(10L).getName());
         assertEquals(List.of(10L, 12L), new ArrayList<>(children.rows.keySet()));
+    }
+
+    @Test
+    void updatesExistingOneToOneAssociationByRelationKeyWhenIdIsOmitted() {
+        ParentRepository parents = new ParentRepository();
+        DetailRepository details = new DetailRepository();
+        Detail existing = new Detail(100L, "old");
+        existing.setParentId(1L);
+        details.rows.put(existing.getId(), existing);
+        AssociationWriteCoordinator coordinator = new AssociationWriteCoordinator(
+                List.of(new ParentService(parents), new DetailService(details)));
+        Parent parent = new Parent(1L);
+        Detail submitted = new Detail(null, "updated");
+        parent.setProfile(submitted);
+
+        coordinator.afterSave(parent, null, false);
+
+        assertEquals(100L, submitted.getId());
+        assertEquals(1L, submitted.getParentId());
+        assertSame(submitted, details.rows.get(100L));
+        assertEquals("updated", details.rows.get(100L).getName());
     }
 
     @Test
@@ -96,6 +118,7 @@ class AssociationCoordinatorTest {
     static final class Parent implements IIdEntity<Long, Parent> {
         private Long id;
         private Collection<Child> children;
+        private Detail profile;
 
         Parent(Long id) { this.id = id; }
         @Override public Long getId() { return id; }
@@ -105,9 +128,18 @@ class AssociationCoordinatorTest {
             this.children = children;
             markPresentProperty("children");
         }
+        public Detail getProfile() { return profile; }
+        public void setProfile(Detail profile) {
+            this.profile = profile;
+            markPresentProperty("profile");
+        }
         @Override public List<EntityAssociation> associations() {
-            return List.of(EntityAssociation.many("children", Child.class,
-                    "id", "parentId", true));
+            return List.of(
+                    EntityAssociation.many("children", Child.class,
+                            "id", "parentId", true),
+                    EntityAssociation.one("profile", Detail.class,
+                            "id", "parentId", false)
+            );
         }
     }
 
@@ -141,6 +173,7 @@ class AssociationCoordinatorTest {
 
     static final class Detail implements IIdEntity<Long, Detail> {
         private Long id;
+        private Long parentId;
         private String name;
 
         Detail(Long id, String name) {
@@ -149,6 +182,8 @@ class AssociationCoordinatorTest {
         }
         @Override public Long getId() { return id; }
         @Override public void setId(Long id) { this.id = id; }
+        public Long getParentId() { return parentId; }
+        public void setParentId(Long parentId) { this.parentId = parentId; }
         public String getName() { return name; }
         public void setName(String name) { this.name = name; }
     }
@@ -230,10 +265,33 @@ class AssociationCoordinatorTest {
         private final Map<Long, Detail> rows = new LinkedHashMap<>();
         private int queryCount;
 
+        @Override public boolean add(Detail entity) {
+            if (entity.getId() == null) {
+                entity.setId(rows.keySet().stream().mapToLong(Long::longValue)
+                        .max().orElse(0L) + 1L);
+            }
+            rows.put(entity.getId(), entity);
+            return true;
+        }
+
+        @Override public boolean updateById(Detail entity) {
+            if (!rows.containsKey(entity.getId())) return false;
+            rows.put(entity.getId(), entity);
+            return true;
+        }
+
+        @Override public Detail getEntityById(Serializable id) {
+            return rows.get(id);
+        }
+
         @Override public List<Detail> findByCriteria(
                 vip.isass.framework.nocode.criteria.ICriteria<Detail, DetailCriteria> criteria) {
             queryCount++;
-            return new ArrayList<>(rows.values());
+            Long parentId = ((DetailCriteria) criteria).getEquals("parentId", Long.class);
+            return rows.values().stream()
+                    .filter(detail -> parentId == null
+                            || java.util.Objects.equals(detail.getParentId(), parentId))
+                    .toList();
         }
     }
 }

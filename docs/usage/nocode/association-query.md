@@ -46,7 +46,8 @@ association.rolePermissions.permission.criteria.enabledFlag=true
 写入时，实体关系属性的请求出现性决定是否处理：
 
 - 未提交关系属性：不处理；
-- `MERGE`：新增无 ID 对象、更新有 ID 对象、保留未提交的已有关系；
+- `MERGE`：新增无 ID 对象、更新有 ID 对象、保留未提交的已有关系；对于以当前实体 ID 关联从表外键的单体关系，
+  无 ID 对象会先按关联键查找唯一目标，存在时更新该目标，不存在时才新增，查出多条时按一对一数据异常失败；
 - `REPLACE`：请求值代表该方向最终结果，移除未提交的旧目标；
 - 显式空集合：`MERGE` 不处理，`REPLACE` 清空；
 - 单体关系显式 `null`：`REPLACE` 清空，`MERGE` 不处理。

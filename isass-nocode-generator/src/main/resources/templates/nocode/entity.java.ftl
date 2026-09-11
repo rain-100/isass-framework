@@ -114,14 +114,21 @@ import java.time.LocalTime;
 <#break>
 </#if>
 </#list>
+<#assign needsCollectionImport = isParentIdEntity>
 <#list table.fields as field>
 <#if field.propertyType?starts_with("Collection")>
-import java.util.Collection;
-<#break>
+<#assign needsCollectionImport = true>
 </#if>
 </#list>
-<#if associations?has_content || isParentIdEntity>
+<#list associations as association>
+<#if association.kind()?string == "MANY">
+<#assign needsCollectionImport = true>
+</#if>
+</#list>
+<#if needsCollectionImport>
 import java.util.Collection;
+</#if>
+<#if associations?has_content || isParentIdEntity>
 import java.util.List;
 </#if>
 
