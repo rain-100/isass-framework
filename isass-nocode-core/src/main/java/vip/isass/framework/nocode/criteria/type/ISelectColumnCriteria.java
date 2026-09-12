@@ -50,13 +50,17 @@ public interface ISelectColumnCriteria<E extends IEntity<E>, C extends ISelectCo
         return addSelectColumns(selectColumns);
     }
 
-    @SuppressWarnings("unchecked")
-    default C setSelectColumns(PropertyGetter<E, ?>... getters) {
+    default C setSelectColumns(PropertyGetter<E, ?> first) {
         getSelectColumns().clear();
-        if (ArrayUtil.isNotEmpty(getters)) {
-            for (PropertyGetter<E, ?> getter : getters) {
-                addSelectColumn(PropertyNameResolver.resolve(getter));
-            }
+        return addSelectColumn(first);
+    }
+
+    @SuppressWarnings("unchecked")
+    default C setSelectColumns(PropertyGetter<E, ?> first, PropertyGetter<E, ?>... getters) {
+        getSelectColumns().clear();
+        addSelectColumn(first);
+        for (PropertyGetter<E, ?> getter : getters) {
+            addSelectColumn(PropertyNameResolver.resolve(getter));
         }
         return (C) this;
     }

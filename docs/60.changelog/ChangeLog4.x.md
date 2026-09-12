@@ -4,6 +4,12 @@
 
 ### 4.0.0-SNAPSHOT
 
+- **Maven 4 构建告警收敛**：显式锁定 clean、jar、install 默认生命周期插件版本；Lombok 升级至 1.18.48，
+  并通过非弃用的 `annotationProcessors` 配置显式启用处理器，同时为 JDK 25 编译进程配置
+  Lombok 所需的 Unsafe 兼容模式；测试 JVM 在 Mockito agent 生效时关闭不可用的 CDS；属性引用形式的
+  `setSelectColumns` 要求至少传入一个字段，并为单字段调用提供固定参数重载；
+  Redisson 4.7 显式切换为与 Spring Boot 4.0 对应的 `redisson-spring-data-40`，并排除 Lock4j 引入的 Boot 2
+  `spring-boot-starter-aop`，改用 Boot 4 的 `spring-boot-starter-aspectj`。
 - **Javadoc 与 Smart-doc 标签兼容**：Javadoc 插件统一识别 Smart-doc 的 `@tag`、`@download`、API 说明
   `@apiNote` 和历史 `@date` 源码标签，只渲染有说明内容的 `@apiNote`，避免业务接口安装时产生未知自定义标签告警；
   NoCode Entity 模板对写入 Javadoc 的数据库字段注释执行 HTML 转义，避免泛型形式的 `[javaType--...]`
