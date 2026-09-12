@@ -29,7 +29,8 @@
 
 生成 Entity 的类体统一按“静态常量、数据库字段、关联字段、内部枚举、集中 setter、主键适配方法、
 `associations()`、`tableName()`、`randomEntity()`”排列。setter 必须集中在全部字段声明之后，不能穿插在字段之间；
-生成 Entity 不包含仅用于打印随机对象的 `main()`。
+生成 Entity 不包含仅用于打印随机对象的 `main()`。数据库字段注释写入生成源码的 Javadoc 时会进行 HTML 转义，
+避免 `[javaType--Map<String, Object>]` 等合法 DSL 内容被 Javadoc 当作未闭合的 HTML 标签；`ApiDoc` 说明仍保留原始文本。
 
 ## 示例
 

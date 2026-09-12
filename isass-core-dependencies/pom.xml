@@ -857,8 +857,20 @@
                         <tags>
                             <tag>
                                 <name>date</name>
+                                <placement>X</placement>
+                            </tag>
+                            <tag>
+                                <name>tag</name>
+                                <placement>X</placement>
+                            </tag>
+                            <tag>
+                                <name>apiNote</name>
                                 <placement>a</placement>
-                                <head>Date</head>
+                                <head>API Note:</head>
+                            </tag>
+                            <tag>
+                                <name>download</name>
+                                <placement>X</placement>
                             </tag>
                         </tags>
                     </configuration>

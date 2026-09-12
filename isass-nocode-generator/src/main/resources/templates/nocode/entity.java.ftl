@@ -182,7 +182,7 @@ public class ${entity} implements
 <#list table.fields as field>
     /**
      * <p>
-     * <#if (field.comment?trim?length > 0)>${field.comment}<#else>${field.propertyName}</#if>
+     * <#if (field.comment?trim?length > 0)>${field.comment?html}<#else>${field.propertyName?html}</#if>
      * </p>
      * 数据库字段名: ${field.name}
      * 数据库字段类型: ${field.metaInfo.typeName}

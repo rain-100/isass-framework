@@ -4,6 +4,10 @@
 
 ### 4.0.0-SNAPSHOT
 
+- **Javadoc 与 Smart-doc 标签兼容**：Javadoc 插件统一识别 Smart-doc 的 `@tag`、`@download`、API 说明
+  `@apiNote` 和历史 `@date` 源码标签，只渲染有说明内容的 `@apiNote`，避免业务接口安装时产生未知自定义标签告警；
+  NoCode Entity 模板对写入 Javadoc 的数据库字段注释执行 HTML 转义，避免泛型形式的 `[javaType--...]`
+  被误判为非法 HTML。
 - **NoCode 一对一关联更新语义**：以当前实体 ID 关联从表外键的单体关系在未提交从表主键时，先按关联键查找并
   更新唯一已有目标，仅在目标不存在时新增；发现多条目标记录时直接报告一对一数据异常，避免个人资料等嵌套更新
   被误判为重复新增。实体模板仅在存在列表关联时导入 `Collection`，避免单体关联实体产生无用 import。
