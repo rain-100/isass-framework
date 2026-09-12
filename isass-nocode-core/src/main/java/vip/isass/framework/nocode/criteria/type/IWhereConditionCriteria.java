@@ -129,7 +129,7 @@ public interface IWhereConditionCriteria<E extends IEntity<E>, C extends IWhereC
         return getValue(propertyName, Condition.NOT_EQUAL, clazz);
     }
 
-    @SuppressWarnings("unchecked")ππ∏
+    @SuppressWarnings("unchecked")
     default C orNotEquals(String propertyName, Object value) {
         getWhereConditions().add(new WhereCondition(null, Condition.OR, null));
         getWhereConditions().add(new WhereCondition(propertyName, Condition.NOT_EQUAL, value));
