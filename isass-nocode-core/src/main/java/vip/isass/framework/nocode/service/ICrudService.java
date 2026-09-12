@@ -21,6 +21,7 @@ import vip.isass.framework.nocode.entity.IIdEntity;
 import vip.isass.framework.nocode.entity.SuperCudReq;
 import vip.isass.framework.nocode.entity.SuperCudResult;
 import vip.isass.framework.nocode.property.PropertyGetter;
+import vip.isass.framework.nocode.property.PropertyNameResolver;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -55,6 +56,24 @@ public interface ICrudService<
             throw new IllegalArgumentException("createBatch.entities 不能为空");
         }
         return superCud(SuperCudReq.<E, C>addAll(entities)).addedCount();
+    }
+
+    default boolean createIfAbsent(
+            E entity,
+            PropertyGetter<E, ?> field) {
+        return createIfAbsent(
+                entity,
+                PropertyNameResolver.resolve(field));
+    }
+
+    default boolean createIfAbsent(
+            E entity,
+            PropertyGetter<E, ?> firstField,
+            PropertyGetter<E, ?> secondField) {
+        return createIfAbsent(
+                entity,
+                PropertyNameResolver.resolve(firstField),
+                PropertyNameResolver.resolve(secondField));
     }
 
     default boolean createIfAbsent(E entity, String firstField, String... remainingFields) {

@@ -27,15 +27,17 @@
 
         <!-- region plugins version-->
 
-        <maven-source-plugin.version>3.3.1</maven-source-plugin.version>
+        <maven-source-plugin.version>3.4.0</maven-source-plugin.version>
+        <maven-resources-plugin.version>3.5.0</maven-resources-plugin.version>
         <maven-javadoc-plugin.version>3.12.0</maven-javadoc-plugin.version>
-        <maven-compiler-plugin.version>4.0.0-beta-4</maven-compiler-plugin.version>
-        <maven-surefire-plugin.version>3.5.4</maven-surefire-plugin.version>
+        <maven-compiler-plugin.version>4.0.0-beta-5</maven-compiler-plugin.version>
+        <maven-surefire-plugin.version>3.6.0</maven-surefire-plugin.version>
         <git-commit-id-plugin.version>4.9.10</git-commit-id-plugin.version>
-        <maven-assembly-plugin.version>3.7.1</maven-assembly-plugin.version>
+        <maven-assembly-plugin.version>3.8.0</maven-assembly-plugin.version>
         <maven-release-plugin.version>3.3.1</maven-release-plugin.version>
         <smart-doc.version>3.1.2</smart-doc.version>
         <versions-maven-plugin.version>2.21.0</versions-maven-plugin.version>
+        <maven-dependency-plugin.version>3.11.0</maven-dependency-plugin.version>
 
         <!-- endregion -->
 
@@ -154,9 +156,6 @@
         <jasypt.version>3.0.5</jasypt.version>
         <jasypt-core.version>1.9.3</jasypt-core.version>
 
-        <!-- rpc -->
-        <okhttp.version>5.5.0</okhttp.version>
-
         <!-- 文件管理 -->
         <xFileStorage.version>2.3.0</xFileStorage.version>
         <amazonaws-s3.version>1.12.792</amazonaws-s3.version>
@@ -167,6 +166,8 @@
         <!-- jakarta -->
         <jakarta.annotation-api.version>3.0.0</jakarta.annotation-api.version>
 
+        <!-- test -->
+        <mockito-core.version>5.23.0</mockito-core.version>
     </properties>
 
     <dependencyManagement>
@@ -191,15 +192,6 @@
                 <groupId>cn.hutool</groupId>
                 <artifactId>hutool-all</artifactId>
                 <version>${hutool.version}</version>
-            </dependency>
-
-            <!-- 需要放在 spring-cloud-dependencies 前面，里面的 spring-cloud-commons-dependencies 依赖传递了 okhttp4.12.0 -->
-            <dependency>
-                <groupId>com.squareup.okhttp3</groupId>
-                <artifactId>okhttp-bom</artifactId>
-                <version>${okhttp.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
             </dependency>
 
             <!-- netty -->
@@ -807,6 +799,13 @@
                 <version>${lombok.version}</version>
                 <scope>provided</scope>
             </dependency>
+
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-core</artifactId>
+                <version>${mockito-core.version}</version>
+                <scope>test</scope>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -825,6 +824,12 @@
                             </configuration>
                         </execution>
                     </executions>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-resources-plugin</artifactId>
+                    <version>${maven-resources-plugin.version}</version>
                 </plugin>
 
                 <plugin>
@@ -892,6 +897,9 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>${maven-surefire-plugin.version}</version>
+                    <configuration>
+                        <argLine>-javaagent:${org.mockito:mockito-core:jar}</argLine>
+                    </configuration>
                 </plugin>
 
                 <plugin>
@@ -929,6 +937,11 @@
                     <version>${smart-doc.version}</version>
                     <configuration>
                         <configFile>${project.basedir}/src/main/resources/openapi/smart-doc.json</configFile>
+                        <includes combine.children="append">
+                            <include>vip.isass:isass-entrypoint-core</include>
+                            <include>vip.isass:isass-nocode-core</include>
+                            <include>vip.isass:isass-core-common</include>
+                        </includes>
                     </configuration>
                     <executions>
                         <execution>
@@ -983,6 +996,20 @@
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>versions-maven-plugin</artifactId>
                     <version>${versions-maven-plugin.version}</version>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-dependency-plugin</artifactId>
+                    <version>${maven-dependency-plugin.version}</version>
+                    <executions>
+                        <execution>
+                            <id>resolve-test-dependency-properties</id>
+                            <goals>
+                                <goal>properties</goal>
+                            </goals>
+                        </execution>
+                    </executions>
                 </plugin>
             </plugins>
         </pluginManagement>
