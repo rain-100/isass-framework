@@ -72,7 +72,6 @@ public interface IWhereConditionCriteria<E extends IEntity<E>, C extends IWhereC
      * 添加查询条件
      *
      * @param propertyName propertyName
-     * @param columnName   columnName
      * @param value        value
      */
     @SuppressWarnings("unchecked")
@@ -130,7 +129,7 @@ public interface IWhereConditionCriteria<E extends IEntity<E>, C extends IWhereC
         return getValue(propertyName, Condition.NOT_EQUAL, clazz);
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings("unchecked")ππ∏
     default C orNotEquals(String propertyName, Object value) {
         getWhereConditions().add(new WhereCondition(null, Condition.OR, null));
         getWhereConditions().add(new WhereCondition(propertyName, Condition.NOT_EQUAL, value));
