@@ -4,6 +4,17 @@
 
 ### 4.0.0-SNAPSHOT
 
+- **上传元数据缺省绑定**：单文件 multipart 请求在 Spring HTTP 边界补齐表单对象缺省的 `fileName`
+  和 `fileSize`，保留显式值，业务上传接口仍可使用 `InputStream`。
+
+- **Multipart 远程传输**：HTTP 客户端支持 `MultipartFile` 文件参数，通过 Resource 保留原始文件名。
+
+- **Entrypoint 表单对象绑定**：`FormFieldParam` 对象参数改为按属性名绑定平铺表单字段，HTTP 客户端同步
+  展开对象；不再支持旧同名 JSON 字段，简单类型及文件参数语义不变。
+
+- **Linux 启动脚本兼容性**：`run.sh` 收敛为 POSIX `sh`，移除 Bash `[[`/正则和外部 GNU `getopt`
+  依赖，兼容 `dash`、Bash POSIX 模式及 BusyBox `ash`；补充可移植的参数、端口与健康响应处理，健康检查在
+  `curl` 不可用时回退到 `wget`，并增加启动自动跟随日志等回归覆盖。
 - **Maven 4 构建告警收敛**：显式锁定 clean、jar、install 默认生命周期插件版本；Lombok 升级至 1.18.48，
   并通过非弃用的 `annotationProcessors` 配置显式启用处理器，同时为 JDK 25 编译进程配置
   Lombok 所需的 Unsafe 兼容模式；测试 JVM 在 Mockito agent 生效时关闭不可用的 CDS；属性引用形式的
@@ -335,6 +346,11 @@
 
 #### fix
 
+- **文件流响应头修正**：HTTP 文件流清除全局 UTF-8 响应编码后再设置精确的二进制
+  `Content-Type`，避免图片响应被附加 `charset=UTF-8`；预览和下载保留各自的
+  `Content-Disposition` 与文件名。
+- **移除路由响应头**：删除 Spring MVC 的 `UriMappingInterceptor` 及注册，不再向客户端发送
+  `Uri-Mapping`；保留 Netty 对旧服务返回该头的兼容读取。
 - **超级开发者动态 URL 授权**：`DynamicRoleAuthorizationManager` 在查询 URL 资源角色前优先识别
   `ROLE_SUPER_DEV`，避免尚未绑定业务权限或未登记资源角色的接口错误拒绝超级开发者；普通已认证用户仍需匹配
   URL 对应角色。

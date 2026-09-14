@@ -21,7 +21,6 @@ import vip.isass.framework.web.exception.WebStatusMapping;
 import vip.isass.framework.web.response.AdvancedFeatureResponseAdvice;
 import vip.isass.framework.web.interceptor.RestTemplateInterceptor;
 import vip.isass.framework.web.interceptor.TraceIdInterceptor;
-import vip.isass.framework.web.interceptor.UriMappingInterceptor;
 import vip.isass.framework.entrypoint.registry.ServiceDefinitionRegistry;
 import vip.isass.framework.web.security.EntrypointAnonymousUrlProvider;
 import vip.isass.framework.web.security.EntrypointAuthenticatedUrlProvider;
@@ -88,11 +87,6 @@ public class WebAutoConfiguration {
     @Bean
     public TraceIdInterceptor traceIdInterceptor() {
         return new TraceIdInterceptor();
-    }
-
-    @Bean
-    public UriMappingInterceptor uriMappingInterceptor(UriPrefixProvider uriPrefixProvider) {
-        return new UriMappingInterceptor(uriPrefixProvider);
     }
 
     @Bean

@@ -128,7 +128,41 @@ public class EntrypointHttpServerTest {
     }
 
     @Test
-    void bindsJsonFormFieldAndFileBytes() throws Exception {
+    void bindsFlatFormFieldsAndFileBytes() throws Exception {
+        DefaultServiceDefinitionRegistry registry = registry(new TestServiceImpl());
+        EntrypointHttpServer server = new EntrypointHttpServer(registry, registry, new ObjectMapper());
+        MockMultipartHttpServletRequest request = new MockMultipartHttpServletRequest();
+        request.setMethod("POST");
+        request.setRequestURI("/sample-service/nocode/demo/test/upload");
+        request.addParameter("name", "avatar");
+        request.addParameter("unrelated", "ignored");
+        request.addFile(new MockMultipartFile("file", "avatar.bin",
+                "application/octet-stream", new byte[]{1, 2, 3}));
+        var response = server.invoke("sample-service", "demo", "test", "upload",
+                new LinkedMultiValueMap<>(), request, new MockHttpServletResponse());
+        assertEquals("avatar:3", assertInstanceOf(Resp.class, response).getData());
+    }
+
+    @Test
+    void fillsMissingFileMetadataWithoutOverwritingExplicitValues() throws Exception {
+        var registry = registry(new TestServiceImpl());
+        var server = new EntrypointHttpServer(registry, registry, new ObjectMapper());
+        var request = new MockMultipartHttpServletRequest();
+        request.setMethod("POST");
+        request.setRequestURI("/sample-service/nocode/demo/test/upload");
+        request.addFile(new MockMultipartFile("file", "original.jpg", "image/jpeg", new byte[]{1, 2, 3}));
+        var response = server.invoke("sample-service", "demo", "test", "upload",
+                new LinkedMultiValueMap<>(), request, new MockHttpServletResponse());
+        assertEquals("original.jpg:3:3", assertInstanceOf(Resp.class, response).getData());
+        request.addParameter("fileName", "custom.jpg");
+        request.addParameter("fileSize", "99");
+        response = server.invoke("sample-service", "demo", "test", "upload",
+                new LinkedMultiValueMap<>(), request, new MockHttpServletResponse());
+        assertEquals("custom.jpg:99:3", assertInstanceOf(Resp.class, response).getData());
+    }
+
+    @Test
+    void rejectsJsonFormObject() throws Exception {
         TestServiceImpl implementation = new TestServiceImpl();
         DefaultServiceDefinitionRegistry registry = registry(implementation);
         EntrypointHttpServer server = new EntrypointHttpServer(registry, registry, new ObjectMapper());
@@ -139,10 +173,9 @@ public class EntrypointHttpServerTest {
         request.addFile(new MockMultipartFile("file", "avatar.bin",
                 "application/octet-stream", new byte[]{1, 2, 3}));
 
-        var response = server.invoke("sample-service", "demo", "test", "upload",
-                new LinkedMultiValueMap<>(), request, new MockHttpServletResponse());
-
-        assertEquals("avatar:3", assertInstanceOf(Resp.class, response).getData());
+        assertThrows(IllegalArgumentException.class, () -> server.invoke(
+                "sample-service", "demo", "test", "upload",
+                new LinkedMultiValueMap<>(), request, new MockHttpServletResponse()));
     }
 
     @Test
@@ -187,10 +220,10 @@ public class EntrypointHttpServerTest {
         DefaultServiceDefinitionRegistry registry = registry(implementation);
         EntrypointHttpServer server = new EntrypointHttpServer(registry, registry, new ObjectMapper());
         MockHttpServletRequest request = new MockHttpServletRequest("GET",
-                "/sample-service/nocode/demo/test/download");
+                "/sample-service/nocode/demo/test/preview");
 
         MockHttpServletResponse response = new MockHttpServletResponse();
-        Object result = server.invoke("sample-service", "demo", "test", "download",
+        Object result = server.invoke("sample-service", "demo", "test", "preview",
                 new LinkedMultiValueMap<>(), request, response);
 
         assertNull(result);
@@ -201,6 +234,25 @@ public class EntrypointHttpServerTest {
         assertEquals("inline", disposition.getType());
         assertEquals("测试.txt", disposition.getFilename());
         assertEquals("data", response.getContentAsString());
+    }
+
+    @Test
+    void keepsAttachmentDispositionForDownloadFileResponses() throws Exception {
+        TestServiceImpl implementation = new TestServiceImpl();
+        DefaultServiceDefinitionRegistry registry = registry(implementation);
+        EntrypointHttpServer server = new EntrypointHttpServer(registry, registry, new ObjectMapper());
+        MockHttpServletRequest request = new MockHttpServletRequest("GET",
+                "/sample-service/nocode/demo/test/download");
+
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        Object result = server.invoke("sample-service", "demo", "test", "download",
+                new LinkedMultiValueMap<>(), request, response);
+
+        assertNull(result);
+        ContentDisposition disposition = ContentDisposition.parse(
+                response.getHeader(HttpHeaders.CONTENT_DISPOSITION));
+        assertEquals("attachment", disposition.getType());
+        assertEquals("测试.txt", disposition.getFilename());
     }
 
     private DefaultServiceDefinitionRegistry registry(TestServiceImpl implementation) {
@@ -223,6 +275,9 @@ public class EntrypointHttpServerTest {
 
         @EntrypointOperation(operationName = "business", displayName = "业务操作", httpMethod = HttpMethod.GET)
         String business();
+
+        @EntrypointOperation(operationName = "preview", displayName = "预览", httpMethod = HttpMethod.GET)
+        FileStream preview();
 
         @EntrypointOperation(operationName = "download", displayName = "下载", httpMethod = HttpMethod.GET)
         FileStream download();
@@ -256,8 +311,14 @@ public class EntrypointHttpServerTest {
         }
 
         @Override
-        public FileStream download() {
+        public FileStream preview() {
             return new FileStream("测试.txt", "text/plain", 4L, false,
+                    output -> output.write("data".getBytes(StandardCharsets.UTF_8)));
+        }
+
+        @Override
+        public FileStream download() {
+            return new FileStream("测试.txt", "text/plain", 4L, true,
                     output -> output.write("data".getBytes(StandardCharsets.UTF_8)));
         }
 
@@ -287,7 +348,14 @@ public class EntrypointHttpServerTest {
     record QueryCondition(String propertyName, String condition, Object value) {
     }
 
-    record Metadata(String name) {
+    static final class Metadata {
+        private String name;
+        private String fileName;
+        private Long fileSize;
+        public String name() { return name == null ? fileName + ":" + fileSize : name; }
+        public void setName(String name) { this.name = name; }
+        public void setFileName(String fileName) { this.fileName = fileName; }
+        public void setFileSize(Long fileSize) { this.fileSize = fileSize; }
     }
 
     static final class PresencePayload implements PropertyPresenceAware {

@@ -20,51 +20,51 @@ JVM_HOST_MEMORY_VARS="-Xms3G -Xmx6G -XX:MetaspaceSize=256M -XX:MaxMetaspaceSize=
 JVM_DOCKER_MEMORY_VARS="-XX:MaxRAMPercentage=88.0 -XX:MetaspaceSize=256M -XX:MaxMetaspaceSize=512M"
 
 # 默认JVM内存参数，如果设置了环境变量 JVM_MEMORY_VARS ，则会被环境变量覆盖
-: ${JVM_MEMORY_VARS:=""}
+: "${JVM_MEMORY_VARS:=}"
 echo "JVM_MEMORY_VARS=$JVM_MEMORY_VARS"
 
 # 默认JVM非内存参数，如果设置了环境变量 JVM_VARS ，则会被环境变量覆盖
-: ${JVM_VARS:="-server -XX:+PrintCommandLineFlags"}
+: "${JVM_VARS:=-server -XX:+PrintCommandLineFlags}"
 echo "JVM_VARS=$JVM_VARS"
 
 # 是否打印gc信息
-: ${JVM_PRINT_GC:="false"}
+: "${JVM_PRINT_GC:=false}"
 echo "JVM_PRINT_GC=$JVM_PRINT_GC"
 
 # java 远程调试端口。当设置此值时，本 java 应用会监听此端口，提供给开发人员进行连接，从而实现代码级别调试
-: ${DEBUG_PORT:=""}
+: "${DEBUG_PORT:=}"
 echo "DEBUG_PORT=$DEBUG_PORT"
 
 # jmx hostname。当设置此值时，本 java 应用会使用本参数设置 jmx 的 hostname。一般设置为本机 ip
-: ${JMX_HOSTNAME:=""}
+: "${JMX_HOSTNAME:=}"
 echo "JMX_HOSTNAME=$JMX_HOSTNAME"
 
 # jmx 端口。当设置此值时，本 java 应用会监听此端口，从而对 java 程序进行性能监控
-: ${JMX_PORT:=""}
+: "${JMX_PORT:=}"
 echo "JMX_PORT=$JMX_PORT"
 
 # 启动后是否自动打印日志，如果设置了环境变量 AUTO_TAIL_LOG，则会被环境变量覆盖
-: ${AUTO_TAIL_LOG:="true"}
+: "${AUTO_TAIL_LOG:=true}"
 echo "AUTO_TAIL_LOG=$AUTO_TAIL_LOG"
 
 # 启动前是否先删除所有日志文件，如果设置了环境变量 AUTO_TAIL_LOG，则会被环境变量覆盖
-: ${RM_LOG:="false"}
+: "${RM_LOG:=false}"
 echo "RM_LOG=$RM_LOG"
 
 # 启动 java 的命令是否结合 nohup 进行不挂断运行，如果设置了环境变量 RUN_AS_NOHUP，则会被环境变量覆盖
-: ${RUN_AS_NOHUP:="true"}
+: "${RUN_AS_NOHUP:=true}"
 echo "RUN_AS_NOHUP=$RUN_AS_NOHUP"
 
 # 当在 docker 环境中，启动 java 报错后，会导致容器退出，可配置此参数，阻止容器退出，便于进入容器调试问题
-: ${KEEP_DOCKER_RUNNING:="false"}
+: "${KEEP_DOCKER_RUNNING:=false}"
 echo "KEEP_DOCKER_RUNNING=$KEEP_DOCKER_RUNNING"
 
 # 打印日志到控制台
-: ${WRITE_LOG_STDOUT:="false"}
+: "${WRITE_LOG_STDOUT:=false}"
 echo "WRITE_LOG_STDOUT=$WRITE_LOG_STDOUT"
 
 # 打印日志到日志文件
-: ${WRITE_LOG_TO_FILE:="true"}
+: "${WRITE_LOG_TO_FILE:=true}"
 echo "WRITE_LOG_TO_FILE=$WRITE_LOG_TO_FILE"
 
 # java 程序生成日志文件的目录，不能随便改
@@ -78,8 +78,8 @@ echo "LOG_PATH=$LOG_PATH"
 pid=''
 command=''
 CURRENT_SCRIPT_DIR=$(
-    cd "$(dirname "$0")"
-    pwd
+    CDPATH= cd "$(dirname "$0")" || exit 1
+    pwd -P
 )
 
 print_usage() {
@@ -120,7 +120,7 @@ start() {
 
     get_pid
 
-    if [ "$pid" != "" ]; then
+    if [ -n "$pid" ]; then
         if [ -d "/proc/${pid}" ]; then
             echo "found pid file './application.pid', ${project_name} is running, pid is ${pid}, can not start repeatedly!"
             exit 1
@@ -144,7 +144,7 @@ start() {
     fi
 
     jvm_params="${JVM_VARS} ${JVM_MEMORY_VARS}"
-    if [ $JVM_PRINT_GC = "true" ]; then
+    if [ "$JVM_PRINT_GC" = "true" ]; then
         jvm_params="${jvm_params} -XX:+PrintGC -XX:+PrintGCDetails -XX:+PrintGCDateStamps -Xloggc:${LOG_PATH}/gc.log"
     fi
     if [ -n "$DEBUG_PORT" ]; then
@@ -163,21 +163,21 @@ start() {
     fi
 
     cmd="java ${jvm_params} -jar ${project_jar}"
-    if [ $RUN_AS_NOHUP = "true" ]; then
+    if [ "$RUN_AS_NOHUP" = "true" ]; then
         cmd="nohup $cmd 1>/dev/null 2>&1 &"
     fi
 
-    if [ $RM_LOG = "true" ]; then
+    if [ "$RM_LOG" = "true" ]; then
         echo "deleting all log files..."
-        eval "rm -rf ${LOG_PATH}/*"
+        rm -rf "${LOG_PATH}"/*
     fi
 
     echo "executing cmd:"
     echo "$cmd"
     echo ""
-    eval $cmd
+    eval "$cmd"
 
-    if [[ $AUTO_TAIL_LOG = "true" ]] && [[ $RUN_AS_NOHUP = "true" ]]; then
+    if [ "$AUTO_TAIL_LOG" = "true" ] && [ "$RUN_AS_NOHUP" = "true" ]; then
         echo 'log will printing after 5 second using command "tail -f -n 500" automatic.'
         echo 'you can use "ctrl+c" to exit log printing, and will not close the application.'
         echo ''
@@ -185,12 +185,12 @@ start() {
         sleep 5
         print_log
     else
-        if [ $RUN_AS_NOHUP != "true" ]; then
+        if [ "$RUN_AS_NOHUP" != "true" ]; then
             echo "app started, use './run.sh status' to check status"
         fi
     fi
 
-    if [ $KEEP_DOCKER_RUNNING = "true" ]; then
+    if [ "$KEEP_DOCKER_RUNNING" = "true" ]; then
         tail -f /dev/null
     fi
 }
@@ -200,14 +200,14 @@ stop() {
 
     get_pid
 
-    if [ "$pid" = "" ]; then
+    if [ -z "$pid" ]; then
         echo "${project_name} is not running!"
         return 0
     fi
 
     if [ -d "/proc/${pid}" ]; then
         echo "${project_name} is running, pid is ${pid}"
-        kill ${pid}
+        kill "$pid"
         if [ $? -ne 0 ]; then
             echo "failed to stop ${project_name}!"
             return 1
@@ -222,7 +222,7 @@ stop() {
 
 status() {
     get_pid
-    if [ "$pid" = "" ]; then
+    if [ -z "$pid" ]; then
         echo "${project_name} is not running."
     else
         if [ -d "/proc/${pid}" ]; then
@@ -234,17 +234,21 @@ status() {
 }
 
 print_log() {
-    if [ ! -d ${LOG_PATH} ]; then
+    if [ ! -d "$LOG_PATH" ]; then
         echo "print log error, can not found log folder [${LOG_PATH}], please try print log later."
-    else
-        cd ${LOG_PATH}
-        filename=$(ls -t | grep ^log | head -n1 | awk '{print $0}')
-        tail -f -n 500 $filename
+        return 1
     fi
+
+    filename=$(ls -t "${LOG_PATH}"/log* 2>/dev/null | sed -n '1p')
+    if [ -z "$filename" ]; then
+        echo "print log error, can not found log file in [${LOG_PATH}], please try print log later."
+        return 1
+    fi
+    tail -n 500 -f "$filename"
 }
 
 check_jdk() {
-    if command -v java >/dev/null; then
+    if command -v java >/dev/null 2>&1; then
         java_version=$(java -version 2>&1 | sed '1!d' | sed -e 's/"//g' -e 's/version//')
         echo "java_version: ${java_version}"
     else
@@ -286,7 +290,7 @@ get_server_port() {
 
 health_check() {
     get_pid
-    if [ "$pid" = "" ]; then
+    if [ -z "$pid" ]; then
         echo "${project_name} is not running."
         echo "${project_name} unhealthy"
         exit 1
@@ -302,13 +306,16 @@ health_check() {
             microService=${project_name##*-service-}
             url="http://localhost:${port}/${microService}/actuator/health"
 
-            echo $url
-            # http_code=$(curl -I -m 5 -o /dev/null -s -w %{http_code} ${url})
-            resp=$(curl -s --connect-timeout 5 -m 5 $url)
-            echo $resp
-            if [[ "$resp" =~ '"UP"' ]]; then
+            echo "$url"
+            if ! resp=$(http_get "$url"); then
+                echo "health request failed; install curl or wget and check the service endpoint"
+                echo "${project_name} unhealthy"
+                exit 1
+            fi
+            echo "$resp"
+            if is_healthy_response "$resp"; then
                 echo "${project_name} health"
-                exit
+                exit 0
             fi
             echo "${project_name} unhealthy"
             exit 1
@@ -320,15 +327,41 @@ health_check() {
     fi
 }
 
-parse_options() {
-    TEMP=$(getopt -n "$0" -o hl:d:n:r -l help,auto_tail_log:,debug_port:,print_gc,run_as_nohup:,jmx_hostname:,jmx_port:,rm_log -- "$@")
-    if [ $? != 0 ]; then
-        echo "command parse error..." >&2
+http_get() {
+    if command -v curl >/dev/null 2>&1; then
+        curl --silent --show-error --connect-timeout 5 --max-time 5 "$1"
+    elif command -v wget >/dev/null 2>&1; then
+        wget -q -T 5 -O - "$1"
+    else
+        echo "health check requires curl or wget" >&2
+        return 127
+    fi
+}
+
+is_healthy_response() {
+    case "$1" in
+    *'"UP"'*) return 0 ;;
+    *) return 1 ;;
+    esac
+}
+
+is_valid_port() {
+    case "$1" in
+    '' | *[!0-9]*) return 1 ;;
+    esac
+    [ "$1" -le 65535 ] 2>/dev/null
+}
+
+set_run_command() {
+    if [ -n "$command" ]; then
+        echo "unexpected argument: $1" >&2
         exit 1
     fi
+    command=$1
+}
 
-    eval set -- "$TEMP"
-    while true; do
+parse_options() {
+    while [ "$#" -gt 0 ]; do
         case "$1" in
         -h | --help)
             print_usage
@@ -345,79 +378,171 @@ parse_options() {
             shift
             ;;
         -l | --auto_tail_log)
+            option_name=$1
+            if [ "$#" -lt 2 ]; then
+                echo "missing value for option $option_name" >&2
+                exit 1
+            fi
             case "$2" in
             true | false)
-                echo "$1=$2"
+                echo "$option_name=$2"
                 AUTO_TAIL_LOG=$2
                 shift 2
                 ;;
             *)
-                echo "error value in option $1, must be true|false"
+                echo "error value in option $option_name, must be true|false"
+                exit 1
+                ;;
+            esac
+            ;;
+        --auto_tail_log=*)
+            option_name=${1%%=*}
+            option_value=${1#*=}
+            case "$option_value" in
+            true | false)
+                echo "$option_name=$option_value"
+                AUTO_TAIL_LOG=$option_value
+                shift
+                ;;
+            *)
+                echo "error value in option $option_name, must be true|false"
                 exit 1
                 ;;
             esac
             ;;
         -n | --run_as_nohup)
+            option_name=$1
+            if [ "$#" -lt 2 ]; then
+                echo "missing value for option $option_name" >&2
+                exit 1
+            fi
             case "$2" in
             true | false)
-                echo "$1=$2"
+                echo "$option_name=$2"
                 RUN_AS_NOHUP=$2
                 shift 2
                 ;;
             *)
-                echo "error value in option $1, must be true|false"
+                echo "error value in option $option_name, must be true|false"
+                exit 1
+                ;;
+            esac
+            ;;
+        --run_as_nohup=*)
+            option_name=${1%%=*}
+            option_value=${1#*=}
+            case "$option_value" in
+            true | false)
+                echo "$option_name=$option_value"
+                RUN_AS_NOHUP=$option_value
+                shift
+                ;;
+            *)
+                echo "error value in option $option_name, must be true|false"
                 exit 1
                 ;;
             esac
             ;;
         -d | --debug_port)
-            if [[ $2 -ge 0 ]] && [[ $2 -le 65535 ]] 2>/dev/null; then
-                echo "$1=$2"
+            option_name=$1
+            if [ "$#" -lt 2 ]; then
+                echo "missing value for option $option_name" >&2
+                exit 1
+            fi
+            if is_valid_port "$2"; then
+                echo "$option_name=$2"
                 DEBUG_PORT=$2
                 shift 2
             else
-                echo "$1=$2"
-                echo "error value in option $1, must be port range[0-65535]"
+                echo "$option_name=$2"
+                echo "error value in option $option_name, must be port range[0-65535]"
+                exit 1
+            fi
+            ;;
+        --debug_port=*)
+            option_name=${1%%=*}
+            option_value=${1#*=}
+            if is_valid_port "$option_value"; then
+                echo "$option_name=$option_value"
+                DEBUG_PORT=$option_value
+                shift
+            else
+                echo "$option_name=$option_value"
+                echo "error value in option $option_name, must be port range[0-65535]"
                 exit 1
             fi
             ;;
         --jmx_hostname)
-            echo "$1=$2"
+            option_name=$1
+            if [ "$#" -lt 2 ]; then
+                echo "missing value for option $option_name" >&2
+                exit 1
+            fi
+            echo "$option_name=$2"
             JMX_HOSTNAME=$2
             shift 2
             ;;
+        --jmx_hostname=*)
+            option_name=${1%%=*}
+            option_value=${1#*=}
+            echo "$option_name=$option_value"
+            JMX_HOSTNAME=$option_value
+            shift
+            ;;
         --jmx_port)
-            if [[ $2 -ge 0 ]] && [[ $2 -le 65535 ]] 2>/dev/null; then
-                echo "$1=$2"
+            option_name=$1
+            if [ "$#" -lt 2 ]; then
+                echo "missing value for option $option_name" >&2
+                exit 1
+            fi
+            if is_valid_port "$2"; then
+                echo "$option_name=$2"
                 JMX_PORT=$2
                 shift 2
             else
-                echo "$1=$2"
-                echo "error value in option $1, must be port range[0-65535]"
+                echo "$option_name=$2"
+                echo "error value in option $option_name, must be port range[0-65535]"
+                exit 1
+            fi
+            ;;
+        --jmx_port=*)
+            option_name=${1%%=*}
+            option_value=${1#*=}
+            if is_valid_port "$option_value"; then
+                echo "$option_name=$option_value"
+                JMX_PORT=$option_value
+                shift
+            else
+                echo "$option_name=$option_value"
+                echo "error value in option $option_name, must be port range[0-65535]"
                 exit 1
             fi
             ;;
         --)
             shift
+            while [ "$#" -gt 0 ]; do
+                set_run_command "$1"
+                shift
+            done
             break
             ;;
-        *)
-            echo "Internal error!"
+        -*)
+            echo "unknown option: $1" >&2
             exit 1
+            ;;
+        *)
+            set_run_command "$1"
+            shift
             ;;
         esac
     done
     echo ""
-
-    if [ $# -gt 0 ]; then
-        command=$1
-    fi
 }
 
 run() {
-    parse_options $*
+    parse_options "$@"
 
-    cd $CURRENT_SCRIPT_DIR
+    cd "$CURRENT_SCRIPT_DIR" || exit 1
     if [ -z "$command" ]; then
         start
     else
@@ -429,27 +554,13 @@ run() {
         health) health_check ;;
         h | help) print_usage ;;
         *)
-            echo "illegal command: $1"
+            echo "illegal command: $command"
             echo ""
             print_usage
+            return 1
             ;;
         esac
     fi
 }
 
-run $*
-
-# 知识：
-# 问AI
-# shell 脚本有一行内容是：${JVM_VARS:='-server -XX:+PrintCommandLineFlags'}
-# 执行脚本时这行报错，报错信息是 ./run.sh: line 194: -server: not found
-# 回答：
-# 在shell中，单独的${var:=value}会被替换为变量的值，但如果没有将其放在命令替换或赋值语句中，直接出现这样的表达式，shell可能会试图将其作为命令来执行。
-# 例如，如果JVM_VARS变量未设置，那么${JVM_VARS:=...}会展开为等号右边的值，也就是'-server -XX:+PrintCommandLineFlags'。
-# 这时候，如果这个表达式没有被正确引用或作为参数传递给某个命令，shell会将展开后的内容拆分成多个单词，并尝试将第一个单词（即“-server”）作为命令来执行，
-# 从而导致错误，因为“-server”显然不是一个有效的命令。
-# 因此，这一行的正确写法应该是将变量扩展用于赋值，而不是直接展开。例如：
-# JVM_VARS="${JVM_VARS:-'-server -XX:+PrintCommandLineFlags'}"
-# 或者更简单的方式：
-# : ${JVM_VARS:='-server -XX:+PrintCommandLineFlags'}
-# 冒号 : 是一个空操作命令，仅用于确保变量赋值生效。
+run "$@"

@@ -2,7 +2,6 @@
 
 package vip.isass.framework.entrypoint.http;
 
-import org.springframework.core.ResolvableType;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
@@ -13,20 +12,19 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
-import vip.isass.framework.common.web.header.AdditionalRequestHeaderProvider;
 import vip.isass.framework.common.web.header.AdditionalRequestHeaderContext;
+import vip.isass.framework.common.web.header.AdditionalRequestHeaderProvider;
 import vip.isass.framework.entrypoint.PropertyPresenceBinder;
 import vip.isass.framework.entrypoint.metadata.OperationDefinition;
 import vip.isass.framework.entrypoint.metadata.ParameterDefinition;
 import vip.isass.framework.entrypoint.metadata.ParameterSource;
 import vip.isass.framework.entrypoint.metadata.ServiceDefinition;
+import vip.isass.framework.entrypoint.transport.EntrypointRemoteBusinessException;
 import vip.isass.framework.entrypoint.transport.EntrypointTransport;
 import vip.isass.framework.entrypoint.transport.EntrypointTransportException;
-import vip.isass.framework.entrypoint.transport.EntrypointRemoteBusinessException;
 
-import java.lang.reflect.Array;
-import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Array;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -80,8 +78,16 @@ public final class EntrypointHttpTransport implements EntrypointTransport {
                     if (value != null) headers.add(parameter.name(), String.valueOf(value));
                 }
                 case FORM_FIELD -> {
-                    if (value != null) form.add(parameter.name(), isSimple(value.getClass())
-                            ? String.valueOf(value) : objectMapper.writeValueAsString(value));
+                    if (value != null) {
+                        if (isSimple(value.getClass())) {
+                            form.add(parameter.name(), String.valueOf(value));
+                        } else {
+                            MultiValueMap<String, String> fields = new LinkedMultiValueMap<>();
+                            objectMapper.valueToTree(value).properties().forEach(entry ->
+                                    addValues(fields, entry.getKey(), entry.getValue()));
+                            fields.forEach((name, values) -> values.forEach(item -> form.add(name, item)));
+                        }
+                    }
                 }
                 case FORM_FILE -> {
                     if (value != null) form.add(parameter.name(), formResource(parameter.name(), value));
@@ -114,7 +120,7 @@ public final class EntrypointHttpTransport implements EntrypointTransport {
             if (response == null) return null;
             if (response.has("success") && !response.path("success").asBoolean()) {
                 throw new EntrypointRemoteBusinessException(
-                        response.path("message").asText("远程业务调用失败"));
+                        response.path("message").asString("远程业务调用失败"));
             }
             JsonNode data = response.has("data") ? response.path("data") : response;
             if (data.isNull() || data.isMissingNode()) return null;
@@ -129,15 +135,28 @@ public final class EntrypointHttpTransport implements EntrypointTransport {
     }
 
     private Object formResource(String name, Object value) {
+        if (value instanceof org.springframework.web.multipart.MultipartFile file) {
+            return file.getResource();
+        }
         if (value instanceof byte[] bytes) {
             return new ByteArrayResource(bytes) {
-                @Override public String getFilename() { return name; }
+                @Override
+                public String getFilename() {
+                    return name;
+                }
             };
         }
         if (value instanceof InputStream stream) {
             return new InputStreamResource(stream) {
-                @Override public String getFilename() { return name; }
-                @Override public long contentLength() { return -1; }
+                @Override
+                public String getFilename() {
+                    return name;
+                }
+
+                @Override
+                public long contentLength() {
+                    return -1;
+                }
             };
         }
         throw new EntrypointTransportException("不支持的 FormFileParam 类型: " + value.getClass().getName(), true);
@@ -178,12 +197,12 @@ public final class EntrypointHttpTransport implements EntrypointTransport {
         }
         boolean orNext = false;
         for (JsonNode conditionNode : conditions) {
-            String condition = conditionNode.path("condition").asText();
+            String condition = conditionNode.path("condition").asString();
             if (condition.equals("OR")) {
                 orNext = true;
                 continue;
             }
-            String propertyName = conditionNode.path("propertyName").asText();
+            String propertyName = conditionNode.path("propertyName").asString();
             if (propertyName.isBlank() || condition.isBlank()) {
                 throw new IllegalArgumentException("whereConditions 缺少 propertyName 或 condition");
             }
@@ -251,7 +270,7 @@ public final class EntrypointHttpTransport implements EntrypointTransport {
             if (node.isArray()) {
                 node.forEach(item -> collectValues(values, name, item));
             } else if (node.isValueNode()) {
-                values.add(node.asText());
+                values.add(node.asString());
             } else if (!node.isEmpty()) {
                 throw new IllegalArgumentException("Query 对象只允许展开一层，属性不能是复杂对象: " + name);
             }

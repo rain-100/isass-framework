@@ -95,6 +95,10 @@ public final class EntrypointHttpServer {
     }
 
     private void writeFileResponse(FileStream fileStream, HttpServletResponse response) throws IOException {
+        // File streams are binary responses.  The global Spring character-encoding filter may
+        // have forced UTF-8 on the servlet response, which would append `charset=UTF-8` to image
+        // media types.  Clear it before setting the exact content type supplied by the stream.
+        response.setCharacterEncoding((String) null);
         response.setContentType(fileStream.contentType());
         response.setHeader(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition
                 .builder(fileStream.download() ? "attachment" : "inline")
@@ -130,12 +134,45 @@ public final class EntrypointHttpServer {
     }
 
     private Object bindFormField(ParameterDefinition parameter, HttpServletRequest request) throws IOException {
-        String value = request.getParameter(parameter.name());
-        if (value == null) return null;
         Class<?> raw = rawClass(parameter.javaType());
-        if (isSimple(raw)) return objectMapper.convertValue(value,
-                objectMapper.getTypeFactory().constructType(parameter.javaType()));
-        return objectMapper.readValue(value, objectMapper.getTypeFactory().constructType(parameter.javaType()));
+        if (isSimple(raw)) {
+            return convertQueryParameter(parameter.name(), parameter.javaType(),
+                    request.getParameterValues(parameter.name()) == null ? null
+                            : Arrays.asList(request.getParameterValues(parameter.name())));
+        }
+        Map<String, Object> source = new LinkedHashMap<>();
+        if (request.getParameter(parameter.name()) != null && findQuerySetter(raw, parameter.name()) == null) {
+            throw new IllegalArgumentException("FormFieldParam 对象必须使用平铺表单字段，不支持 JSON 字段: "
+                    + parameter.name());
+        }
+        request.getParameterMap().forEach((name, values) -> {
+            if (!name.isEmpty() && (findQuerySetter(raw, name) != null
+                    || raw.isRecord() && Arrays.stream(raw.getRecordComponents())
+                    .anyMatch(component -> component.getName().equals(name)))) {
+                source.put(name, requireSingleQueryValue(name, Arrays.asList(values)));
+            }
+        });
+        if (request instanceof MultipartHttpServletRequest multipart
+                && multipart.getMultiFileMap().values().stream().mapToInt(List::size).sum() == 1) {
+            MultipartFile file = multipart.getMultiFileMap().values().iterator().next().getFirst();
+            if (findQuerySetter(raw, "fileName") != null
+                    && (source.get("fileName") == null || source.get("fileName").toString().isBlank())) {
+                source.put("fileName", file.getOriginalFilename());
+            }
+            if (findQuerySetter(raw, "fileSize") != null && source.get("fileSize") == null) {
+                source.put("fileSize", file.getSize());
+            }
+        }
+        if (!source.isEmpty()) {
+            Object target = bindQueryProperties(parameter.javaType(), source);
+            PropertyPresenceBinder.bind(target, source);
+            return target;
+        }
+        if (request.getParameter(parameter.name()) != null) {
+            throw new IllegalArgumentException("FormFieldParam 对象必须使用平铺表单字段，不支持 JSON 字段: "
+                    + parameter.name());
+        }
+        return null;
     }
 
     private Object bindFormFile(ParameterDefinition parameter, HttpServletRequest request) throws IOException {

@@ -67,6 +67,15 @@ isass:
 
 业务参数只使用 Query、Body、Header 或 multipart，不使用 Path 参数。
 
+`@FormFieldParam` 的简单类型读取注解指定的单个字段；对象类型按属性名绑定平铺表单字段，
+例如上传对象的 `appId=123`、`autoUnzip=false` 与 `file` 文件 part 并列，不加 `uploadParam.` 前缀。
+HTTP 客户端同样展开对象字段；集合属性使用英文逗号分隔。不支持用同名 JSON 文本字段传递整个对象。
+文件参数仍使用 `@FormFileParam` 和 `multipart/form-data`。
+需要原始文件名、大小时，文件参数使用 `MultipartFile`；HTTP 客户端和服务端均保留文件元数据。
+业务入口可以继续使用 `InputStream`：Spring multipart 请求仅包含一个文件时，框架为表单对象的
+`fileName`（缺省或空白）及 `fileSize`（缺省）属性补齐原始文件名和大小，不覆盖显式提供的值。
+多个文件时不推测对应关系，不执行此默认补齐。
+
 Body 中的 `Map` 遵循 JSON 对象键语义：传输树中的键统一为字符串。框架在字段出现性绑定与投影时，会按
 Java Map 键的序列化字符串匹配原值，因此 `Map<Long, ?>`、`Map<Integer, ?>` 等标量键类型可以安全跨
 HTTP/gRPC 传输，不会因传输树使用字符串键而丢失嵌套字段或触发有序 Map 的键类型异常。

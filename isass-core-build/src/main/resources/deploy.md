@@ -54,6 +54,17 @@ Windows 部署包还包含 `win_start.bat`、Windows 服务安装/启动/停止/
 ./run.sh stop
 ```
 
+`run.sh` 以 POSIX `sh` 为兼容基线，不要求安装 Bash；覆盖 Debian/Ubuntu 的 `dash`、RHEL 系的
+Bash POSIX 模式以及 Alpine 的 BusyBox `ash`。建议在仍受厂商或社区支持的版本上部署，主要包括：
+
+- 国外发行版：Ubuntu Server、Debian、RHEL、Rocky Linux、AlmaLinux、Oracle Linux、CentOS Stream、
+  Amazon Linux、SLES/openSUSE 和 Alpine Linux。
+- 国内发行版：openEuler、Anolis OS、OpenCloudOS、Alibaba Cloud Linux、TencentOS Server、银河麒麟、
+  统信服务器操作系统和 Huawei Cloud EulerOS。
+
+脚本兼容性不代表目标 CPU 架构一定存在可用的 JDK 25；部署到 `aarch64`、LoongArch 等架构前仍需确认
+JDK 制品。`health` 命令优先使用 `curl`，未安装时回退到 `wget`，两者至少安装一个。
+
 `./run.sh` 默认以 `nohup` 后台运行并自动跟随日志；按 `Ctrl+C` 仅退出日志查看，不会停止服务。生产环境建议由
 systemd、容器编排平台或其他进程守护工具管理服务生命周期。
 
@@ -76,9 +87,9 @@ Linux 启动脚本支持通过环境变量调整 JVM 与运行行为；命令行
 | `JVM_PRINT_GC`              | `false`                                                 | 是否输出 GC 日志。                                        |
 | `DEBUG_PORT`                | 空                                                      | 开启 JDWP 远程调试端口。仅限受访问控制的排障环境。        |
 | `JMX_HOSTNAME` / `JMX_PORT` | 空                                                      | 开启 JMX 监控。启用时必须通过网络策略保护端口。           |
-| `WRITE_LOG_STDOUT`          | `true`                                                  | 打印日志到控制台。                                        |
-| `WRITE_LOG_TO_FILE`         | `false`                                                 | 打印日志到日志文件。                                      |
-| `AUTO_TAIL_LOG`             | `true`                                                  | 后台启动后是否自动跟随日志。仅日打印志到控制台时有意义    |
+| `WRITE_LOG_STDOUT`          | `false`                                                 | 打印日志到控制台。                                        |
+| `WRITE_LOG_TO_FILE`         | `true`                                                  | 打印日志到日志文件。                                      |
+| `AUTO_TAIL_LOG`             | `true`                                                  | 后台启动后是否自动跟随日志。仅打印日志到文件时有意义。     |
 | `RUN_AS_NOHUP`              | `true`                                                  | 是否使用 `nohup` 在后台运行。容器中通常设为 `false`。     |
 | `RM_LOG`                    | `false`                                                 | 启动前删除 `logs/` 下已有日志。生产环境通常保持 `false`。 |
 | `KEEP_DOCKER_RUNNING`       | `false`                                                 | 容器排障时 java 启动失败后保持容器运行。                  |
