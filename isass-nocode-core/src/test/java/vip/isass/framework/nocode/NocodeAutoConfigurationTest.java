@@ -17,6 +17,26 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 class NocodeAutoConfigurationTest {
 
     @Test
+    void authorizationPreservesNullableCursorArgumentsAndStillEvaluatesPermissions() {
+        var operation = new vip.isass.framework.entrypoint.metadata.OperationDefinition(
+                "cursorPage", "游标分页", "", 0, HttpMethod.GET, null, null,
+                java.util.List.of(), Object.class, true);
+        var service = new vip.isass.framework.entrypoint.metadata.ServiceDefinition(
+                "test-service", "sample", "sampleGroup", CustomEntrypoint.class,
+                java.util.List.of(operation), true);
+        Object criteria = new Object();
+        Object[] arguments = {criteria, null, null};
+        var captured = new java.util.concurrent.atomic.AtomicReference<vip.isass.framework.nocode.security.NocodeAuthorizationContext>();
+        var configuration = new NocodeAutoConfiguration();
+        configuration.nocodeInvocationAuthorizer(captured::set).check(service, operation, arguments);
+        org.junit.jupiter.api.Assertions.assertEquals(Arrays.asList(criteria, null, null), captured.get().arguments());
+        org.junit.jupiter.api.Assertions.assertThrows(SecurityException.class,
+                () -> configuration.nocodeInvocationAuthorizer(context -> {
+                    throw new SecurityException("denied");
+                }).check(service, operation, arguments));
+    }
+
+    @Test
     void classifierMarksStandardCrudAndTreeCapabilityOperationsAsNocode() {
         var classifier = new NocodeAutoConfiguration().nocodeEntrypointClassifier();
         var page = Arrays.stream(ICrudService.class.getMethods())

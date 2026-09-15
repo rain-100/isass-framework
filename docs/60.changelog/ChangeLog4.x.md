@@ -4,6 +4,11 @@
 
 ### 4.0.0-SNAPSHOT
 
+- **Java 类型引用规范**：各项目 Agent 规则明确无同名冲突时必须使用 `import` 和简单类名，测试代码同样适用。
+
+- **NoCode 空参数授权修复**：使用 `Arrays.asList` 允许授权参数中的 `null` 元素，修复首次游标分页未传
+  `cursorId` 时 `List.of` 抛出空指针的问题；保持参数顺序及权限检查行为。
+
 - **上传元数据缺省绑定**：单文件 multipart 请求在 Spring HTTP 边界补齐表单对象缺省的 `fileName`
   和 `fileSize`，保留显式值，业务上传接口仍可使用 `InputStream`。
 

@@ -1,5 +1,7 @@
 # Agent 工作说明
 
+- Java 代码在类名没有冲突时，必须通过 `import` 引入类型并使用简单类名，禁止直接使用全限定类名；仅在同名类型冲突、确需消歧时允许使用全限定类名。此规则同样适用于测试代码。
+
 ## CodeGraph
 
 - 父目录中的 `isass/.codegraph/` 是本项目所用的工作区索引。定位或理解代码时，在使用 `rg`、`find` 或大范围读取文件之前，必须先使用 `codegraph_explore`（或 `codegraph explore`）。

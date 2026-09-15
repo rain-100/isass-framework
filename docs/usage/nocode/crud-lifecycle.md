@@ -112,6 +112,7 @@ page/cursorPage/count/exists/tree/descendantIds
 
 - 只允许 `orderBy=id asc` 或 `orderBy=id desc`，默认 `id asc`；禁止其他字段、多字段或缺少方向的排序。
 - 第一页 `cursorId` 可为空，后续使用上一页 `nextCursorId`；实现多取一条计算 `hasMore`，不执行 `count(*)`。
+- NoCode 授权上下文保留可选参数的 `null` 值和原始位置；空游标或缺省 `pageSize` 不会跳过权限检查。
 - 连续翻页必须保持 Criteria 和排序方向不变；ID 必须稳定、唯一、可比较且写入后不变化。
 - 高频附加过滤条件应建立与查询匹配的联合索引，否则游标分页只能消除 offset 成本，不能消除过滤扫描成本。
 

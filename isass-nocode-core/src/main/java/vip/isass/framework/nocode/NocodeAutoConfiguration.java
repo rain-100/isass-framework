@@ -32,6 +32,7 @@ import vip.isass.framework.nocode.service.ICrudService;
 import vip.isass.framework.nocode.service.ILocalCrudService;
 import vip.isass.framework.nocode.service.ITreeQueryService;
 
+import java.util.Arrays;
 import java.util.List;
 
 @AutoConfiguration
@@ -103,7 +104,7 @@ public class NocodeAutoConfiguration {
                         service.contextName(),
                         service.resourceName(),
                         operation.operationName(),
-                        java.util.List.of(arguments)));
+                        Arrays.asList(arguments)));
             }
         };
     }
