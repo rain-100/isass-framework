@@ -108,6 +108,15 @@ page/cursorPage/count/exists/tree/descendantIds
 
 `CrudQueryLifecycleContext` 提供当前服务、实体类型、强类型 `CrudQueryReq`、`CrudQueryResult` 和共享属性。
 
+### 存在性查询
+
+`exists(criteria)` 在 MyBatis-Plus 适配层使用第一页、每页一条且关闭总数统计的 ORM 查询，
+不再通过 `COUNT > 0` 判断存在性。实现 `IIdEntity` 的实体仅查询主键，并忽略存在性查询不需要的排序；
+调用方 Criteria 的筛选、排序和投影保持不变。权限与查询生命周期沿用原链路，逻辑删除仍由 ORM 处理。
+Repository 仅在 Criteria 实现 `IOrderByCriteria`、需要移除排序时复制对象；不支持排序的 Criteria 直接用于构造查询。
+`existsById`、按属性存在性检查及内部 Wrapper 便捷方法同样限一条、不统计总数，分页语法由方言生成。
+无匹配记录时仍可能扫描较多数据，需为高频筛选条件配置合适索引。
+
 ### 游标分页
 
 - 只允许 `orderBy=id asc` 或 `orderBy=id desc`，默认 `id asc`；禁止其他字段、多字段或缺少方向的排序。

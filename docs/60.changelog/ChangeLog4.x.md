@@ -4,6 +4,12 @@
 
 ### 4.0.0-SNAPSHOT
 
+- **存在性查询 Criteria 复制优化**：`isPresentByCriteria` 仅对支持排序的 Criteria 创建副本并清除排序，其他 Criteria 避免额外复制。
+
+- **NoCode 存在性查询优化**：MyBatis-Plus 适配层从 `COUNT > 0` 改为关闭统计的限一条查询；
+  标准 Criteria 入口对实现 `IIdEntity` 的实体仅查询主键、移除排序，保留调用者 Criteria 和原权限链路；
+  ID 入口移除硬编码 LIMIT，统一使用 ORM 分页方言。
+
 - **Java 类型引用规范**：各项目 Agent 规则明确无同名冲突时必须使用 `import` 和简单类名，测试代码同样适用。
 
 - **NoCode 空参数授权修复**：使用 `Arrays.asList` 允许授权参数中的 `null` 元素，修复首次游标分页未传

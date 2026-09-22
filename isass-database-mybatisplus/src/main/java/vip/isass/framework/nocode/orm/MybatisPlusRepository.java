@@ -27,6 +27,7 @@ import vip.isass.framework.nocode.SensitiveDataProperty;
 import vip.isass.framework.nocode.criteria.ICriteria;
 import vip.isass.framework.nocode.criteria.IUpdateCriteria;
 import vip.isass.framework.nocode.criteria.NullValueMode;
+import vip.isass.framework.nocode.criteria.type.IOrderByCriteria;
 import vip.isass.framework.nocode.criteria.type.IPageCriteria;
 import vip.isass.framework.nocode.entity.IEntity;
 import vip.isass.framework.nocode.entity.IIdEntity;
@@ -375,8 +376,8 @@ public abstract class MybatisPlusRepository<E extends IEntity<E>, C extends ICri
         }
 
         return isPresentByWrapper(Wrappers.<E>query()
-                .eq(EntityPropertyColumnResolver.resolve(currentEntityClass(), "id"), id)
-                .last("limit 1"));
+                .select(EntityPropertyColumnResolver.resolve(currentEntityClass(), "id"))
+                .eq(EntityPropertyColumnResolver.resolve(currentEntityClass(), "id"), id));
     }
 
     @Override
@@ -388,12 +389,24 @@ public abstract class MybatisPlusRepository<E extends IEntity<E>, C extends ICri
     }
 
     public boolean isPresentByWrapper(Wrapper<E> wrapper) {
-        return this.countByWrapper(wrapper) > 0;
+        IPage<E> page = findMybatisPlusPage(
+                new com.baomidou.mybatisplus.extension.plugins.pagination.Page<E>(1, 1)
+                        .setSearchCount(false), wrapper);
+        return !page.getRecords().isEmpty();
     }
 
     @Override
     public boolean isPresentByCriteria(ICriteria<E, C> criteria) {
-        return this.isPresentByWrapper(WrapperUtil.getQueryWrapper(criteria));
+        ICriteria<E, C> query = criteria;
+        if (query instanceof IOrderByCriteria<?, ?>) {
+            query = criteria.copy();
+            ((IOrderByCriteria<?, ?>) query).setOrderBy(null);
+        }
+        QueryWrapper<E> wrapper = WrapperUtil.getQueryWrapper(query);
+        if (IIdEntity.class.isAssignableFrom(currentEntityClass())) {
+            wrapper.select(EntityPropertyColumnResolver.resolve(currentEntityClass(), "id"));
+        }
+        return isPresentByWrapper(wrapper);
     }
 
     public void exceptionIfPresentByWrapper(Wrapper<E> wrapper) {
