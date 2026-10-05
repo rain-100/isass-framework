@@ -16,6 +16,10 @@
     <artifactId>isass-core-common</artifactId>
 
     <dependencies>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-core</artifactId>
+        </dependency>
         <!-- Jackson 2.x for backward compat with third-party libraries (Spring Data Redis, MyBatis-Plus, etc.) -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>

@@ -55,28 +55,28 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
-import vip.isass.framework.nocode.entity.IEntity;
+import vip.isass.framework.common.entity.IEntity;
 import vip.isass.framework.entrypoint.annotation.ApiDoc;
 <#if associations?has_content || isParentIdEntity>
-import vip.isass.framework.nocode.entity.EntityAssociation;
+import vip.isass.framework.common.entity.EntityAssociation;
 </#if>
 <#if isIdEntity>
-import vip.isass.framework.nocode.entity.IIdEntity;
+import vip.isass.framework.common.entity.IIdEntity;
 </#if>
 <#if isLogicDeleteEntity>
-import vip.isass.framework.nocode.entity.ILogicDeleteEntity;
+import vip.isass.framework.common.entity.ILogicDeleteEntity;
 </#if>
 <#if isParentIdEntity>
-import vip.isass.framework.nocode.entity.IParentIdEntity;
+import vip.isass.framework.common.entity.IParentIdEntity;
 </#if>
 <#if isTenantEntity>
-import vip.isass.framework.nocode.entity.ITenantEntity;
+import vip.isass.framework.common.entity.ITenantEntity;
 </#if>
 <#if isTraceEntity>
-import vip.isass.framework.nocode.entity.ITraceEntity;
+import vip.isass.framework.common.entity.ITraceEntity;
 </#if>
 <#if isVersionEntity>
-import vip.isass.framework.nocode.entity.IVersionEntity;
+import vip.isass.framework.common.entity.IVersionEntity;
 </#if>
 <#list table.fields as field>
 <#if (field.propertyType == "LocalDate"

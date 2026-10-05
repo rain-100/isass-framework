@@ -6,8 +6,8 @@ import vip.isass.framework.entrypoint.IEntrypoint;
 import vip.isass.framework.entrypoint.annotation.EntrypointOperation;
 import vip.isass.framework.entrypoint.annotation.QueryParam;
 import vip.isass.framework.entrypoint.metadata.HttpMethod;
-import vip.isass.framework.nocode.criteria.ICriteria;
-import vip.isass.framework.nocode.entity.IParentIdEntity;
+import vip.isass.framework.common.criteria.ICriteria;
+import vip.isass.framework.common.entity.IParentIdEntity;
 
 import java.io.Serializable;
 import java.util.List;

@@ -3,7 +3,7 @@
 package ${cfg.package}.${cfg.context}.infrastructure.persistence.mybatisplus;
 
 import ${cfg.entityPackageName}.${entity};
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.github.yulichang.base.MPJBaseMapper;
 import org.apache.ibatis.annotations.Mapper;
 
 /**
@@ -14,6 +14,6 @@ import org.apache.ibatis.annotations.Mapper;
  * @author ${author}
  */
 @Mapper
-public interface ${table.mapperName} extends BaseMapper<${entity}> {
+public interface ${table.mapperName} extends MPJBaseMapper<${entity}> {
 
 }

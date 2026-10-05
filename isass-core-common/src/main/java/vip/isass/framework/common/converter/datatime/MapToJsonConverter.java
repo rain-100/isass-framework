@@ -28,7 +28,7 @@ public class MapToJsonConverter implements Converter<Map, String> {
     @Override
     @SneakyThrows
     public String convert(Map source) {
-        return JsonUtil.NOT_NULL_INSTANCE.writeValueAsString(source);
+        return JsonUtil.writeValueWithNotNullInstance(source);
     }
 
 }

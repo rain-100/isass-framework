@@ -5,7 +5,7 @@ package vip.isass.framework.nocode.converter;
 import lombok.SneakyThrows;
 import vip.isass.framework.common.support.Converter;
 import vip.isass.framework.common.support.JsonUtil;
-import vip.isass.framework.nocode.criteria.WhereCondition;
+import vip.isass.framework.common.criteria.WhereCondition;
 
 /**
  * 把 json 字符串类型的 nocode 查询条件转换成 WhereCondition。
@@ -27,7 +27,7 @@ public class StringToWhereConditionConverter implements Converter<String, WhereC
     @Override
     @SneakyThrows
     public WhereCondition convert(String source) {
-        return JsonUtil.DEFAULT_INSTANCE.readValue(source, WhereCondition.class);
+        return JsonUtil.readValue(source, WhereCondition.class);
     }
 
 }

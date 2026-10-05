@@ -23,11 +23,6 @@
 
         <dependency>
             <groupId>vip.isass</groupId>
-            <artifactId>isass-nocode-core</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>vip.isass</groupId>
             <artifactId>isass-entrypoint-registry</artifactId>
         </dependency>
 

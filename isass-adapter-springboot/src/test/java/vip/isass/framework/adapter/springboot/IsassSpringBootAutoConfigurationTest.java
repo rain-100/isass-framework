@@ -20,8 +20,6 @@ import vip.isass.framework.common.log.slf4j.LogLevelManager;
 import vip.isass.framework.common.selectoption.ISelectOptionService;
 import vip.isass.framework.common.selectoption.SelectOption;
 import vip.isass.framework.common.selectoption.SelectOptionServiceManager;
-import vip.isass.framework.nocode.DictTranslationProviderUtil;
-import vip.isass.framework.nocode.IDictTranslationProvider;
 import vip.isass.framework.common.support.BeanProvider;
 import vip.isass.framework.common.support.BeanProviderUtil;
 import vip.isass.framework.mq.core.MqManager;
@@ -170,22 +168,6 @@ class IsassSpringBootAutoConfigurationTest {
         new ApplicationContextRunner()
                 .withConfiguration(AutoConfigurations.of(IsassSpringBootAutoConfiguration.class))
                 .run(context -> assertThat(context).hasSingleBean(LogLevelManager.class));
-    }
-
-    @Test
-    void bridgesDictTranslationProviderToCoreHolder() {
-        new ApplicationContextRunner()
-                .withConfiguration(AutoConfigurations.of(IsassSpringBootAutoConfiguration.class))
-                .withBean("dictTranslationProvider",
-                        IDictTranslationProvider.class,
-                        () -> (typeCode, optionCode) -> "nocode:" + typeCode + ":" + optionCode)
-                .run(context -> {
-                    assertThat(context).hasSingleBean(BeanProvider.class);
-                    assertThat(context).hasSingleBean(IDictTranslationProvider.class);
-                    assertThat(DictTranslationProviderUtil.getProvider()
-                            .translate("status", "1"))
-                            .isEqualTo("nocode:status:1");
-                });
     }
 
     @Test

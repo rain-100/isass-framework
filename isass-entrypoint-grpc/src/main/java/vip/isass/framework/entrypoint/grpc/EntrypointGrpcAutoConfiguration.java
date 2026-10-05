@@ -6,7 +6,6 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import tools.jackson.databind.ObjectMapper;
 import vip.isass.framework.entrypoint.registry.EntrypointInvocationGateway;
 import vip.isass.framework.entrypoint.registry.ServiceDefinitionRegistry;
 
@@ -17,17 +16,16 @@ public class EntrypointGrpcAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public EntrypointGrpcTransport entrypointGrpcTransport(
-            EntrypointGrpcProperties properties, ObjectMapper objectMapper) {
-        return new EntrypointGrpcTransport(properties, objectMapper);
+            EntrypointGrpcProperties properties) {
+        return new EntrypointGrpcTransport(properties);
     }
 
     @Bean
     @ConditionalOnMissingBean
     public EntrypointGrpcServerAdapter entrypointGrpcServerAdapter(
             ServiceDefinitionRegistry registry,
-            EntrypointInvocationGateway invocations,
-            ObjectMapper objectMapper) {
-        return new EntrypointGrpcServerAdapter(registry, invocations, objectMapper);
+            EntrypointInvocationGateway invocations) {
+        return new EntrypointGrpcServerAdapter(registry, invocations);
     }
 
     @Bean

@@ -3,7 +3,7 @@
 package vip.isass.framework.web.response;
 
 import jakarta.servlet.http.HttpServletRequest;
-import vip.isass.framework.nocode.entity.AdvancedFeature;
+import vip.isass.framework.common.advanced.AdvancedFeature;
 
 import java.util.LinkedHashMap;
 import java.util.Map;

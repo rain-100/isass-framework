@@ -32,6 +32,7 @@ import org.springframework.transaction.annotation.TransactionManagementConfigure
 import vip.isass.framework.database.mybatisplus.plus.handler.MybatisPlusMetaObjectHandler;
 import vip.isass.framework.database.mybatisplus.typehandler.enums.ExtendedCompositeEnumTypeHandler;
 import vip.isass.framework.common.page.PageConst;
+import vip.isass.framework.database.mybatisplus.orm.AdvJoinPaginationInnerInterceptor;
 
 import javax.sql.DataSource;
 import java.util.List;
@@ -167,7 +168,7 @@ public class SqlSessionConfig implements TransactionManagementConfigurer {
         }
 
         // 如果配置多个插件, 切记分页最后添加
-        PaginationInnerInterceptor paginationInnerInterceptor = new PaginationInnerInterceptor();
+        PaginationInnerInterceptor paginationInnerInterceptor = new AdvJoinPaginationInnerInterceptor();
         paginationInnerInterceptor.setMaxLimit(PageConst.MAX_PAGE_SIZE);
         paginationInnerInterceptor.setOverflow(true);
         interceptor.addInnerInterceptor(paginationInnerInterceptor);

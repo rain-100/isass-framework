@@ -26,7 +26,7 @@ public class PostgresqlJsonNodeTypeHandler implements IJsonNodeTypeHandler {
     @SneakyThrows
     public void setNonNullParameter(PreparedStatement ps, int i, JsonNode parameter) {
         PGobject pGobject = new PGobject();
-        pGobject.setValue(JsonUtil.DEFAULT_INSTANCE.writeValueAsString(parameter));
+        pGobject.setValue(JsonUtil.writeValue(parameter));
         ps.setObject(i, pGobject);
     }
 
@@ -36,7 +36,7 @@ public class PostgresqlJsonNodeTypeHandler implements IJsonNodeTypeHandler {
         if (value == null) {
             return null;
         }
-        return JsonUtil.DEFAULT_INSTANCE.readTree(value);
+        return JsonUtil.readTree(value);
     }
 
 }

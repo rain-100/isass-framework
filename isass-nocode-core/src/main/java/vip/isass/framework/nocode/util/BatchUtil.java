@@ -6,8 +6,8 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Assert;
 import lombok.extern.slf4j.Slf4j;
 import vip.isass.framework.common.page.Page;
-import vip.isass.framework.nocode.criteria.type.IPageCriteria;
-import vip.isass.framework.nocode.entity.IEntity;
+import vip.isass.framework.common.criteria.type.IPageCriteria;
+import vip.isass.framework.common.entity.IEntity;
 
 import java.util.ArrayList;
 import java.util.Collection;

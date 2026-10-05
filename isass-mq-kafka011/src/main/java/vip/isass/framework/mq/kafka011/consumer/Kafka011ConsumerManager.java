@@ -185,7 +185,7 @@ public class Kafka011ConsumerManager implements MqConsumerManager {
     @SneakyThrows
     private Object getPayload(IMqConsumer mqConsumer, ConsumerRecord<String, String> record) {
         if (mqConsumer.getTypeReference() != null) {
-            return JsonUtil.DEFAULT_INSTANCE.readValue(record.value(), mqConsumer.getTypeReference());
+            return JsonUtil.readValue(record.value(), mqConsumer.getTypeReference());
         }
         return record.value();
     }

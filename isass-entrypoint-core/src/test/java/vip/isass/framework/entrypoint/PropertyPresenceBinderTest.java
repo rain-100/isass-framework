@@ -3,6 +3,7 @@
 package vip.isass.framework.entrypoint;
 
 import org.junit.jupiter.api.Test;
+import vip.isass.framework.common.support.presence.PropertyPresenceAware;
 
 import java.util.List;
 import java.util.Map;

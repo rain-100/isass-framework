@@ -2,9 +2,9 @@
 
 package vip.isass.framework.nocode.entity;
 
-import vip.isass.framework.nocode.criteria.IUpdateCriteria;
-import vip.isass.framework.nocode.property.PropertyGetter;
-import vip.isass.framework.nocode.property.PropertyNameResolver;
+import vip.isass.framework.common.criteria.IUpdateCriteria;
+import vip.isass.framework.common.property.PropertyGetter;
+import vip.isass.framework.common.property.PropertyNameResolver;
 
 import java.io.Serializable;
 import java.util.ArrayList;

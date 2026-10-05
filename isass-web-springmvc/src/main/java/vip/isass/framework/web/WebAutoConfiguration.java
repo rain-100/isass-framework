@@ -3,6 +3,7 @@
 package vip.isass.framework.web;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.annotation.Bean;
@@ -13,6 +14,7 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
 import vip.isass.framework.common.web.header.AdditionalRequestHeaderProvider;
+import vip.isass.framework.common.advanced.IDictTranslationProvider;
 import vip.isass.framework.web.config.ObjectMapperConfiguration;
 import vip.isass.framework.web.config.WebConfig;
 import vip.isass.framework.web.exception.ExceptionAdvice;
@@ -79,9 +81,9 @@ public class WebAutoConfiguration {
     }
 
     @Bean
-    @ConditionalOnBean(tools.jackson.databind.ObjectMapper.class)
-    public AdvancedFeatureResponseAdvice advancedFeatureResponseAdvice(tools.jackson.databind.ObjectMapper objectMapper) {
-        return new AdvancedFeatureResponseAdvice(objectMapper);
+    public AdvancedFeatureResponseAdvice advancedFeatureResponseAdvice(
+            ObjectProvider<IDictTranslationProvider> dictionaryProvider) {
+        return new AdvancedFeatureResponseAdvice(dictionaryProvider);
     }
 
     @Bean

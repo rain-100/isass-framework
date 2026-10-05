@@ -10,12 +10,12 @@ import org.springframework.transaction.support.TransactionTemplate;
 import vip.isass.framework.common.security.CurrentPrincipalUtil;
 import vip.isass.framework.common.security.DefaultAuthenticatedPrincipal;
 import vip.isass.framework.common.security.PrincipalType;
-import vip.isass.framework.nocode.criteria.field.IIdCriteria;
-import vip.isass.framework.nocode.criteria.impl.type.FullTypeCriteria;
-import vip.isass.framework.nocode.entity.IIdEntity;
-import vip.isass.framework.nocode.entity.ITenantEntity;
+import vip.isass.framework.common.criteria.field.IIdCriteria;
+import vip.isass.framework.common.criteria.impl.type.FullTypeCriteria;
+import vip.isass.framework.common.entity.IIdEntity;
+import vip.isass.framework.common.entity.ITenantEntity;
 import vip.isass.framework.nocode.entity.SuperCudReq;
-import vip.isass.framework.nocode.repository.IRepository;
+import vip.isass.framework.database.core.repository.IRepository;
 import vip.isass.framework.nocode.service.CrudWriteExecutor;
 import vip.isass.framework.nocode.service.ILocalCrudService;
 

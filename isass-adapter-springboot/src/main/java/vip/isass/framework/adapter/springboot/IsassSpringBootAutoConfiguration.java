@@ -28,7 +28,6 @@ import vip.isass.framework.common.support.Converter;
 import vip.isass.framework.common.support.ISystemClock;
 import vip.isass.framework.common.support.IsassServiceLoader;
 import vip.isass.framework.common.support.SystemClock;
-import vip.isass.framework.nocode.IDictTranslationProvider;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -59,15 +58,12 @@ public class IsassSpringBootAutoConfiguration {
     public BeanProvider beanProvider(ConfigurableApplicationContext applicationContext,
                                      ObjectProvider<CurrentPrincipalService> currentPrincipalServiceProvider,
                                      ObjectProvider<ISystemClock> systemClockProvider,
-                                     ObjectProvider<Sequence<?>> sequenceProvider,
-                                     ObjectProvider<IDictTranslationProvider> nocodeDictTranslationProvider) {
+                                     ObjectProvider<Sequence<?>> sequenceProvider) {
         BeanProvider beanProvider = new SpringBeanProvider(applicationContext);
         BeanProviderUtil.setBeanProvider(beanProvider);
         CurrentPrincipalUtil.setCurrentPrincipalServiceProvider(currentPrincipalServiceProvider::getIfAvailable);
         SystemClock.setSystemClockProvider(systemClockProvider::getIfAvailable);
         LongSequence.setSequenceProvider(() -> getLongSequence(sequenceProvider));
-        vip.isass.framework.nocode.DictTranslationProviderUtil.setProviderSupplier(
-                nocodeDictTranslationProvider::getIfAvailable);
         return beanProvider;
     }
 

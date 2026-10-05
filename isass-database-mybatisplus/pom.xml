@@ -17,13 +17,13 @@
 
     <dependencies>
         <dependency>
-            <groupId>vip.isass</groupId>
-            <artifactId>isass-core-common</artifactId>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>test</scope>
         </dependency>
-
         <dependency>
             <groupId>vip.isass</groupId>
-            <artifactId>isass-nocode-core</artifactId>
+            <artifactId>isass-core-common</artifactId>
         </dependency>
 
         <dependency>
@@ -59,6 +59,11 @@
         <dependency>
             <groupId>com.baomidou</groupId>
             <artifactId>dynamic-datasource-spring-boot4-starter</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.yulichang</groupId>
+            <artifactId>mybatis-plus-join-boot-starter</artifactId>
         </dependency>
 
         <dependency>

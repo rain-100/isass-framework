@@ -3,6 +3,7 @@
 package vip.isass.framework.nocode.entity;
 
 import org.junit.jupiter.api.Test;
+import vip.isass.framework.common.entity.IEntity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -56,7 +57,7 @@ class SuperCudReqTest {
     }
 
     static final class TestCriteria
-            extends vip.isass.framework.nocode.criteria.impl.type.FullTypeCriteria<TestEntity, TestCriteria> {
+            extends vip.isass.framework.common.criteria.impl.type.FullTypeCriteria<TestEntity, TestCriteria> {
     }
 
 }

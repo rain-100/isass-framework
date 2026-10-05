@@ -3,11 +3,11 @@
 package vip.isass.framework.nocode.service;
 
 import org.junit.jupiter.api.Test;
-import vip.isass.framework.nocode.criteria.field.IIdCriteria;
-import vip.isass.framework.nocode.criteria.impl.type.FullTypeCriteria;
-import vip.isass.framework.nocode.entity.IIdEntity;
+import vip.isass.framework.common.criteria.field.IIdCriteria;
+import vip.isass.framework.common.criteria.impl.type.FullTypeCriteria;
+import vip.isass.framework.common.entity.IIdEntity;
 import vip.isass.framework.nocode.entity.SuperCudReq;
-import vip.isass.framework.nocode.repository.IRepository;
+import vip.isass.framework.database.core.repository.IRepository;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -37,7 +37,7 @@ class CrudWriteExecutorTest {
 
         var result = new CrudWriteExecutor().superCud(service, request);
 
-        assertEquals(List.of("exists", "add", "updateCriteria", "deleteIds", "deleteCriteria"),
+        assertEquals(List.of("exists", "add", "updateCriteria", "deleteIds", "deleteIds"),
                 repository.operations);
         assertEquals(1, result.addedCount());
         assertEquals(1, result.updatedCount());
@@ -100,7 +100,7 @@ class CrudWriteExecutorTest {
                 SuperCudReq.update(new Entity(42L, "updated")));
 
         assertEquals(1, result.updatedCount());
-        assertEquals(42L, repository.lastUpdatedId);
+        assertEquals(42L, repository.lastUpdateCriteria.getId());
     }
 
     @Test
@@ -163,7 +163,7 @@ class CrudWriteExecutorTest {
 
         @Override
         public boolean isPresentByCriteria(
-                vip.isass.framework.nocode.criteria.ICriteria<Entity, Criteria> criteria) {
+                vip.isass.framework.common.criteria.ICriteria<Entity, Criteria> criteria) {
             operations.add("exists");
             return existingByCriteria;
         }
@@ -178,11 +178,16 @@ class CrudWriteExecutorTest {
         @Override
         public int updateCountByCriteria(
                 Entity entity,
-                vip.isass.framework.nocode.criteria.ICriteria<Entity, Criteria> criteria
+                vip.isass.framework.common.criteria.ICriteria<Entity, Criteria> criteria
         ) {
             operations.add("updateCriteria");
             lastUpdateCriteria = (Criteria) criteria;
             return 1;
+        }
+
+        @Override
+        public List<Entity> findByCriteria(vip.isass.framework.common.criteria.ICriteria<Entity, Criteria> criteria) {
+            return List.of(new Entity(6L, "old"), new Entity(7L, "old"));
         }
 
         @Override
@@ -192,7 +197,7 @@ class CrudWriteExecutorTest {
         }
 
         @Override
-        public int deleteCountByCriteria(vip.isass.framework.nocode.criteria.ICriteria<Entity, Criteria> criteria) {
+        public int deleteCountByCriteria(vip.isass.framework.common.criteria.ICriteria<Entity, Criteria> criteria) {
             operations.add("deleteCriteria");
             return 2;
         }

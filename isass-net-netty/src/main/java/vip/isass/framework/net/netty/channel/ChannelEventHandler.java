@@ -77,7 +77,7 @@ public interface ChannelEventHandler extends ChannelInboundHandler {
             if (Request.Protocol.TCP == protocol) {
                 session.sendMessage(packet);
             } else {
-                String json = JsonUtil.DEFAULT_INSTANCE.writeValueAsString(packet);
+                String json = JsonUtil.writeValue(packet);
 //                session.sendMessage(new TextWebSocketFrame(json));
             }
 

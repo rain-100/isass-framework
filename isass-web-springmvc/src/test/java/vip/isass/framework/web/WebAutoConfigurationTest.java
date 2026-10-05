@@ -10,7 +10,6 @@ import vip.isass.framework.web.exception.ExceptionAdvice;
 import vip.isass.framework.web.security.EntrypointAnonymousUrlProvider;
 import vip.isass.framework.web.security.EntrypointAuthenticatedUrlProvider;
 import vip.isass.framework.entrypoint.registry.ServiceDefinitionRegistry;
-import tools.jackson.databind.ObjectMapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -25,7 +24,6 @@ class WebAutoConfigurationTest {
                 when(registry.all()).thenReturn(java.util.List.of());
                 return registry;
             })
-            .withBean(ObjectMapper.class, ObjectMapper::new)
             .withPropertyValues("spring.application.name=test-app")
             .withConfiguration(AutoConfigurations.of(WebAutoConfiguration.class));
 

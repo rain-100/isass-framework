@@ -1,6 +1,7 @@
 # Agent 工作说明
 
 - Java 代码在类名没有冲突时，必须通过 `import` 引入类型并使用简单类名，禁止直接使用全限定类名；仅在同名类型冲突、确需消歧时允许使用全限定类名。此规则同样适用于测试代码。
+- 框架自身的 JSON 读写与对象转换统一调用 `JsonUtil`，不得在调用方创建 `ObjectMapper`；需把 mapper 对象交给第三方 API 时，使用 `JsonUtil` 提供的共享实例。详见 [JSON 使用约定](docs/usage/common/json.md)。
 
 ## CodeGraph
 
@@ -24,7 +25,7 @@
 - 共享机制的完整规则只在框架 `docs/usage/` 维护；框架和业务项目的 `AGENTS.md` 只保留执行摘要、项目专有规则和文档链接。规则归属见 `docs/usage/agent/rule-ownership.md`。
 - `isass-nocode-generator` 负责生成 model、Criteria、mapper 及契约约定。应修改 `isass-nocode-generator/src/main/resources/templates/` 下的模板并重新生成使用方；不要把手工维护生成产物作为长期修复方案。
 - 面向应用的字段和 Criteria 使用 Java camelCase 属性及 lambda 引用。数据库列名属于 ORM 的职责范围；只有自动属性到列的映射确实存在歧义时，才添加显式元数据。
-- NoCode 支持高级响应投影和关联查询。其公开 Query 参数应保持 camelCase，任何新增行为都要记录到 `docs/usage/nocode/`。
+- NoCode 支持高级响应投影、关联查询与关联写入。其公开 Query 参数应保持 camelCase，任何新增行为都要记录到 `docs/usage/nocode/`。
 - 共享 Redis key 使用 `<microservice>:<domain>:<feature>[:<id>]`。避免使用框架全局 key 前缀，也不要清理无关 key。
 - 框架配置使用 `isass.<module>.<feature>...` 层级。新增可复用配置时，不得引入一次性的根前缀。
 - 不要在框架模块中放置特定服务的初始化数据或业务规则。

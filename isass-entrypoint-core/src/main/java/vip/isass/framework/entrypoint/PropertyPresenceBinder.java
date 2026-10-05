@@ -2,6 +2,8 @@
 
 package vip.isass.framework.entrypoint;
 
+import vip.isass.framework.common.support.presence.PropertyPresenceAware;
+
 import java.beans.Introspector;
 import java.lang.reflect.Array;
 import java.util.ArrayList;

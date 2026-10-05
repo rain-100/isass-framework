@@ -5,9 +5,8 @@ package vip.isass.framework.entrypoint.grpc;
 import io.grpc.Server;
 import io.grpc.netty.shaded.io.grpc.netty.NettyServerBuilder;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.ObjectMapper;
 import vip.isass.framework.entrypoint.IEntrypoint;
-import vip.isass.framework.entrypoint.PropertyPresenceAware;
+import vip.isass.framework.common.support.presence.PropertyPresenceAware;
 import vip.isass.framework.entrypoint.annotation.BodyParam;
 import vip.isass.framework.entrypoint.annotation.EntrypointInfo;
 import vip.isass.framework.entrypoint.annotation.EntrypointOperation;
@@ -23,10 +22,9 @@ public class EntrypointGrpcRoundTripTest {
 
     @Test
     void invokesLocalEntrypointThroughDynamicGrpcDefinition() throws Exception {
-        ObjectMapper objectMapper = new ObjectMapper();
         DefaultServiceDefinitionRegistry registry = new DefaultServiceDefinitionRegistry(
                 List.of(new CalculatorImpl()), List.of(), List.of());
-        EntrypointGrpcServerAdapter adapter = new EntrypointGrpcServerAdapter(registry, registry, objectMapper);
+        EntrypointGrpcServerAdapter adapter = new EntrypointGrpcServerAdapter(registry, registry);
         Server server = NettyServerBuilder.forPort(0)
                 .addService(adapter.serviceDefinitions().getFirst())
                 .build().start();
@@ -38,7 +36,7 @@ public class EntrypointGrpcRoundTripTest {
             endpoint.setPort(server.getPort());
             endpoint.setPlaintext(true);
             properties.getServices().put("sample-service", endpoint);
-            transport = new EntrypointGrpcTransport(properties, objectMapper);
+            transport = new EntrypointGrpcTransport(properties);
             var service = registry.require("sample-service", "demo", "calculator");
             var operation = service.operations().stream()
                     .filter(candidate -> candidate.operationName().equals("multiply"))

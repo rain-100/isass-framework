@@ -12,7 +12,7 @@ import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
-import vip.isass.framework.nocode.entity.IParentIdEntity;
+import vip.isass.framework.common.entity.IParentIdEntity;
 
 import java.io.Serializable;
 import java.util.ArrayDeque;

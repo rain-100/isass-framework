@@ -83,7 +83,8 @@
         <skywalking.version>9.5.0</skywalking.version>
 
         <!-- 数据库 -->
-        <mybatis-plus.version>3.5.16</mybatis-plus.version>
+        <mybatis-plus.version>3.5.17</mybatis-plus.version>
+        <mybatis-plus-join.version>1.5.9</mybatis-plus-join.version>
         <!--<mybatis.version>3.5.7</mybatis.version>-->
         <liquibase.version>5.0.3</liquibase.version>
         <db-migration.version>3.1.0</db-migration.version>
@@ -238,6 +239,12 @@
                 <version>${mybatis-plus.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>com.github.yulichang</groupId>
+                <artifactId>mybatis-plus-join-boot-starter</artifactId>
+                <version>${mybatis-plus-join.version}</version>
             </dependency>
 
             <dependency>

@@ -6,23 +6,23 @@ package ${cfg.criteriaPackageName};
 import cn.hutool.core.collection.CollUtil;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import ${cfg.entityPackageName}.${entity};
-import vip.isass.framework.nocode.criteria.ICriteria;
+import vip.isass.framework.common.criteria.ICriteria;
 <#if isIdEntity>
-import vip.isass.framework.nocode.criteria.field.IIdCriteria;
+import vip.isass.framework.common.criteria.field.IIdCriteria;
 </#if>
 <#if isParentIdEntity>
-import vip.isass.framework.nocode.criteria.field.IParentIdCriteria;
+import vip.isass.framework.common.criteria.field.IParentIdCriteria;
 </#if>
 <#if isTenantEntity>
-import vip.isass.framework.nocode.criteria.field.ITenantCriteria;
+import vip.isass.framework.common.criteria.field.ITenantCriteria;
 </#if>
 <#if isTraceEntity>
-import vip.isass.framework.nocode.criteria.field.ITraceCriteria;
+import vip.isass.framework.common.criteria.field.ITraceCriteria;
 </#if>
 <#if isVersionEntity>
-import vip.isass.framework.nocode.criteria.field.IVersionCriteria;
+import vip.isass.framework.common.criteria.field.IVersionCriteria;
 </#if>
-import vip.isass.framework.nocode.criteria.impl.type.FullTypeCriteria;
+import vip.isass.framework.common.criteria.impl.type.FullTypeCriteria;
 import vip.isass.framework.entrypoint.annotation.ApiDoc;
 
 import java.beans.Transient;

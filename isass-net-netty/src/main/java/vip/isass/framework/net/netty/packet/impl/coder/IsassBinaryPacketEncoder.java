@@ -46,7 +46,7 @@ public class IsassBinaryPacketEncoder extends Encoder<TcpPacket> {
             if (payload instanceof String) {
                 contentBytes = (((String) payload).getBytes(UTF_8));
             } else {
-                contentBytes = JsonUtil.DEFAULT_INSTANCE.writeValueAsBytes(payload);
+                contentBytes = JsonUtil.writeValueAsBytes(payload);
             }
         } else if (SerializeMode.PROTOBUF2.getCode().equals(packet.getSerializeMode())) {
             if (payload instanceof GeneratedMessage) {

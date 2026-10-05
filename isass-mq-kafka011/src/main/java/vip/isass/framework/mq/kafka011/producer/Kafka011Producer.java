@@ -69,7 +69,7 @@ public class Kafka011Producer implements MqProducer {
         if (payload == null) {
             body = null;
         } else {
-            body = JsonUtil.NOT_NULL_INSTANCE.writeValueAsString(payload);
+            body = JsonUtil.writeValueWithNotNullInstance(payload);
         }
         return body;
     }

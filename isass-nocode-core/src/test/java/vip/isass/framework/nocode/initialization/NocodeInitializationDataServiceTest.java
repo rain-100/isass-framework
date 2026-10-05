@@ -3,12 +3,11 @@
 package vip.isass.framework.nocode.initialization;
 
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.ObjectMapper;
 import vip.isass.framework.entrypoint.annotation.EntrypointInfo;
-import vip.isass.framework.nocode.criteria.field.IIdCriteria;
-import vip.isass.framework.nocode.criteria.impl.type.FullTypeCriteria;
-import vip.isass.framework.nocode.entity.IIdEntity;
-import vip.isass.framework.nocode.repository.IRepository;
+import vip.isass.framework.common.criteria.field.IIdCriteria;
+import vip.isass.framework.common.criteria.impl.type.FullTypeCriteria;
+import vip.isass.framework.common.entity.IIdEntity;
+import vip.isass.framework.database.core.repository.IRepository;
 import vip.isass.framework.nocode.service.ILocalCrudService;
 
 import java.util.List;
@@ -30,7 +29,7 @@ class NocodeInitializationDataServiceTest {
         existing.setId(2L);
         when(repository.findByCriteria(any())).thenReturn(List.of(existing));
         NocodeInitializationDataService service = new NocodeInitializationDataService(
-                List.of(new SampleService(repository)), new ObjectMapper());
+                List.of(new SampleService(repository)));
 
         var result = service.importData("sample-service", Map.of("sample", List.of(
                 Map.of("id", 1, "name", "first"),

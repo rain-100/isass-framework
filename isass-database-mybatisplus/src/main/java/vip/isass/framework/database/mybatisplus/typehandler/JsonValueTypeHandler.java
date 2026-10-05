@@ -25,7 +25,7 @@ public class JsonValueTypeHandler extends BaseTypeHandler<Object> {
     @Override
     @SneakyThrows
     public void setNonNullParameter(PreparedStatement statement, int index, Object value, JdbcType jdbcType) {
-        statement.setString(index, JsonUtil.DEFAULT_INSTANCE.writeValueAsString(value));
+        statement.setString(index, JsonUtil.writeValue(value));
     }
 
     @Override
@@ -48,6 +48,6 @@ public class JsonValueTypeHandler extends BaseTypeHandler<Object> {
         if (value == null) return null;
         value = StrUtil.removePrefix(value, "\"");
         value = StrUtil.removeSuffix(value, "\"");
-        return JsonUtil.DEFAULT_INSTANCE.readValue(value, Object.class);
+        return JsonUtil.readValue(value, Object.class);
     }
 }

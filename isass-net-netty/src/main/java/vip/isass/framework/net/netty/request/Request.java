@@ -47,7 +47,7 @@ public class Request<P extends IPacket, S extends Session> {
     @SneakyThrows
     public void sendResponse(IPacket packet) {
         if (requestProtocol == Protocol.WEBSOCKET) {
-            String json = JsonUtil.DEFAULT_INSTANCE.writeValueAsString(packet);
+            String json = JsonUtil.writeValue(packet);
 //            this.session.sendMessage(new TextWebSocketFrame(json))Z
         } else if (requestProtocol == Protocol.TCP) {
             this.session.sendMessage(packet.getCmd(), packet);

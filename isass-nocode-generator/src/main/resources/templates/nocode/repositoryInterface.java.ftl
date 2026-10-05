@@ -4,7 +4,7 @@ package ${cfg.repositoryPackageName};
 
 import ${cfg.criteriaPackageName}.${entity}Criteria;
 import ${cfg.entityPackageName}.${entity};
-import vip.isass.framework.nocode.repository.IRepository;
+import vip.isass.framework.database.core.repository.IRepository;
 
 /**
  * <p>

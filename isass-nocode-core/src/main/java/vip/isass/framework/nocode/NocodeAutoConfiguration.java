@@ -7,13 +7,15 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.core.ResolvableType;
 import org.springframework.transaction.PlatformTransactionManager;
-import tools.jackson.databind.ObjectMapper;
 import vip.isass.framework.common.web.header.AdditionalRequestHeaderProvider;
 import vip.isass.framework.entrypoint.http.HttpEndpointResolver;
 import vip.isass.framework.entrypoint.registry.EntrypointClassifier;
 import vip.isass.framework.entrypoint.registry.ServiceDefinitionRegistry;
 import vip.isass.framework.nocode.initialization.NocodeInitializationController;
+import vip.isass.framework.common.criteria.CriteriaEntityTypes;
+import vip.isass.framework.nocode.query.CriteriaQueryParamConverter;
 import vip.isass.framework.nocode.initialization.NocodeInitializationDataService;
 import vip.isass.framework.nocode.initialization.NocodeInitializationProperties;
 import vip.isass.framework.nocode.initialization.NocodeInitializationRemoteClient;
@@ -38,6 +40,11 @@ import java.util.List;
 @AutoConfiguration
 @EnableConfigurationProperties(NocodeInitializationProperties.class)
 public class NocodeAutoConfiguration {
+
+    @Bean
+    public CriteriaQueryParamConverter criteriaQueryParamConverter() {
+        return new CriteriaQueryParamConverter();
+    }
 
     @Bean
     public CrudWriteExecutor crudWriteExecutor(
@@ -80,11 +87,16 @@ public class NocodeAutoConfiguration {
 
     @Bean
     public EntrypointClassifier nocodeEntrypointClassifier() {
-        return (serviceInterface, operationMethod) ->
-                (ICrudService.class.isAssignableFrom(serviceInterface)
+        return (serviceInterface, operationMethod) -> {
+            if (ICrudService.class.isAssignableFrom(serviceInterface)) {
+                Class<?> criteria = ResolvableType.forClass(serviceInterface).as(ICrudService.class).getGeneric(1).resolve();
+                if (criteria != null) CriteriaEntityTypes.register(criteria);
+            }
+            return (ICrudService.class.isAssignableFrom(serviceInterface)
                         && operationMethod.getDeclaringClass() == ICrudService.class)
                 || (ITreeQueryService.class.isAssignableFrom(serviceInterface)
                         && operationMethod.getDeclaringClass() == ITreeQueryService.class);
+        };
     }
 
     @Bean
@@ -111,9 +123,8 @@ public class NocodeAutoConfiguration {
 
     @Bean
     public NocodeInitializationDataService nocodeInitializationDataService(
-            List<ILocalCrudService<?, ?, ?>> services,
-            ObjectMapper objectMapper) {
-        return new NocodeInitializationDataService(services, objectMapper);
+            List<ILocalCrudService<?, ?, ?>> services) {
+        return new NocodeInitializationDataService(services);
     }
 
     @Bean
@@ -126,12 +137,11 @@ public class NocodeAutoConfiguration {
     public org.springframework.boot.ApplicationRunner nocodeInitializationRunner(
             NocodeInitializationDataService dataService,
             HttpEndpointResolver endpoints,
-            ObjectMapper objectMapper,
             ObjectProvider<AdditionalRequestHeaderProvider> headers,
             NocodeInitializationProperties properties,
             ServiceDefinitionRegistry definitions) {
         var remote = new NocodeInitializationRemoteClient(
-                endpoints, objectMapper, headers.orderedStream().toList());
+                endpoints, headers.orderedStream().toList());
         return new NocodeInitializationRunner(dataService, remote, properties, definitions).runner();
     }
 }

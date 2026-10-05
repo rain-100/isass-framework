@@ -9,8 +9,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 import org.springframework.web.client.RestClient;
-import tools.jackson.databind.ObjectMapper;
 import vip.isass.framework.common.web.header.AdditionalRequestHeaderProvider;
+import vip.isass.framework.entrypoint.QueryParamConverter;
 import vip.isass.framework.entrypoint.registry.EntrypointInvocationGateway;
 import vip.isass.framework.entrypoint.registry.ServiceDefinitionRegistry;
 
@@ -29,11 +29,11 @@ public class EntrypointHttpAutoConfiguration {
     @ConditionalOnMissingBean
     public EntrypointHttpTransport entrypointHttpTransport(
             HttpEndpointResolver endpoints,
-            ObjectMapper objectMapper,
-            ObjectProvider<AdditionalRequestHeaderProvider> headerProviders
+            ObjectProvider<AdditionalRequestHeaderProvider> headerProviders,
+            ObjectProvider<QueryParamConverter> queryConverters
     ) {
-        return new EntrypointHttpTransport(RestClient.create(), endpoints, objectMapper,
-                headerProviders.orderedStream().toList());
+        return new EntrypointHttpTransport(RestClient.create(), endpoints,
+                headerProviders.orderedStream().toList(), queryConverters.orderedStream().toList());
     }
 
     @Bean
@@ -41,8 +41,8 @@ public class EntrypointHttpAutoConfiguration {
     public EntrypointHttpServer entrypointHttpServer(
             ServiceDefinitionRegistry definitions,
             EntrypointInvocationGateway invocations,
-            ObjectMapper objectMapper
+            ObjectProvider<QueryParamConverter> queryConverters
     ) {
-        return new EntrypointHttpServer(definitions, invocations, objectMapper);
+        return new EntrypointHttpServer(definitions, invocations, queryConverters.orderedStream().toList());
     }
 }

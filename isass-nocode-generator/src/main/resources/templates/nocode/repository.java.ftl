@@ -3,7 +3,7 @@
 package ${cfg.package}.${cfg.context}.infrastructure.persistence.mybatisplus;
 
 import org.springframework.stereotype.Repository;
-import vip.isass.framework.nocode.orm.MybatisPlusRepository;
+import vip.isass.framework.database.mybatisplus.orm.MybatisPlusRepository;
 import ${cfg.criteriaPackageName}.${entity}Criteria;
 import ${cfg.entityPackageName}.${entity};
 import ${cfg.repositoryPackageName}.I${entity}Repository;

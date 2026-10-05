@@ -4,12 +4,12 @@ package vip.isass.framework.nocode.initialization;
 
 import org.springframework.core.ResolvableType;
 import tools.jackson.core.type.TypeReference;
-import tools.jackson.databind.ObjectMapper;
+import vip.isass.framework.common.support.JsonUtil;
 import vip.isass.framework.entrypoint.annotation.EntrypointInfo;
-import vip.isass.framework.nocode.criteria.ICriteria;
-import vip.isass.framework.nocode.criteria.field.IIdCriteria;
-import vip.isass.framework.nocode.entity.IEntity;
-import vip.isass.framework.nocode.entity.IIdEntity;
+import vip.isass.framework.common.criteria.ICriteria;
+import vip.isass.framework.common.criteria.field.IIdCriteria;
+import vip.isass.framework.common.entity.IEntity;
+import vip.isass.framework.common.entity.IIdEntity;
 import vip.isass.framework.nocode.service.ICrudService;
 import vip.isass.framework.nocode.service.ILocalCrudService;
 
@@ -33,10 +33,8 @@ public final class NocodeInitializationDataService {
             new TypeReference<>() { };
 
     private final Map<String, LocalEntity> entities;
-    private final ObjectMapper objectMapper;
 
-    public NocodeInitializationDataService(Collection<ILocalCrudService<?, ?, ?>> services,
-                                           ObjectMapper objectMapper) {
+    public NocodeInitializationDataService(Collection<ILocalCrudService<?, ?, ?>> services) {
         Map<String, LocalEntity> resolved = new LinkedHashMap<>();
         for (ILocalCrudService<?, ?, ?> service : services) {
             Class<?> serviceInterface = serviceInterface(service.getClass());
@@ -53,11 +51,10 @@ public final class NocodeInitializationDataService {
             }
         }
         entities = Map.copyOf(resolved);
-        this.objectMapper = objectMapper;
     }
 
     public Map<String, List<Map<String, Object>>> readDocument(InputStream input) throws IOException {
-        return objectMapper.readValue(input, DOCUMENT_TYPE);
+        return JsonUtil.readValue(input, DOCUMENT_TYPE);
     }
 
     public boolean hasLocalService(String serviceName) {
@@ -114,7 +111,7 @@ public final class NocodeInitializationDataService {
         List<IEntity<?>> converted = new ArrayList<>(rows.size());
         for (Object row : rows) {
             summary.total++;
-            converted.add((IEntity<?>) objectMapper.convertValue(row, resolved.entityClass()));
+            converted.add((IEntity<?>) JsonUtil.convertValue(row, resolved.entityClass()));
         }
         Set<Serializable> existingIds = findExistingIds(resolved.service(), converted);
         for (IEntity<?> entity : converted) {
@@ -159,7 +156,7 @@ public final class NocodeInitializationDataService {
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private vip.isass.framework.nocode.repository.IRepository repository(ILocalCrudService service) {
+    private vip.isass.framework.database.core.repository.IRepository repository(ILocalCrudService service) {
         return service.getRepository();
     }
 

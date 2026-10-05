@@ -7,7 +7,7 @@ import io.grpc.ServerServiceDefinition;
 import io.grpc.ServiceDescriptor;
 import io.grpc.stub.ServerCalls;
 import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
+import vip.isass.framework.common.support.JsonUtil;
 import vip.isass.framework.entrypoint.PropertyPresenceBinder;
 import vip.isass.framework.entrypoint.metadata.OperationDefinition;
 import vip.isass.framework.entrypoint.metadata.ServiceDefinition;
@@ -25,11 +25,10 @@ public final class EntrypointGrpcServerAdapter {
     private final List<ServerServiceDefinition> serviceDefinitions;
 
     public EntrypointGrpcServerAdapter(ServiceDefinitionRegistry registry,
-                                       EntrypointInvocationGateway invocations,
-                                       ObjectMapper objectMapper) {
+                                       EntrypointInvocationGateway invocations) {
         this.serviceDefinitions = registry.all().stream()
                 .filter(ServiceDefinition::localImplementation)
-                .map(service -> build(service, invocations, objectMapper))
+                .map(service -> build(service, invocations))
                 .toList();
     }
 
@@ -38,8 +37,7 @@ public final class EntrypointGrpcServerAdapter {
     }
 
     private ServerServiceDefinition build(ServiceDefinition service,
-                                          EntrypointInvocationGateway invocations,
-                                          ObjectMapper objectMapper) {
+                                          EntrypointInvocationGateway invocations) {
         Map<OperationDefinition, MethodDescriptor<byte[], byte[]>> methods = new LinkedHashMap<>();
         service.operations().forEach(operation -> methods.put(
                 operation, EntrypointGrpcDescriptors.method(service, operation)));
@@ -49,10 +47,10 @@ public final class EntrypointGrpcServerAdapter {
         methods.forEach((operation, descriptor) -> builder.addMethod(descriptor,
                 ServerCalls.asyncUnaryCall((byte[] bytes, io.grpc.stub.StreamObserver<byte[]> observer) -> {
                     try {
-                        Object[] arguments = bindArguments(operation, bytes, objectMapper);
+                        Object[] arguments = bindArguments(operation, bytes);
                         Object result = invocations.invoke(service.serviceName(), service.contextName(),
                                 service.resourceName(), operation.operationName(), arguments);
-                        observer.onNext(result == null ? new byte[0] : objectMapper.writeValueAsBytes(result));
+                        observer.onNext(result == null ? new byte[0] : JsonUtil.writeValueAsBytes(result));
                         observer.onCompleted();
                     } catch (Throwable error) {
                         observer.onError(error);
@@ -61,10 +59,10 @@ public final class EntrypointGrpcServerAdapter {
         return builder.build();
     }
 
-    private Object[] bindArguments(OperationDefinition operation, byte[] bytes, ObjectMapper objectMapper) {
+    private Object[] bindArguments(OperationDefinition operation, byte[] bytes) {
         JsonNode array;
         try {
-            array = objectMapper.readTree(bytes);
+            array = JsonUtil.readTree(bytes);
         } catch (RuntimeException exception) {
             throw new IllegalArgumentException("gRPC 请求不是合法 JSON", exception);
         }
@@ -74,9 +72,8 @@ public final class EntrypointGrpcServerAdapter {
         Object[] arguments = new Object[operation.parameters().size()];
         operation.parameters().forEach(parameter -> {
             JsonNode node = array.get(parameter.index());
-            Object value = objectMapper.convertValue(node,
-                    objectMapper.getTypeFactory().constructType(parameter.javaType()));
-            PropertyPresenceBinder.bind(value, objectMapper.convertValue(node, Object.class));
+            Object value = JsonUtil.convertValue(node, parameter.javaType());
+            PropertyPresenceBinder.bind(value, JsonUtil.convertValue(node, Object.class));
             arguments[parameter.index()] = value;
         });
         return arguments;

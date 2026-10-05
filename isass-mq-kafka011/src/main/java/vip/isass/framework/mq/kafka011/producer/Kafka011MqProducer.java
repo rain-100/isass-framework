@@ -74,7 +74,7 @@ public class Kafka011MqProducer implements IMqProducer {
     @SneakyThrows
     private String getBody(MqMessage mqMessage) {
         Object payload = mqMessage.getPayload();
-        return payload == null ? null : JsonUtil.NOT_NULL_INSTANCE.writeValueAsString(payload);
+        return payload == null ? null : JsonUtil.writeValueWithNotNullInstance(payload);
     }
 
     private String resolveTopic(MqMessage mqMessage) {

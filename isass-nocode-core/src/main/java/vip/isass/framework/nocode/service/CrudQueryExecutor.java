@@ -3,18 +3,21 @@
 package vip.isass.framework.nocode.service;
 
 import vip.isass.framework.common.page.Page;
-import vip.isass.framework.nocode.criteria.IAssociationCriteria;
-import vip.isass.framework.nocode.criteria.ICriteria;
-import vip.isass.framework.nocode.criteria.IUpdateCriteria;
-import vip.isass.framework.nocode.criteria.field.IIdCriteria;
-import vip.isass.framework.nocode.criteria.type.IOrderByCriteria;
-import vip.isass.framework.nocode.criteria.type.IPageCriteria;
-import vip.isass.framework.nocode.criteria.type.ISelectColumnCriteria;
+import vip.isass.framework.common.criteria.IRelatedQueryCriteria;
+import vip.isass.framework.common.criteria.ICriteria;
+import vip.isass.framework.common.criteria.IUpdateCriteria;
+import vip.isass.framework.common.criteria.JoinType;
+import vip.isass.framework.common.criteria.impl.type.FullTypeCriteria;
+import vip.isass.framework.common.criteria.field.IIdCriteria;
+import vip.isass.framework.common.criteria.type.IOrderByCriteria;
+import vip.isass.framework.common.criteria.type.IPageCriteria;
+import vip.isass.framework.common.criteria.type.IReturnFieldCriteria;
 import vip.isass.framework.nocode.entity.CrudQueryReq;
 import vip.isass.framework.nocode.entity.CrudQueryResult;
+import vip.isass.framework.nocode.entity.CrudQueryType;
 import vip.isass.framework.nocode.entity.CursorPage;
-import vip.isass.framework.nocode.entity.IIdEntity;
-import vip.isass.framework.nocode.entity.IParentIdEntity;
+import vip.isass.framework.common.entity.IIdEntity;
+import vip.isass.framework.common.entity.IParentIdEntity;
 import vip.isass.framework.nocode.lifecycle.CrudQueryLifecycleContext;
 import vip.isass.framework.nocode.lifecycle.CrudQueryLifecycleListener;
 import vip.isass.framework.nocode.util.TreeEntityUtil;
@@ -29,6 +32,7 @@ import java.util.Set;
 
 /**
  * Executes every standard NoCode query facade through one normalized lifecycle boundary.
+ * Uses the supplied Criteria directly so lifecycle and execution changes remain visible to the caller.
  */
 public final class CrudQueryExecutor {
 
@@ -59,7 +63,7 @@ public final class CrudQueryExecutor {
         if (request == null) {
             throw new IllegalArgumentException("request 不能为空");
         }
-        C criteria = request.criteria() == null ? service.newCriteria() : request.criteria().copy();
+        C criteria = request.criteria() == null ? service.newCriteria() : request.criteria();
         CrudQueryReq<C, PK> normalized = new CrudQueryReq<>(
                 request.queryType(), criteria, request.cursorId(), request.pageSize());
 
@@ -91,6 +95,10 @@ public final class CrudQueryExecutor {
                     & IPageCriteria<E, C> & IOrderByCriteria<E, C>> CrudQueryResult<E, PK> execute(
             ILocalCrudService<E, C, PK> service,
             CrudQueryReq<C, PK> request) {
+        if (associations != null && request.queryType() != CrudQueryType.COUNT
+                && request.queryType() != CrudQueryType.EXISTS) {
+            associations.prepare(request.criteria());
+        }
         return switch (request.queryType()) {
             case PAGE -> CrudQueryResult.page(page(service, request.criteria()));
             case CURSOR_PAGE -> CrudQueryResult.cursorPage(
@@ -113,10 +121,10 @@ public final class CrudQueryExecutor {
         }
         validateTreeAssociationPaths(criteria);
         criteria.orderByIfBlank("id", "asc");
-        if (criteria instanceof ISelectColumnCriteria<?, ?> selectColumns
-                && !selectColumns.getSelectColumns().isEmpty()) {
-            selectColumns.addSelectColumn("id");
-            selectColumns.addSelectColumn("parentId");
+        if (criteria instanceof IReturnFieldCriteria<?, ?> returnFields
+                && !returnFields.getReturnFields().isEmpty()) {
+            returnFields.addReturnField("id");
+            returnFields.addReturnField("parentId");
         }
         List<E> records = service.getRepository().findByCriteria(criteria);
         if (associations != null) {
@@ -126,19 +134,13 @@ public final class CrudQueryExecutor {
     }
 
     private void validateTreeAssociationPaths(Object criteria) {
-        if (!(criteria instanceof IAssociationCriteria<?> associations)) return;
-        List<String> paths = new ArrayList<>();
-        if (associations.getAssociationQueries() != null) {
-            paths.addAll(associations.getAssociationQueries());
-        }
-        if (associations.getAssociationCriteria() != null) {
-            paths.addAll(associations.getAssociationCriteria().keySet());
-        }
-        for (String path : paths) {
-            if (path == null || path.isBlank()) continue;
-            String root = path.trim().split("\\.", 2)[0];
-            if (root.equals("parent") || root.equals("children")) {
-                throw new IllegalArgumentException("tree 查询由框架装配 parent/children，不能重复请求关联: " + path);
+        if (!(criteria instanceof IRelatedQueryCriteria<?, ?> associations)) return;
+        List<String> properties = new ArrayList<>();
+        associations.getLoadRelated().forEach(condition -> properties.add(condition.getProperty()));
+        associations.getJoinConditions().forEach(condition -> properties.add(condition.getResultProperty()));
+        for (String property : properties) {
+            if ("parent".equals(property) || "children".equals(property)) {
+                throw new IllegalArgumentException("tree 查询由框架装配 parent/children，不能重复请求关联: " + property);
             }
         }
     }
@@ -173,7 +175,13 @@ public final class CrudQueryExecutor {
             C extends ICriteria<E, C> & IIdCriteria<PK, E, C> & IUpdateCriteria<C>
                     & IPageCriteria<E, C> & IOrderByCriteria<E, C>> CursorPage<E, PK> cursorPage(
             ILocalCrudService<E, C, PK> service, C criteria, PK cursorId, Long pageSize) {
-        C query = criteria.copy();
+        C query = criteria;
+        if (mayProduceEmptyRoot(query)) {
+            throw new IllegalArgumentException("RIGHT/FULL JOIN 可能产生空根行，不能使用主表 ID 游标");
+        }
+        if (query instanceof IReturnFieldCriteria<?, ?> selected && !selected.getReturnFields().isEmpty()) {
+            selected.addReturnField("id");
+        }
         String orderBy = query.getOrderBy();
         String normalized = orderBy == null || orderBy.isBlank()
                 ? "id asc"
@@ -198,6 +206,15 @@ public final class CrudQueryExecutor {
         List<E> records = hasMore ? new ArrayList<>(fetched.subList(0, (int) size)) : List.copyOf(fetched);
         PK nextCursorId = records.isEmpty() ? cursorId : records.getLast().getId();
         return new CursorPage<>(records, nextCursorId, hasMore);
+    }
+
+    private static boolean mayProduceEmptyRoot(ICriteria<?, ?> criteria) {
+        if (criteria instanceof IRelatedQueryCriteria<?, ?> related && related.getJoinConditions().stream()
+                .anyMatch(join -> join.getJoinType() == JoinType.RIGHT || join.getJoinType() == JoinType.FULL)) {
+            return true;
+        }
+        return criteria instanceof FullTypeCriteria<?, ?> full && full.getFromCriteria() != null
+                && mayProduceEmptyRoot(full.getFromCriteria());
     }
 
     private void notifyFailure(List<CrudQueryLifecycleListener> supported,

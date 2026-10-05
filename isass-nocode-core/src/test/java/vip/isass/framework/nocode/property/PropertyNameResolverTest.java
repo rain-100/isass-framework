@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: LGPL-3.0-only
 
-package vip.isass.framework.nocode.property;
+package vip.isass.framework.common.property;
 
 import org.junit.jupiter.api.Test;
 

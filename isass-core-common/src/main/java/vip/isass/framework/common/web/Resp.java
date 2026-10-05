@@ -142,7 +142,7 @@ public class Resp<T> {
     @SneakyThrows
     @Override
     public String toString() {
-        return JsonUtil.NOT_NULL_INSTANCE.writeValueAsString(this);
+        return JsonUtil.writeValueWithNotNullInstance(this);
     }
 
 }

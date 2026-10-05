@@ -4,10 +4,10 @@ package vip.isass.framework.database.mybatisplus.plus.handler;
 
 import org.apache.ibatis.reflection.SystemMetaObject;
 import org.junit.jupiter.api.Test;
-import vip.isass.framework.nocode.entity.ILogicDeleteEntity;
-import vip.isass.framework.nocode.entity.ITenantEntity;
-import vip.isass.framework.nocode.entity.ITraceEntity;
-import vip.isass.framework.nocode.entity.IVersionEntity;
+import vip.isass.framework.common.entity.ILogicDeleteEntity;
+import vip.isass.framework.common.entity.ITenantEntity;
+import vip.isass.framework.common.entity.ITraceEntity;
+import vip.isass.framework.common.entity.IVersionEntity;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

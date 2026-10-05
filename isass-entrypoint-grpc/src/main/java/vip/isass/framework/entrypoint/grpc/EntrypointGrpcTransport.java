@@ -6,7 +6,7 @@ import io.grpc.CallOptions;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.stub.ClientCalls;
-import tools.jackson.databind.ObjectMapper;
+import vip.isass.framework.common.support.JsonUtil;
 import vip.isass.framework.entrypoint.PropertyPresenceBinder;
 import vip.isass.framework.entrypoint.metadata.OperationDefinition;
 import vip.isass.framework.entrypoint.metadata.ParameterSource;
@@ -20,12 +20,10 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class EntrypointGrpcTransport implements EntrypointTransport, AutoCloseable {
 
     private final EntrypointGrpcProperties properties;
-    private final ObjectMapper objectMapper;
     private final Map<String, ManagedChannel> channels = new ConcurrentHashMap<>();
 
-    public EntrypointGrpcTransport(EntrypointGrpcProperties properties, ObjectMapper objectMapper) {
+    public EntrypointGrpcTransport(EntrypointGrpcProperties properties) {
         this.properties = properties;
-        this.objectMapper = objectMapper;
     }
 
     @Override public String name() { return "GRPC"; }
@@ -43,13 +41,12 @@ public final class EntrypointGrpcTransport implements EntrypointTransport, AutoC
             throw new EntrypointTransportException("未配置 gRPC 地址: " + service.serviceName(), true);
         }
         try {
-            Object encoded = objectMapper.convertValue(arguments, Object.class);
-            byte[] request = objectMapper.writeValueAsBytes(PropertyPresenceBinder.project(arguments, encoded));
+            Object encoded = JsonUtil.convertValue(arguments, Object.class);
+            byte[] request = JsonUtil.writeValueAsBytes(PropertyPresenceBinder.project(arguments, encoded));
             byte[] response = ClientCalls.blockingUnaryCall(channel(service.serviceName()),
                     EntrypointGrpcDescriptors.method(service, operation), CallOptions.DEFAULT, request);
             if (operation.returnType() == void.class || operation.returnType() == Void.class) return null;
-            return objectMapper.readValue(response,
-                    objectMapper.getTypeFactory().constructType(operation.returnType()));
+            return JsonUtil.readValue(response, operation.returnType());
         } catch (RuntimeException exception) {
             throw new EntrypointTransportException(
                     "gRPC 调用失败: " + service.key() + "#" + operation.operationName(), false, exception);

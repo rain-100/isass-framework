@@ -23,6 +23,16 @@
 
     <dependencies>
         <dependency>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>vip.isass</groupId>
+            <artifactId>isass-entrypoint-grpc</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>vip.isass</groupId>
             <artifactId>isass-entrypoint-core</artifactId>
         </dependency>
@@ -35,6 +45,11 @@
         <dependency>
             <groupId>vip.isass</groupId>
             <artifactId>isass-core-common</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>vip.isass</groupId>
+            <artifactId>isass-database-core</artifactId>
         </dependency>
 
         <dependency>

@@ -5,7 +5,6 @@ package vip.isass.framework.common.support.okhttp;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.ArrayUtil;
-import cn.hutool.json.JSONUtil;
 import tools.jackson.core.type.TypeReference;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -101,7 +100,7 @@ public class OkHttpUtil {
             String bodyStr = body == null ? "" : body.string();
             if (execute.isSuccessful()) {
                 return JsonUtil.readValue(bodyStr, typeReference);
-            } else if (execute.code() == 404 && JSONUtil.isJson(bodyStr)) {
+            } else if (execute.code() == 404 && JsonUtil.isJson(bodyStr)) {
                 return JsonUtil.readValue(bodyStr, typeReference);
             }
             throw new RuntimeException("调用" + request + " 失败，状态码：" + execute.code() + " 响应体：" + bodyStr);
@@ -123,7 +122,7 @@ public class OkHttpUtil {
             String bodyStr = body == null ? "" : body.string();
             if (execute.isSuccessful()) {
                 return JsonUtil.readValue(bodyStr, typeReference);
-            } else if (execute.code() == 404 && JSONUtil.isJson(bodyStr)) {
+            } else if (execute.code() == 404 && JsonUtil.isJson(bodyStr)) {
                 return JsonUtil.readValue(bodyStr, typeReference);
             }
             throw new RuntimeException("调用" + request + " 失败，状态码：" + execute.code() + " 响应体：" + bodyStr);
@@ -141,7 +140,7 @@ public class OkHttpUtil {
             String bodyStr = body == null ? "" : body.string();
             if (execute.isSuccessful()) {
                 return bodyStr;
-            } else if (execute.code() == 404 && JSONUtil.isJson(bodyStr)) {
+            } else if (execute.code() == 404 && JsonUtil.isJson(bodyStr)) {
                 return bodyStr;
             }
             throw new RuntimeException("调用" + request + " 失败，状态码：" + execute.code() + " 响应体：" + bodyStr);
@@ -203,7 +202,7 @@ public class OkHttpUtil {
         HttpUrl httpUrl = newHttpUrl(url, pathVariables, queryParams);
         RequestBody requestBody = RequestBody.create(
                 okhttp3.MediaType.get("application/json"),
-                JsonUtil.NOT_NULL_INSTANCE.writeValueAsString(body));
+                JsonUtil.writeValueWithNotNullInstance(body));
         Request request = new Request.Builder().post(requestBody).url(httpUrl).build();
         return CLIENT.newCall(request).execute();
     }

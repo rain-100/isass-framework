@@ -147,6 +147,13 @@ meta.setEntityFileOverride(false)
 
 Mapper、Repository 和 Service 默认保留已有文件；如果需要按最新模板重建，可显式打开对应的 `*FileOverride`。
 
+NoCode Mapper 使用 `MPJBaseMapper<Entity>`，由 `isass-database-mybatisplus` 提供 MPJ 传递依赖；
+业务 Service 仍使用 ICrudService/ILocalCrudService，不继承 MPJ Service。
+已有 Mapper 不应为替换父接口而覆盖手写方法及 XML；可使用
+`isass-nocode-generator/scripts/mapper-contract-patch.py <明确的 Java 源码根目录>`，
+该脚本从当前 Mapper 模板读取父接口，只输出 import/extends 的审阅补丁，不写文件、不连接数据库。
+审阅并应用补丁后重新编译业务项目。实体/Criteria 的字段变更仍必须按原流程从 DDL 生成。
+
 Service 接口和本地实现与 Entity、Criteria 的维护方式不同：Entity、Criteria 是可重复覆盖的数据库投影；
 Service 是“生成骨架＋以该实体或聚合为业务主体的手写应用能力扩展点”，不是只能调用单一 Repository 的
 CRUD 实现。只要用例的业务归属明确属于该实体或聚合，就应优先扩展 `${Entity}Service`；实现可以协调同一限界

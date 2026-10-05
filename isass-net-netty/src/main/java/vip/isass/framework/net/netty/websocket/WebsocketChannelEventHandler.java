@@ -120,7 +120,7 @@ public class WebsocketChannelEventHandler extends SimpleChannelInboundHandler<Ob
             String request = ((TextWebSocketFrame) frame).text();
             log.debug("接收到文本请求：{}", request);
 
-            TcpPacket packet = JsonUtil.DEFAULT_INSTANCE.readValue(request, TcpPacket.class);
+            TcpPacket packet = JsonUtil.readValue(request, TcpPacket.class);
             channelRead1(ctx, packet, Request.Protocol.WEBSOCKET);
         }
     }

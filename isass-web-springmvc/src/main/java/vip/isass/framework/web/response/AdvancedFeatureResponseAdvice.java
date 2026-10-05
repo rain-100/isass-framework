@@ -3,16 +3,19 @@
 package vip.isass.framework.web.response;
 
 import org.springframework.core.MethodParameter;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 import org.springframework.web.bind.annotation.ControllerAdvice;
-import tools.jackson.databind.ObjectMapper;
+import vip.isass.framework.common.support.JsonUtil;
 import vip.isass.framework.common.web.Resp;
-import vip.isass.framework.nocode.entity.AdvancedFeature;
-import vip.isass.framework.nocode.entity.IAnyJsonEntity;
+import vip.isass.framework.common.advanced.AdvancedFeature;
+import vip.isass.framework.common.advanced.AdvancedFeatureProjector;
+import vip.isass.framework.common.advanced.IDictTranslationProvider;
+import vip.isass.framework.common.entity.IEntity;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -25,10 +28,10 @@ import java.util.Map;
 @ControllerAdvice
 public class AdvancedFeatureResponseAdvice implements ResponseBodyAdvice<Object> {
 
-    private final ObjectMapper objectMapper;
+    private final AdvancedFeatureProjector projector;
 
-    public AdvancedFeatureResponseAdvice(ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
+    public AdvancedFeatureResponseAdvice(ObjectProvider<IDictTranslationProvider> dictionaryProvider) {
+        this.projector = new AdvancedFeatureProjector(dictionaryProvider.getIfAvailable());
     }
 
     @Override
@@ -63,12 +66,9 @@ public class AdvancedFeatureResponseAdvice implements ResponseBodyAdvice<Object>
         if (value == null) {
             return null;
         }
-        if (value instanceof IAnyJsonEntity entity) {
-            Map<String, Object> result = objectMapper.convertValue(entity, Map.class);
-            Map<String, Object> extra = entity.advancedJson(feature);
-            if (extra != null) {
-                result.putAll(extra);
-            }
+        if (value instanceof IEntity<?> entity) {
+            Map<String, Object> result = JsonUtil.convertToMap(entity);
+            result.putAll(projector.project(entity, result.keySet(), feature));
             return result;
         }
         if (value instanceof Collection<?> collection) {

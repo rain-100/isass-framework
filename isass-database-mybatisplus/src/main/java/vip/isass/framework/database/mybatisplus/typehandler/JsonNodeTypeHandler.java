@@ -42,7 +42,7 @@ public class JsonNodeTypeHandler extends BaseTypeHandler<JsonNode> {
         }
 
         // 如果没有处理器，则兜底使用字符串处理
-        ps.setString(i, JsonUtil.DEFAULT_INSTANCE.writeValueAsString(parameter));
+        ps.setString(i, JsonUtil.writeValue(parameter));
     }
 
     @Override
@@ -67,7 +67,7 @@ public class JsonNodeTypeHandler extends BaseTypeHandler<JsonNode> {
         }
         value = StrUtil.removePrefix(value, "\"");
         value = StrUtil.removeSuffix(value, "\"");
-        return JsonUtil.DEFAULT_INSTANCE.readTree(value);
+        return JsonUtil.readTree(value);
     }
 
 }

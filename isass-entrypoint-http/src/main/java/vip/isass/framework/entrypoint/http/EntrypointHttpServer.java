@@ -4,19 +4,22 @@ package vip.isass.framework.entrypoint.http;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.util.MultiValueMap;
+import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
-import tools.jackson.databind.ObjectMapper;
+import vip.isass.framework.common.support.JsonUtil;
 import vip.isass.framework.common.web.Resp;
 import vip.isass.framework.entrypoint.PropertyPresenceBinder;
+import vip.isass.framework.entrypoint.QueryParamConverter;
 import vip.isass.framework.entrypoint.stream.FileStream;
 import vip.isass.framework.entrypoint.metadata.OperationDefinition;
 import vip.isass.framework.entrypoint.metadata.ParameterDefinition;
@@ -42,14 +45,20 @@ public final class EntrypointHttpServer {
 
     private final ServiceDefinitionRegistry definitions;
     private final EntrypointInvocationGateway invocations;
-    private final ObjectMapper objectMapper;
+    private final List<QueryParamConverter> queryConverters;
 
     public EntrypointHttpServer(ServiceDefinitionRegistry definitions,
+                                EntrypointInvocationGateway invocations) {
+        this(definitions, invocations, List.of());
+    }
+
+    @Autowired
+    public EntrypointHttpServer(ServiceDefinitionRegistry definitions,
                                 EntrypointInvocationGateway invocations,
-                                ObjectMapper objectMapper) {
+                                List<QueryParamConverter> queryConverters) {
+        this.queryConverters = List.copyOf(queryConverters);
         this.definitions = definitions;
         this.invocations = invocations;
-        this.objectMapper = objectMapper;
     }
 
     @RequestMapping({
@@ -84,7 +93,14 @@ public final class EntrypointHttpServer {
         }
         Object[] arguments = new Object[operation.parameters().size()];
         for (ParameterDefinition parameter : operation.parameters()) {
-            arguments[parameter.index()] = bind(parameter, query, request);
+            MultiValueMap<String, String> ownedQuery = query;
+            if (parameter.source() == ParameterSource.QUERY && parameter.objectQuery()) {
+                ownedQuery = new LinkedMultiValueMap<>(query);
+                for (ParameterDefinition other : operation.parameters()) {
+                    if (other.source() == ParameterSource.QUERY && !other.objectQuery()) ownedQuery.remove(other.name());
+                }
+            }
+            arguments[parameter.index()] = bind(parameter, ownedQuery, request);
         }
         Object result = invocations.invoke(serviceName, contextName, resourceName, operationName, arguments);
         if (result instanceof FileStream fileStream) {
@@ -113,6 +129,14 @@ public final class EntrypointHttpServer {
 
     private Object bind(ParameterDefinition parameter, MultiValueMap<String, String> query,
                         HttpServletRequest request) throws IOException {
+        if (parameter.source() == ParameterSource.QUERY) {
+            QueryParamConverter converter = QueryParamConverter.select(queryConverters, parameter.javaType());
+            if (converter != null) {
+                Map<String, String> params = new LinkedHashMap<>();
+                query.forEach((name, values) -> params.put(name, requireSingleQueryValue(name, values)));
+                return converter.fromQueryParams(params, parameter.javaType());
+            }
+        }
         return switch (parameter.source()) {
             case QUERY -> parameter.objectQuery()
                     ? bindQueryObject(parameter.javaType(), query)
@@ -126,10 +150,9 @@ public final class EntrypointHttpServer {
     }
 
     private Object bindBody(ParameterDefinition parameter, HttpServletRequest request) throws IOException {
-        var tree = objectMapper.readTree(request.getInputStream());
-        Object value = objectMapper.convertValue(tree,
-                objectMapper.getTypeFactory().constructType(parameter.javaType()));
-        PropertyPresenceBinder.bind(value, objectMapper.convertValue(tree, Object.class));
+        var tree = JsonUtil.readTree(request.getInputStream());
+        Object value = JsonUtil.convertValue(tree, parameter.javaType());
+        PropertyPresenceBinder.bind(value, JsonUtil.convertValue(tree, Object.class));
         return value;
     }
 
@@ -190,23 +213,7 @@ public final class EntrypointHttpServer {
 
     private Object bindQueryObject(Type type, MultiValueMap<String, String> query) {
         Map<String, Object> source = new LinkedHashMap<>();
-        Map<String, Map<String, Object>> associationCriteria = new LinkedHashMap<>();
-        query.forEach((name, values) -> {
-            String value = requireSingleQueryValue(name, values);
-            if (name.equals("association.query")) {
-                source.put("associationQueries", value);
-            } else if (name.startsWith("association.") && name.contains(".criteria.")) {
-                String remainder = name.substring("association.".length());
-                int separator = remainder.indexOf(".criteria.");
-                String association = remainder.substring(0, separator);
-                String property = remainder.substring(separator + ".criteria.".length());
-                associationCriteria.computeIfAbsent(association, ignored -> new LinkedHashMap<>())
-                        .put(property, value);
-            } else {
-                source.put(name, value);
-            }
-        });
-        if (!associationCriteria.isEmpty()) source.put("associationCriteria", associationCriteria);
+        query.forEach((name, values) -> source.put(name, requireSingleQueryValue(name, values)));
         return bindQueryProperties(type, source);
     }
 
@@ -223,14 +230,13 @@ public final class EntrypointHttpServer {
                 }
                 Type parameterType = org.springframework.core.GenericTypeResolver.resolveType(
                         setter.getGenericParameterTypes()[0], raw);
-                Object value = objectMapper.convertValue(normalizeQueryValue(parameterType, entry.getValue()),
-                        objectMapper.getTypeFactory().constructType(parameterType));
+                Object value = JsonUtil.convertValue(normalizeQueryValue(parameterType, entry.getValue()), parameterType);
                 if (!setter.canAccess(target)) setter.setAccessible(true);
                 setter.invoke(target, value);
             }
             return target;
         } catch (NoSuchMethodException exception) {
-            return objectMapper.convertValue(source, objectMapper.getTypeFactory().constructType(type));
+            return JsonUtil.convertValue(source, type);
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException exception) {
             throw new IllegalArgumentException("Query 对象绑定失败: " + raw.getName(), exception);
         }
@@ -258,7 +264,7 @@ public final class EntrypointHttpServer {
         if (values == null || values.isEmpty()) return null;
         Class<?> raw = rawClass(type);
         Object source = raw.isArray() || Iterable.class.isAssignableFrom(raw) ? values : values.getFirst();
-        return objectMapper.convertValue(source, objectMapper.getTypeFactory().constructType(type));
+        return JsonUtil.convertValue(source, type);
     }
 
     private Object convertQueryParameter(String name, Type type, List<String> values) {
@@ -267,7 +273,7 @@ public final class EntrypointHttpServer {
         Class<?> raw = rawClass(type);
         Object source = raw.isArray() || Iterable.class.isAssignableFrom(raw)
                 ? splitCommaSeparatedQueryValue(value) : value;
-        return objectMapper.convertValue(source, objectMapper.getTypeFactory().constructType(type));
+        return JsonUtil.convertValue(source, type);
     }
 
     private String requireSingleQueryValue(String name, List<String> values) {

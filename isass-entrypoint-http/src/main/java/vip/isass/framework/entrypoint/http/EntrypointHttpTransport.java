@@ -11,10 +11,11 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
 import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
+import vip.isass.framework.common.support.JsonUtil;
 import vip.isass.framework.common.web.header.AdditionalRequestHeaderContext;
 import vip.isass.framework.common.web.header.AdditionalRequestHeaderProvider;
 import vip.isass.framework.entrypoint.PropertyPresenceBinder;
+import vip.isass.framework.entrypoint.QueryParamConverter;
 import vip.isass.framework.entrypoint.metadata.OperationDefinition;
 import vip.isass.framework.entrypoint.metadata.ParameterDefinition;
 import vip.isass.framework.entrypoint.metadata.ParameterSource;
@@ -28,20 +29,27 @@ import java.lang.reflect.Array;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public final class EntrypointHttpTransport implements EntrypointTransport {
 
     private final RestClient restClient;
     private final HttpEndpointResolver endpoints;
-    private final ObjectMapper objectMapper;
+    private final List<QueryParamConverter> queryConverters;
     private final List<AdditionalRequestHeaderProvider> headerProviders;
 
     public EntrypointHttpTransport(RestClient restClient, HttpEndpointResolver endpoints,
-                                   ObjectMapper objectMapper,
                                    List<AdditionalRequestHeaderProvider> headerProviders) {
+        this(restClient, endpoints, headerProviders, List.of());
+    }
+
+    public EntrypointHttpTransport(RestClient restClient, HttpEndpointResolver endpoints,
+                                   List<AdditionalRequestHeaderProvider> headerProviders,
+                                   List<QueryParamConverter> queryConverters) {
+        this.queryConverters = List.copyOf(queryConverters);
         this.restClient = restClient;
         this.endpoints = endpoints;
-        this.objectMapper = objectMapper;
         this.headerProviders = List.copyOf(headerProviders);
     }
 
@@ -68,12 +76,15 @@ public final class EntrypointHttpTransport implements EntrypointTransport {
         boolean multipart = operation.parameters().stream().anyMatch(parameter ->
                 parameter.source() == ParameterSource.FORM_FIELD
                         || parameter.source() == ParameterSource.FORM_FILE);
+        Set<String> namedQueryParameters = operation.parameters().stream()
+                .filter(parameter -> parameter.source() == ParameterSource.QUERY && !parameter.objectQuery())
+                .map(ParameterDefinition::name).collect(Collectors.toSet());
         for (ParameterDefinition parameter : operation.parameters()) {
             Object value = arguments[parameter.index()];
             switch (parameter.source()) {
-                case QUERY -> addQuery(query, parameter, value);
+                case QUERY -> addQuery(query, parameter, value, namedQueryParameters);
                 case BODY -> body = value == null ? null : PropertyPresenceBinder.project(value,
-                        objectMapper.convertValue(value, Object.class));
+                        JsonUtil.convertValue(value, Object.class));
                 case HEADER -> {
                     if (value != null) headers.add(parameter.name(), String.valueOf(value));
                 }
@@ -83,7 +94,7 @@ public final class EntrypointHttpTransport implements EntrypointTransport {
                             form.add(parameter.name(), String.valueOf(value));
                         } else {
                             MultiValueMap<String, String> fields = new LinkedMultiValueMap<>();
-                            objectMapper.valueToTree(value).properties().forEach(entry ->
+                            JsonUtil.valueToTree(value).properties().forEach(entry ->
                                     addValues(fields, entry.getKey(), entry.getValue()));
                             fields.forEach((name, values) -> values.forEach(item -> form.add(name, item)));
                         }
@@ -100,7 +111,7 @@ public final class EntrypointHttpTransport implements EntrypointTransport {
         URI uri = UriComponentsBuilder.fromUri(endpoint)
                 .path(service.pathPrefix(operation)).pathSegment(operation.operationName())
                 .queryParams(query).build().encode().toUri();
-        byte[] serializedBody = body == null ? new byte[0] : objectMapper.writeValueAsBytes(body);
+        byte[] serializedBody = body == null ? new byte[0] : JsonUtil.writeValueAsBytes(body);
         AdditionalRequestHeaderContext headerContext = new AdditionalRequestHeaderContext(
                 operation.httpMethod().name(), uri, serializedBody, multipart);
         for (AdditionalRequestHeaderProvider provider : headerProviders) {
@@ -124,8 +135,7 @@ public final class EntrypointHttpTransport implements EntrypointTransport {
             }
             JsonNode data = response.has("data") ? response.path("data") : response;
             if (data.isNull() || data.isMissingNode()) return null;
-            return objectMapper.convertValue(data,
-                    objectMapper.getTypeFactory().constructType(operation.returnType()));
+            return JsonUtil.convertValue(data, operation.returnType());
         } catch (EntrypointTransportException exception) {
             throw exception;
         } catch (RuntimeException exception) {
@@ -162,96 +172,21 @@ public final class EntrypointHttpTransport implements EntrypointTransport {
         throw new EntrypointTransportException("不支持的 FormFileParam 类型: " + value.getClass().getName(), true);
     }
 
-    private void addQuery(MultiValueMap<String, String> query, ParameterDefinition parameter, Object value) {
+    private void addQuery(MultiValueMap<String, String> query, ParameterDefinition parameter, Object value,
+                          Set<String> namedQueryParameters) {
         if (value == null) return;
-        if (parameter.objectQuery()) {
-            JsonNode properties = objectMapper.valueToTree(value);
-            properties.properties().forEach(entry -> {
-                String property = entry.getKey();
-                JsonNode propertyValue = entry.getValue();
-                if (property.equals("associationQueries")) {
-                    addValues(query, "association.query", propertyValue);
-                } else if (property.equals("whereConditions")) {
-                    addWhereConditions(query, propertyValue);
-                } else if (property.equals("associationCriteria") && propertyValue.isObject()) {
-                    propertyValue.properties().forEach(association -> {
-                        JsonNode criteria = association.getValue();
-                        if (!criteria.isObject()) return;
-                        criteria.properties().forEach(criterion -> addValues(query,
-                                "association." + association.getKey() + ".criteria." + criterion.getKey(),
-                                criterion.getValue()));
-                    });
-                } else {
-                    addValues(query, property, propertyValue);
-                }
+        QueryParamConverter converter = QueryParamConverter.select(queryConverters, parameter.javaType());
+        if (converter != null) {
+            converter.toQueryParams(value, parameter.javaType()).forEach((name, text) -> {
+                if (parameter.objectQuery() && namedQueryParameters.contains(name)) return;
+                if (query.containsKey(name)) throw new IllegalArgumentException("重复 QUERY 属性: " + name);
+                query.add(name, text);
             });
+        } else if (parameter.objectQuery()) {
+            JsonUtil.valueToTree(value).properties().forEach(entry -> addValues(query, entry.getKey(), entry.getValue()));
         } else {
             addValues(query, parameter.name(), value);
         }
-    }
-
-    private void addWhereConditions(MultiValueMap<String, String> query, JsonNode conditions) {
-        if (conditions.isNull() || conditions.isMissingNode()) return;
-        if (!conditions.isArray()) {
-            throw new IllegalArgumentException("whereConditions 必须是数组");
-        }
-        boolean orNext = false;
-        for (JsonNode conditionNode : conditions) {
-            String condition = conditionNode.path("condition").asString();
-            if (condition.equals("OR")) {
-                orNext = true;
-                continue;
-            }
-            String propertyName = conditionNode.path("propertyName").asString();
-            if (propertyName.isBlank() || condition.isBlank()) {
-                throw new IllegalArgumentException("whereConditions 缺少 propertyName 或 condition");
-            }
-            String queryName = orNext
-                    ? "or" + Character.toUpperCase(propertyName.charAt(0)) + propertyName.substring(1)
-                    : propertyName;
-            queryName += conditionSuffix(condition);
-            JsonNode conditionValue = conditionNode.path("value");
-            if (conditionValue.isNull() || conditionValue.isMissingNode()) {
-                if (condition.equals("IS_NULL") || condition.equals("IS_NOT_NULL")
-                        || condition.equals("IS_EMPTY") || condition.equals("IS_NOT_EMPTY")) {
-                    query.add(queryName, "true");
-                }
-            } else {
-                addValues(query, queryName, conditionValue);
-            }
-            orNext = false;
-        }
-        if (orNext) {
-            throw new IllegalArgumentException("whereConditions 不能以 OR 结束");
-        }
-    }
-
-    private String conditionSuffix(String condition) {
-        return switch (condition) {
-            case "EQUAL" -> "";
-            case "NOT_EQUAL" -> "NotEqual";
-            case "IN" -> "In";
-            case "NOT_IN" -> "NotIn";
-            case "IS_NULL" -> "IsNull";
-            case "IS_NOT_NULL" -> "IsNotNull";
-            case "IS_EMPTY" -> "IsEmpty";
-            case "IS_NOT_EMPTY" -> "IsNotEmpty";
-            case "GREATER_THAN" -> "GreaterThan";
-            case "GREATER_THAN_EQUAL" -> "GreaterThanEqual";
-            case "LESS_THAN" -> "LessThan";
-            case "LESS_THAN_EQUAL" -> "LessThanEqual";
-            case "START_WITH" -> "StartWith";
-            case "LIKE" -> "Like";
-            case "NOT_LIKE" -> "NotLike";
-            case "CONTAINS_ALL" -> "ContainsAll";
-            case "CONTAINS_ANY" -> "ContainsAny";
-            case "JSON_OBJECT_PATH_EQUAL" -> "JsonObjectPathEqual";
-            case "JSON_OBJECT_PATH_LIKE" -> "JsonObjectPathLike";
-            case "JSON_ARRAY_CONTAINS" -> "JsonArrayContains";
-            case "JSON_ARRAY_CONTAINS_ANY" -> "JsonArrayContainsAny";
-            case "JSON_ARRAY_CONTAINS_ALL" -> "JsonArrayContainsAll";
-            default -> throw new IllegalArgumentException("不支持的 whereCondition: " + condition);
-        };
     }
 
     private void addValues(MultiValueMap<String, String> query, String name, Object value) {

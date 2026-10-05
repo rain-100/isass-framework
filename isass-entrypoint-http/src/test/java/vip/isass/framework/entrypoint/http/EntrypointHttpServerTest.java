@@ -13,10 +13,10 @@ import org.springframework.mock.web.MockMultipartHttpServletRequest;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.client.RestClient;
-import tools.jackson.databind.ObjectMapper;
 import vip.isass.framework.common.web.Resp;
 import vip.isass.framework.entrypoint.IEntrypoint;
-import vip.isass.framework.entrypoint.PropertyPresenceAware;
+import vip.isass.framework.common.support.presence.PropertyPresenceAware;
+import vip.isass.framework.entrypoint.QueryParamConverter;
 import vip.isass.framework.entrypoint.annotation.BodyParam;
 import vip.isass.framework.entrypoint.annotation.EntrypointInfo;
 import vip.isass.framework.entrypoint.annotation.EntrypointOperation;
@@ -29,8 +29,11 @@ import vip.isass.framework.entrypoint.registry.EntrypointDefinitionParser;
 import vip.isass.framework.entrypoint.stream.FileStream;
 
 import java.net.URI;
+import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
@@ -42,21 +45,67 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 public class EntrypointHttpServerTest {
 
     @Test
+    void componentRegistrationSelectsTheConverterAwareConstructor() {
+        var registry = registry(new TestServiceImpl());
+        try (var context = new AnnotationConfigApplicationContext()) {
+            context.registerBean(DefaultServiceDefinitionRegistry.class, () -> registry);
+            context.register(EntrypointHttpServer.class);
+            context.refresh();
+            assertInstanceOf(EntrypointHttpServer.class, context.getBean(EntrypointHttpServer.class));
+        }
+    }
+
+    @Test
+    void delegatesQueryObjectsToUniqueConverterAndRejectsDuplicateRegistrations() throws Exception {
+        QueryParamConverter converter = new QueryParamConverter() {
+            @Override public boolean supports(Type type) { return type == SearchQuery.class; }
+            @Override public Map<String, String> toQueryParams(Object value, Type type) {
+                return Map.of("payload", ((SearchQuery) value).getName(), "limit", "999");
+            }
+            @Override public Object fromQueryParams(Map<String, String> params, Type type) {
+                assertNull(params.get("limit"));
+                SearchQuery query = new SearchQuery().setName(params.get("payload"));
+                query.setTags(List.of("converted"));
+                return query;
+            }
+        };
+        var registry = registry(new TestServiceImpl());
+        var server = new EntrypointHttpServer(registry, registry, List.of(converter));
+        var query = new LinkedMultiValueMap<String, String>();
+        query.add("payload", "中文&value");
+        query.add("limit", "7");
+        var request = new MockHttpServletRequest("GET", "/sample-service/nocode/demo/test/searchWithLimit");
+        var response = server.invoke("sample-service", "demo", "test", "searchWithLimit", query, request, new MockHttpServletResponse());
+        assertEquals("中文&value:converted:7", assertInstanceOf(Resp.class, response).getData());
+        assertThrows(IllegalStateException.class, () -> QueryParamConverter.select(List.of(converter, converter), SearchQuery.class));
+
+        RestClient.Builder client = RestClient.builder();
+        MockRestServiceServer mock = MockRestServiceServer.bindTo(client).build();
+        var service = new EntrypointDefinitionParser(List.of()).parse(TestService.class, false);
+        var operation = service.operations().stream().filter(candidate -> candidate.operationName().equals("searchWithLimit")).findFirst().orElseThrow();
+        mock.expect(requestTo("http://localhost/sample-service/demo/test/searchWithLimit?payload=a%26b&limit=7"))
+                .andRespond(withSuccess("{\"success\":true,\"data\":\"ok\"}", MediaType.APPLICATION_JSON));
+        var transport = new EntrypointHttpTransport(client.build(), ignored -> URI.create("http://localhost"),
+                List.of(), List.of(converter));
+        assertEquals("ok", transport.invoke(service, operation, new Object[]{new SearchQuery().setName("a&b"), 7L}));
+        mock.verify();
+    }
+
+    @Test
     void serializesObjectQueryAndIgnoresEmptyComplexCollections() {
         RestClient.Builder builder = RestClient.builder();
         MockRestServiceServer mockServer = MockRestServiceServer.bindTo(builder).build();
-        ObjectMapper objectMapper = new ObjectMapper();
         var service = new EntrypointDefinitionParser(List.of()).parse(TestService.class, false);
         var operation = service.operations().stream()
                 .filter(candidate -> candidate.operationName().equals("search"))
                 .findFirst().orElseThrow();
         var transport = new EntrypointHttpTransport(builder.build(),
-                ignored -> URI.create("http://localhost"), objectMapper, List.of());
+                ignored -> URI.create("http://localhost"), List.of());
         SearchQuery query = new SearchQuery();
         query.setTags(List.of());
         query.setIdIn(List.of(2081264465512599554L, 2081264465512599555L));
-        query.setWhereConditions(List.of(new QueryCondition("name", "EQUAL", "rain")));
-        mockServer.expect(requestTo("http://localhost/sample-service/demo/test/search?idIn=2081264465512599554,2081264465512599555&name=rain"))
+        query.setName("rain");
+        mockServer.expect(requestTo("http://localhost/sample-service/demo/test/search?idIn=2081264465512599554,2081264465512599555"))
                 .andRespond(withSuccess("{\"success\":true,\"data\":\"ok\"}",
                         org.springframework.http.MediaType.APPLICATION_JSON));
 
@@ -68,7 +117,7 @@ public class EntrypointHttpServerTest {
     void rejectsRepeatedObjectQueryParametersAndUsesNocodeNamespace() throws Exception {
         TestServiceImpl implementation = new TestServiceImpl();
         DefaultServiceDefinitionRegistry registry = registry(implementation);
-        EntrypointHttpServer server = new EntrypointHttpServer(registry, registry, new ObjectMapper());
+        EntrypointHttpServer server = new EntrypointHttpServer(registry, registry);
         MockHttpServletRequest request = new MockHttpServletRequest("GET",
                 "/sample-service/nocode/demo/test/search");
         LinkedMultiValueMap<String, String> query = new LinkedMultiValueMap<>();
@@ -92,7 +141,7 @@ public class EntrypointHttpServerTest {
     void bindsCommaSeparatedObjectQueryParameterToCollectionProperty() throws Exception {
         TestServiceImpl implementation = new TestServiceImpl();
         DefaultServiceDefinitionRegistry registry = registry(implementation);
-        EntrypointHttpServer server = new EntrypointHttpServer(registry, registry, new ObjectMapper());
+        EntrypointHttpServer server = new EntrypointHttpServer(registry, registry);
         MockHttpServletRequest request = new MockHttpServletRequest("GET",
                 "/sample-service/nocode/demo/test/search");
         LinkedMultiValueMap<String, String> query = new LinkedMultiValueMap<>();
@@ -111,7 +160,7 @@ public class EntrypointHttpServerTest {
     void bindsCommaSeparatedSimpleQueryParameterAndRejectsRepeatedValues() throws Exception {
         TestServiceImpl implementation = new TestServiceImpl();
         DefaultServiceDefinitionRegistry registry = registry(implementation);
-        EntrypointHttpServer server = new EntrypointHttpServer(registry, registry, new ObjectMapper());
+        EntrypointHttpServer server = new EntrypointHttpServer(registry, registry);
         MockHttpServletRequest request = new MockHttpServletRequest("GET",
                 "/sample-service/nocode/demo/test/ids");
         LinkedMultiValueMap<String, String> query = new LinkedMultiValueMap<>();
@@ -130,7 +179,7 @@ public class EntrypointHttpServerTest {
     @Test
     void bindsFlatFormFieldsAndFileBytes() throws Exception {
         DefaultServiceDefinitionRegistry registry = registry(new TestServiceImpl());
-        EntrypointHttpServer server = new EntrypointHttpServer(registry, registry, new ObjectMapper());
+        EntrypointHttpServer server = new EntrypointHttpServer(registry, registry);
         MockMultipartHttpServletRequest request = new MockMultipartHttpServletRequest();
         request.setMethod("POST");
         request.setRequestURI("/sample-service/nocode/demo/test/upload");
@@ -146,7 +195,7 @@ public class EntrypointHttpServerTest {
     @Test
     void fillsMissingFileMetadataWithoutOverwritingExplicitValues() throws Exception {
         var registry = registry(new TestServiceImpl());
-        var server = new EntrypointHttpServer(registry, registry, new ObjectMapper());
+        var server = new EntrypointHttpServer(registry, registry);
         var request = new MockMultipartHttpServletRequest();
         request.setMethod("POST");
         request.setRequestURI("/sample-service/nocode/demo/test/upload");
@@ -165,7 +214,7 @@ public class EntrypointHttpServerTest {
     void rejectsJsonFormObject() throws Exception {
         TestServiceImpl implementation = new TestServiceImpl();
         DefaultServiceDefinitionRegistry registry = registry(implementation);
-        EntrypointHttpServer server = new EntrypointHttpServer(registry, registry, new ObjectMapper());
+        EntrypointHttpServer server = new EntrypointHttpServer(registry, registry);
         MockMultipartHttpServletRequest request = new MockMultipartHttpServletRequest();
         request.setMethod("POST");
         request.setRequestURI("/sample-service/nocode/demo/test/upload");
@@ -182,7 +231,7 @@ public class EntrypointHttpServerTest {
     void preservesExplicitBodyPropertyPresence() throws Exception {
         TestServiceImpl implementation = new TestServiceImpl();
         DefaultServiceDefinitionRegistry registry = registry(implementation);
-        EntrypointHttpServer server = new EntrypointHttpServer(registry, registry, new ObjectMapper());
+        EntrypointHttpServer server = new EntrypointHttpServer(registry, registry);
         MockHttpServletRequest request = new MockHttpServletRequest("POST",
                 "/sample-service/nocode/demo/test/inspect");
         request.setContentType("application/json");
@@ -198,7 +247,7 @@ public class EntrypointHttpServerTest {
     void supportsBusinessAndNocodeOperationsOnTheSameResource() throws Exception {
         TestServiceImpl implementation = new TestServiceImpl();
         DefaultServiceDefinitionRegistry registry = registry(implementation);
-        EntrypointHttpServer server = new EntrypointHttpServer(registry, registry, new ObjectMapper());
+        EntrypointHttpServer server = new EntrypointHttpServer(registry, registry);
         MockHttpServletRequest request = new MockHttpServletRequest("GET",
                 "/sample-service/demo/test/business");
 
@@ -218,7 +267,7 @@ public class EntrypointHttpServerTest {
     void streamsFileResponsesWithoutJsonWrapping() throws Exception {
         TestServiceImpl implementation = new TestServiceImpl();
         DefaultServiceDefinitionRegistry registry = registry(implementation);
-        EntrypointHttpServer server = new EntrypointHttpServer(registry, registry, new ObjectMapper());
+        EntrypointHttpServer server = new EntrypointHttpServer(registry, registry);
         MockHttpServletRequest request = new MockHttpServletRequest("GET",
                 "/sample-service/nocode/demo/test/preview");
 
@@ -240,7 +289,7 @@ public class EntrypointHttpServerTest {
     void keepsAttachmentDispositionForDownloadFileResponses() throws Exception {
         TestServiceImpl implementation = new TestServiceImpl();
         DefaultServiceDefinitionRegistry registry = registry(implementation);
-        EntrypointHttpServer server = new EntrypointHttpServer(registry, registry, new ObjectMapper());
+        EntrypointHttpServer server = new EntrypointHttpServer(registry, registry);
         MockHttpServletRequest request = new MockHttpServletRequest("GET",
                 "/sample-service/nocode/demo/test/download");
 
@@ -265,6 +314,11 @@ public class EntrypointHttpServerTest {
     public interface TestService extends IEntrypoint {
         @EntrypointOperation(operationName = "search", displayName = "查询", httpMethod = HttpMethod.GET)
         String search(@QueryParam SearchQuery query);
+
+        @EntrypointOperation(operationName = "searchWithLimit", displayName = "查询", httpMethod = HttpMethod.GET)
+        default String searchWithLimit(@QueryParam SearchQuery query, @QueryParam("limit") Long limit) {
+            return search(query) + ":" + limit;
+        }
 
         @EntrypointOperation(operationName = "upload", displayName = "上传", httpMethod = HttpMethod.POST)
         String upload(@FormFieldParam("metadata") Metadata metadata,
@@ -345,7 +399,7 @@ public class EntrypointHttpServerTest {
         public void setWhereConditions(List<QueryCondition> whereConditions) { this.whereConditions = whereConditions; }
     }
 
-    record QueryCondition(String propertyName, String condition, Object value) {
+    record QueryCondition(String sourceProperty, String condition, Object value) {
     }
 
     static final class Metadata {

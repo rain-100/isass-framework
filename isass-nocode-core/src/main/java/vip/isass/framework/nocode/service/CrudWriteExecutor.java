@@ -12,18 +12,22 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.transaction.support.TransactionTemplate;
 import vip.isass.framework.common.exception.AbsentException;
-import vip.isass.framework.nocode.criteria.ICriteria;
-import vip.isass.framework.nocode.criteria.IUpdateCriteria;
-import vip.isass.framework.nocode.criteria.field.IIdCriteria;
-import vip.isass.framework.nocode.criteria.type.IOrderByCriteria;
-import vip.isass.framework.nocode.criteria.type.IPageCriteria;
-import vip.isass.framework.nocode.criteria.type.IWhereConditionCriteria;
-import vip.isass.framework.nocode.entity.IIdEntity;
+import vip.isass.framework.common.criteria.ICriteria;
+import vip.isass.framework.common.criteria.IUpdateCriteria;
+import vip.isass.framework.common.criteria.WhereCondition;
+import vip.isass.framework.common.criteria.impl.type.Condition;
+import vip.isass.framework.common.criteria.field.IIdCriteria;
+import vip.isass.framework.common.criteria.type.IOrderByCriteria;
+import vip.isass.framework.common.criteria.type.IPageCriteria;
+import vip.isass.framework.common.criteria.type.IReturnFieldCriteria;
+import vip.isass.framework.common.criteria.type.IWhereConditionCriteria;
+import vip.isass.framework.common.entity.IIdEntity;
+import vip.isass.framework.common.entity.EntityAssociation;
 import vip.isass.framework.nocode.entity.SuperCudReq;
 import vip.isass.framework.nocode.entity.SuperCudResult;
 import vip.isass.framework.nocode.lifecycle.CrudWriteLifecycleContext;
 import vip.isass.framework.nocode.lifecycle.CrudWriteLifecycleListener;
-import vip.isass.framework.nocode.repository.IRepository;
+import vip.isass.framework.database.core.repository.IRepository;
 
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
@@ -32,6 +36,7 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -79,9 +84,8 @@ public class CrudWriteExecutor {
     @Transactional(rollbackFor = Exception.class)
     public <PK extends Serializable, E extends IIdEntity<PK, E>,
             C extends ICriteria<E, C> & IIdCriteria<PK, E, C> & IUpdateCriteria<C>
-                    & IPageCriteria<E, C> & IOrderByCriteria<E, C>> SuperCudResult superCud(
-            ILocalCrudService<E, C, PK> service,
-            SuperCudReq<E, C> request
+                    & IPageCriteria<E, C> & IOrderByCriteria<E, C>> SuperCudResult superCud(ILocalCrudService<E, C, PK> service,
+                                                                                            SuperCudReq<E, C> request
     ) {
         Objects.requireNonNull(service, "service");
         Objects.requireNonNull(request, "request");
@@ -200,21 +204,26 @@ public class CrudWriteExecutor {
         }
 
         for (E entity : request.updateEntities()) {
-            if (associations != null && associations.active()) associations.beforeSave(entity, false);
-            C effectiveCriteria = null;
-            int current;
-            if (request.updateCriteria() == null) {
-                current = repository.updateById(entity) ? 1 : 0;
-                if (current == 0) {
-                    throw new AbsentException("按 ID 更新失败，记录不存在: " + idOf(entity));
-                }
-            } else {
-                effectiveCriteria = effectiveUpdateCriteria(service, request.updateCriteria(), entity);
-                current = repository.updateCountByCriteria(entity, effectiveCriteria);
+            C effectiveCriteria = effectiveUpdateCriteria(service, request.updateCriteria(), entity);
+            PK updateRootId = validateAndResolveRelatedUpdateRootId(entity, effectiveCriteria);
+            if (updateRootId != null && !repository.isPresentByCriteria(effectiveCriteria)) {
+                throw new AbsentException("关联更新的主实体未命中最终 Criteria: " + updateRootId);
+            }
+            if (associations != null && associations.active()) {
+                associations.beforeSave(entity, false, updateRootId, effectiveCriteria);
+            }
+            int current = onlySubmittedAssociation(entity)
+                    ? (repository.isPresentByCriteria(effectiveCriteria) ? 1 : 0)
+                    : repository.updateCountByCriteria(entity, effectiveCriteria);
+            if (current == 0 && updateRootId != null && !repository.isPresentByCriteria(effectiveCriteria)) {
+                throw new AbsentException("关联更新后主实体不再命中最终 Criteria: " + updateRootId);
+            }
+            if (current == 0 && request.updateCriteria() == null) {
+                throw new AbsentException("按 ID 更新失败，记录不存在: " + idOf(entity));
             }
             updatedCount += current;
             if (associations != null && associations.active()) {
-                associations.afterSave(entity, effectiveCriteria, false);
+                associations.afterSave(entity, effectiveCriteria, false, updateRootId);
             }
         }
 
@@ -229,17 +238,28 @@ public class CrudWriteExecutor {
         }
 
         for (C criteria : request.deleteCriteria()) {
-            if (associations != null && associations.active()) {
-                List<E> deleting = repository.findByCriteria(criteria);
-                associations.beforeDelete(service, deleting.stream().map(IIdEntity::getId).toList());
+            LinkedHashSet<PK> rootIds = new LinkedHashSet<>();
+            C selection = criteria.copy();
+            if (selection instanceof IReturnFieldCriteria<?, ?> columns) {
+                columns.setReturnField("id");
             }
-            deletedCount += repository.deleteCountByCriteria(criteria);
+            for (E deleting : repository.findByCriteria(selection)) {
+                PK rootId = deleting.getId();
+                if (rootId != null) rootIds.add(rootId);
+            }
+            if (rootIds.isEmpty()) continue;
+            List<PK> fixedIds = List.copyOf(rootIds);
+            for (int offset = 0; offset < fixedIds.size(); offset += 500) {
+                List<PK> batch = fixedIds.subList(offset, Math.min(offset + 500, fixedIds.size()));
+                if (associations != null && associations.active()) associations.beforeDelete(service, batch);
+                deletedCount += repository.deleteCountByIds(batch);
+            }
         }
 
         return new SuperCudResult(addedCount, updatedCount, deletedCount);
     }
 
-    private <E extends vip.isass.framework.nocode.entity.IEntity<E>, C extends ICriteria<E, C>>
+    private <E extends vip.isass.framework.common.entity.IEntity<E>, C extends ICriteria<E, C>>
     boolean insertIfAbsent(IRepository<E, C> repository, E entity, C criteria) {
         if (repository.isPresentByCriteria(criteria)) {
             return false;
@@ -286,6 +306,7 @@ public class CrudWriteExecutor {
             request.updateEntities().forEach(entity -> requireUsableId(idOfOrNull(entity), "updateEntities"));
         }
         if (!request.updateEntities().isEmpty() && request.updateCriteria() != null) {
+            validateWriteOptions(request.updateCriteria());
             IWhereConditionCriteria<?, ?> whereCriteria = requireWhereCriteria(
                     request.updateCriteria(), "updateCriteria");
             List<String> matchFields = ((IUpdateCriteria<?>) request.updateCriteria()).resolveMatchFields();
@@ -293,7 +314,23 @@ public class CrudWriteExecutor {
                 request.updateEntities().forEach(entity -> requireUsableId(idOfOrNull(entity), "updateEntities"));
             }
         }
-        request.deleteCriteria().forEach(criteria -> requireCriteria(criteria, "deleteCriteria"));
+        request.deleteCriteria().forEach(criteria -> {
+            validateWriteOptions(criteria);
+            requireCriteria(criteria, "deleteCriteria");
+        });
+    }
+
+    private void validateWriteOptions(Object criteria) {
+        if (criteria instanceof IOrderByCriteria<?, ?> order && order.getOrderBy() != null
+                && !order.getOrderBy().isBlank()) {
+            throw new IllegalArgumentException("更新/删除不支持 orderBy");
+        }
+        if (criteria instanceof IPageCriteria<?, ?> page
+                && (!Objects.equals(page.getPageNum(), IPageCriteria.DEFAULT_PAGE_NUM)
+                || !Objects.equals(page.getPageSize(), IPageCriteria.DEFAULT_PAGE_SIZE)
+                || !Objects.equals(page.getSearchCountFlag(), IPageCriteria.DEFAULT_SEARCH_COUNT_FLAG))) {
+            throw new IllegalArgumentException("更新/删除不支持分页和 count 选项");
+        }
     }
 
     private void requireCriteria(Object criteria, String field) {
@@ -405,6 +442,52 @@ public class CrudWriteExecutor {
             ((IIdCriteria<PK, E, C>) criteria).setId((PK) idOf(entity));
         }
         return criteria;
+    }
+
+    @SuppressWarnings("unchecked")
+    private <PK extends Serializable, E extends IIdEntity<PK, E>,
+            C extends ICriteria<E, C> & IIdCriteria<PK, E, C> & IUpdateCriteria<C>
+                    & IPageCriteria<E, C> & IOrderByCriteria<E, C>> PK validateAndResolveRelatedUpdateRootId(
+            E entity, C criteria) {
+        boolean submittedRelation = false;
+        for (EntityAssociation association : entity.associations()) {
+            if (entity.isPropertyPresent(association.property())
+                    && propertyValue(entity, association.property(), "关联属性") != null) {
+                submittedRelation = true;
+                break;
+            }
+        }
+        if (!submittedRelation) return null;
+        if (!(criteria instanceof IWhereConditionCriteria<?, ?> where)) {
+            throw new IllegalArgumentException("更新关联对象必须以 Criteria 明确指定主实体 ID");
+        }
+        Serializable rootId = null;
+        for (WhereCondition node : where.getWhereConditions()) {
+            if (node.getCondition() == Condition.Logical.OR && node.getChildren() == null) {
+                throw new IllegalArgumentException("更新关联对象的 OR 条件可能扩大主实体 ID 范围");
+            }
+            if ("id".equals(node.getSourceProperty()) && node.getCondition() == Condition.Compare.EQUAL
+                    && node.getTargetProperty() == null && node.getTargetCriteria() == null
+                    && node.getValue() instanceof Serializable value) {
+                if (rootId != null && !String.valueOf(rootId).equals(String.valueOf(value))) {
+                    throw new IllegalArgumentException("更新关联对象的 Criteria 包含冲突的主实体 ID");
+                }
+                rootId = value;
+            }
+        }
+        requireUsableId(rootId, "更新关联对象的 Criteria.id");
+        Serializable entityId = entity.getId();
+        if (entityId != null && !String.valueOf(entityId).equals(String.valueOf(rootId))) {
+            throw new IllegalArgumentException("更新实体 ID 与 Criteria 主实体 ID 不一致");
+        }
+        return (PK) rootId;
+    }
+
+    private boolean onlySubmittedAssociation(IIdEntity<?, ?> entity) {
+        Set<String> relations = entity.associations().stream().map(EntityAssociation::property)
+                .collect(java.util.stream.Collectors.toSet());
+        if (relations.isEmpty() || entity.presentProperties().stream().noneMatch(relations::contains)) return false;
+        return entity.presentProperties().stream().allMatch(property -> "id".equals(property) || relations.contains(property));
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})

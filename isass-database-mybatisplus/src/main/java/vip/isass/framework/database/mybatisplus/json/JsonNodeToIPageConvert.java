@@ -12,7 +12,7 @@ public class JsonNodeToIPageConvert extends StdConverter<JsonNode, IPage<?>> {
 
     @Override
     public IPage<?> convert(JsonNode value) {
-        return JsonUtil.DEFAULT_INSTANCE.convertValue(value, Page.class);
+        return JsonUtil.convertValue(value, Page.class);
     }
 
 }

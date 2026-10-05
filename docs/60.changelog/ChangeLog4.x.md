@@ -4,6 +4,196 @@
 
 ### 4.0.0-SNAPSHOT
 
+- **条件源属性解析命名统一**：将 WrapperUtil.sourceColumnProperty 更名为 resolveSourceProperty，同步全部调用点；属性及 JSON 路径解析逻辑不变。
+
+- **条件应用方法命名简化**：将 WrapperUtil.applyStringColumnCondition 更名为 applyCondition，同步调用点和文档；条件行为不变。
+
+- **WrapperUtil 辅助方法职责命名统一**：按 process/apply/resolve/create/build 命名查询映射、条件应用、写入编译及 JSON/字段解析方法，保留 sourceColumnProperty；合并 WHERE/ON 节点处理与循环检查，删除 conditionColumn 包装，同步 Repository 列解析调用。修复误用 MySQL QueryResult，内部构建结果明确为 QueryBuildResult；查询与写入语义不变。
+
+- **查询 Wrapper 分阶段递归构建**：公开入口保持精简，完整入口按 FROM、JOIN、WHERE、SELECT、ORDER BY 调用独立处理方法；全部查询子查询复用完整入口。细分 FROM/JOIN/EXISTS 用途，SELECT 一次生成派生表输出和 MPJ 映射，消除选列清空重建；按当前递归路径检测循环引用，允许独立分支复用 Criteria。补充组合嵌套、分页及引用语义回归。
+
+- **Criteria 返回字段命名统一**：将对外参数 `selectColumns` 更名为 `returnFields`，对应接口、实现类、Java 方法及 WrapperUtil 的 Java 属性缓存统一改为 `ReturnField` 命名；同步 NoCode、BSP 调用、前端请求及使用文档。MPJ Wrapper 的数据库选列 API 保持不变，不兼容旧参数名。
+
+- **默认查询选列命名统一**：将 `DEFAULT_READ_COLUMNS` 改为 `DEFAULT_SELECT_PROPERTIES`，将普通 Wrapper 的 `applyDefaultReadColumns` 改为 `applyDefaultSelectColumns`，同步 Repository、测试及设计清单；行为不变。
+
+- **查询选列属性命名明确化**：将 `WrapperUtil.readColumns` 更名为 `resolveSelectProperties`，同步查询及关联映射调用；返回值仍为 Java 属性名，运行行为不变。
+
+- **readColumns 注释表述明确化**：将“实体读取属性”改为“SELECT 对应的 Java 属性名”，明确返回值并非数据库列名；不改变运行行为。
+
+- **WrapperUtil 方法文档补齐**：为查询、关联映射、写入条件、JSON 条件及内部辅助方法补充 Javadoc，说明参数、副作用和边界；不改变运行行为。
+
+- **查询 Wrapper 构建顺序清晰化**：将内部 `getQueryWrapper` 按 FROM、JOIN、WHERE、SELECT、ORDER BY 分段组织并补充注释；SELECT 保持在 JOIN 之后以取得关联映射信息。
+
+- **查询 Wrapper 入口统一命名**：公开入口直接创建并配置实体查询 Wrapper；内部递归入口改名为 `getQueryWrapper` 并保留嵌套关联信息返回值，计数/存在性查询改用 `getCountQueryWrapper`，删除按用途传参的 Criteria 重载。
+
+- **查询 Wrapper 用途命名归位**：将 `ProjectionMode` 更名为 `MpjWrapper.QueryUsage`，同步 Wrapper 构建、Repository 和测试引用；不改变运行行为。
+
+- **Wrapper 查询模式注释补齐**：为查询用途枚举及各模式补充 Javadoc，说明选列和关联结果映射边界；不改变运行行为。
+
+- **派生表列注释明确化**：`MpjWrapper.derivedColumn` 的 Javadoc 改用“再次选出内层查询结果列”说明别名传递，并明确保留 Java 类型及主键标记；不改变运行行为。
+
+- **MpjWrapper 方法文档补齐**：为构造器、派生表投影、JOIN SQL、内层查询和子 Wrapper 创建方法补充 Javadoc，说明参数共享与别名作用域；不改变运行行为。
+
+- **MPJ 字段构造与条件编译归位**：将 Java 属性到 MPJ `Column` 的校验与构造移至 `BaseColumnFactory`，删除 `MpjWrapper.column()`；标量条件直接由 `WrapperUtil` 编译，删除 `MpjWrapper.scalar()`，消除 Wrapper 对编译器的反向依赖。生成 SQL 的行为不变。
+
+- **MPJ 字段根实现命名**：将 `BaseColumnFactory` 的内部实现 `EntityColumns` 更名为 `DefaultBaseColumn`，工厂接口与行为保持不变。
+
+- **WrapperUtil SQL 片段收敛**：写入型 IN 子查询改用 MPJ 原生字符串选列，去掉手工 `selectFunc` 参数配置；JSON 数组 ANY/ALL 改用 Wrapper 的分组与 OR，避免手工拼接条件时的优先级歧义；JSON 对象路径比较交给原生 `eq/like`，达梦 JSON 回退改用原生 `like`。保留 `JSON_CONTAINS`、数组方言运算符、空集合常量及派生表所需的受控 SQL 片段，补充参数绑定和分组测试。
+
+- **双字段比较改用 Wrapper API**：普通 MP 同表条件及 MPJ 的 JOIN ON、相关子查询 WHERE 改用 `eqSql/gtSql/geSql/ltSql/leSql`，不等比较采用 `NOT (eqSql(...))`；两侧列名经实体元数据解析。普通 MP 不加别名，MPJ 主表与 JOIN 目标使用各自别名，补充比较回归测试。
+
+- **Criteria 关联写入首轮实现**：`WrapperUtil` 统一编译条件，移除 `ConditionApplier` 和条件对象中的瞬时列字段；Repository 为普通/关联更新与删除选择 MP/MPJ Wrapper，写入 Criteria 的排序、分页和 count 非默认值在 SQL 前拒绝。关联筛选支持 LEFT/INNER JOIN、目标条件派生表以及 EXISTS/NOT_EXISTS/IN/NOT_IN，无法等价表达的其他写入形态明确失败。`WRITE_NULL` 覆盖非框架维护业务字段，NoCode 更新要求关联属性有明确根 ID，条件删除固定根 ID 后分批级联和删除；增加 Wrapper、NoCode 与隔离 JDBC 回归。
+
+- **关联写入与级联删除待确认项定稿**：核心实施清单确定级联删除先固定根 ID、按关系方向分层分批删子对象、再按固定 ID 删根实体，不使用多表 `deleteAll()`；仅提交关联值的 `WRITE_NULL` 不更新主表；MANY 单元素仍按对象处理，`MERGE` 保留、`REPLACE` 删除未提交目标。移除待确认章节并同步关联使用文档，本次不改实现代码。
+
+- **关联写入 ID 条件与别名校验定稿**：核心实施清单改为从最终 Criteria 确认唯一主实体 ID；`update(entity)` 自动生成 ID 条件，条件更新可直接指定 ID，实体 ID 不进入 SET。关联 SET 的同类多次 JOIN/自连接别名歧义改为执行前校验并从“待确认”移入实施要求；同步使用文档，本次不改实现代码。
+
+- **关联写入目标与查询映射解耦**：核心实施清单明确 `JoinCondition.resultProperty` 只用于查询结果装配；关联 SET 依据请求提交的关联属性和 `EntityAssociation` 关系元数据定位目标 JOIN 实例，无法唯一绑定别名时在写入前报错。筛选型 JOIN 和按关联对象 ID 逐对象更新不受限制；同步关联使用文档，本次不改实现代码。
+
+- **关联写入等价性校验归入实施范围**：核心实施清单将复杂 JOIN、FROM、派生表和嵌套 JOIN 的写入等价性从“待确认”移入 Wrapper 转换与测试要求；无法保持目标记录及写入值时须在 SQL 前报错，不在生产写入前额外查询两组 ID 比较。本次仅更新文档。
+
+- **条件更新的关联写入边界文档**：核心实施清单明确主实体显式携带 ID 时才能随其更新关联对象；主实体无 ID、仅由 Criteria 匹配时只更新主实体，提交关联属性须在写入前报错。多个带 ID 关联对象仍逐对象更新；JOIN/EXISTS 可仅作根实体筛选。同步关联使用文档与测试范围，本次不改实现代码。
+
+- **关联写入选列边界文档**：明确最外层 `selectColumns` 仅用于读取投影，普通和关联写入均不读取、也不因其非空而报错；子查询必需选列继续按子查询语义处理。同步关联写入核心实施清单中的校验、测试和 MPJ 方言职责说明，本次不改实现代码。
+
+- **关联写入核心实施清单**：新增按基础条件、Wrapper、Repository、NoCode 关联协调和执行顺序组织的审核文档，纳入关联更新与关联删除；待确认内容附实施建议，包括按关联元数据分层批量级联删除。明确 `WRITE_NULL` 只对非框架维护字段写入 null；条件转换统一由 `WrapperUtil` 承接，删除 `ConditionApplier` 和 `BaseCondition` 的瞬时列字段。本次不修改原使用文档或实现代码。
+
+- **Jackson 3 废弃 API 替换**：`JsonUtil.simpleModule` 的时间类型序列化由 `StdDelegatingSerializer` 改用官方替代类 `StdConvertingSerializer`，保留原来的 long 值格式并补充回归测试。
+
+- **条件瞬时列去冗余注解**：`BaseCondition.sourceColumn/targetColumn` 移除 `@JsonIgnore`，依靠 `transient` 与统一 mapper 的 `PROPAGATE_TRANSIENT_MARKER` 保持不参与传输；独立 MVC 往返测试显式使用 `JsonUtil` 的 mapper，并覆盖 Jackson 2/3 序列化。
+
+- **Jackson 2 兼容 mapper 忽略 transient**：`JsonUtil.LEGACY_MAPPER` 启用 `PROPAGATE_TRANSIENT_MARKER`，与默认 Jackson 3 mapper 一样不输出带 getter 的瞬时字段；增加双 mapper 回归测试。
+
+- **框架 JSON 入口统一**：Entrypoint HTTP/gRPC、NoCode 初始化与 Criteria Query、响应投影及各组件的 JSON 读写改为调用 `JsonUtil`；补齐字节、流、类型和树转换方法，移除调用方独立创建的 `ObjectMapper`。Spring MVC 与第三方库仍通过 `JsonUtil` 的配置或共享实例接入。
+
+- **条件解析列写回瞬时字段**：`BaseCondition` 增加不参与 JSON 的 `sourceColumn/targetColumn`；`WrapperUtil` 消费条件时按当前表与别名赋值，再调用 MP、MPJ JOIN 或 APT 条件处理器。`sourceProperty/targetProperty` 始终保留 Java 属性名，不再构造列名版条件对象。
+
+- **条件字段解析归并 WrapperUtil**：Criteria、Service 和前端选列继续使用 Java 属性名；WrapperUtil 在本次转换中解析 MP 列名、MPJ JOIN 别名及 APT Column，再交给无状态条件处理器，避免 Applier 持有属性到列的映射逻辑且不改写原始 Criteria。
+
+- **MP 条件写法简化**：比较与文本条件直接将值非空判断传给 Wrapper 的条件参数，不再使用外层 `if`；空值时仍不写入 SQL 条件。
+
+- **MP 条件写入限定字符串列 Wrapper**：`MybatisPlusConditionApplier` 收紧为 `AbstractWrapper<?, String, ?>`，比较、IN 和空值条件直接调用原生 Wrapper 方法，删除 Lambda Wrapper 判断及参数化 SQL 分支；Criteria 查询继续使用 MPJ APT 条件处理器。
+
+- **条件处理器比较分派简化**：`MybatisPlusConditionApplier` 与 `MpjAptConditionApplier` 删除重复的 `compare` 分派，各操作直接调用对应 Wrapper 方法；APT 的空值判断也直接写入对应方法，保留 MP Lambda 的参数化 `apply` 分支。
+
+- **MPJ JOIN 比较条件简化**：`JoinAbstractWrapperConditionApplier` 的比较与文本方法直接调用对应的 Wrapper API，删除重复的 `compare` 分派，保留空值跳过和别名解析行为。
+
+- **IN 值转换复用公共工具**：删除 `ConditionApplier.inValues`，MP、MPJ JOIN 与 APT 条件处理器统一调用 `ConvertUtil.convert(Collection.class, value)`，保持集合、数组和单值输入行为。
+
+- **条件辅助逻辑归并**：删除 `ConditionSqlSupport`，将 IN 值规范化、JSON 路径及方言片段构造合并进 ORM 无关的 `ConditionApplier`；具体 ORM 实现继续负责数据库类型获取、字段解析与参数绑定。
+
+- **MPJ 条件写入按 Wrapper 层级拆分**：移除双 Wrapper 的 `MpjLambdaConditionApplier`；继承 MP `AbstractWrapper` 的 MPJ Wrapper 直接复用 `MybatisPlusConditionApplier`，新增 `JoinAbstractWrapperConditionApplier` 调用 MPJ 原生比较方法，不再为 `AbstractWrapper` 重复设置 MPJ 专用处理类。
+
+- **条件写入实现单例化**：`ConditionApplier` 增加调用上下文泛型；MP、MPJ Lambda、MPJ APT 实现改为无状态单例，Wrapper、表实例及子查询回调由本次 `apply` 传入，不再逐条件创建实现对象。
+
+- **条件写入接口命名统一**：`ConditionOperations` 改名为 `ConditionApplier`，MP、MPJ Lambda、MPJ APT 三个实现类同步改名；调用与测试引用统一更新，条件行为不变。
+
+- **Condition 处理实现去双重适配**：移除 `ConditionTarget`、三种内部目标适配器及条件抽象基类；MP、MPJ Lambda、MPJ APT 实现类直接操作自身 Wrapper。仅将 JSON/数组 SQL 片段、IN 参数规范化等无 Wrapper 状态逻辑提取到 `ConditionSqlSupport`，补充 MP 与 MPJ Lambda JSON 参数绑定回归。
+
+- **Criteria 实体类型读取去副作用**：`ICriteria.getEntityType()` 只读取按类缓存的实体类型与小驼峰名称，不再隐式注册；服务类型扫描及具体 Criteria 反序列化继续显式注册，`EmptyCriteria` 保持按实体类取名。补充 getter、JSON 序列化与显式注册回归。
+
+- **条件操作符分组及 ORM 适配接口**：`Condition` 改为按语义分组的 Java 枚举，保持原 Criteria JSON 操作符字符串；新增覆盖全部操作符的 `ConditionApplier`，分别由 MP、MPJ Lambda、MPJ APT 处理类实现。`WrapperUtil` 通过接口写入标量与 APT 子查询条件，旧静态 `MybatisPlusWhereCondition.apply` 改为 MP 实例处理类；补充 JSON 往返及三种 Wrapper 条件回归。
+
+- **标量条件底层 Wrapper 适配**：按 MP/MPJ 的抽象 Wrapper 层级处理条件，覆盖 MP Lambda 查询与写入、MPJ 字符串/Lambda 查询及 JOIN 子条件；列名从实体元数据解析，MPJ 别名按当前表实例确定，Lambda 条件使用原 Wrapper 参数绑定，不限定具体 Wrapper 子类。
+
+- **标量条件 Wrapper 适配**：MybatisPlusWhereCondition.apply 按 MP、MPJ APT 和 MPJ Lambda Wrapper 分派；MPJ 查询与 JOIN ON 直接使用自身字段、别名及参数绑定，删除临时 ScalarWrapper，并补充条件构造回归。
+
+- **MPJ 字段根对象工厂**：从 MpjWrapper 提取 BaseColumnFactory.create(type)，每个 SQL 表实例创建独立 BaseColumn，保持自连接及同表多次关联的别名隔离；同步使用文档和测试。
+
+- **JOIN 判定复用 MPJ SQL 片段**：移除 MpjWrapper 的 `hasJoins()` 辅助方法，分页与存在性查询通过当前 Wrapper 的 `getFrom()` 判断顶层 JOIN；子查询 JOIN 不影响外层判断。
+
+- **计数 Wrapper 去状态化**：移除 MpjWrapper 的 `count` 字段与 SQL 投影覆盖；普通及关联 Criteria 计数统一通过零大小分页的计数结果获取，不修改传入 Wrapper 的选列。
+
+- **关联查询分支判定去状态化**：移除 MpjWrapper 的 `relational` 字段，分页、计数与存在性查询直接根据 MPJ 当前查询层的 JOIN 列表判断，避免重复维护关联标记。
+
+- **MPJ Wrapper 命名简化**：将 MyBatis-Plus 适配层的 `CriteriaMpjWrapper` 重命名为 `MpjWrapper`，同步查询构造、JOIN 分页和测试引用，行为不变。
+
+- **MyBatis-Plus 适配包名归位**：将 database-mybatisplus 中原 `framework.nocode` 的表元数据、Repository、Wrapper 和 JOIN 分页实现迁入 `framework.database.mybatisplus`（含 `orm` 子包），同步框架测试、生成模板及业务 Repository 引用；NoCode Core 的业务服务包不变。
+
+- **模型与持久化契约下沉及包名同步**：实体、关联元数据、Criteria 和属性 Getter 迁至 core-common 并改用 `framework.common.entity/criteria/property` 包；IRepository 与表前缀注册迁至 database-core 并改用 `framework.database.core` 包。同步框架、BSP、IM、Message、API 文档服务及生成模板引用。表元数据仅从 IRepository 实现 Bean 的泛型注册，删除无用的 IRepositoryProvider 与 CRUD Service 注册路径。数据库 MyBatis-Plus 与 Web、Spring Boot 适配模块不再依赖 NoCode Core。删除实体的 IAnyJsonEntity 继承，改由独立 AdvancedFeatureProjector 与可选字典 Provider 实现高级响应投影，避免静态全局状态及被排除字段的派生值泄露。
+
+- **关联子查询别名简化**：移除 CriteriaMpjWrapper 的 subqueryIndex，同级子查询复用各自 SQL 作用域的别名，嵌套层级保留不同别名以支持相关条件；补充嵌套及同级 EXISTS 的 JDBC 回归。
+
+- **JOIN 结果映射切换 MPJ 原生实现**：WrapperUtil 动态配置 `selectCollection`/`selectAssociation`，Repository 直接接收 MPJ 装配实体；移除 CriteriaJoinMapping、行级结果映射拦截器及手工装配。AdvJoinPaginationInnerInterceptor 保留根单位分页/count，并读取 MPJ 最终投影别名。隔离 JDBC 回归覆盖 List/Set、显式选列、两级嵌套、RIGHT 空根行与分页；单体关系多目标遵循 MPJ 原生行为，需由业务或数据库保证唯一。
+
+- **关联投影补列与敏感字段规则归并**：WrapperUtil 在实体读取且未指定选列时，将非敏感持久化属性写入可变 Criteria；JOIN 装配主键补到调用 JOIN 的 Criteria，ON 字段不因连接而进入投影，目标 Criteria 的显式选列不被外层 JOIN 改写，装配主键允许出现在返回实体。默认敏感字段排除集中在 WrapperUtil，原始 QueryWrapper 入口仍由此处补投影；仅目标选列不再触发派生表 JOIN。补充重复调用、显式敏感选列和 COUNT 不改选列的回归。
+
+- **JOIN 分页内部别名语义化**：将展开结果位置、分页单位起始位置与分页单位序号的 SQL 列别名及派生表别名改为对应含义的名称；同步 SQL 示例和关联查询使用文档，分页规则不变。
+
+- **JOIN 分页 SQL 示例**：在 AdvJoinPageSql 类注释中以 BSP 的 Tenant.apps（bsp_auth_tenant / bsp_auth_app）对照普通 JOIN LIMIT 与根实体分页改写 SQL，并补充 JOIN COUNT 改写前后示例；派生表别名与实际生成代码一致，避免 MySQL 的 ROWS 关键字冲突。
+
+- **关联查询设计文档清理**：关联查询实现落地后删除实施设计与核心清单两份临时文档；关联查询的当前合同由使用文档维护，移除失效引用。
+
+- **JOIN 分页实现命名统一**：根实体分页拦截器重命名为 AdvJoinPaginationInnerInterceptor，SQL AST 改写工具重命名为 AdvJoinPageSql；同步配置和关联查询文档。CriteriaMpjWrapper 保留结果映射计划及通用计数投影，不拆分非分页逻辑。
+
+- **Criteria 转换职责归并**：将 MpjCriteriaCompiler 的条件、JOIN、FROM、子查询、排序及投影逻辑合并回 WrapperUtil，删除独立编译器类；查询统一从 getQueryWrapper 进入，原编译测试迁移为该入口回归，保持查询与写入限制不变。同步使用文档及两份设计。
+
+- **统一查询 Wrapper 构建**：删除 getReadWrapper/getCountWrapper 与普通/关联分流，统一使用 getQueryWrapper 和 MPJ Wrapper；先处理普通条件，再按需补充 FROM/JOIN、投影及结果映射。无 JOIN 不启用关联去重分页，保留存在性限一条主键优化；删除改用受限写入 Wrapper，继续拒绝关联删除。同步文档及单表/关联 JDBC、分页/count/exists 和写入边界回归。
+
+- **loadRelated 批次条件复用**：取消逐批 Criteria 深复制，同一次加载持有一个关联 IN 节点并仅重置 value，保留业务同字段 IN 和 OR 分组；null/EmptyCriteria 物化一次并写回。成功或异常均清理临时批次条件、恢复内部分页，保留其余修改；补充多批多页、重复执行和失败重试回归，同步两份设计与使用文档。
+
+- **查询执行器引用语义**：CrudQueryExecutor 查询入口及游标分页取消 Criteria 深复制；生命周期、关联补键及游标归一化直接修改本次 Criteria，入参为空时才新建。显式 copy 由需要隔离的调用方决定；保留独立关联批次及 Repository 特定优化所需复制。同步设计、使用文档和生命周期/游标引用回归。
+
+- **Criteria 构造引用语义**：删除条件工厂、JOIN、loadRelated、子查询和 fromCriteria 登记阶段的隐式深复制，集合 setter 直接保存引用；EXISTS 关联与 IN 选列便捷方法直接修改传入 Criteria，仅 EmptyCriteria 写入前物化。调用方需要隔离时显式 copy，保留正式查询入口的执行副本；同步使用文档、两份设计和共享引用/显式复制/空实例回归。
+
+- **Criteria 元数据缓存与便捷构造**：ClassValue 缓存静态构造器、字段、泛型绑定和关联定义，复用于 JSON、深复制、loadRelated 及 JOIN 装配；排除编译器桥接方法，避免 Long 类型恢复退化。相关 EXISTS/IN 私有链路减少重复深复制，保留公开输入和执行隔离。新增 WhereCondition.eq/and/or/not 工厂，不改变 JSON 与消费时校验；回归覆盖并发泛型绑定、输入隔离、协议往返和 JDBC 条件结果。本轮不改查询投影、派生表策略或权限。
+
+- **关联查询跨项目收尾与协议回归**：按模板迁移 Asset 10 个实体 Mapper，BSP 全量安装、API 文档服务及 Asset 全量测试通过；新增 HTTP/gRPC 嵌套 Criteria 往返测试。修复相关 EXISTS/NOT EXISTS 追加关联键时的 OR 优先级，增加 JDBC 回归并补充 BSP/MySQL JSON 查询验证；同步两份设计、APT 动态字段说明和验证边界。未修改生成器数据源、数据权限或租户过滤。
+
+- **关联查询 MPJ 执行落地**：WrapperUtil 接通动态字段、嵌套 JOIN/FROM、相关 EXISTS/IN 子查询及 CROSS 无 ON 扩展；新增执行前结果映射计划、类型处理器保留、单体基数检查与外连接空根装配。使用 JSQLParser AST + 窗口函数分页避免一对多集合截断，count 包含空根行，不启用 MPJ pageByMain。生成模板和 BSP 51 个实体 Mapper 迁移为 MPJBaseMapper；修复 HTTP 组件扫描构造器注入。新增隔离 JDBC 回归，真实 BSP/MySQL 验证单独记录；当前不实现数据权限/租户过滤，其他数据库与大数据量性能未作验收。
+
+- **BSP 实库验收与边界修复**：IDEA 启动 BSP 后在 MySQL 8.0.45 验证 JOIN、嵌套、子查询、分页/count 与空根装配；修复 Criteria 便捷筛选 setter 反射可变参数推断、loadRelated OR 组合范围与空根分页排序并列，保留鉴权拒绝行为。结果见 [实现验证记录](../design/nocode-related-query-verification-2026-09-23.md)。
+
+- **关联查询重构第一阶段**：新增 ORM 无关的 BaseCondition/JoinCondition/RelatedCondition、IRelatedQueryCriteria、按实体缓存的 EmptyCriteria；WHERE 改用 sourceProperty，支持消费时 AND/OR/NOT 分组校验，Criteria 深复制避免嵌套状态污染及重复 setter 条件。新增 Criteria JSON 类型恢复与通用 QueryParamConverter，HTTP 删除 NoCode 专用转换；loadRelated 替换旧关联参数，通过目标查询生命周期分批加载。同步 BSP 调用与使用文档。MPJ JOIN/派生表/子查询执行、结果装配及完整调用方迁移尚未完成，未接通条件明确报错。本次不新增数据权限、租户过滤或 ORM 权限载荷，保留已有机制。
+
+- **MPJ / Boot 4 兼容性验证**：新增隔离 H2 查询探针及验证记录，覆盖现有插件链、JOIN、子查询、分页和结果装配；同步两份设计的验证状态。确认基础能力可运行，同时复现 pageByMain 第二页参数残留及外连接/装配合同缺口；未修改依赖、ORM 实现或业务数据。
+
+- **关联查询重构前置适配**：修正 MP 3.5.17 的 IService/ServiceImpl 包路径及 PostInitTableInfoHandler 回调返回类型，保留原元数据注册行为。实测 MPJ 1.5.9 结构化 CROSS 会追加空 ON，已在两份设计文档记录待确认的 ORM 扩展缺口；关联查询功能尚未完成。
+
+- **MPJ 接入层次设计**：明确生成的 NoCode Mapper 统一继承 MPJBaseMapper，Repository 收紧对应泛型并直接调用 Mapper；保留业务 ICrudService/ILocalCrudService 与数据库适配层 ServiceImpl，不要求可选的 MPJ Service 基类。同步生成覆盖边界及用户已声明 starter 的现状，本次仅修改文档。
+
+- **关联结果映射失败边界设计**：明确 resultProperty 在执行阶段准备映射时推断，失败不执行当前 SQL；实际单体关联基数冲突在装配时使整次查询失败，不返回部分结果，映射遗漏按框架错误处理，不在结果阶段猜测赋值字段。同步两份设计文档与验收项。
+
+- **Criteria 校验时机设计**：两份关联查询文档改为使用时就地校验，删除构造阶段的条件校验及独立全量预校验；条件解析循环检查 AND/OR 首尾及连续节点，字段、子查询和结果映射在消费时检查，完整 Wrapper 构造成功后才执行当前 SQL。本次仅同步设计。
+
+- **外连接结果装配设计**：两份关联查询文档统一为主表未匹配时逐行新建实体、填充关联属性，保持 Page<E> 返回及现有实体 EMPTY 不变；同步 null ID 不合并、分页/count、游标和传输验收边界，不再以新增 DTO 接口为前置条件。本次仅更新设计。
+
+- **关联查询设计同步**：根输入条件统一命名为 FullTypeCriteria.fromCriteria，补充 FROM、JOIN 目标与最终 WHERE 的职责、复制及编解码验收；不保留 sourceCriteria 兼容字段。
+  记录本次 BSP 重构允许删库重建、直接修改 init.xml 及合并自定义 changeSet 的专项授权；本轮未执行数据库操作或修改实现代码。
+
+- **NoCode 关联查询核心实施清单**：从完整设计提取核心实施清单（实现落地后已删除），
+  清单改为按类展示字段、方法签名及核心伪代码，删除表格呈现，保留删除项与待确认项。
+  按实施位置列出新增、修改、删除的类、方法、参数结构及核心逻辑，集中列出未定项；按审核意见同步设计：
+  实体类型使用 Java Class/JSON 小驼峰名，关联条件使用 property 和具体 Criteria，成员类型决定集合/对象；
+  简化冗余描述字段，将表信息解析交给 Wrapper；Criteria 统一负责 JSON，HTTP 仅作必要参数承载适配，gRPC 复用现有实现。
+  在 Entrypoint Core 设计通用 QueryParamConverter 扩展，由 NoCode 的 CriteriaQueryParamConverter 统一处理整个 Criteria，
+  覆盖所有复杂条件及嵌套对象；仅用于 QUERY 参数，不限 GET，不改变普通 JSON Body、本地 JSON 和 gRPC 的对象结构。
+  HTTP 按声明类型调用扩展并处理 URL 编解码，删除条件专用转换分支，不反向依赖 NoCode。
+  本轮统一 BaseCondition 的 sourceProperty/condition/targetProperty、分组及目标来源，JOIN/WHERE 继承复用；
+  子查询直接保存 Criteria，删除子查询和 ON 包装结构；目标统一保存 targetCriteria，不再保存 targetType。
+  Class 便捷重载统一 sourceField/targetField 顺序，转换为按实体缓存的不可变 EmptyCriteria；
+  私有并发 Map 复用空实例，copy 返回自身，修改前物化独立 Criteria 并写回，JSON 只输出 entityType。
+  空实例统一通过公开的 EmptyCriteria.of 创建/复用，删除 ICriteria.empty 转发工厂设计；构造器和缓存仍私有。
+  父级 condition 默认连接符与 children 独立 AND/OR 分隔符同时支持，保留默认 AND、显式覆盖、括号及 AND 优先级；
+  补充 A OR (B OR C) 的结构、SQL 示例及缓存隔离/混合表达验收。
+  ICriteria.getEntityType() 从泛型导出小驼峰名并支持具体 Criteria JSON 恢复；JOIN resultProperty 与比较字段分离，
+  需要实体装配时唯一匹配自动推断，失败要求显式设置；同步十种方法的签名、伪代码、JSON 和验收项。
+  删除 JoinCondition.selectColumns，目标查询与关联对象返回统一使用 targetCriteria.selectColumns；
+  Wrapper 内部补键不反写业务投影，设置选列前物化空实例，IN/NOT_IN 子查询保持单列。
+  本次仅修改设计文档，未编写实现代码。
+
+- **NoCode 关联查询实现设计**：新增 `loadRelated`、五种 JOIN 与四种子查询/集合筛选的
+  实现设计（实现落地后已删除），明确 Criteria 方法签名及三类存储：
+  `loadRelated`、统一的 `JoinCondition` 列表和扩展的 `WhereCondition` 列表；复用 IN/NOT_IN，
+  新增 EXISTS/NOT_EXISTS 与条件分组，删除跨列表 order 和外置条件引用结构；同步
+  HTTP/gRPC 序列化和 MPJ 接入边界；补充旧关联参数删除且不兼容、完整子 Criteria 递归查询，
+  明确 NoCode 存储条件、WrapperUtil 构造 Wrapper、Repository 执行查询的职责；确认复用 DDL 关联元数据
+  及新增 `IRelatedQueryCriteria`，区分关系声明、查询策略与结果装配；`loadRelated` 使用 `RelatedCondition`
+  保存关联成员名、生成元数据解析出的关联键及目标 Criteria，明确跨服务校验和嵌套装配；删除 `JoinCondition.id`，
+  实际表别名由 MPJ 管理，同步调整字段上下文和传输示例；每次调用独立保存连接条件，
+  删除主查询 WHERE 比较两次连接字段的场景及待确认项，不新增 alias 字段。
+  为十种方法补充预期 SQL 示例。本次仅记录设计，尚未修改实现或依赖。
+
 - **存在性查询 Criteria 复制优化**：`isPresentByCriteria` 仅对支持排序的 Criteria 创建副本并清除排序，其他 Criteria 避免额外复制。
 
 - **NoCode 存在性查询优化**：MyBatis-Plus 适配层从 `COUNT > 0` 改为关闭统计的限一条查询；

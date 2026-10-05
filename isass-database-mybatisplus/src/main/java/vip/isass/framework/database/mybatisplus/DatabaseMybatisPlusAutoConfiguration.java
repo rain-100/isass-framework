@@ -27,7 +27,7 @@ import vip.isass.framework.database.mybatisplus.typehandler.StringArrayTypeHandl
 import vip.isass.framework.database.mybatisplus.typehandler.StringCollectionTypeHandler;
 import vip.isass.framework.database.mybatisplus.util.LongSequenceImpl;
 import vip.isass.framework.database.mybatisplus.util.SystemClockImpl;
-import vip.isass.framework.nocode.TableMetaRegistrar;
+import vip.isass.framework.database.mybatisplus.TableMetaRegistrar;
 
 /**
  * @author Rain

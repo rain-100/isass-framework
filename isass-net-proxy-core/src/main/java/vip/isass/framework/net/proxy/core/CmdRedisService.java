@@ -36,12 +36,12 @@ public class CmdRedisService {
 
     public Map<String, List<CmdCollectDto>> findCommands() {
         Map<String, List<Object>> map = redisTemplate.<String, List<Object>>opsForHash().entries(NetRedisKey.CMD_COLLECT_KEY);
-        return JsonUtil.DEFAULT_INSTANCE.convertValue(map, MAP_TYPE_REFERENCE);
+        return JsonUtil.convertValue(map, MAP_TYPE_REFERENCE);
     }
 
     public List<CmdCollectDto> findCommands(String applicationName) {
         List<Object> list = redisTemplate.<String, List<Object>>opsForHash().get(NetRedisKey.CMD_COLLECT_KEY, applicationName);
-        return JsonUtil.DEFAULT_INSTANCE.convertValue(list, LIST_TYPE_REFERENCE);
+        return JsonUtil.convertValue(list, LIST_TYPE_REFERENCE);
     }
 
     public void put(String applicationName, Collection<CmdCollectDto> cmdRegisters) {

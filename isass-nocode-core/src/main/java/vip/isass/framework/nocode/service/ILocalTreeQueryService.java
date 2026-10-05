@@ -2,10 +2,10 @@
 
 package vip.isass.framework.nocode.service;
 
-import vip.isass.framework.nocode.criteria.ICriteria;
+import vip.isass.framework.common.criteria.ICriteria;
 import vip.isass.framework.nocode.entity.CrudQueryReq;
-import vip.isass.framework.nocode.entity.IIdEntity;
-import vip.isass.framework.nocode.entity.IParentIdEntity;
+import vip.isass.framework.common.entity.IIdEntity;
+import vip.isass.framework.common.entity.IParentIdEntity;
 import vip.isass.framework.nocode.util.TreeEntityUtil;
 
 import java.io.Serializable;

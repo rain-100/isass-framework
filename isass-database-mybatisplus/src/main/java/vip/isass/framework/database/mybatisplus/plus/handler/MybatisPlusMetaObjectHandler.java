@@ -5,13 +5,13 @@ package vip.isass.framework.database.mybatisplus.plus.handler;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
 import org.apache.ibatis.reflection.MetaObject;
-import vip.isass.framework.common.support.SystemClock;
-import vip.isass.framework.nocode.entity.ILogicDeleteEntity;
-import vip.isass.framework.nocode.entity.ITenantEntity;
-import vip.isass.framework.nocode.entity.ITraceEntity;
-import vip.isass.framework.nocode.entity.IVersionEntity;
+import vip.isass.framework.common.entity.ILogicDeleteEntity;
+import vip.isass.framework.common.entity.ITenantEntity;
+import vip.isass.framework.common.entity.ITraceEntity;
+import vip.isass.framework.common.entity.IVersionEntity;
 import vip.isass.framework.common.security.AuthenticatedPrincipal;
 import vip.isass.framework.common.security.CurrentPrincipalUtil;
+import vip.isass.framework.common.support.SystemClock;
 
 /**
  * @author Rain
@@ -45,7 +45,7 @@ public class MybatisPlusMetaObjectHandler implements MetaObjectHandler {
         fillUpdateTrace(metaObject.getOriginalObject(), CurrentPrincipalUtil.getPrincipal());
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
+    @SuppressWarnings("rawtypes")
     private void fillVersion(Object entity) {
         if (entity instanceof IVersionEntity versionEntity && versionEntity.getVersion() == null) {
             versionEntity.setVersion(IVersionEntity.DEFAULT_VERSION);
@@ -82,7 +82,7 @@ public class MybatisPlusMetaObjectHandler implements MetaObjectHandler {
         traceEntity.setModifyTime(System.currentTimeMillis());
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
+    @SuppressWarnings("rawtypes")
     private void fillDeleteFlag(Object entity) {
         if (entity instanceof ILogicDeleteEntity logicDeleteEntity) {
             logicDeleteEntity.setDeleteFlag(ILogicDeleteEntity.DEFAULT_DELETE_FLAG_VALUE);

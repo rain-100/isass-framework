@@ -56,10 +56,11 @@ void publish(@QueryParam("id") Long id);
   `x-isass-criteria-parameters` 和 `x-isass-oneof-mapping` 提供资源下拉、Criteria 参数过滤及请求体模型切换；
   新的 OpenAPI 组装实现不得删除这些扩展元数据。
 - Criteria 使用对象型 `@QueryParam` 时，文档根据 Criteria 的 getter 展开查询参数，兼容返回自身类型的 fluent setter；
-  因此切换实体后，前端可依据 `x-isass-criteria-parameters[contextName/resourceName]` 恢复对应条件。NoCode 文档会隐藏
-  内部的 `whereConditions`、`associationCriteria`；`updateMode`、`nullValueMode`、`matchFields` 只在 `update`
-  接口显示；`selectColumns` 和关联查询只在 `page`/`cursorPage`/`tree` 显示，`orderBy` 在这三个查询及
-  `descendantIds` 中显示，关联查询的对外参数名为 `association.query`；`tree` 和 `descendantIds` 不显示分页参数。
+  因此切换实体后，前端可依据 `x-isass-criteria-parameters[contextName/resourceName]` 恢复对应条件。复杂 Criteria 参数
+  whereConditions/joinConditions/loadRelated/fromCriteria 以 `content.application/json.schema` 描述单个 JSON Query 值；
+  旧 associationQueries/associationCriteria 已删除；`updateMode`、`nullValueMode`、`matchFields` 只在 `update`
+  接口显示；`returnFields` 和关联查询只在 `page`/`cursorPage`/`tree` 显示，`orderBy` 在这三个查询及
+  `descendantIds` 中显示，关联加载的对外参数名为 `loadRelated`；`tree` 和 `descendantIds` 不显示分页参数。
 - OpenAPI Schema 默认使用 Java 类型的简单类名（例如 `ApproveSampleTaskReq`）；泛型类型在此基础上拼接泛型参数名，
   例如 `Page__ApproveSampleTaskReq`，不再把完整包名编码进调试页面的类型名称。
 - `x-isass-entity-options` 的显示标签使用实体 `resourceName` 的小驼峰值（例如 `sampleGroup`、`modelFace`），

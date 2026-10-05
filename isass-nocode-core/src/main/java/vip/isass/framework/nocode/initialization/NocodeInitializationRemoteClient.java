@@ -6,7 +6,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.web.client.RestClient;
 import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
+import vip.isass.framework.common.support.JsonUtil;
 import vip.isass.framework.common.web.header.AdditionalRequestHeaderContext;
 import vip.isass.framework.common.web.header.AdditionalRequestHeaderProvider;
 import vip.isass.framework.entrypoint.http.HttpEndpointResolver;
@@ -19,13 +19,11 @@ import java.util.Map;
 public final class NocodeInitializationRemoteClient {
 
     private final HttpEndpointResolver endpoints;
-    private final ObjectMapper objectMapper;
     private final List<AdditionalRequestHeaderProvider> headerProviders;
 
-    public NocodeInitializationRemoteClient(HttpEndpointResolver endpoints, ObjectMapper objectMapper,
+    public NocodeInitializationRemoteClient(HttpEndpointResolver endpoints,
                                             List<AdditionalRequestHeaderProvider> headerProviders) {
         this.endpoints = endpoints;
-        this.objectMapper = objectMapper;
         this.headerProviders = List.copyOf(headerProviders);
     }
 
@@ -34,7 +32,7 @@ public final class NocodeInitializationRemoteClient {
         URI endpoint = endpoints.resolve(serviceName);
         if (endpoint == null) throw new IllegalStateException("未配置初始化目标地址: " + serviceName);
         URI uri = endpoint.resolve("/" + serviceName + "/nocode/system/initialization/importData");
-        byte[] serializedBody = objectMapper.writeValueAsBytes(document);
+        byte[] serializedBody = JsonUtil.writeValueAsBytes(document);
         HttpHeaders headers = new HttpHeaders();
         AdditionalRequestHeaderContext headerContext = new AdditionalRequestHeaderContext(
                 "POST", uri, serializedBody);
@@ -52,7 +50,7 @@ public final class NocodeInitializationRemoteClient {
             if (message.isBlank() && response != null) message = response.path("message").asText();
             throw new IllegalStateException("远程初始化失败 " + serviceName + ": " + message);
         }
-        return objectMapper.convertValue(response.path("data"),
+        return JsonUtil.convertValue(response.path("data"),
                 NocodeInitializationDataService.ImportResult.class);
     }
 }

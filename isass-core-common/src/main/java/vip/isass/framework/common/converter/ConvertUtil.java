@@ -7,11 +7,13 @@ import cn.hutool.core.util.ClassUtil;
 import cn.hutool.core.util.TypeUtil;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import tools.jackson.databind.JavaType;
 import vip.isass.framework.common.support.JsonUtil;
 
 import java.io.InputStream;
 import java.lang.reflect.Type;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 
 /**
  * 类型转换工具
@@ -48,16 +50,23 @@ public class ConvertUtil {
             return Convert.convert(clazz, value);
         } else if (clazz == String.class) {
             return (T) value.toString();
-        } else {
-            JavaType javaType = JsonUtil.DEFAULT_INSTANCE.getTypeFactory().constructType(actualType);
-            if (value instanceof String) {
-                return JsonUtil.DEFAULT_INSTANCE.readValue(value.toString(), javaType);
-            } else if (value instanceof byte[]) {
-                return JsonUtil.DEFAULT_INSTANCE.readValue((byte[]) value, javaType);
-            } else if (value instanceof InputStream) {
-                return JsonUtil.DEFAULT_INSTANCE.readValue((InputStream) value, javaType);
+        } else if (clazz == Collection.class) {
+            if (value instanceof Collection<?> values) {
+                return (T) values;
             }
-            return JsonUtil.DEFAULT_INSTANCE.convertValue(value, javaType);
+            if (value instanceof Object[] values) {
+                return (T) Arrays.asList(values);
+            }
+            return (T) Collections.singletonList(value);
+        } else {
+            if (value instanceof String) {
+                return JsonUtil.readValue(value.toString(), actualType);
+            } else if (value instanceof byte[]) {
+                return JsonUtil.readValue((byte[]) value, actualType);
+            } else if (value instanceof InputStream) {
+                return JsonUtil.readValue((InputStream) value, actualType);
+            }
+            return JsonUtil.convertValue(value, actualType);
         }
     }
 }

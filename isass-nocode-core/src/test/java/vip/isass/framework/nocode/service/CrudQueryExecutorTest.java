@@ -4,27 +4,94 @@ package vip.isass.framework.nocode.service;
 
 import org.junit.jupiter.api.Test;
 import vip.isass.framework.common.page.Page;
-import vip.isass.framework.nocode.criteria.field.IIdCriteria;
-import vip.isass.framework.nocode.criteria.field.IParentIdCriteria;
-import vip.isass.framework.nocode.criteria.impl.type.FullTypeCriteria;
+import vip.isass.framework.common.criteria.WhereCondition;
+import vip.isass.framework.common.criteria.field.IIdCriteria;
+import vip.isass.framework.common.criteria.field.IParentIdCriteria;
+import vip.isass.framework.common.criteria.impl.type.FullTypeCriteria;
 import vip.isass.framework.nocode.entity.CrudQueryReq;
-import vip.isass.framework.nocode.entity.IIdEntity;
-import vip.isass.framework.nocode.entity.IParentIdEntity;
+import vip.isass.framework.common.entity.IIdEntity;
+import vip.isass.framework.common.entity.IParentIdEntity;
 import vip.isass.framework.nocode.lifecycle.CrudQueryLifecycleContext;
 import vip.isass.framework.nocode.lifecycle.CrudQueryLifecycleListener;
-import vip.isass.framework.nocode.repository.IRepository;
+import vip.isass.framework.database.core.repository.IRepository;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
 
 class CrudQueryExecutorTest {
+
+    @Test
+    void lifecycleAndRepositoryUseTheCallersCompleteCriteria() {
+        IRepository<Entity, Criteria> repository = mock(IRepository.class);
+        List<Long> ids = new ArrayList<>(List.of(1L));
+        Criteria child = new Criteria().in("id", ids);
+        Criteria source = new Criteria().exists(child);
+        ids.add(2L);
+        CrudQueryLifecycleListener listener = new CrudQueryLifecycleListener() {
+            @Override
+            public void beforeQuery(CrudQueryLifecycleContext<?, ?, ?> context) {
+                Criteria executing = (Criteria) context.request().criteria();
+                assertSame(source, executing);
+                Criteria nested = (Criteria) executing.getWhereConditions().getFirst().getTargetCriteria();
+                assertSame(child, nested);
+                WhereCondition condition = nested.getWhereConditions().getFirst();
+                assertEquals(List.of(1L, 2L), condition.getValue());
+                condition.setValue(List.of(3L));
+            }
+
+            @Override
+            public void afterQuery(CrudQueryLifecycleContext<?, ?, ?> context) {
+                assertSame(source, context.request().criteria());
+                assertEquals(List.of(3L), child.getWhereConditions().getFirst().getValue());
+            }
+        };
+        when(repository.countByCriteria(any())).thenAnswer(invocation -> {
+            Criteria executing = invocation.getArgument(0);
+            assertSame(source, executing);
+            Criteria nested = (Criteria) executing.getWhereConditions().getFirst().getTargetCriteria();
+            assertEquals(List.of(3L), nested.getWhereConditions().getFirst().getValue());
+            return 1;
+        });
+        assertEquals(1L, new CrudQueryExecutor(null, List.of(listener))
+                .query(new LocalService(repository), CrudQueryReq.count(source)).count());
+        assertEquals(List.of(3L), child.getWhereConditions().getFirst().getValue());
+    }
+
+    @Test
+    void cursorChangesRemainVisibleAndCallersCanExplicitlyCopyForIsolation() {
+        IRepository<Entity, Criteria> repository = mock(IRepository.class);
+        Criteria original = new Criteria().setReturnField("id");
+        Criteria execution = original.copy();
+        when(repository.findPageByCriteria(any())).thenAnswer(invocation -> {
+            Criteria actual = invocation.getArgument(0);
+            assertSame(execution, actual);
+            assertEquals(10L, actual.getGreaterThan("id", Long.class));
+            assertEquals("id asc", actual.getOrderBy());
+            assertEquals(1L, actual.getPageNum());
+            assertEquals(3L, actual.getPageSize());
+            assertEquals(false, actual.getSearchCountFlag());
+            return Page.of(List.of(new Entity(11L), new Entity(12L), new Entity(13L)), 1, 3, 0);
+        });
+        CrudQueryExecutor executor = new CrudQueryExecutor();
+        var result = executor.query(new LocalService(repository), CrudQueryReq.cursorPage(execution, 10L, 2L))
+                .cursorPage();
+        assertEquals(List.of(11L, 12L), result.records().stream().map(Entity::getId).toList());
+        assertTrue(result.hasMore());
+        assertEquals(12L, result.nextCursorId());
+        assertEquals(10L, execution.getGreaterThan("id", Long.class));
+        assertEquals(3L, execution.getPageSize());
+        assertTrue(original.getWhereConditions().isEmpty());
+        assertEquals(20L, original.getPageSize());
+    }
 
     @Test
     void routesAllQueryFacadesThroughOneNormalizedLifecycleRequest() {
@@ -38,7 +105,7 @@ class CrudQueryExecutorTest {
         CrudQueryLifecycleListener listener = new CrudQueryLifecycleListener() {
             @Override
             public void beforeQuery(CrudQueryLifecycleContext<?, ?, ?> context) {
-                assertNotSame(source, context.request().criteria());
+                assertSame(source, context.request().criteria());
                 events.add("before:" + context.request().queryType());
             }
 

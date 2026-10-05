@@ -23,7 +23,7 @@ import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.module.SimpleModule;
 import tools.jackson.databind.node.ArrayNode;
 import tools.jackson.databind.ser.jdk.NumberSerializer;
-import tools.jackson.databind.ser.std.StdDelegatingSerializer;
+import tools.jackson.databind.ser.std.StdConvertingSerializer;
 import vip.isass.framework.common.map.MultiKeyMultiValueBiMap;
 import vip.isass.framework.common.map.MultiValueBiMap;
 import vip.isass.framework.common.support.json.LocalDateTimeToLongConvert;
@@ -41,6 +41,8 @@ import vip.isass.framework.common.support.json.serializer.MultiKeyMultiValueBiMa
 import vip.isass.framework.common.support.json.serializer.MultiValueBiMapSerializer;
 
 import java.math.BigDecimal;
+import java.io.InputStream;
+import java.lang.reflect.Type;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -60,13 +62,13 @@ public class JsonUtil {
 
     @SuppressWarnings("unchecked")
     public static SimpleModule simpleModule = new SimpleModule()
-            .addSerializer(LocalDateTime.class, new StdDelegatingSerializer(new LocalDateTimeToLongConvert()))
+            .addSerializer(LocalDateTime.class, new StdConvertingSerializer(new LocalDateTimeToLongConvert()))
             .addDeserializer(LocalDateTime.class, new StdConvertingDeserializer<>(new LongToLocalDateTimeConvert()))
             .addDeserializer(LocalDateTime.class, new StdConvertingDeserializer<>(new StringToLocalDateTimeConvert()))
-            .addSerializer(LocalDate.class, new StdDelegatingSerializer(new LocalDateToLongConvert()))
+            .addSerializer(LocalDate.class, new StdConvertingSerializer(new LocalDateToLongConvert()))
             //        .addDeserializer(LocalDate.class, new StdConvertingDeserializer<>(new LongToLocalDateConvert()))
             .addDeserializer(LocalDate.class, new StdConvertingDeserializer<>(new StringToLocalDateConvert()))
-            .addSerializer(LocalTime.class, new StdDelegatingSerializer(new LocalTimeToLongConvert()))
+            .addSerializer(LocalTime.class, new StdConvertingSerializer(new LocalTimeToLongConvert()))
             //        .addDeserializer(LocalTime.class, new StdConvertingDeserializer<>(new LongToLocalTimeConvert()))
             .addDeserializer(LocalTime.class, new StdConvertingDeserializer<>(new StringToLocalTimeConvert()))
             .addSerializer(BigDecimal.class, (ValueSerializer<BigDecimal>) NumberSerializer.bigDecimalAsStringSerializer())
@@ -142,6 +144,7 @@ public class JsonUtil {
         LEGACY_MAPPER.configure(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         LEGACY_MAPPER.configure(com.fasterxml.jackson.databind.SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
         LEGACY_MAPPER.configure(com.fasterxml.jackson.databind.DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS, true);
+        LEGACY_MAPPER.configure(com.fasterxml.jackson.databind.MapperFeature.PROPAGATE_TRANSIENT_MARKER, true);
         LEGACY_MAPPER.configure(com.fasterxml.jackson.core.JsonParser.Feature.ALLOW_COMMENTS, true);
         LEGACY_MAPPER.configure(com.fasterxml.jackson.core.JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true);
         LEGACY_MAPPER.configure(com.fasterxml.jackson.core.JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);
@@ -217,6 +220,37 @@ public class JsonUtil {
         return DEFAULT_INSTANCE.convertValue(fromValue, typeReference);
     }
 
+    @SuppressWarnings("unchecked")
+    public static <T> T convertValue(Object fromValue, Type type) {
+        return (T) DEFAULT_INSTANCE.convertValue(fromValue, DEFAULT_INSTANCE.getTypeFactory().constructType(type));
+    }
+
+    public static JsonNode valueToTree(Object value) {
+        return DEFAULT_INSTANCE.valueToTree(value);
+    }
+
+    public static JsonNode readTree(String json) {
+        return DEFAULT_INSTANCE.readTree(json);
+    }
+
+    public static boolean isJson(String value) {
+        if (value == null || value.isBlank()) return false;
+        try {
+            JsonNode node = readTree(value);
+            return node != null && (node.isObject() || node.isArray());
+        } catch (RuntimeException ignored) {
+            return false;
+        }
+    }
+
+    public static JsonNode readTree(byte[] json) {
+        return DEFAULT_INSTANCE.readTree(json);
+    }
+
+    public static JsonNode readTree(InputStream json) {
+        return DEFAULT_INSTANCE.readTree(json);
+    }
+
     public static <T> T treeToValue(TreeNode treeNode, Class<T> valueType) {
         try {
             return DEFAULT_INSTANCE.treeToValue(treeNode, valueType);
@@ -241,9 +275,32 @@ public class JsonUtil {
         return DEFAULT_INSTANCE.readValue(json, clazz);
     }
 
+    @SuppressWarnings("unchecked")
+    public static <T> T readValue(String json, Type type) {
+        return (T) DEFAULT_INSTANCE.readValue(json, DEFAULT_INSTANCE.getTypeFactory().constructType(type));
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> T readValue(byte[] json, Type type) {
+        return (T) DEFAULT_INSTANCE.readValue(json, DEFAULT_INSTANCE.getTypeFactory().constructType(type));
+    }
+
+    public static <T> T readValue(InputStream json, TypeReference<T> typeReference) {
+        return DEFAULT_INSTANCE.readValue(json, typeReference);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> T readValue(InputStream json, Type type) {
+        return (T) DEFAULT_INSTANCE.readValue(json, DEFAULT_INSTANCE.getTypeFactory().constructType(type));
+    }
+
     @SneakyThrows
     public static String writeValue(Object object) {
         return DEFAULT_INSTANCE.writeValueAsString(object);
+    }
+
+    public static byte[] writeValueAsBytes(Object object) {
+        return DEFAULT_INSTANCE.writeValueAsBytes(object);
     }
 
     @SneakyThrows
@@ -304,4 +361,3 @@ public class JsonUtil {
     }
 
 }
-

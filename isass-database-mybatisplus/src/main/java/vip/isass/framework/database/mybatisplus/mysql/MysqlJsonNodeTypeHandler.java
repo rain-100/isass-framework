@@ -25,7 +25,7 @@ public class MysqlJsonNodeTypeHandler implements IJsonNodeTypeHandler {
 
     @SneakyThrows
     public static void doSetNonNullParameter(PreparedStatement ps, int i, JsonNode parameter) {
-        ps.setString(i, JsonUtil.DEFAULT_INSTANCE.writeValueAsString(parameter));
+        ps.setString(i, JsonUtil.writeValue(parameter));
     }
 
     @Override
@@ -40,7 +40,7 @@ public class MysqlJsonNodeTypeHandler implements IJsonNodeTypeHandler {
         }
         value = StrUtil.removePrefix(value, "\"");
         value = StrUtil.removeSuffix(value, "\"");
-        return JsonUtil.DEFAULT_INSTANCE.readTree(value);
+        return JsonUtil.readTree(value);
     }
 
 }

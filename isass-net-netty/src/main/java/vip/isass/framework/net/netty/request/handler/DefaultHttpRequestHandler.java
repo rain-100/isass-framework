@@ -5,7 +5,6 @@ package vip.isass.framework.net.netty.request.handler;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONUtil;
 import com.google.protobuf.GeneratedMessage;
 import com.googlecode.protobuf.format.JsonFormat;
 import lombok.SneakyThrows;
@@ -81,9 +80,9 @@ public class DefaultHttpRequestHandler implements RequestHandler {
             case JSON:
                 if (content instanceof byte[]) {
                     String str = new String((byte[]) content, UTF_8);
-                    httpContent = JsonUtil.DEFAULT_INSTANCE.readValue((byte[]) content, HttpContent.class);
+                    httpContent = JsonUtil.readValue((byte[]) content, HttpContent.class);
                 } else {
-                    httpContent = JsonUtil.DEFAULT_INSTANCE.convertValue(packet.getPayload(), HttpContent.class);
+                    httpContent = JsonUtil.convertValue(packet.getPayload(), HttpContent.class);
                 }
                 break;
             case PROTOBUF2:
@@ -130,7 +129,7 @@ public class DefaultHttpRequestHandler implements RequestHandler {
                 body = "";
             } else if (body.length() < 2) {
                 body = "\"" + body + "\"";
-            } else if (!JSONUtil.isJson(body)) {
+            } else if (!JsonUtil.isJson(body)) {
                 body = "\"" + body + "\"";
             }
             log.debug("http网关执行结果：{}", resp);

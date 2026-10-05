@@ -32,10 +32,11 @@ NoCode 基础路径固定为：
 两者都不分页，`orderBy` 控制根节点和同级节点顺序，默认 `id asc`。筛选后父节点不在结果中的节点成为当前
 结果的根节点；`descendantIds` 只沿过滤后仍然连通的父子关系遍历。
 
-Criteria 参数按操作裁剪：`whereConditions`、`associationCriteria` 是内部结构，不在 NoCode 文档中显示；
-`updateMode`、`nullValueMode`、`matchFields` 仅用于 `update`；`selectColumns` 和关联查询仅用于返回实体的
-`page`/`cursorPage`/`tree`，其中关联查询通过 `association.query` 传递关联路径。`tree` 的 `parent/children`
-由框架装配，不能再作为关联路径提交。`descendantIds` 只返回 ID，不接收返回字段或关联投影参数，但可使用
+Criteria 参数按操作裁剪：`whereConditions` 使用完整 JSON Query 值，旧 `associationCriteria` 已删除；
+`updateMode`、`nullValueMode`、`matchFields` 仅用于 `update`；`returnFields` 和关联查询仅用于返回实体的
+`page`/`cursorPage`/`tree`，其中关联查询通过 `loadRelated` 传递 JSON 数组，嵌套关系由目标 Criteria 表达。
+`returnFields` 使用 Java 小驼峰属性名（如 `id,name`），不接受数据库列名；旧参数 `selectColumns` 不再兼容。
+`tree` 的 `parent/children` 由框架装配，不能再作为关联属性提交。`descendantIds` 只返回 ID，不接收返回字段或关联投影参数，但可使用
 普通过滤条件和 `orderBy`。
 
 `create(E)`、`createIfAbsent(...)`、`update(E)`、`update(E,C)`、`delete(PK)`、`getById`、`getOne`、
@@ -66,7 +67,9 @@ Criteria：
 `SuperCudResult` 只返回 `addedCount`、`updatedCount`、`deletedCount` 三个汇总影响数量，避免大批量写入返回
 实体副本。全部操作在服务端同一事务提交；空请求是合法幂等 no-op。
 
-Query 集合固定使用一个参数，并以英文逗号分隔元素，例如 `idIn=1,2,3`；单元素仍使用 `idIn=1`。
+普通 Query 集合固定使用一个参数，并以英文逗号分隔元素，例如 `idIn=1,2,3`；单元素仍使用 `idIn=1`。
+Criteria 中的 whereConditions、joinConditions、loadRelated、fromCriteria 等复杂对象使用单个 JSON 值，
+内层 Criteria 保持对象，不重复 JSON 字符串化；详见 [关联查询](association-query.md)。
 同名重复参数不是合法的 Entrypoint 请求格式，服务端会直接拒绝。对象 Query 会把非空成员展开后按同一规则
 双向绑定；英文逗号是集合分隔符，集合的字符串元素不能包含字面量英文逗号。`WRITE_NULL` 会根据请求字段
 出现性区分“未提交”和“显式 null”。

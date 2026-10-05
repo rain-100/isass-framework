@@ -2,13 +2,14 @@
 
 package vip.isass.framework.nocode.service;
 
-import vip.isass.framework.nocode.criteria.IUpdateCriteria;
-import vip.isass.framework.nocode.criteria.UpdateMode;
-import vip.isass.framework.nocode.criteria.type.IWhereConditionCriteria;
-import vip.isass.framework.nocode.entity.EntityAssociation;
-import vip.isass.framework.nocode.entity.IEntity;
-import vip.isass.framework.nocode.entity.IIdEntity;
-import vip.isass.framework.nocode.entity.IParentIdEntity;
+import vip.isass.framework.common.criteria.IUpdateCriteria;
+import vip.isass.framework.common.criteria.NullValueMode;
+import vip.isass.framework.common.criteria.UpdateMode;
+import vip.isass.framework.common.criteria.type.IWhereConditionCriteria;
+import vip.isass.framework.common.entity.EntityAssociation;
+import vip.isass.framework.common.entity.IEntity;
+import vip.isass.framework.common.entity.IIdEntity;
+import vip.isass.framework.common.entity.IParentIdEntity;
 
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
@@ -45,8 +46,17 @@ public final class AssociationWriteCoordinator {
     }
 
     public void beforeSave(IEntity<?> source, boolean creating) {
+        beforeSave(source, creating, null);
+    }
+
+    public void beforeSave(IEntity<?> source, boolean creating, Serializable updateRootId) {
+        beforeSave(source, creating, updateRootId, null);
+    }
+
+    public void beforeSave(IEntity<?> source, boolean creating, Serializable updateRootId,
+                           IUpdateCriteria<?> criteria) {
         if (!active()) return;
-        validateTreeParent(source);
+        validateTreeParent(source, updateRootId);
         for (EntityAssociation association : source.associations()) {
             Object submitted = read(source, association.property());
             if (!submitted(source, association, submitted, creating)
@@ -64,16 +74,17 @@ public final class AssociationWriteCoordinator {
                 if (existing == null) {
                     throw new IllegalArgumentException("关联对象不存在: " + targetId);
                 }
-                nested(() -> targetService.update((IIdEntity) submitted));
+                updateExistingTarget(targetService, submitted, (Serializable) targetId, criteria);
             }
             write(source, association.localField(), targetId);
         }
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private void validateTreeParent(IEntity<?> source) {
-        if (!(source instanceof IParentIdEntity parentEntity) || id(source) == null) return;
-        Serializable sourceId = id(source);
+    private void validateTreeParent(IEntity<?> source, Serializable updateRootId) {
+        if (!(source instanceof IParentIdEntity parentEntity)) return;
+        Serializable sourceId = updateRootId == null ? id(source) : updateRootId;
+        if (sourceId == null) return;
         Object parentId = parentEntity.getParentId();
         if (parentId == null || "0".equals(String.valueOf(parentId))) return;
         if (sourceId.equals(parentId)) throw new IllegalArgumentException("节点不能把自己设为父节点");
@@ -93,13 +104,19 @@ public final class AssociationWriteCoordinator {
     }
 
     public void afterSave(IEntity<?> source, IUpdateCriteria<?> criteria, boolean creating) {
+        afterSave(source, criteria, creating, null);
+    }
+
+    public void afterSave(IEntity<?> source, IUpdateCriteria<?> criteria, boolean creating,
+                          Serializable updateRootId) {
         if (!active()) return;
         UpdateMode mode = criteria == null ? UpdateMode.MERGE : criteria.resolveUpdateMode();
         for (EntityAssociation association : source.associations()) {
             Object submitted = read(source, association.property());
             if (!submitted(source, association, submitted, creating)
                     || !"id".equals(association.localField())) continue;
-            Object sourceKey = read(source, association.localField());
+            Object sourceKey = !creating && updateRootId != null
+                    ? updateRootId : read(source, association.localField());
             if (sourceKey == null) throw new IllegalStateException("保存关联前当前实体 ID 为空");
             List<Object> targets = association.kind() == EntityAssociation.Kind.MANY
                     ? collection(submitted) : List.of(submitted);
@@ -121,7 +138,7 @@ public final class AssociationWriteCoordinator {
                             read(existing, association.targetField()), sourceKey)) {
                         throw new IllegalArgumentException("关联对象不存在或不属于当前实体: " + targetId);
                     }
-                    nested(() -> targetService.update((IIdEntity) target));
+                    updateExistingTarget(targetService, target, targetId, criteria);
                     submittedIds.add(targetId);
                 }
             }
@@ -130,9 +147,23 @@ public final class AssociationWriteCoordinator {
                 IWhereConditionCriteria where = (IWhereConditionCriteria) targetCriteria;
                 where.equals(association.targetField(), sourceKey);
                 if (!submittedIds.isEmpty()) where.notIn("id", submittedIds);
-                nested(() -> targetService.delete((vip.isass.framework.nocode.criteria.ICriteria) targetCriteria));
+                nested(() -> targetService.delete((vip.isass.framework.common.criteria.ICriteria) targetCriteria));
             }
         }
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private void updateExistingTarget(ILocalCrudService targetService, Object target,
+                                      Serializable targetId, IUpdateCriteria<?> sourceCriteria) {
+        if (sourceCriteria == null || sourceCriteria.resolveNullValueMode() == NullValueMode.IGNORE_NULL) {
+            nested(() -> targetService.update((IIdEntity) target));
+            return;
+        }
+        Object targetCriteria = targetService.newCriteria();
+        ((IWhereConditionCriteria) targetCriteria).equals("id", targetId);
+        ((IUpdateCriteria) targetCriteria).setNullValueMode(NullValueMode.WRITE_NULL);
+        nested(() -> targetService.update((IIdEntity) target,
+                (vip.isass.framework.common.criteria.ICriteria) targetCriteria));
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
@@ -145,7 +176,7 @@ public final class AssociationWriteCoordinator {
         Object targetCriteria = targetService.newCriteria();
         ((IWhereConditionCriteria) targetCriteria).equals(association.targetField(), sourceKey);
         List<?> existingTargets = targetService.getRepository().findByCriteria(
-                (vip.isass.framework.nocode.criteria.ICriteria) targetCriteria);
+                (vip.isass.framework.common.criteria.ICriteria) targetCriteria);
         if (existingTargets.size() > 1) {
             throw new IllegalStateException("单体关联存在多条目标记录: "
                     + association.targetType().getName() + "." + association.targetField() + "=" + sourceKey);
@@ -168,9 +199,42 @@ public final class AssociationWriteCoordinator {
 
     public void beforeDelete(ILocalCrudService<?, ?, ?> sourceService, Collection<? extends Serializable> ids) {
         if (!active() || ids.isEmpty()) return;
+        List<Serializable> batch = new ArrayList<>(500);
         for (Serializable id : ids) {
-            Object source = sourceService.getRepository().getEntityById(id);
-            if (source instanceof IEntity<?> entity) cascade(entity);
+            batch.add(id);
+            if (batch.size() == 500) {
+                cascadeRootBatch(sourceService, batch);
+                batch.clear();
+            }
+        }
+        if (!batch.isEmpty()) cascadeRootBatch(sourceService, batch);
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private void cascadeRootBatch(ILocalCrudService<?, ?, ?> sourceService, List<Serializable> ids) {
+        Object sourceCriteria = sourceService.newCriteria();
+        ((IWhereConditionCriteria) sourceCriteria).in("id", ids);
+        List<?> sources = sourceService.getRepository().findByCriteria(
+                (vip.isass.framework.common.criteria.ICriteria) sourceCriteria);
+        if (sources.isEmpty()) return;
+        IEntity<?> first = (IEntity<?>) sources.getFirst();
+        for (EntityAssociation association : first.associations()) {
+            if (!association.cascadeDelete()) continue;
+            Set<Object> keys = new LinkedHashSet<>();
+            for (Object source : sources) {
+                Object key = read(source, association.localField());
+                if (key != null) keys.add(key);
+            }
+            if (keys.isEmpty()) continue;
+            ILocalCrudService targetService = targetService(association);
+            Object targetCriteria = targetService.newCriteria();
+            ((IWhereConditionCriteria) targetCriteria).in(association.targetField(), keys);
+            List<?> targets = targetService.getRepository().findByCriteria(
+                    (vip.isass.framework.common.criteria.ICriteria) targetCriteria);
+            for (Object target : targets) {
+                if (target instanceof IEntity<?> entity) cascade(entity);
+            }
+            nested(() -> targetService.delete((vip.isass.framework.common.criteria.ICriteria) targetCriteria));
         }
     }
 
@@ -192,11 +256,11 @@ public final class AssociationWriteCoordinator {
             Object criteria = targetService.newCriteria();
             ((IWhereConditionCriteria) criteria).equals(association.targetField(), key);
             List<?> targets = targetService.getRepository().findByCriteria(
-                    (vip.isass.framework.nocode.criteria.ICriteria) criteria);
+                    (vip.isass.framework.common.criteria.ICriteria) criteria);
             for (Object target : targets) {
                 if (target instanceof IEntity<?> entity) cascade(entity, visited, depth + 1);
             }
-            nested(() -> targetService.delete((vip.isass.framework.nocode.criteria.ICriteria) criteria));
+            nested(() -> targetService.delete((vip.isass.framework.common.criteria.ICriteria) criteria));
         }
         visited.remove(identity);
     }

@@ -256,8 +256,8 @@ public class RequestLog {
                 ", nickName='" + nickName + '\'' +
                 ", uri='" + uri + '\'' +
                 ", method='" + method + '\'' +
-                ", requestHeader=" + JsonUtil.DEFAULT_INSTANCE.writeValueAsString(requestHeader) +
-                ", responseHeader=" + JsonUtil.DEFAULT_INSTANCE.writeValueAsString(responseHeader) +
+                ", requestHeader=" + JsonUtil.writeValue(requestHeader) +
+                ", responseHeader=" + JsonUtil.writeValue(responseHeader) +
                 ", requestParam='" + requestParam + '\'' +
                 ", responseContent='" + responseContent + '\'' +
                 ", exceptionMessage='" + exceptionMessage + '\'' +

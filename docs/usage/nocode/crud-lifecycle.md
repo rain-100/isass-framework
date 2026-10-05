@@ -1,5 +1,27 @@
 # NoCode CRUD 统一执行与生命周期
 
+## 基础类型与模块边界
+
+`IEntity`、实体特征接口、`EntityAssociation` 位于 `isass-core-common` 的
+`vip.isass.framework.common.entity`；Criteria 条件模型位于 `common.criteria`，
+属性 Getter 位于 `common.property`。`IRepository` 位于
+`isass-database-core` 的 `vip.isass.framework.database.core.repository`，表前缀注册类
+`TablePrefixUtil` 位于 `vip.isass.framework.database.core`。生成器模板和当前生成代码
+均使用这些包名。`isass-nocode-core` 持有
+`ICrudService`、查询/写入执行器和 Entrypoint 参数适配，依赖数据库契约；
+`isass-database-mybatisplus` 只依赖 core-common 与 database-core，不依赖 NoCode CRUD。
+其表元数据与 Repository 适配实现使用 `vip.isass.framework.database.mybatisplus`
+及 `vip.isass.framework.database.mybatisplus.orm` 包，不放在 `framework.nocode` 下。
+表元数据只扫描 `IRepository` 实现 Bean 的泛型来解析实体；CRUD Service 不参与注册。
+使用自定义本地 CRUD Service 时，也应为对应实体提供 Repository 实现 Bean。
+
+高级响应字段由 `isass-core-common` 的 `AdvancedFeatureProjector` 根据 `AdvancedFeature`
+生成，实体不再继承 `IAnyJsonEntity`，也不保存响应专用字段。Web 层解析
+`dateFormat.<field>`、`decimalPlaces.<field>`、`dictTranslation.<field>` 请求参数后，
+只为实际序列化的实体字段附加 `<field>Text`；字典翻译由可选的
+`IDictTranslationProvider` Bean 提供。非 Web 调用可显式构造 Projector 并传入
+实体、已序列化字段名和 Feature，不使用静态全局 Provider。
+
 ## 1. 边界与地址
 
 `ICrudService<E, C, PK>` 是围绕单个聚合提供标准 CRUD 的应用入口，并继承 `IEntrypoint`。生成的本地实现统一命名为 `${Entity}Service`。业务首先复用 NoCode 的八个基础 CRUD 入口及实体具备的可选通用能力；只要需求能由标准 CRUD、Criteria、关联、能力接口和生命周期完整表达，就不得新增同义的查询、新增、修改或删除 Entrypoint。生命周期可以协调同一限界上下文内其他聚合或领域。只有无法用这些机制表达的独立业务用例才增加手写 Entrypoint，并显式声明 `@EntrypointOperation`。
@@ -81,7 +103,7 @@ update(E) / update(E,C) / update(Collection<E>,C) / delete(PK) / delete(C) / sup
 
 `delete` 必须拒绝空 Criteria 或没有有效 WHERE 条件的 Criteria，不提供无保护的远程全表修改或删除。
 
-实体表达“更新成什么数据”，Criteria 表达“更新哪些记录以及如何更新”。实体有 ID 时，实际范围是实体 ID、Criteria 和数据权限的交集；实体无 ID 时才能仅由 Criteria 定位，空范围必须拒绝。`IUpdateCriteria.updateMode` 控制直接关联的 `MERGE/REPLACE`，`nullValueMode` 控制普通字段的 `IGNORE_NULL/WRITE_NULL`；字段未出现在请求中时永远不参与更新。
+实体表达“更新成什么数据”，Criteria 表达“更新哪些记录以及如何更新”。`update(entity)` 根据实体 ID 构造 Criteria；显式传入 Criteria 时以最终 Criteria 为范围，实体 ID 不自动进入 SET 或叠加 WHERE。只有提交关联属性时才要求最终 Criteria 明确限定唯一主实体 ID，且实体 ID 如有值须与其一致。`IUpdateCriteria.updateMode` 控制直接关联的 `MERGE/REPLACE`；`IGNORE_NULL` 忽略 null，`WRITE_NULL` 为参与 SET 的实体写入全部非框架维护可更新字段（包括 null），框架维护字段仍由框架维护。只有关联属性被提交时，主实体不参与 SET。
 
 ## 4. 查询统一执行
 
@@ -95,7 +117,12 @@ page/cursorPage/count/exists/tree/descendantIds
   -> CrudQueryResult
 ```
 
-`CrudQueryExecutor` 会复制调用方 Criteria，防止分页、游标和监听器处理污染原对象。`CrudQueryType` 包含
+`CrudQueryExecutor` 直接使用调用方 Criteria，不做深复制；仅入参为空时新建 Criteria。
+生命周期、关联补键、默认排序和游标条件等修改保留在同一个对象中，表示本次实际执行的查询条件。
+查询失败也不回滚已完成的内存修改；需要保留初始条件或并发执行时，由调用方显式传入 `criteria.copy()`。
+本地 Java 调用可观察这些修改；HTTP/gRPC 服务端修改的是反序列化后的对象，不自动回传客户端 Criteria。
+loadRelated 的批次 IN 和内部分页属于临时调度状态，结束或异常时清理/恢复；业务筛选、补键等修改仍保留，详见关联查询文档。
+`CrudQueryType` 包含
 `PAGE`、`CURSOR_PAGE`、`COUNT`、`EXISTS`、`TREE`；生命周期替换查询结果时，结果类型必须与请求类型一致。
 `CrudQueryResult.records()` 统一返回本次查询涉及的全部实体，树结果按先序展开，结果脱敏等监听器不应只处理
 `page` 与 `cursorPage` 两种容器。
@@ -112,7 +139,7 @@ page/cursorPage/count/exists/tree/descendantIds
 
 `exists(criteria)` 在 MyBatis-Plus 适配层使用第一页、每页一条且关闭总数统计的 ORM 查询，
 不再通过 `COUNT > 0` 判断存在性。实现 `IIdEntity` 的实体仅查询主键，并忽略存在性查询不需要的排序；
-调用方 Criteria 的筛选、排序和投影保持不变。权限与查询生命周期沿用原链路，逻辑删除仍由 ORM 处理。
+该 ORM 优化本身不改变传入 Criteria 的筛选、排序和投影；此前生命周期对 Criteria 的修改仍保留。权限与查询生命周期沿用原链路，逻辑删除仍由 ORM 处理。
 Repository 仅在 Criteria 实现 `IOrderByCriteria`、需要移除排序时复制对象；不支持排序的 Criteria 直接用于构造查询。
 `existsById`、按属性存在性检查及内部 Wrapper 便捷方法同样限一条、不统计总数，分页语法由方言生成。
 无匹配记录时仍可能扫描较多数据，需为高频筛选条件配置合适索引。
@@ -122,7 +149,9 @@ Repository 仅在 Criteria 实现 `IOrderByCriteria`、需要移除排序时复�
 - 只允许 `orderBy=id asc` 或 `orderBy=id desc`，默认 `id asc`；禁止其他字段、多字段或缺少方向的排序。
 - 第一页 `cursorId` 可为空，后续使用上一页 `nextCursorId`；实现多取一条计算 `hasMore`，不执行 `count(*)`。
 - NoCode 授权上下文保留可选参数的 `null` 值和原始位置；空游标或缺省 `pageSize` 不会跳过权限检查。
-- 连续翻页必须保持 Criteria 和排序方向不变；ID 必须稳定、唯一、可比较且写入后不变化。
+- 连续翻页必须保持基础筛选和排序方向不变；ID 必须稳定、唯一、可比较且写入后不变化。
+- 游标执行直接更新本次 Criteria：追加 ID 边界、规范化排序、设置 pageNum=1、pageSize=请求大小+1、searchCountFlag=false。
+  从初始条件重新查询或需要每页独立条件时，保存基础 Criteria 并逐次传入 `baseCriteria.copy()`，避免复用已有游标边界。
 - 高频附加过滤条件应建立与查询匹配的联合索引，否则游标分页只能消除 offset 成本，不能消除过滤扫描成本。
 
 ### 树查询
@@ -131,11 +160,11 @@ Repository 仅在 Criteria 实现 `IOrderByCriteria`、需要移除排序时复�
   自动选择能力接口，普通实体不暴露 `tree`。
 - `tree(criteria)` 先查询符合 Criteria 的全部实体，再按 `id/parentId` 在内存中组装完整森林，不应用分页参数；
   `orderBy` 同时决定根节点与同级子节点顺序，未指定时使用 `id asc`。
-- `id` 与 `parentId` 是树装配必需字段。调用方使用 `selectColumns` 时，执行器自动补充这两个 Java 属性。
+- `id` 与 `parentId` 是树装配必需字段。调用方使用 `returnFields` 时，执行器自动补充这两个 Java 属性。
 - `parentId` 为 `null`、`0`，或父节点不在当前过滤结果中时，节点作为当前结果森林的根；因此 Criteria 可以只
   返回一个局部结果集。查询会拒绝空 ID、重复 ID 和父子循环，并在每次装配前清空 `parent`、重建 `children`，
   避免序列化时形成双向循环。
-- `children` 与 `parent` 由树查询负责，不得同时通过 `association.query` 请求；其他显式关联仍对全部树节点
+- `children` 与 `parent` 由树查询负责，不得同时通过 `loadRelated` 请求；其他显式关联仍对全部树节点
   批量装载。
 - `descendantIds(rootId, criteria)` 复用同一次 `tree(criteria)` 查询和生命周期，在过滤后的森林中按广度优先顺序
   返回指定节点的全部后代 ID，不包含节点自身；`rootId` 不在结果森林中时明确失败。该派生查询不增加新的

@@ -137,7 +137,7 @@ public class WebsocketChannelInboundHandler extends SimpleChannelInboundHandler<
             String request = ((TextWebSocketFrame) frame).text();
             log.trace("接收到文本请求：{}", request);
 
-            WebsocketPacket packet = JsonUtil.DEFAULT_INSTANCE.readValue(request, WebsocketPacket.class);
+            WebsocketPacket packet = JsonUtil.readValue(request, WebsocketPacket.class);
             WebsocketClientSession session = new WebsocketClientSession(channel);
             eventManager.onMessage(
                     Message.builder()

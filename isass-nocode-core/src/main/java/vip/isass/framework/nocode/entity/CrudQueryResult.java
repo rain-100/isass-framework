@@ -2,6 +2,8 @@
 
 package vip.isass.framework.nocode.entity;
 
+import vip.isass.framework.common.entity.IParentIdEntity;
+
 import vip.isass.framework.common.page.Page;
 
 import java.io.Serializable;
