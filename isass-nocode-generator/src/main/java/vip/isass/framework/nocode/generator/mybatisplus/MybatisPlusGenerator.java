@@ -19,6 +19,10 @@ import freemarker.template.Version;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import vip.isass.framework.nocode.generator.association.GeneratorAssociation;
+import vip.isass.framework.nocode.generator.association.EntityRelationDefinition;
+import vip.isass.framework.nocode.generator.model.EntityModelDefinition;
+import vip.isass.framework.nocode.generator.model.EntityFieldDefinition;
+import vip.isass.framework.nocode.generator.association.EntityRelationValidator;
 import vip.isass.framework.nocode.generator.association.TableAssociationParser;
 
 import java.sql.Connection;
@@ -29,6 +33,8 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.TreeMap;
 import java.util.regex.Pattern;
 
@@ -60,7 +66,9 @@ public class MybatisPlusGenerator {
     @SneakyThrows
     public static void generate(MybatisPlusGeneratorMeta meta) {
         List<MybatisPlusGeneratorMeta> contextMetas = generationMetas(meta);
-        Map<String, String> entityPackages = entityPackages(contextMetas);
+        List<MybatisPlusGeneratorMeta> catalogMetas = generationMetas(meta, false);
+        Map<String, String> entityPackages = entityPackages(catalogMetas);
+        validateRelations(meta, catalogMetas);
         contextMetas.forEach(contextMeta -> {
             generateApiFiles(contextMeta, entityPackages);
             generateServiceFiles(contextMeta);
@@ -73,6 +81,11 @@ public class MybatisPlusGenerator {
      * {@code bsp.auth.domain.authorization.role}。
      */
     private static List<MybatisPlusGeneratorMeta> generationMetas(MybatisPlusGeneratorMeta meta) throws SQLException {
+        return generationMetas(meta, true);
+    }
+
+    private static List<MybatisPlusGeneratorMeta> generationMetas(
+            MybatisPlusGeneratorMeta meta, boolean selectedOnly) throws SQLException {
         Map<GenerationScope, List<String>> tablesByScope = new TreeMap<>(Comparator
                 .comparing(GenerationScope::context)
                 .thenComparing(GenerationScope::domain)
@@ -83,18 +96,18 @@ public class MybatisPlusGenerator {
                      connection.getCatalog(), meta.getSchemaName(), "%", new String[]{"TABLE"})) {
             while (tables.next()) {
                 String tableName = tables.getString("TABLE_NAME");
-                if (!isTableSelected(tableName, meta.getIncludeTables(), meta.getExcludeTables())) {
+                if (!isTableSelected(tableName,
+                        selectedOnly ? meta.getIncludeTables() : null, meta.getExcludeTables())) {
                     continue;
                 }
-                GenerationScope scope = generationScopeOf(
-                        tableName, tables.getString("REMARKS"), meta.getTablePrefix());
+                GenerationScope scope = modelScopeOf(tableName, meta);
                 if (scope == null) continue;
                 tablesByScope.computeIfAbsent(scope, ignored -> new ArrayList<>()).add(tableName);
             }
         }
         if (tablesByScope.isEmpty()) {
             throw new IllegalStateException(
-                    "未发现符合 service_context_entity 命名规则并声明 [--domain:{domain}] 的数据库表");
+                    "未发现符合 service_context_entity 命名规则且有模型声明的数据库表");
         }
         return tablesByScope.entrySet().stream()
                 .map(entry -> metaForGenerationScope(meta, entry.getKey(), entry.getValue()))
@@ -106,6 +119,23 @@ public class MybatisPlusGenerator {
             return matchesAny(tableName, includeTables);
         }
         return excludeTables == null || excludeTables.length == 0 || !matchesAny(tableName, excludeTables);
+    }
+
+    static GenerationScope modelScopeOf(String tableName, MybatisPlusGeneratorMeta meta) {
+        if (contextOf(tableName, meta.getTablePrefix()) == null) {
+            return null;
+        }
+        EntityModelDefinition model = modelOf(entityNameOf(tableName, meta.getTablePrefix()), meta);
+        return new GenerationScope(contextOf(tableName, meta.getTablePrefix()), model.domain(), model.subdomain());
+    }
+
+    private static EntityModelDefinition modelOf(String entity, MybatisPlusGeneratorMeta meta) {
+        List<EntityModelDefinition> definitions = meta.getModels().stream()
+                .filter(model -> model.entityName().equals(entity)).toList();
+        if (definitions.size() != 1) {
+            throw new IllegalStateException("实体必须有且只有一个 EntityModelDefinition: " + entity);
+        }
+        return definitions.getFirst();
     }
 
     private static boolean matchesAny(String tableName, String[] patterns) {
@@ -135,30 +165,6 @@ public class MybatisPlusGenerator {
         return null;
     }
 
-    static GenerationScope generationScopeOf(String tableName, String remarks, String[] tablePrefixes) {
-        if (!hasTablePrefix(tableName, tablePrefixes)) return null;
-        String context = contextOf(tableName, tablePrefixes);
-        if (context == null) {
-            throw new IllegalStateException("表名不符合 service_context_entity 规则: " + tableName);
-        }
-        TableAssociationParser.DomainMetadata domainMetadata;
-        try {
-            domainMetadata = TableAssociationParser.domainMetadata(remarks);
-        } catch (IllegalArgumentException exception) {
-            throw new IllegalStateException("表 " + tableName + " 的 domain/subdomain 标记无效", exception);
-        }
-        if (domainMetadata == null) {
-            throw new IllegalStateException("表 " + tableName + " 缺少领域标记 [--domain:{domain}]");
-        }
-        return new GenerationScope(context, domainMetadata.domain(), domainMetadata.subdomain());
-    }
-
-    private static boolean hasTablePrefix(String tableName, String[] tablePrefixes) {
-        for (String tablePrefix : tablePrefixes) {
-            if (tableName.startsWith(tablePrefix)) return true;
-        }
-        return false;
-    }
 
     static String entityNameOf(String tableName, String[] tablePrefixes) {
         String suffix = tableName;
@@ -190,6 +196,40 @@ public class MybatisPlusGenerator {
         return result;
     }
 
+    private static void validateRelations(
+            MybatisPlusGeneratorMeta meta, List<MybatisPlusGeneratorMeta> catalogMetas) throws SQLException {
+        Map<String, Map<String, Integer>> entityColumns = new TreeMap<>();
+        try (Connection connection = DriverManager.getConnection(
+                meta.getDataSourceUrl(), meta.getDataSourceUserName(), meta.getDataSourcePassword())) {
+            for (MybatisPlusGeneratorMeta catalogMeta : catalogMetas) {
+                for (String table : catalogMeta.getIncludeTables()) {
+                    Map<String, Integer> columns = new TreeMap<>();
+                    try (ResultSet fields = connection.getMetaData().getColumns(
+                            connection.getCatalog(), meta.getSchemaName(), table, "%")) {
+                        while (fields.next()) {
+                            columns.put(NamingStrategy.underlineToCamel(fields.getString("COLUMN_NAME")),
+                                    fields.getInt("DATA_TYPE"));
+                        }
+                    }
+                    entityColumns.put(entityNameOf(table, meta.getTablePrefix()), columns);
+                }
+            }
+        }
+        EntityRelationValidator.validate(
+                meta.getRelations(), meta.getTreeCascadeDeleteEntities(), entityColumns);
+        for (EntityModelDefinition model : meta.getModels()) {
+            Map<String, Integer> columns = entityColumns.get(model.entityName());
+            if (columns == null) {
+                throw new IllegalArgumentException("模型声明不存在于数据库目录: " + model.entityName());
+            }
+            for (EntityFieldDefinition field : model.fields()) {
+                if (!columns.containsKey(field.propertyName())) {
+                    throw new IllegalArgumentException("字段声明不存在: " + model.entityName() + "." + field.propertyName());
+                }
+            }
+        }
+    }
+
     private static MybatisPlusGeneratorMeta metaForGenerationScope(
             MybatisPlusGeneratorMeta source, GenerationScope scope, List<String> includeTables) {
         return new MybatisPlusGeneratorMeta()
@@ -206,6 +246,9 @@ public class MybatisPlusGenerator {
                 .setIncludeTables(includeTables.toArray(String[]::new))
                 .setApiOutputDir(source.getApiOutputDir())
                 .setServiceOutputDir(source.getServiceOutputDir())
+                .setRelations(source.getRelations())
+                .setModels(source.getModels())
+                .setTreeCascadeDeleteEntities(source.getTreeCascadeDeleteEntities())
                 .setEntityFileOverride(source.isEntityFileOverride())
                 .setCriteriaFileOverride(source.isCriteriaFileOverride())
                 .setMapperFileOverride(source.isMapperFileOverride())
@@ -283,8 +326,21 @@ public class MybatisPlusGenerator {
                     try {
                         builder
                                 .beforeOutputFile((table, objectMap) -> {
+                                    EntityModelDefinition model = modelOf(table.getEntityName(), meta);
+                                    Map<String, EntityFieldDefinition> fields = model.fields().stream()
+                                            .collect(Collectors.toMap(EntityFieldDefinition::propertyName, field -> field));
+                                    Set<String> properties = table.getFields().stream()
+                                            .map(field -> field.getPropertyName()).collect(Collectors.toSet());
+                                    if (!properties.containsAll(fields.keySet())) {
+                                        throw new IllegalArgumentException("字段声明不存在: " + table.getEntityName());
+                                    }
+                                    objectMap.put("modelFields", fields);
+                                    objectMap.put("tenantIsolation", model.tenantIsolation());
                                     List<GeneratorAssociation> associations =
-                                            TableAssociationParser.parse(table.getEntityName(), table.getComment());
+                                            meta.getRelations().stream()
+                                                    .filter(relation -> relation.sourceEntity().equals(table.getEntityName()))
+                                                    .map(EntityRelationDefinition::association)
+                                                    .toList();
                                     objectMap.put("associations", associations);
                                     String entityPackage = meta.getPackageName() + "." + meta.getContext()
                                             + ".domain.model.entity";
@@ -299,7 +355,7 @@ public class MybatisPlusGenerator {
                                             .distinct()
                                             .toList());
                                     objectMap.put("treeCascadeDelete",
-                                            TableAssociationParser.treeCascadeDelete(table.getComment()));
+                                            meta.getTreeCascadeDeleteEntities().contains(table.getEntityName()));
                                     objectMap.put("tableDescription",
                                             TableAssociationParser.description(table.getComment()));
                                 })
@@ -407,8 +463,10 @@ public class MybatisPlusGenerator {
                 .injectionConfig(builder -> {
                     try {
                         builder
-                                .beforeOutputFile((table, objectMap) -> objectMap.put(
-                                        "tableDescription", TableAssociationParser.description(table.getComment())))
+                                .beforeOutputFile((table, objectMap) -> {
+                                    objectMap.put("tableDescription", TableAssociationParser.description(table.getComment()));
+                                    objectMap.put("tenantIsolation", modelOf(table.getEntityName(), meta).tenantIsolation());
+                                })
                                 .customMap(MapUtil.<String, Object>builder()
                                         .put("context", meta.getContext())
                                         .put("boundedContextName", boundedContextName)

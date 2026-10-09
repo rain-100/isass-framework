@@ -1,106 +1,53 @@
-# isass-framework
+# ISASS Framework V4
 
-## 更新日志
+Java 25 共享框架，提供服务入口、NoCode、数据库、消息、网络及安全能力。模块命名统一为 `isass-分类-能力`。
 
-更新日志请查看 [docs/60.changelog](docs/60.changelog)
+## 模块目录
 
-## 模块命名规范
+- [isass-core-build](isass-core-build/README.md)：构建与部署资源。
+- [isass-core-common](isass-core-common/README.md)：纯 Java 公共契约与工具。
+- [isass-core-dependencies](isass-core-dependencies/README.md)：依赖与插件版本管理。
+- [isass-core-parent](isass-core-parent/README.md)：服务构建父 POM。
+- [isass-entrypoint-core](isass-entrypoint-core/README.md)：服务入口契约。
+- [isass-entrypoint-registry](isass-entrypoint-registry/README.md)：运行时入口目录与客户端路由。
+- [isass-entrypoint-http](isass-entrypoint-http/README.md)：HTTP 服务客户端。
+- [isass-entrypoint-grpc](isass-entrypoint-grpc/README.md)：动态 gRPC 契约预研。
+- [isass-nocode-core](isass-nocode-core/README.md)：标准 CRUD 与统一执行。
+- [isass-nocode-generator](isass-nocode-generator/README.md)：模型与持久化代码生成。
+- [isass-database-core](isass-database-core/README.md)：数据库与 Repository 契约。
+- [isass-database-mybatisplus](isass-database-mybatisplus/README.md)：MyBatis-Plus / MPJ 适配。
+- [isass-database-dameng](isass-database-dameng/README.md)：达梦数据库适配。
+- [isass-database-elasticsearch](isass-database-elasticsearch/README.md)：Elasticsearch 依赖与扩展边界。
+- [isass-database-redis](isass-database-redis/README.md)：Redis 支持。
+- [isass-mq-core](isass-mq-core/README.md)：多源消息契约。
+- [isass-mq-kafka011](isass-mq-kafka011/README.md)：Kafka 消息源。
+- [isass-mq-springevent](isass-mq-springevent/README.md)：进程内事件消息源。
+- [isass-mq-redisstream](isass-mq-redisstream/README.md)：Redis Stream 消息源。
+- [isass-mq-redispubsub](isass-mq-redispubsub/README.md)：Redis Pub/Sub 消息源。
+- [isass-net-core](isass-net-core/README.md)：网络会话与消息公共能力。
+- [isass-net-admin](isass-net-admin/README.md)：网络管理接口。
+- [isass-net-netty](isass-net-netty/README.md)：Netty 网络支持。
+- [isass-net-proxy-core](isass-net-proxy-core/README.md)：网络代理公共能力。
+- [isass-net-proxy-server](isass-net-proxy-server/README.md)：网络代理服务端。
+- [isass-net-proxy-upstream](isass-net-proxy-upstream/README.md)：网络代理上游接入。
+- [isass-net-socketio](isass-net-socketio/README.md)：Socket.IO 协议实现。
+- [isass-net-websocket](isass-net-websocket/README.md)：WebSocket 协议实现。
+- [isass-security-springsecurity](isass-security-springsecurity/README.md)：Spring Security 集成。
+- [isass-encryption](isass-encryption/README.md)：文本加解密工具。
+- [isass-serialization-protobuf](isass-serialization-protobuf/README.md)：Protobuf 序列化支持。
+- [isass-web-springmvc](isass-web-springmvc/README.md)：Spring MVC 服务端适配。
+- [isass-adapter-springboot](isass-adapter-springboot/README.md)：Spring Boot 装配桥。
 
-模块目录和 Maven `artifactId` 统一使用 `isass-分类-模块名` 格式。
+## 开发与验证
 
-- `isass`：固定项目前缀。
-- `分类`：模块所属能力域，例如 `core`、`database`、`mq`、`net`、`security`、`serialization`、`web`、`adapter`。
-- `模块名`：模块的具体能力名称，应简洁表达职责，例如 `common`、`redis`、`springsecurity`、`protobuf`。
+- 从根目录执行 `mvn install`，供下游使用最新本地构建。
+- 服务使用 api/service/boot 三模块；跨上下文使用公开契约或事件，不直接访问对方 Repository。
+- 测试优先覆盖权限、租户隔离、事务回滚、并发、协议与历史缺陷，不维护全量类名/入口快照。
+- 提交格式：`type(scope): subject`。新机制简要更新所属模块 README，不另建长篇设计与使用文档。
 
-示例：
+## 记录
 
-- `isass-core-common`
-- `isass-database-redis`
-- `isass-security-springsecurity`
+- [更新日志](docs/60.changelog/ChangeLog4.x.md)
+- [路线图](docs/70.roadmap/roadmap.md)
 
-新增或重命名模块时，应优先归入已有分类；只有现有分类无法准确表达能力域时，再新增分类。
-
-## Git commit 规范
-
-### commit message格式
-
-``` text
-<type>(<scope>): <subject>
-```
-
-#### type(必须)
-
-用于说明git commit的类别，只允许使用下面的标识。
-
-- feat：新功能（feature）。
-
-- fix/to：修复bug，可以是QA发现的BUG，也可以是研发自己发现的BUG。
-- fix：产生diff并自动修复此问题。适合于一次提交直接修复问题
-- to：只产生diff不自动修复此问题。适合于多次提交。最终修复问题提交时使用fix
-
-- docs：文档（documentation）。
-
-- style：格式（不影响代码运行的变动）。
-
-- refactor：重构（即不是新增功能，也不是修改bug的代码变动）。
-
-- perf：优化相关，比如提升性能、体验。
-
-- test：增加测试。
-
-- chore：构建过程或辅助工具的变动。
-
-- revert：回滚到上一个版本。
-
-- merge：代码合并。
-
-- sync：同步主线或分支的Bug。
-
-#### scope(可选)
-
-scope用于说明 commit 影响的范围，比如数据层、控制层、视图层等等，视项目不同而不同。
-
-例如在Angular，可以是location，browser，compile，compile，rootScope， ngHref，ngClick，ngView等。如果你的修改影响了不止一个scope，你可以使用*代替。
-
-#### subject(必须)
-
-subject是commit目的的简短描述，不超过50个字符。
-
-结尾不加句号或其他标点符号。
-
----
-
-根据以上规范git commit message将是如下的格式：
-
-- fix(DAO):用户查询缺少username属性
-- feat(Controller):用户查询接口开发
-
----
-
-以上就是我们梳理的git commit规范，那么我们这样规范git commit到底有哪些好处呢？
-
-- 便于程序员对提交历史进行追溯，了解发生了什么情况。
-- 一旦约束了commit message，意味着我们将慎重的进行每一次提交，不能再一股脑的把各种各样的改动都放在一个git commit里面，这样一来整个代码改动的历史也将更加清晰。
-- 格式化的commit message才可以用于自动化输出Change log。
-
-## 服务注册与发现
-
-- spring.cloud.discovery.enabled（不用配置）
-- spring.cloud.nacos.discovery.enabled （是否启用 nacos 服务注册与发现，默认true）
-
-## 配置中心
-
-- spring.cloud.nacos.config.enabled （是否启用 nacos 配置中心，默认true）
-
-## API 文档
-
-isass v4 使用 smart-doc 生成 `openapi3/openapi.json`，由 `/v3/api-docs` 读取并增强，
-再通过 Knife4j 展示和调试 API。
-
-- smart-doc、OpenAPI 3 与 screw 使用方式：请查看 [docs/usage/apidoc/smart-doc.md](docs/usage/apidoc/smart-doc.md)。
-
-业务服务暴露：
-
-```text
-GET /{spring.application.name}/v3/api-docs
-```
+框架稳定前，docs 仅保留上述两份文件，各不超过 2000 字符。具体行为以实现、测试和模块 README 为准。

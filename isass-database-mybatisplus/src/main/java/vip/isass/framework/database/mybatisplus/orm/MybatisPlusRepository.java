@@ -21,11 +21,13 @@ import com.github.yulichang.base.MPJBaseMapper;
 import com.github.yulichang.wrapper.DeleteJoinWrapper;
 import com.github.yulichang.wrapper.UpdateJoinWrapper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import vip.isass.framework.common.exception.AbsentException;
 import vip.isass.framework.common.exception.AlreadyPresentException;
 import vip.isass.framework.common.exception.code.StatusMessageEnum;
 import vip.isass.framework.common.page.Page;
 import vip.isass.framework.common.criteria.ICriteria;
+import vip.isass.framework.common.criteria.WhereCondition;
 import vip.isass.framework.common.criteria.IUpdateCriteria;
 import vip.isass.framework.common.criteria.NullValueMode;
 import vip.isass.framework.common.criteria.type.IOrderByCriteria;
@@ -52,6 +54,29 @@ public abstract class MybatisPlusRepository<E extends IEntity<E>, C extends ICri
     @SuppressWarnings("unchecked")
     protected Class<E> currentEntityClass() {
         return (Class<E>) GenericTypeUtils.resolveTypeArguments(getClass(), MybatisPlusRepository.class)[0];
+    }
+
+    @Override
+    public E getEntityByIdForUpdate(Serializable id) {
+        if (!TransactionSynchronizationManager.isActualTransactionActive()) {
+            throw new IllegalStateException("授权记录锁必须在写事务内获取");
+        }
+        TableInfo table = TableInfoHelper.getTableInfo(currentEntityClass());
+        if ("sqlserver".equals(table.getConfiguration().getDatabaseId())) {
+            throw new UnsupportedOperationException("SQL Server 授权记录锁需要专用适配，不能退化为无锁授权");
+        }
+        QueryWrapper<E> query = new QueryWrapper<>();
+        query.eq(table.getKeyColumn(), id);
+        query.last("FOR UPDATE");
+        return getBaseMapper().selectOne(query);
+    }
+
+    @Override
+    public boolean satisfiesAuthorizationConditions(Serializable id, List<WhereCondition> conditions) {
+        if (!TransactionSynchronizationManager.isActualTransactionActive()) {
+            throw new IllegalStateException("授权条件判定必须在持有记录锁的写事务内执行");
+        }
+        return isPresentByWrapper(WrapperUtil.authorizationWrapper(currentEntityClass(), id, conditions));
     }
 
     // ****************************** 增 start ******************************

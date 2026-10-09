@@ -84,7 +84,7 @@ public class ${entity}Criteria
 <#---------- BEGIN 添加 getter setter 方法 ------------>
 <#list table.fields as field>
     <#if buildInColumns?seq_contains(field.name?lower_case)
-        && !(field.name?lower_case == "tenant_id" && field.comment!?contains("[tenantEntity--false]"))><#continue></#if>
+        && !(field.name?lower_case == "tenant_id" && !tenantIsolation)><#continue></#if>
     <#if field.propertyType == "JsonNode"><#continue></#if>
     // region ${field.propertyName}
 

@@ -2,16 +2,11 @@
 
 package vip.isass.framework.nocode.generator.association;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/** Parses table-level NoCode metadata markers before template rendering. */
+/** Parses DDL ownership and human descriptions; relations are declared in Java. */
 public final class TableAssociationParser {
 
     private static final Pattern DOMAIN = Pattern.compile("\\[--domain:([^]]*)]");
@@ -25,37 +20,6 @@ public final class TableAssociationParser {
             "\\[树结构-\\s*cascadeDelete\\s*=\\s*true\\s*]", Pattern.CASE_INSENSITIVE);
 
     private TableAssociationParser() {
-    }
-
-    public static List<GeneratorAssociation> parse(String sourceEntity, String comment) {
-        List<GeneratorAssociation> result = new ArrayList<>();
-        Matcher matcher = ASSOCIATION.matcher(comment == null ? "" : comment);
-        while (matcher.find()) {
-            GeneratorAssociation.Kind kind = "列表".equals(matcher.group(1))
-                    ? GeneratorAssociation.Kind.MANY : GeneratorAssociation.Kind.ONE;
-            String target = matcher.group(2);
-            Map<String, String> options = options(matcher.group(3));
-            String property = options.getOrDefault("property", kind == GeneratorAssociation.Kind.ONE
-                    ? lowerCamel(target) : plural(lowerCamel(target)));
-            String localKey = options.get("localKey");
-            String targetKey = options.get("targetKey");
-            if (localKey == null || targetKey == null) {
-                if (kind == GeneratorAssociation.Kind.ONE) {
-                    localKey = lowerCamel(target) + "Id";
-                    targetKey = "id";
-                } else {
-                    localKey = "id";
-                    targetKey = lowerCamel(sourceEntity) + "Id";
-                }
-            }
-            result.add(new GeneratorAssociation(property, target, kind, localKey, targetKey,
-                    Boolean.parseBoolean(options.getOrDefault("cascadeDelete", "false"))));
-        }
-        return List.copyOf(result);
-    }
-
-    public static boolean treeCascadeDelete(String comment) {
-        return TREE_CASCADE.matcher(comment == null ? "" : comment).find();
     }
 
     /**
@@ -118,34 +82,6 @@ public final class TableAssociationParser {
         if (!PACKAGE_SEGMENT.matcher(value).matches()) {
             throw new IllegalArgumentException(name + " 必须是小写 Java 包名段: " + value);
         }
-    }
-
-    private static Map<String, String> options(String text) {
-        Map<String, String> result = new LinkedHashMap<>();
-        for (String token : text.split(";")) {
-            int separator = token.indexOf('=');
-            if (separator > 0) {
-                result.put(token.substring(0, separator).trim(), token.substring(separator + 1).trim());
-            }
-        }
-        return result;
-    }
-
-    private static String lowerCamel(String value) {
-        return value.substring(0, 1).toLowerCase(Locale.ROOT) + value.substring(1);
-    }
-
-    private static String plural(String value) {
-        String lower = value.toLowerCase(Locale.ROOT);
-        if (lower.endsWith("y") && value.length() > 1
-                && "aeiou".indexOf(lower.charAt(lower.length() - 2)) < 0) {
-            return value.substring(0, value.length() - 1) + "ies";
-        }
-        if (lower.endsWith("s") || lower.endsWith("x") || lower.endsWith("z")
-                || lower.endsWith("ch") || lower.endsWith("sh")) {
-            return value + "es";
-        }
-        return value + "s";
     }
 
     /** Parsed domain ownership metadata for one generated table. */

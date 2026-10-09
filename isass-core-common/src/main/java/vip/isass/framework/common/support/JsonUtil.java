@@ -26,6 +26,8 @@ import tools.jackson.databind.ser.jdk.NumberSerializer;
 import tools.jackson.databind.ser.std.StdConvertingSerializer;
 import vip.isass.framework.common.map.MultiKeyMultiValueBiMap;
 import vip.isass.framework.common.map.MultiValueBiMap;
+import vip.isass.framework.common.security.data.DataFieldSerializerModifier;
+import vip.isass.framework.common.security.data.LegacyDataFieldSerializerModifier;
 import vip.isass.framework.common.support.json.LocalDateTimeToLongConvert;
 import vip.isass.framework.common.support.json.LocalDateToLongConvert;
 import vip.isass.framework.common.support.json.LocalTimeToLongConvert;
@@ -62,6 +64,7 @@ public class JsonUtil {
 
     @SuppressWarnings("unchecked")
     public static SimpleModule simpleModule = new SimpleModule()
+            .setSerializerModifier(new DataFieldSerializerModifier())
             .addSerializer(LocalDateTime.class, new StdConvertingSerializer(new LocalDateTimeToLongConvert()))
             .addDeserializer(LocalDateTime.class, new StdConvertingDeserializer<>(new LongToLocalDateTimeConvert()))
             .addDeserializer(LocalDateTime.class, new StdConvertingDeserializer<>(new StringToLocalDateTimeConvert()))
@@ -145,6 +148,8 @@ public class JsonUtil {
         LEGACY_MAPPER.configure(com.fasterxml.jackson.databind.SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
         LEGACY_MAPPER.configure(com.fasterxml.jackson.databind.DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS, true);
         LEGACY_MAPPER.configure(com.fasterxml.jackson.databind.MapperFeature.PROPAGATE_TRANSIENT_MARKER, true);
+        LEGACY_MAPPER.registerModule(new com.fasterxml.jackson.databind.module.SimpleModule()
+                .setSerializerModifier(new LegacyDataFieldSerializerModifier()));
         LEGACY_MAPPER.configure(com.fasterxml.jackson.core.JsonParser.Feature.ALLOW_COMMENTS, true);
         LEGACY_MAPPER.configure(com.fasterxml.jackson.core.JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true);
         LEGACY_MAPPER.configure(com.fasterxml.jackson.core.JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);

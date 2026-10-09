@@ -13,6 +13,11 @@
 
     <dependencies>
         <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>vip.isass</groupId>
             <artifactId>isass-nocode-core</artifactId>
         </dependency>

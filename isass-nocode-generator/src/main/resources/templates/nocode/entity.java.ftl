@@ -1,23 +1,22 @@
 <#include "./segment/copyright.ftl">
 
-<#assign enumStart = "[枚举--">
-<#assign javaTypeStart = "[javaType--">
 <#include "./segment/EntityType.ftl">
 package ${cfg.entityPackageName};
 <#list associationImports as associationImport>
 import ${associationImport};
 </#list>
 <#function javaType field>
-<#if field.comment!?contains("${javaTypeStart}")>
-    <#assign start = field.comment?index_of("${javaTypeStart}") + javaTypeStart?length>
-    <#assign end = field.comment?index_of("]", start)>
-    <#return field.comment?substring(start, end)?trim>
+<#if modelFields[field.propertyName]?? && modelFields[field.propertyName].javaType()??>
+    <#return modelFields[field.propertyName].javaType()>
 </#if>
 <#return field.propertyType>
 </#function>
+<#function isEnum field>
+<#return modelFields[field.propertyName]?? && modelFields[field.propertyName].enumValues()?has_content>
+</#function>
 
 <#list table.fields as field>
-<#if field.comment!?contains("${enumStart}")>
+<#if isEnum(field)>
 import cn.hutool.core.util.RandomUtil;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
@@ -25,7 +24,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 </#if>
 </#list>
 <#list table.fields as field>
-<#if field.propertyType == "JsonNode" && !field.comment!?contains("${javaTypeStart}")>
+<#if field.propertyType == "JsonNode" && !(javaType(field) != field.propertyType)>
 import tools.jackson.databind.JsonNode;
 <#break>
 </#if>
@@ -189,7 +188,7 @@ public class ${entity} implements
      */<#if field.propertyName!?ends_with("Id") && field.propertyType == "Long">
     @JsonSerialize(using = ToStringSerializer.class)</#if>
     @ApiDoc(description = "<#if field.comment?trim?length gt 0>${field.comment?trim?j_string}<#else>${field.propertyName?j_string}</#if>")
-    private <#if field.propertyName == "deleteFlag">Boolean<#elseif field.comment!?contains("${enumStart}")>${field.propertyName?cap_first}<#elseif field.comment!?contains("${javaTypeStart}")>${javaType(field)}<#elseif field.propertyType == "JsonNode">JsonNode<#else>${field.propertyType}</#if> ${field.propertyName};
+    private <#if field.propertyName == "deleteFlag">Boolean<#elseif isEnum(field)>${field.propertyName?cap_first}<#elseif (javaType(field) != field.propertyType)>${javaType(field)}<#elseif field.propertyType == "JsonNode">JsonNode<#else>${field.propertyType}</#if> ${field.propertyName};
 
 </#list>
 <#---------- END 定义字段 ---------->
@@ -211,15 +210,12 @@ public class ${entity} implements
 <#---------- END 定义关联字段 ---------->
 <#---------- START 添加枚举类 ---------->
 <#list table.fields as field>
-    <#if field.comment!?contains("${enumStart}")>
-        <#assign start = field.comment?index_of("${enumStart}") + enumStart?length>
-        <#assign end = field.comment?index_of("]", start)>
-        <#assign enumStringArr = field.comment?substring(start, end)?split(";")>
+    <#if isEnum(field)>
+        <#assign enumStringArr = modelFields[field.propertyName].enumValues()>
     public enum ${field.propertyName?cap_first} {
 
 <#list enumStringArr as enumString>
-<#assign enumArr = enumString?split(":")>
-        ${enumArr[1]}(${enumArr[0]}, "${enumArr[2]}")<#if (enumString_index + 1) == enumStringArr?size>;<#else>,</#if>
+        ${enumString.name()}(${enumString.code()?c}, "${enumString.description()?j_string}")<#if (enumString_index + 1) == enumStringArr?size>;<#else>,</#if>
         </#list>
 
         private final Integer code;
@@ -266,7 +262,7 @@ public class ${entity} implements
 <#---------- END 添加枚举类 ---------->
 <#---------- START 添加字段 setter ---------->
 <#list table.fields as field>
-    public void set${field.propertyName?cap_first}(<#if field.propertyName == "deleteFlag">Boolean<#elseif field.comment!?contains("${enumStart}")>${field.propertyName?cap_first}<#elseif field.comment!?contains("${javaTypeStart}")>${javaType(field)}<#elseif field.propertyType == "JsonNode">JsonNode<#else>${field.propertyType}</#if> ${field.propertyName}) {
+    public void set${field.propertyName?cap_first}(<#if field.propertyName == "deleteFlag">Boolean<#elseif isEnum(field)>${field.propertyName?cap_first}<#elseif (javaType(field) != field.propertyType)>${javaType(field)}<#elseif field.propertyType == "JsonNode">JsonNode<#else>${field.propertyType}</#if> ${field.propertyName}) {
         this.${field.propertyName} = ${field.propertyName};
         markPresentProperty("${field.propertyName}");
     }
@@ -381,7 +377,7 @@ public class ${entity} implements
         set${field.propertyName?cap_first}(LocalDateTimeUtil.now());
         <#continue>
     </#if>
-        set${field.propertyName?cap_first}(<#if field.comment!?contains("${enumStart}")>${field.propertyName?cap_first}.random()<#else>random${field.propertyType}()</#if>);
+        set${field.propertyName?cap_first}(<#if isEnum(field)>${field.propertyName?cap_first}.random()<#else>random${field.propertyType}()</#if>);
 </#list>
         return this;
     }

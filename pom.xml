@@ -81,6 +81,19 @@
         <!-- endregion -->
     </properties>
 
+    <build>
+        <pluginManagement>
+            <plugins>
+                <!-- 根聚合 POM 不继承 isass-core-dependencies，单独锁定自身的 clean 插件版本。 -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-clean-plugin</artifactId>
+                    <version>3.5.0</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+
     <licenses>
         <license>
             <name>GNU Lesser General Public License v3.0 only</name>

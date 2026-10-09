@@ -32,7 +32,7 @@
 <#------------ END ParentIdEntity ------------>
 <#------------ BEGIN TenantEntity ------------>
 <#list table.fields as field>
-    <#if field.name?lower_case == "tenant_id" && !field.comment!?contains("[tenantEntity--false]")>
+    <#if field.name?lower_case == "tenant_id" && tenantIsolation>
         <#assign isTenantEntity = true>
         <#assign tenantIdEntityPropertyType = field.propertyType>
         <#break>

@@ -24,6 +24,8 @@ import vip.isass.framework.common.criteria.impl.type.Condition;
 import vip.isass.framework.common.criteria.impl.type.FullTypeCriteria;
 import vip.isass.framework.common.entity.EntityAssociation;
 import vip.isass.framework.common.entity.IIdEntity;
+import vip.isass.framework.common.security.data.DataReadContext;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import javax.sql.DataSource;
 import java.util.List;
@@ -65,7 +67,35 @@ class MpjCriteriaIntegrationTest {
                     factory.getConfiguration().addMapper(SetRootMapper.class);
                     try (var session = factory.openSession(true)) {
                         RootRepository repository = new RootRepository(session.getMapper(RootMapper.class));
+                        assertThrows(IllegalStateException.class, () -> repository.getEntityByIdForUpdate(1L));
+                        TransactionSynchronizationManager.setActualTransactionActive(true);
+                        try {
+                            assertEquals(1L, repository.getEntityByIdForUpdate(1L).getId());
+                            assertNull(repository.getEntityByIdForUpdate(4L));
+                            assertTrue(repository.satisfiesAuthorizationConditions(1L, List.of(WhereCondition.eq("name", "first"))));
+                            assertFalse(repository.satisfiesAuthorizationConditions(1L, List.of(WhereCondition.eq("name", "second"))));
+                        } finally {
+                            TransactionSynchronizationManager.setActualTransactionActive(false);
+                        }
                         SetRootRepository setRepository = new SetRootRepository(session.getMapper(SetRootMapper.class));
+                        try (var ignored = DataReadContext.open(type -> List.of(WhereCondition.eq("id",
+                                type == Child.class ? 11L : 1L)))) {
+                            assertEquals(1, repository.countByCriteria(new RootCriteria()));
+                            assertFalse(repository.isPresentByCriteria(new RootCriteria().equals("id", 2L)));
+                            assertEquals(1L, repository.findPageByCriteria(new RootCriteria()).getTotal());
+                            assertEquals(List.of(1L), repository.findByCriteria(new RootCriteria()
+                                    .setWhereConditions(List.of(WhereCondition.or(
+                                            WhereCondition.eq("id", 1L), WhereCondition.eq("id", 2L)))))
+                                    .stream().map(Root::getId).toList());
+                            assertEquals(List.of(1L), repository.findByCriteria(new RootCriteria()
+                                    .setFromCriteria(new RootCriteria())
+                                    .exists(new ChildCriteria(), Root::getId, Child::getParentId))
+                                    .stream().map(Root::getId).toList());
+                            Root joined = repository.findByCriteria(new RootCriteria()
+                                    .leftJoin(Child.class, Root::getId, Child::getParentId)).getFirst();
+                            assertEquals(1, joined.getChildren().size());
+                            assertEquals(11L, joined.getChildren().getFirst().getId());
+                        }
                         // 单表和关联查询走相同的 Wrapper 构建入口；单表仍保留正常投影/分页/逻辑删除。
                         assertEquals(3, repository.countByCriteria(new RootCriteria().setReturnField("name")));
                         MpjWrapper<Root> projectedWrapper = (MpjWrapper<Root>) WrapperUtil.getQueryWrapper(

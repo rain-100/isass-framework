@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import vip.isass.framework.common.page.Page;
 import vip.isass.framework.common.criteria.ICriteria;
+import vip.isass.framework.common.criteria.WhereCondition;
 import vip.isass.framework.common.entity.IEntity;
 import vip.isass.framework.common.entity.IIdEntity;
 
@@ -95,6 +96,20 @@ public interface IRepository<E extends IEntity<E>, C extends ICriteria<E, C>> {
 
     default E getEntityById(Serializable id) {
         throw new UnsupportedOperationException();
+    }
+
+    /**
+     * 写授权在同一事务中锁定记录，防止范围判断和写入之间发生归属或业务状态变更。
+     */
+    default E getEntityByIdForUpdate(Serializable id) {
+        throw new UnsupportedOperationException("当前数据库适配器不支持授权记录锁");
+    }
+
+    /**
+     * 已锁定记录的授权条件由数据库判定，保留数据库的类型转换和排序规则语义。
+     */
+    default boolean satisfiesAuthorizationConditions(Serializable id, List<WhereCondition> conditions) {
+        throw new UnsupportedOperationException("当前数据库适配器不支持授权条件判定");
     }
 
     default E getByIdOrException(Serializable id) {

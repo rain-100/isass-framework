@@ -3,6 +3,8 @@
 package vip.isass.framework.nocode.generator.mybatisplus;
 
 import org.junit.jupiter.api.Test;
+import vip.isass.framework.nocode.generator.model.EntityModelDefinition;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -43,15 +45,15 @@ class MybatisPlusGeneratorTest {
     }
 
     @Test
-    void combinesStableContextWithDomainAndOptionalSubdomainFromTableRemarks() {
-        assertThat(MybatisPlusGenerator.generationScopeOf(
-                "bsp_auth_user", "用户 [--domain:identity]", new String[]{"bsp_"}))
+    void combinesStableTableContextWithJavaModelOwnership() {
+        var meta = new MybatisPlusGeneratorMeta().setTablePrefix(new String[]{"bsp_"})
+                .setModels(List.of(EntityModelDefinition.of("User", "identity"),
+                        EntityModelDefinition.of("Role", "authorization", "role")));
+        assertThat(MybatisPlusGenerator.modelScopeOf("bsp_auth_user", meta))
                 .isEqualTo(new MybatisPlusGenerator.GenerationScope("auth", "identity", null));
-        assertThat(MybatisPlusGenerator.generationScopeOf(
-                "bsp_auth_role", "角色 [--domain:authorization;--subdomain:role]", new String[]{"bsp_"}))
+        assertThat(MybatisPlusGenerator.modelScopeOf("bsp_auth_role", meta))
                 .isEqualTo(new MybatisPlusGenerator.GenerationScope("auth", "authorization", "role"));
-        assertThat(MybatisPlusGenerator.generationScopeOf(
-                "asset_sample_sample_task", "任务 [--domain:workflow]", new String[]{"bsp_"}))
+        assertThat(MybatisPlusGenerator.modelScopeOf("asset_sample_sample_task", meta))
                 .isNull();
     }
 
@@ -88,10 +90,10 @@ class MybatisPlusGeneratorTest {
     }
 
     @Test
-    void rejectsOwnedTablesWithoutDomainRemarks() {
-        assertThatThrownBy(() -> MybatisPlusGenerator.generationScopeOf(
-                "bsp_auth_user", "用户", new String[]{"bsp_"}))
+    void rejectsTablesWithoutAnExplicitModelDeclaration() {
+        assertThatThrownBy(() -> MybatisPlusGenerator.modelScopeOf("bsp_auth_user",
+                new MybatisPlusGeneratorMeta().setTablePrefix(new String[]{"bsp_"})))
                 .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("[--domain:{domain}]");
+                .hasMessageContaining("EntityModelDefinition");
     }
 }

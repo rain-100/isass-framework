@@ -54,6 +54,7 @@ import vip.isass.framework.common.entity.IEntity;
 import vip.isass.framework.common.entity.SensitiveDataProperty;
 import vip.isass.framework.common.support.BeanProviderUtil;
 import vip.isass.framework.common.support.JsonUtil;
+import vip.isass.framework.common.security.data.DataReadContext;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -63,6 +64,7 @@ import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.io.Serializable;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
@@ -114,6 +116,20 @@ public class WrapperUtil {
     }
 
     /**
+     * 受信任写授权条件：只选择指定记录的主键，不复用读取投影或读取字段限制。
+     */
+    static <E extends IEntity<E>> Wrapper<E> authorizationWrapper(Class<E> type, Serializable id,
+                                                                  List<WhereCondition> conditions) {
+        MpjWrapper<E> wrapper = new MpjWrapper<>(type);
+        String key = TableInfoHelper.getTableInfo(type).getKeyProperty();
+        wrapper.select(BaseColumnFactory.column(wrapper.getBaseColumn(), key));
+        processWhereConditions(wrapper, List.of(WhereCondition.eq(key, id),
+                WhereCondition.and(conditions.toArray(WhereCondition[]::new))), Condition.Logical.AND, null,
+                Collections.newSetFromMap(new IdentityHashMap<>()));
+        return wrapper;
+    }
+
+    /**
      * 按 FROM、JOIN、WHERE、SELECT、ORDER BY 顺序编译当前查询层；子查询递归复用此入口。
      *
      * @param wrapper    当前查询的 Wrapper
@@ -131,6 +147,12 @@ public class WrapperUtil {
         enterQueryPath(criteria, activePath);
         try {
             validateQueryUsage(criteria, usage);
+            if (DataReadContext.current() != null && criteria instanceof IWhereConditionCriteria<?, ?> where) {
+                Set<Object> inputs = Collections.newSetFromMap(new IdentityHashMap<>());
+                for (WhereCondition node : where.getWhereConditions()) {
+                    validateQueryInput(node, wrapper.getEntityClass(), outer, inputs);
+                }
+            }
 
             // FROM：确定当前根表输入，子查询使用独立的别名作用域。
             processFrom(wrapper, criteria, activePath);
@@ -140,7 +162,19 @@ public class WrapperUtil {
 
             // WHERE：消费条件树，遇到目标 Criteria 时递归构建相关子查询。
             if (criteria instanceof IWhereConditionCriteria<?, ?> where) {
-                processWhereConditions(wrapper, where.getWhereConditions(), Condition.Logical.AND, outer, activePath);
+                if (DataReadContext.current() != null && !where.getWhereConditions().isEmpty()) {
+                    wrapper.nested(group -> processWhereConditions((MpjWrapper<?>) group,
+                            where.getWhereConditions(), Condition.Logical.AND, outer, activePath));
+                } else {
+                    processWhereConditions(wrapper, where.getWhereConditions(), Condition.Logical.AND, outer, activePath);
+                }
+            }
+            if (DataReadContext.current() != null) {
+                List<WhereCondition> restrictions = DataReadContext.current().conditions(wrapper.getEntityClass());
+                if (!restrictions.isEmpty()) {
+                    wrapper.and(group -> processWhereConditions((MpjWrapper<?>) group,
+                            restrictions, Condition.Logical.AND, null, activePath));
+                }
             }
 
             // SELECT：按用途一次确定返回字段、派生表输出和 MPJ 关联结果映射。
@@ -151,6 +185,31 @@ public class WrapperUtil {
             return new QueryBuildResult(joinedTargets, derivedFields);
         } finally {
             activePath.remove(criteria);
+        }
+    }
+
+    /**
+     * 只校验调用者提供的条件树；策略自身的范围字段仍可作为受信任的 SQL 约束。
+     */
+    private static void validateQueryInput(WhereCondition node, Class<?> type,
+                                            BaseColumn<?> outer, Set<Object> activePath) {
+        enterQueryPath(node, activePath);
+        try {
+            if (node.getChildren() != null) {
+                for (WhereCondition child : node.getChildren()) {
+                    validateQueryInput(child, type, outer, activePath);
+                }
+            } else {
+                if (node.getSourceProperty() != null) {
+                    Class<?> source = node.getTargetProperty() != null && outer != null ? outer.getColumnClass() : type;
+                    DataReadContext.current().requireQueryable(source, resolveSourceProperty(node));
+                }
+                if (node.getTargetProperty() != null) {
+                    DataReadContext.current().requireQueryable(type, node.getTargetProperty());
+                }
+            }
+        } finally {
+            activePath.remove(node);
         }
     }
 
@@ -263,6 +322,9 @@ public class WrapperUtil {
         if (usage == MpjWrapper.QueryUsage.SINGLE && (returnFields == null || returnFields.size() != 1)) {
             throw new IllegalArgumentException("IN/NOT_IN 子查询必须显式选择且只选择一个字段");
         }
+        if (usage == MpjWrapper.QueryUsage.SINGLE && DataReadContext.current() != null) {
+            DataReadContext.current().requireQueryable(wrapper.getEntityClass(), returnFields.iterator().next());
+        }
         boolean entityResult = usage == MpjWrapper.QueryUsage.ENTITY;
         boolean rootIdentity = !joinedTargets.isEmpty()
                 && (entityResult || usage == MpjWrapper.QueryUsage.COUNT);
@@ -320,6 +382,11 @@ public class WrapperUtil {
                 }
             }
         }
+        if (DataReadContext.current() != null) {
+            Collection<String> withPolicyKeys = new LinkedHashSet<>(returnFields);
+            withPolicyKeys.addAll(DataReadContext.current().requiredProperties(entityType));
+            return withPolicyKeys;
+        }
         return returnFields;
     }
 
@@ -353,6 +420,9 @@ public class WrapperUtil {
                     continue;
                 }
                 String[] parts = part.trim().split("\\s+");
+                if (DataReadContext.current() != null) {
+                    DataReadContext.current().requireQueryable(wrapper.getEntityClass(), parts[0]);
+                }
                 if (parts.length > 2 || parts.length == 2
                         && !parts[1].equalsIgnoreCase("ASC") && !parts[1].equalsIgnoreCase("DESC")) {
                     throw new IllegalArgumentException("orderBy 参数错误: " + part);
@@ -381,7 +451,8 @@ public class WrapperUtil {
         Class<?> type = CriteriaEntityTypes.entityClass(target);
         BaseColumn<?> table = BaseColumnFactory.create(type);
         boolean derived = hasDerivedTableConditions(target)
-                || TableInfoHelper.getTableInfo(type).isWithLogicDelete();
+                || TableInfoHelper.getTableInfo(type).isWithLogicDelete()
+                || DataReadContext.current() != null && !DataReadContext.current().conditions(type).isEmpty();
         String inputSql;
         MpjWrapper<?> input;
         List<JoinedTarget> nested = List.of();
@@ -594,6 +665,14 @@ public class WrapperUtil {
                     }));
                 }
             } else {
+                if (DataReadContext.current() != null) {
+                    if (node.getSourceProperty() != null) {
+                        DataReadContext.current().requireQueryable(source.getColumnClass(), node.getSourceProperty());
+                    }
+                    if (node.getTargetProperty() != null) {
+                        DataReadContext.current().requireQueryable(target.getColumnClass(), node.getTargetProperty());
+                    }
+                }
                 if (node.getSourceProperty() != null && node.getTargetProperty() != null) {
                     if (node.getValue() != null) {
                         throw new IllegalArgumentException("JOIN ON 双字段比较不能同时声明 value");
