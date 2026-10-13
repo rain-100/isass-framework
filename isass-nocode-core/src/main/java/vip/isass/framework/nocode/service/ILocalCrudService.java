@@ -2,17 +2,16 @@
 
 package vip.isass.framework.nocode.service;
 
-import vip.isass.framework.common.security.AuthenticatedPrincipal;
-import vip.isass.framework.common.security.CurrentPrincipalUtil;
+import vip.isass.framework.security.AuthenticatedPrincipal;
+import vip.isass.framework.security.CurrentPrincipalUtil;
 import vip.isass.framework.common.page.Page;
 import vip.isass.framework.common.criteria.ICriteria;
 import vip.isass.framework.common.criteria.IUpdateCriteria;
-import vip.isass.framework.common.criteria.field.IIdCriteria;
 import vip.isass.framework.common.criteria.type.IOrderByCriteria;
 import vip.isass.framework.common.criteria.type.IPageCriteria;
 import vip.isass.framework.nocode.entity.CrudQueryReq;
 import vip.isass.framework.nocode.entity.CursorPage;
-import vip.isass.framework.common.entity.IIdEntity;
+import vip.isass.framework.common.entity.IEntity;
 import vip.isass.framework.common.entity.ITenantEntity;
 import vip.isass.framework.nocode.entity.SuperCudReq;
 import vip.isass.framework.nocode.entity.SuperCudResult;
@@ -23,8 +22,8 @@ import java.util.Collection;
 
 /** Local implementation contract for one NoCode CRUD aggregate. */
 public interface ILocalCrudService<
-        E extends IIdEntity<PK, E>,
-        C extends ICriteria<E, C> & IIdCriteria<PK, E, C> & IUpdateCriteria<C>
+        E extends IEntity<E>,
+        C extends ICriteria<E, C> & IUpdateCriteria<C>
                 & IPageCriteria<E, C> & IOrderByCriteria<E, C>,
         PK extends Serializable
         > extends ICrudService<E, C, PK> {
@@ -44,7 +43,7 @@ public interface ILocalCrudService<
     }
 
     @Override
-    default SuperCudResult superCud(SuperCudReq<E, C> request) {
+    default SuperCudResult superCud(SuperCudReq<E, C, PK> request) {
         return CrudWriteExecutorProvider.getRequired().superCud(this, request);
     }
 

@@ -3,6 +3,7 @@
 package vip.isass.framework.nocode.service;
 
 import vip.isass.framework.common.criteria.IUpdateCriteria;
+import vip.isass.framework.common.criteria.ICriteria;
 import vip.isass.framework.common.criteria.NullValueMode;
 import vip.isass.framework.common.criteria.UpdateMode;
 import vip.isass.framework.common.criteria.type.IWhereConditionCriteria;
@@ -10,13 +11,17 @@ import vip.isass.framework.common.entity.EntityAssociation;
 import vip.isass.framework.common.entity.IEntity;
 import vip.isass.framework.common.entity.IIdEntity;
 import vip.isass.framework.common.entity.IParentIdEntity;
+import vip.isass.framework.nocode.entity.SuperCudReq;
 
 import java.beans.Introspector;
+import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;
 import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -24,25 +29,81 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Supplier;
+import java.util.function.BiConsumer;
 
 /**
- * Saves direct aggregate members and applies fixed directional cascade-delete metadata.
+ * Saves declared entity graphs, including fixed predicates and directional cascade deletion.
  */
 public final class AssociationWriteCoordinator {
 
     private final Map<Class<?>, ILocalCrudService<?, ?, ?>> services;
     private final ThreadLocal<Integer> nesting = ThreadLocal.withInitial(() -> 0);
+    private final BiConsumer<ILocalCrudService<?, ?, ?>, SuperCudReq<?, ?, ?>> authorizer;
 
     public AssociationWriteCoordinator(Collection<ILocalCrudService<?, ?, ?>> localServices) {
+        this(localServices, (service, request) -> { });
+    }
+
+    public AssociationWriteCoordinator(Collection<ILocalCrudService<?, ?, ?>> localServices,
+                                      BiConsumer<ILocalCrudService<?, ?, ?>, SuperCudReq<?, ?, ?>> authorizer) {
         Map<Class<?>, ILocalCrudService<?, ?, ?>> indexed = new LinkedHashMap<>();
         for (ILocalCrudService<?, ?, ?> service : localServices) {
             indexed.put(CrudServiceTypeResolver.resolveEntityClass(service.getClass()), service);
         }
         services = Map.copyOf(indexed);
+        this.authorizer = authorizer;
     }
 
     public boolean active() {
-        return nesting.get() == 0;
+        return true;
+    }
+
+    public boolean nestedInvocation() {
+        return nesting.get() > 0;
+    }
+
+    /** Check ID-dependent nested writes before inserting or updating any aggregate row. */
+    public void validateSaveCapabilities(IEntity<?> source, boolean creating) {
+        validateSaveCapabilities(source, creating, Collections.newSetFromMap(new IdentityHashMap<>()), 0);
+    }
+
+    private void validateSaveCapabilities(IEntity<?> source, boolean creating, Set<Object> path, int depth) {
+        if (depth > 32 || !path.add(source)) {
+            throw new IllegalArgumentException("关联写入存在循环或超过最大深度 32");
+        }
+        try {
+            for (EntityAssociation association : source.associations()) {
+                Object value = read(source, association.property());
+                if (!submitted(source, association, value, creating)) {
+                    continue;
+                }
+                if (!association.writable()) {
+                    throw new IllegalArgumentException("只读关联不能提交写入: " + association.property());
+                }
+                CrudIdSupport.requireIdEntity(source, "关联写入");
+                CrudIdSupport.requireIdEntityType(association.targetType(), "关联写入目标");
+                Set<Serializable> ids = new LinkedHashSet<>();
+                for (Object target : association.kind() == EntityAssociation.Kind.MANY
+                        ? collection(value) : List.of(value)) {
+                    if (!association.targetType().isInstance(target)) {
+                        throw new IllegalArgumentException("关联对象类型不匹配: " + association.property());
+                    }
+                    CrudIdSupport.requireIdEntity(target, "关联写入目标");
+                    if (id(target) != null && !ids.add(id(target))) {
+                        throw new IllegalArgumentException("关联集合包含重复 ID: " + id(target));
+                    }
+                    AssociationSupport.fixedValues(association).forEach((field, required) -> {
+                        Object actual = read(target, field);
+                        if (actual != null && !Objects.equals(actual, required)) {
+                            throw new IllegalArgumentException("关联固定条件不允许修改: " + field);
+                        }
+                    });
+                    validateSaveCapabilities((IEntity<?>) target, id(target) == null, path, depth + 1);
+                }
+            }
+        } finally {
+            path.remove(source);
+        }
     }
 
     public void beforeSave(IEntity<?> source, boolean creating) {
@@ -67,6 +128,7 @@ public final class AssociationWriteCoordinator {
             Object targetId = id(submitted);
             ILocalCrudService targetService = targetService(association);
             if (targetId == null) {
+                authorizer.accept(targetService, SuperCudReq.add((IEntity<?>) submitted));
                 Object created = nested(() -> targetService.create((IIdEntity) submitted));
                 targetId = id(created);
             } else {
@@ -74,7 +136,13 @@ public final class AssociationWriteCoordinator {
                 if (existing == null) {
                     throw new IllegalArgumentException("关联对象不存在: " + targetId);
                 }
-                updateExistingTarget(targetService, submitted, (Serializable) targetId, criteria);
+                if (changed((IEntity<?>) submitted, existing)) {
+                    updateExistingTarget(targetService, submitted, (Serializable) targetId, criteria);
+                }
+            }
+            Object supplied = read(source, association.localField());
+            if (supplied != null && !Objects.equals(supplied, targetId)) {
+                throw new IllegalArgumentException("关联对象与关联 ID 不一致: " + association.property());
             }
             write(source, association.localField(), targetId);
         }
@@ -123,9 +191,10 @@ public final class AssociationWriteCoordinator {
             Set<Serializable> submittedIds = new LinkedHashSet<>();
             ILocalCrudService targetService = targetService(association);
             for (Object target : targets) {
-                write(target, association.targetField(), sourceKey);
+                AssociationSupport.constrain((IEntity<?>) target, association, sourceKey);
                 Serializable targetId = resolveTargetId(target, association, targetService, sourceKey);
                 if (targetId == null) {
+                    authorizer.accept(targetService, SuperCudReq.add((IEntity<?>) target));
                     nested(() -> targetService.create((IIdEntity) target));
                     targetId = id(target);
                     if (targetId == null) {
@@ -134,11 +203,12 @@ public final class AssociationWriteCoordinator {
                     submittedIds.add(targetId);
                 } else {
                     Object existing = targetService.getRepository().getEntityById(targetId);
-                    if (existing == null || !Objects.equals(
-                            read(existing, association.targetField()), sourceKey)) {
+                    if (existing == null || !AssociationSupport.matches(existing, association, sourceKey)) {
                         throw new IllegalArgumentException("关联对象不存在或不属于当前实体: " + targetId);
                     }
-                    updateExistingTarget(targetService, target, targetId, criteria);
+                    if (changed((IEntity<?>) target, existing)) {
+                        updateExistingTarget(targetService, target, targetId, null);
+                    }
                     submittedIds.add(targetId);
                 }
             }
@@ -146,8 +216,9 @@ public final class AssociationWriteCoordinator {
                 Object targetCriteria = targetService.newCriteria();
                 IWhereConditionCriteria where = (IWhereConditionCriteria) targetCriteria;
                 where.equals(association.targetField(), sourceKey);
+                AssociationSupport.fixedValues(association).forEach(where::equals);
                 if (!submittedIds.isEmpty()) where.notIn("id", submittedIds);
-                nested(() -> targetService.delete((vip.isass.framework.common.criteria.ICriteria) targetCriteria));
+                deleteSelected(targetService, (ICriteria) targetCriteria);
             }
         }
     }
@@ -155,6 +226,7 @@ public final class AssociationWriteCoordinator {
     @SuppressWarnings({"rawtypes", "unchecked"})
     private void updateExistingTarget(ILocalCrudService targetService, Object target,
                                       Serializable targetId, IUpdateCriteria<?> sourceCriteria) {
+        authorizer.accept(targetService, SuperCudReq.update((IEntity<?>) target));
         if (sourceCriteria == null || sourceCriteria.resolveNullValueMode() == NullValueMode.IGNORE_NULL) {
             nested(() -> targetService.update((IIdEntity) target));
             return;
@@ -163,7 +235,7 @@ public final class AssociationWriteCoordinator {
         ((IWhereConditionCriteria) targetCriteria).equals("id", targetId);
         ((IUpdateCriteria) targetCriteria).setNullValueMode(NullValueMode.WRITE_NULL);
         nested(() -> targetService.update((IIdEntity) target,
-                (vip.isass.framework.common.criteria.ICriteria) targetCriteria));
+                (ICriteria) targetCriteria));
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
@@ -175,8 +247,9 @@ public final class AssociationWriteCoordinator {
         }
         Object targetCriteria = targetService.newCriteria();
         ((IWhereConditionCriteria) targetCriteria).equals(association.targetField(), sourceKey);
+        AssociationSupport.fixedValues(association).forEach(((IWhereConditionCriteria) targetCriteria)::equals);
         List<?> existingTargets = targetService.getRepository().findByCriteria(
-                (vip.isass.framework.common.criteria.ICriteria) targetCriteria);
+                (ICriteria) targetCriteria);
         if (existingTargets.size() > 1) {
             throw new IllegalStateException("单体关联存在多条目标记录: "
                     + association.targetType().getName() + "." + association.targetField() + "=" + sourceKey);
@@ -197,6 +270,83 @@ public final class AssociationWriteCoordinator {
         return value != null && (creating || source.isPropertyPresent(association.property()));
     }
 
+    /**
+     * Pre-authorizes all descendant changes before the first write in a submitted graph.
+     */
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    public void authorizeGraph(IEntity<?> source, IUpdateCriteria<?> criteria,
+                               boolean creating, Serializable updateRootId) {
+        Object sourceKey = updateRootId == null ? id(source) : updateRootId;
+        for (EntityAssociation association : source.associations()) {
+            Object value = read(source, association.property());
+            if (!submitted(source, association, value, creating)) {
+                continue;
+            }
+            ILocalCrudService service = targetService(association);
+            Set<Serializable> retained = new LinkedHashSet<>();
+            for (Object raw : association.kind() == EntityAssociation.Kind.MANY ? collection(value) : List.of(value)) {
+                IEntity<?> target = (IEntity<?>) raw;
+                if ("id".equals(association.localField()) && sourceKey != null) {
+                    AssociationSupport.constrain(target, association, sourceKey);
+                    resolveTargetId(target, association, service, sourceKey);
+                }
+                Serializable targetId = (Serializable) id(target);
+                Object stored = targetId == null ? null : service.getRepository().getEntityById(targetId);
+                if (targetId != null) {
+                    retained.add(targetId);
+                    if (stored == null || "id".equals(association.localField()) && sourceKey != null
+                            && !AssociationSupport.matches(stored, association, sourceKey)) {
+                        throw new IllegalArgumentException("关联对象不存在或不属于当前实体: " + targetId);
+                    }
+                }
+                if (targetId == null || changed(target, stored)) {
+                    authorizer.accept(service, targetId == null ? SuperCudReq.add(target) : SuperCudReq.update(target));
+                }
+                authorizeGraph(target, null, targetId == null, null);
+            }
+            if (!creating && sourceKey != null && "id".equals(association.localField())
+                    && criteria != null && criteria.resolveUpdateMode() == UpdateMode.REPLACE) {
+                IWhereConditionCriteria selection = (IWhereConditionCriteria) service.newCriteria();
+                selection.equals(association.targetField(), sourceKey);
+                AssociationSupport.fixedValues(association).forEach(selection::equals);
+                List<?> existing = service.getRepository().findByCriteria((ICriteria) selection);
+                List<Serializable> removed = existing.stream()
+                        .map(this::id)
+                        .map(id -> (Serializable) id)
+                        .filter(id -> !retained.contains(id))
+                        .toList();
+                if (!removed.isEmpty()) {
+                    authorizer.accept(service, SuperCudReq.deleteAll(removed));
+                }
+            }
+        }
+    }
+
+    private boolean changed(IEntity<?> target, Object stored) {
+        return target.presentProperties().stream()
+                .filter(property -> !"id".equals(property))
+                .anyMatch(property -> target.associations().stream()
+                        .anyMatch(association -> association.property().equals(property)
+                                && read(target, property) != null)
+                        || !Objects.equals(read(target, property), read(stored, property)));
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private void deleteSelected(ILocalCrudService targetService, ICriteria criteria) {
+        List<?> selected = targetService.getRepository().findByCriteria(criteria);
+        List<Serializable> ids = selected.stream()
+                .map(this::id)
+                .filter(Objects::nonNull)
+                .map(id -> (Serializable) id)
+                .distinct()
+                .toList();
+        if (!ids.isEmpty()) {
+            SuperCudReq request = SuperCudReq.deleteAll(ids);
+            authorizer.accept(targetService, request);
+            nested(() -> targetService.superCud(request));
+        }
+    }
+
     public void beforeDelete(ILocalCrudService<?, ?, ?> sourceService, Collection<? extends Serializable> ids) {
         if (!active() || ids.isEmpty()) return;
         List<Serializable> batch = new ArrayList<>(500);
@@ -215,7 +365,7 @@ public final class AssociationWriteCoordinator {
         Object sourceCriteria = sourceService.newCriteria();
         ((IWhereConditionCriteria) sourceCriteria).in("id", ids);
         List<?> sources = sourceService.getRepository().findByCriteria(
-                (vip.isass.framework.common.criteria.ICriteria) sourceCriteria);
+                (ICriteria) sourceCriteria);
         if (sources.isEmpty()) return;
         IEntity<?> first = (IEntity<?>) sources.getFirst();
         for (EntityAssociation association : first.associations()) {
@@ -229,40 +379,9 @@ public final class AssociationWriteCoordinator {
             ILocalCrudService targetService = targetService(association);
             Object targetCriteria = targetService.newCriteria();
             ((IWhereConditionCriteria) targetCriteria).in(association.targetField(), keys);
-            List<?> targets = targetService.getRepository().findByCriteria(
-                    (vip.isass.framework.common.criteria.ICriteria) targetCriteria);
-            for (Object target : targets) {
-                if (target instanceof IEntity<?> entity) cascade(entity);
-            }
-            nested(() -> targetService.delete((vip.isass.framework.common.criteria.ICriteria) targetCriteria));
+            AssociationSupport.fixedValues(association).forEach(((IWhereConditionCriteria) targetCriteria)::equals);
+            deleteSelected(targetService, (ICriteria) targetCriteria);
         }
-    }
-
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    private void cascade(IEntity<?> source) {
-        cascade(source, new LinkedHashSet<>(), 0);
-    }
-
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    private void cascade(IEntity<?> source, Set<String> visited, int depth) {
-        if (depth > 1000) throw new IllegalStateException("级联删除超过最大深度 1000");
-        String identity = source.getClass().getName() + ":" + id(source);
-        if (!visited.add(identity)) throw new IllegalStateException("级联删除检测到循环: " + identity);
-        for (EntityAssociation association : source.associations()) {
-            if (!association.cascadeDelete()) continue;
-            Object key = read(source, association.localField());
-            if (key == null) continue;
-            ILocalCrudService targetService = targetService(association);
-            Object criteria = targetService.newCriteria();
-            ((IWhereConditionCriteria) criteria).equals(association.targetField(), key);
-            List<?> targets = targetService.getRepository().findByCriteria(
-                    (vip.isass.framework.common.criteria.ICriteria) criteria);
-            for (Object target : targets) {
-                if (target instanceof IEntity<?> entity) cascade(entity, visited, depth + 1);
-            }
-            nested(() -> targetService.delete((vip.isass.framework.common.criteria.ICriteria) criteria));
-        }
-        visited.remove(identity);
     }
 
     @SuppressWarnings("rawtypes")
@@ -274,6 +393,9 @@ public final class AssociationWriteCoordinator {
     }
 
     private <T> T nested(Supplier<T> action) {
+        if (nesting.get() >= 32) {
+            throw new IllegalArgumentException("关联写入或删除超过最大深度 32");
+        }
         nesting.set(nesting.get() + 1);
         try {
             return action.get();
@@ -326,7 +448,7 @@ public final class AssociationWriteCoordinator {
                 if (descriptor.getName().equals(property)) return descriptor;
             }
             throw new IllegalArgumentException("实体不存在属性: " + type.getName() + "." + property);
-        } catch (java.beans.IntrospectionException exception) {
+        } catch (IntrospectionException exception) {
             throw new IllegalStateException("无法分析实体属性: " + type.getName(), exception);
         }
     }

@@ -4,7 +4,7 @@ package vip.isass.framework.nocode.service;
 
 import org.springframework.core.ResolvableType;
 
-/** Resolves the entity type declared by a concrete local CRUD service. */
+/** Resolves types declared by either a local CRUD service or a remote CRUD facade. */
 public final class CrudServiceTypeResolver {
 
     private CrudServiceTypeResolver() {
@@ -20,11 +20,11 @@ public final class CrudServiceTypeResolver {
 
     private static Class<?> resolve(Class<?> serviceClass, int genericIndex, String label) {
         Class<?> entityClass = ResolvableType.forClass(serviceClass)
-                .as(ILocalCrudService.class)
+                .as(ICrudService.class)
                 .getGeneric(genericIndex)
                 .resolve();
         if (entityClass == null) {
-            throw new IllegalStateException("无法解析 ILocalCrudService " + label + " 泛型: " + serviceClass.getName());
+            throw new IllegalStateException("无法解析 ICrudService " + label + " 泛型: " + serviceClass.getName());
         }
         return entityClass;
     }

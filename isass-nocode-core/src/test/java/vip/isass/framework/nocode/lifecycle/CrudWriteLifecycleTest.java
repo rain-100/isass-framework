@@ -7,9 +7,9 @@ import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.AbstractPlatformTransactionManager;
 import org.springframework.transaction.support.DefaultTransactionStatus;
 import org.springframework.transaction.support.TransactionTemplate;
-import vip.isass.framework.common.security.CurrentPrincipalUtil;
-import vip.isass.framework.common.security.DefaultAuthenticatedPrincipal;
-import vip.isass.framework.common.security.PrincipalType;
+import vip.isass.framework.security.CurrentPrincipalUtil;
+import vip.isass.framework.security.DefaultAuthenticatedPrincipal;
+import vip.isass.framework.security.PrincipalType;
 import vip.isass.framework.common.criteria.field.IIdCriteria;
 import vip.isass.framework.common.criteria.impl.type.FullTypeCriteria;
 import vip.isass.framework.common.entity.IIdEntity;
@@ -34,21 +34,21 @@ class CrudWriteLifecycleTest {
     void exposesTheCanonicalRequestAndInvokesCommitCallbacks() {
         IRepository<TestEntity, TestCriteria> repository = mock(IRepository.class);
         List<String> events = new ArrayList<>();
-        SuperCudReq<TestEntity, TestCriteria> request = SuperCudReq.add(new TestEntity());
+        SuperCudReq<TestEntity, TestCriteria, Long> request = SuperCudReq.add(new TestEntity());
         CrudWriteLifecycleListener listener = new CrudWriteLifecycleListener() {
             @Override
-            public void beforeExecute(CrudWriteLifecycleContext<?, ?> context) {
+            public void beforeExecute(CrudWriteLifecycleContext<?, ?, ?> context) {
                 assertSame(request, context.request());
                 events.add("before");
             }
 
             @Override
-            public void afterExecute(CrudWriteLifecycleContext<?, ?> context) {
+            public void afterExecute(CrudWriteLifecycleContext<?, ?, ?> context) {
                 events.add("afterExecute");
             }
 
             @Override
-            public void afterCommit(CrudWriteLifecycleContext<?, ?> context) {
+            public void afterCommit(CrudWriteLifecycleContext<?, ?, ?> context) {
                 events.add("afterCommit");
             }
         };
@@ -67,12 +67,12 @@ class CrudWriteLifecycleTest {
         List<String> events = new ArrayList<>();
         CrudWriteLifecycleListener listener = new CrudWriteLifecycleListener() {
             @Override
-            public void beforeExecute(CrudWriteLifecycleContext<?, ?> context) {
+            public void beforeExecute(CrudWriteLifecycleContext<?, ?, ?> context) {
                 events.add("before");
             }
 
             @Override
-            public void afterRollback(CrudWriteLifecycleContext<?, ?> context, Throwable error) {
+            public void afterRollback(CrudWriteLifecycleContext<?, ?, ?> context, Throwable error) {
                 events.add("rollback:" + error.getMessage());
             }
         };
@@ -91,22 +91,22 @@ class CrudWriteLifecycleTest {
         List<String> events = new ArrayList<>();
         CrudWriteLifecycleListener listener = new CrudWriteLifecycleListener() {
             @Override
-            public void beforeExecute(CrudWriteLifecycleContext<?, ?> context) {
+            public void beforeExecute(CrudWriteLifecycleContext<?, ?, ?> context) {
                 events.add("before");
             }
 
             @Override
-            public void afterExecute(CrudWriteLifecycleContext<?, ?> context) {
+            public void afterExecute(CrudWriteLifecycleContext<?, ?, ?> context) {
                 events.add("afterExecute");
             }
 
             @Override
-            public void afterCommit(CrudWriteLifecycleContext<?, ?> context) {
+            public void afterCommit(CrudWriteLifecycleContext<?, ?, ?> context) {
                 events.add("afterCommit");
             }
 
             @Override
-            public void afterRollback(CrudWriteLifecycleContext<?, ?> context, Throwable error) {
+            public void afterRollback(CrudWriteLifecycleContext<?, ?, ?> context, Throwable error) {
                 events.add("afterRollback");
             }
         };

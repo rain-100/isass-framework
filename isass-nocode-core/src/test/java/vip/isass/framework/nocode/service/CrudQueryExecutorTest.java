@@ -14,6 +14,7 @@ import vip.isass.framework.common.entity.IParentIdEntity;
 import vip.isass.framework.nocode.lifecycle.CrudQueryLifecycleContext;
 import vip.isass.framework.nocode.lifecycle.CrudQueryLifecycleListener;
 import vip.isass.framework.database.core.repository.IRepository;
+import vip.isass.framework.security.data.TrustedReadContext;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,10 +25,47 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.mockito.ArgumentMatchers.any;
 
 class CrudQueryExecutorTest {
+
+    @Test
+    void serverRestrictionsStayOutsideClientCriteriaAcrossAllReadFacadesAndFailures() {
+        IRepository<Entity, Criteria> repository = mock(IRepository.class);
+        Criteria criteria = new Criteria();
+        WhereCondition restriction = WhereCondition.eq("tenantId", 7L);
+        CrudQueryLifecycleListener listener = new CrudQueryLifecycleListener() {
+            @Override
+            public void beforeQuery(CrudQueryLifecycleContext<?, ?, ?> context) {
+                context.addReadRestriction(restriction);
+            }
+        };
+        when(repository.findPageByCriteria(any())).thenAnswer(invocation -> {
+            assertEquals(List.of(restriction), TrustedReadContext.conditions(criteria));
+            return Page.of(List.of(new Entity(1L)), 1, 20, 1);
+        });
+        when(repository.countByCriteria(any())).thenAnswer(invocation -> {
+            assertEquals(List.of(restriction), TrustedReadContext.conditions(criteria));
+            return 1;
+        });
+        when(repository.isPresentByCriteria(any())).thenAnswer(invocation -> {
+            assertEquals(List.of(restriction), TrustedReadContext.conditions(criteria));
+            return true;
+        });
+        CrudQueryExecutor executor = new CrudQueryExecutor(null, List.of(listener));
+        LocalService service = new LocalService(repository);
+        executor.query(service, CrudQueryReq.page(criteria));
+        executor.query(service, CrudQueryReq.cursorPage(criteria, null, 20L));
+        executor.query(service, CrudQueryReq.count(criteria));
+        executor.query(service, CrudQueryReq.exists(criteria));
+        assertTrue(criteria.getWhereConditions().isEmpty());
+        assertTrue(TrustedReadContext.conditions(criteria).isEmpty());
+        doThrow(new IllegalStateException("failed read")).when(repository).countByCriteria(any());
+        assertThrows(IllegalStateException.class, () -> executor.query(service, CrudQueryReq.count(criteria)));
+        assertTrue(TrustedReadContext.conditions(criteria).isEmpty());
+    }
 
     @Test
     void lifecycleAndRepositoryUseTheCallersCompleteCriteria() {

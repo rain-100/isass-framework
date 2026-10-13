@@ -25,6 +25,21 @@ public class SecurityProperties {
 
     private Internal internal = new Internal();
 
+    private Authentication authentication = new Authentication();
+
+    /**
+     * 认证调试配置；默认保留角色和功能权限的按需加载。
+     */
+    @Getter
+    @Setter
+    public static class Authentication {
+
+        /**
+         * 认证成功时主动加载角色并在 DEBUG 日志打印，不主动加载功能权限。
+         */
+        private boolean loadRolesForLogging = false;
+    }
+
     @Getter
     @Setter
     public static class Rsa {

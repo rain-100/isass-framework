@@ -35,6 +35,7 @@ import vip.isass.framework.common.criteria.type.IPageCriteria;
 import vip.isass.framework.common.entity.IEntity;
 import vip.isass.framework.common.entity.IIdEntity;
 import vip.isass.framework.database.core.repository.IRepository;
+import vip.isass.framework.security.data.TrustedReadContext;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -56,8 +57,19 @@ public abstract class MybatisPlusRepository<E extends IEntity<E>, C extends ICri
         return (Class<E>) GenericTypeUtils.resolveTypeArguments(getClass(), MybatisPlusRepository.class)[0];
     }
 
+    private void requireIdOperation(String operation) {
+        Class<E> entityClass = currentEntityClass();
+        TableInfo table = TableInfoHelper.getTableInfo(entityClass);
+        if (!IIdEntity.class.isAssignableFrom(entityClass) || table == null
+                || table.getKeyProperty() == null || table.getKeyProperty().isBlank()) {
+            throw new UnsupportedOperationException(operation + " 要求实体实现 IIdEntity 并映射主键: "
+                    + entityClass.getName());
+        }
+    }
+
     @Override
     public E getEntityByIdForUpdate(Serializable id) {
+        requireIdOperation("getEntityByIdForUpdate");
         if (!TransactionSynchronizationManager.isActualTransactionActive()) {
             throw new IllegalStateException("授权记录锁必须在写事务内获取");
         }
@@ -73,6 +85,7 @@ public abstract class MybatisPlusRepository<E extends IEntity<E>, C extends ICri
 
     @Override
     public boolean satisfiesAuthorizationConditions(Serializable id, List<WhereCondition> conditions) {
+        requireIdOperation("satisfiesAuthorizationConditions");
         if (!TransactionSynchronizationManager.isActualTransactionActive()) {
             throw new IllegalStateException("授权条件判定必须在持有记录锁的写事务内执行");
         }
@@ -104,6 +117,7 @@ public abstract class MybatisPlusRepository<E extends IEntity<E>, C extends ICri
 
     @Override
     public boolean deleteById(Serializable id) {
+        requireIdOperation("deleteById");
         Class<E> entityClass = currentEntityClass();
         Serializable realId = id;
         TableInfo tableInfo = TableInfoHelper.getTableInfo(entityClass);
@@ -128,6 +142,7 @@ public abstract class MybatisPlusRepository<E extends IEntity<E>, C extends ICri
     @Override
     @SuppressWarnings({"unchecked", "rawtypes"})
     public int deleteCountByIds(Collection<? extends Serializable> ids) {
+        requireIdOperation("deleteCountByIds");
         Class<E> entityClass = currentEntityClass();
         Collection realId = ids;
         TableInfo tableInfo = TableInfoHelper.getTableInfo(entityClass);
@@ -174,9 +189,11 @@ public abstract class MybatisPlusRepository<E extends IEntity<E>, C extends ICri
     //****************************** 改 start ******************************
 
     @Override
-    @SuppressWarnings("rawtypes")
     public boolean updateById(E entity) {
-        IIdEntity idEntity = (IIdEntity) entity;
+        requireIdOperation("updateById");
+        if (!(entity instanceof IIdEntity<?, ?> idEntity)) {
+            throw new UnsupportedOperationException("updateById 要求实体实现 IIdEntity");
+        }
         Serializable id = idEntity.getId();
         Assert.notNull(id, "id 不能为null");
         if (id instanceof String) {
@@ -186,9 +203,11 @@ public abstract class MybatisPlusRepository<E extends IEntity<E>, C extends ICri
     }
 
     @Override
-    @SuppressWarnings("rawtypes")
     public boolean updateAllColumnsById(E entity) {
-        IIdEntity idEntity = (IIdEntity) entity;
+        requireIdOperation("updateAllColumnsById");
+        if (!(entity instanceof IIdEntity<?, ?> idEntity)) {
+            throw new UnsupportedOperationException("updateAllColumnsById 要求实体实现 IIdEntity");
+        }
         Serializable id = idEntity.getId();
         Assert.notNull(id, "id 不能为null");
         if (id instanceof String) {
@@ -289,6 +308,7 @@ public abstract class MybatisPlusRepository<E extends IEntity<E>, C extends ICri
 
     @Override
     public E getEntityById(Serializable id) {
+        requireIdOperation("getEntityById");
         Class<E> entityClass = currentEntityClass();
         Serializable realId = id;
         TableInfo tableInfo = TableInfoHelper.getTableInfo(entityClass);
@@ -434,6 +454,7 @@ public abstract class MybatisPlusRepository<E extends IEntity<E>, C extends ICri
 
     @Override
     public boolean isPresentById(Serializable id) {
+        requireIdOperation("isPresentById");
         Assert.notNull(id, "id");
         if (id instanceof String) {
             Assert.notBlank((String) id, "id");
@@ -466,13 +487,17 @@ public abstract class MybatisPlusRepository<E extends IEntity<E>, C extends ICri
             query = criteria.copy();
             ((IOrderByCriteria<?, ?>) query).setOrderBy(null);
         }
-        Wrapper<E> wrapper = WrapperUtil.getCountQueryWrapper(query);
-        if (wrapper instanceof MpjWrapper<E> queryWrapper && queryWrapper.getFrom().isBlank()
-                && IIdEntity.class.isAssignableFrom(currentEntityClass())) {
-            queryWrapper.getSelectColumns().clear();
-            queryWrapper.select(BaseColumnFactory.column(queryWrapper.getBaseColumn(), "id"));
+        // 内部去除排序时复制了 Criteria，显式把原查询的服务端约束绑定到此副本。
+        try (var ignored = TrustedReadContext.open(query,
+                query == criteria ? List.of() : TrustedReadContext.conditions(criteria))) {
+            Wrapper<E> wrapper = WrapperUtil.getCountQueryWrapper(query);
+            if (wrapper instanceof MpjWrapper<E> queryWrapper && queryWrapper.getFrom().isBlank()
+                    && IIdEntity.class.isAssignableFrom(currentEntityClass())) {
+                queryWrapper.getSelectColumns().clear();
+                queryWrapper.select(BaseColumnFactory.column(queryWrapper.getBaseColumn(), "id"));
+            }
+            return isPresentByWrapper(wrapper);
         }
-        return isPresentByWrapper(wrapper);
     }
 
     public void exceptionIfPresentByWrapper(Wrapper<E> wrapper) {

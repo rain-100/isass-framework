@@ -8,7 +8,6 @@ import vip.isass.framework.common.criteria.ICriteria;
 import vip.isass.framework.common.criteria.IUpdateCriteria;
 import vip.isass.framework.common.criteria.JoinType;
 import vip.isass.framework.common.criteria.impl.type.FullTypeCriteria;
-import vip.isass.framework.common.criteria.field.IIdCriteria;
 import vip.isass.framework.common.criteria.type.IOrderByCriteria;
 import vip.isass.framework.common.criteria.type.IPageCriteria;
 import vip.isass.framework.common.criteria.type.IReturnFieldCriteria;
@@ -16,11 +15,12 @@ import vip.isass.framework.nocode.entity.CrudQueryReq;
 import vip.isass.framework.nocode.entity.CrudQueryResult;
 import vip.isass.framework.nocode.entity.CrudQueryType;
 import vip.isass.framework.nocode.entity.CursorPage;
-import vip.isass.framework.common.entity.IIdEntity;
+import vip.isass.framework.common.entity.IEntity;
 import vip.isass.framework.common.entity.IParentIdEntity;
 import vip.isass.framework.nocode.lifecycle.CrudQueryLifecycleContext;
 import vip.isass.framework.nocode.lifecycle.CrudQueryLifecycleListener;
 import vip.isass.framework.nocode.util.TreeEntityUtil;
+import vip.isass.framework.security.data.TrustedReadContext;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -52,8 +52,8 @@ public final class CrudQueryExecutor {
         this.listeners = listeners == null ? List.of() : List.copyOf(listeners);
     }
 
-    public <PK extends Serializable, E extends IIdEntity<PK, E>,
-            C extends ICriteria<E, C> & IIdCriteria<PK, E, C> & IUpdateCriteria<C>
+    public <PK extends Serializable, E extends IEntity<E>,
+            C extends ICriteria<E, C> & IUpdateCriteria<C>
                     & IPageCriteria<E, C> & IOrderByCriteria<E, C>> CrudQueryResult<E, PK> query(
             ILocalCrudService<E, C, PK> service,
             CrudQueryReq<C, PK> request) {
@@ -64,6 +64,9 @@ public final class CrudQueryExecutor {
             throw new IllegalArgumentException("request 不能为空");
         }
         C criteria = request.criteria() == null ? service.newCriteria() : request.criteria();
+        if (request.queryType() == CrudQueryType.CURSOR_PAGE || request.queryType() == CrudQueryType.TREE) {
+            CrudIdSupport.requireIdEntity(service, request.queryType().name());
+        }
         CrudQueryReq<C, PK> normalized = new CrudQueryReq<>(
                 request.queryType(), criteria, request.cursorId(), request.pageSize());
 
@@ -77,9 +80,11 @@ public final class CrudQueryExecutor {
                     .filter(listener -> listener.supports(context)).toList();
             try {
                 supported.forEach(listener -> listener.beforeQuery(context));
-                context.setResult(execute(service, context.request()));
-                supported.forEach(listener -> listener.afterQuery(context));
-                return context.result();
+                try (var ignored = TrustedReadContext.open(criteria, context.readRestrictions())) {
+                    context.setResult(execute(service, context.request()));
+                    supported.forEach(listener -> listener.afterQuery(context));
+                    return context.result();
+                }
             } catch (RuntimeException | Error error) {
                 notifyFailure(supported, context, error);
                 throw error;
@@ -90,8 +95,8 @@ public final class CrudQueryExecutor {
         }
     }
 
-    private <PK extends Serializable, E extends IIdEntity<PK, E>,
-            C extends ICriteria<E, C> & IIdCriteria<PK, E, C> & IUpdateCriteria<C>
+    private <PK extends Serializable, E extends IEntity<E>,
+            C extends ICriteria<E, C> & IUpdateCriteria<C>
                     & IPageCriteria<E, C> & IOrderByCriteria<E, C>> CrudQueryResult<E, PK> execute(
             ILocalCrudService<E, C, PK> service,
             CrudQueryReq<C, PK> request) {
@@ -111,8 +116,8 @@ public final class CrudQueryExecutor {
         };
     }
 
-    private <PK extends Serializable, E extends IIdEntity<PK, E>,
-            C extends ICriteria<E, C> & IIdCriteria<PK, E, C> & IUpdateCriteria<C>
+    private <PK extends Serializable, E extends IEntity<E>,
+            C extends ICriteria<E, C> & IUpdateCriteria<C>
                     & IPageCriteria<E, C> & IOrderByCriteria<E, C>> List<E> tree(
             ILocalCrudService<E, C, PK> service, C criteria) {
         if (!(service instanceof ILocalTreeQueryService<?, ?, ?>)) {
@@ -146,22 +151,22 @@ public final class CrudQueryExecutor {
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private <PK extends Serializable, E extends IIdEntity<PK, E>> List<E> assembleTree(List<E> records) {
+    private <PK extends Serializable, E extends IEntity<E>> List<E> assembleTree(List<E> records) {
         if (records == null || records.isEmpty()) return List.of();
         if (records.stream().anyMatch(record -> !(record instanceof IParentIdEntity))) {
             throw new IllegalStateException("TREE 查询实体必须实现 IParentIdEntity");
         }
         return TreeEntityUtil.toEntityTree(
                 records,
-                IIdEntity::getId,
+                entity -> CrudIdSupport.requireIdEntity(entity, "TREE").getId(),
                 entity -> ((IParentIdEntity) entity).getParentId(),
                 (entity, parent) -> ((IParentIdEntity) entity).setParent((IParentIdEntity) parent),
                 entity -> (List<E>) ((IParentIdEntity) entity).getChildren(),
                 (entity, children) -> ((IParentIdEntity) entity).setChildren(children));
     }
 
-    private <PK extends Serializable, E extends IIdEntity<PK, E>,
-            C extends ICriteria<E, C> & IIdCriteria<PK, E, C> & IUpdateCriteria<C>
+    private <PK extends Serializable, E extends IEntity<E>,
+            C extends ICriteria<E, C> & IUpdateCriteria<C>
                     & IPageCriteria<E, C> & IOrderByCriteria<E, C>> Page<E> page(
             ILocalCrudService<E, C, PK> service, C criteria) {
         Page<E> page = service.getRepository().findPageByCriteria(criteria);
@@ -171,8 +176,8 @@ public final class CrudQueryExecutor {
         return page;
     }
 
-    private <PK extends Serializable, E extends IIdEntity<PK, E>,
-            C extends ICriteria<E, C> & IIdCriteria<PK, E, C> & IUpdateCriteria<C>
+    private <PK extends Serializable, E extends IEntity<E>,
+            C extends ICriteria<E, C> & IUpdateCriteria<C>
                     & IPageCriteria<E, C> & IOrderByCriteria<E, C>> CursorPage<E, PK> cursorPage(
             ILocalCrudService<E, C, PK> service, C criteria, PK cursorId, Long pageSize) {
         C query = criteria;
@@ -194,17 +199,20 @@ public final class CrudQueryExecutor {
             throw new IllegalArgumentException("cursorPage.pageSize 必须在 1 到 1000 之间");
         }
         if (cursorId != null) {
+            CrudIdSupport.requireIdValue(cursorId, "cursorPage");
             if (normalized.endsWith("desc")) {
-                query.setIdLessThan(cursorId);
+                CrudIdSupport.where(query).lessThan("id", cursorId);
             } else {
-                query.setIdGreaterThan(cursorId);
+                CrudIdSupport.where(query).greaterThan("id", cursorId);
             }
         }
         query.setOrderBy(normalized).setPageNum(1L).setPageSize(size + 1L).setSearchCountFlag(false);
         List<E> fetched = page(service, query).getRecords();
         boolean hasMore = fetched.size() > size;
         List<E> records = hasMore ? new ArrayList<>(fetched.subList(0, (int) size)) : List.copyOf(fetched);
-        PK nextCursorId = records.isEmpty() ? cursorId : records.getLast().getId();
+        @SuppressWarnings("unchecked")
+        PK nextCursorId = records.isEmpty() ? cursorId
+                : (PK) CrudIdSupport.requireId(records.getLast(), "cursorPage");
         return new CursorPage<>(records, nextCursorId, hasMore);
     }
 

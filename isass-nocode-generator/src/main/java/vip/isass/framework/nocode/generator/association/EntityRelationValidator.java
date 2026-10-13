@@ -41,6 +41,14 @@ public final class EntityRelationValidator {
             if (typeFamily(sourceType) != typeFamily(targetType)) {
                 throw new IllegalArgumentException("关系键类型不兼容: " + property);
             }
+            for (String field : relation.fixedValues().keySet()) {
+                if (!target.containsKey(field)) {
+                    throw new IllegalArgumentException("关系固定条件字段不存在: " + property + "." + field);
+                }
+                if (field.equals(relation.targetKey())) {
+                    throw new IllegalArgumentException("固定条件不能覆盖关联键: " + property);
+                }
+            }
         }
         for (String entity : treeCascadeEntities) {
             if (!columns(entityColumns, entity).containsKey("parentId")) {

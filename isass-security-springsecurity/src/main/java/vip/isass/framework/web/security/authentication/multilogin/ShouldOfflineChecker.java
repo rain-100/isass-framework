@@ -4,7 +4,7 @@ package vip.isass.framework.web.security.authentication.multilogin;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import vip.isass.framework.common.security.AuthenticatedPrincipal;
+import vip.isass.framework.security.AuthenticatedPrincipal;
 
 /**
  * 是否需要下线检查器

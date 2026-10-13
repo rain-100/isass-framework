@@ -9,8 +9,8 @@ import vip.isass.framework.common.entity.ILogicDeleteEntity;
 import vip.isass.framework.common.entity.ITenantEntity;
 import vip.isass.framework.common.entity.ITraceEntity;
 import vip.isass.framework.common.entity.IVersionEntity;
-import vip.isass.framework.common.security.AuthenticatedPrincipal;
-import vip.isass.framework.common.security.CurrentPrincipalUtil;
+import vip.isass.framework.security.AuthenticatedPrincipal;
+import vip.isass.framework.security.CurrentPrincipalUtil;
 import vip.isass.framework.common.support.SystemClock;
 
 /**

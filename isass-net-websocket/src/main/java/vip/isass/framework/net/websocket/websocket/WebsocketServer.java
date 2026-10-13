@@ -6,7 +6,8 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.MultiThreadIoEventLoopGroup;
+import io.netty.channel.nio.NioIoHandler;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
@@ -57,8 +58,8 @@ public class WebsocketServer implements Server {
         }
 
         executorService.execute(() -> {
-            boss = new NioEventLoopGroup();
-            worker = new NioEventLoopGroup();
+            boss = new MultiThreadIoEventLoopGroup(NioIoHandler.newFactory());
+            worker = new MultiThreadIoEventLoopGroup(NioIoHandler.newFactory());
             try {
                 ServerBootstrap bootstrap = new ServerBootstrap();
                 bootstrap.group(boss, worker)

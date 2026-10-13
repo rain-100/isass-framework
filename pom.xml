@@ -54,6 +54,7 @@
         <subproject>isass-net-websocket</subproject>
 
         <!-- security -->
+        <subproject>isass-security-core</subproject>
         <subproject>isass-security-springsecurity</subproject>
         <subproject>isass-encryption</subproject>
 

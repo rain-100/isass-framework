@@ -52,6 +52,16 @@ class JavaRelationGenerationTest {
         }
     }
 
+    @Test
+    void generatesReadOnlyAndFixedPredicateMetadata() throws Exception {
+        MybatisPlusGeneratorMeta meta = database();
+        meta.setRelations(List.of(EntityRelationDefinition.one("User", "detail", "UserDetail", "id", "userId")
+                .readOnly().where("realName", "reserved")));
+        MybatisPlusGenerator.generate(meta);
+        String entity = Files.readString(output.resolve("api/src/main/java/vip/example/bsp/auth/domain/identity/domain/model/entity/User.java"));
+        assertThat(entity).contains("false).readOnly().where(\"realName\", \"reserved\")");
+    }
+
     private MybatisPlusGeneratorMeta database() throws Exception {
         String url = "jdbc:h2:mem:" + UUID.randomUUID() + ";DB_CLOSE_DELAY=-1;DATABASE_TO_LOWER=TRUE";
         try (var connection = DriverManager.getConnection(url, "sa", "");
@@ -69,6 +79,32 @@ class JavaRelationGenerationTest {
                         EntityModelDefinition.of("UserDetail", "profile")))
                 .setApiOutputDir(output.resolve("api").toString())
                 .setServiceOutputDir(output.resolve("service").toString());
+    }
+
+    @Test
+    void generatesKeylessEntitiesCriteriaAndCrudServicesWithoutInventingAnId() throws Exception {
+        MybatisPlusGeneratorMeta meta = database();
+        try (var connection = DriverManager.getConnection(meta.getDataSourceUrl(), "sa", "");
+             var statement = connection.createStatement()) {
+            statement.execute("CREATE TABLE bsp_auth_setting (code VARCHAR(64), content VARCHAR(255), tenant_id BIGINT, create_user_id BIGINT, delete_flag BOOLEAN)");
+        }
+        meta.setIncludeTables(new String[]{"bsp_auth_setting"});
+        meta.setModels(List.of(EntityModelDefinition.of("User", "identity"),
+                EntityModelDefinition.of("UserDetail", "profile"), EntityModelDefinition.of("Setting", "identity")));
+        MybatisPlusGenerator.generate(meta);
+
+        Path api = output.resolve("api/src/main/java/vip/example/bsp/auth");
+        Path service = output.resolve("service/src/main/java/vip/example/bsp/auth");
+        assertThat(Files.readString(api.resolve("domain/identity/domain/model/entity/Setting.java")))
+                .contains("IEntity<Setting>", "ITraceEntity<Long, Setting>", "ITenantEntity<Long, Setting>")
+                .doesNotContain("IIdEntity", "getId()", "private Long id", "ITraceEntity<Serializable");
+        assertThat(Files.readString(api.resolve("domain/identity/domain/model/criteria/SettingCriteria.java")))
+                .contains("FullTypeCriteria<Setting, SettingCriteria>", "ITraceCriteria<Long, Setting, SettingCriteria>")
+                .doesNotContain("IIdCriteria", "ITraceCriteria<Serializable");
+        assertThat(Files.readString(api.resolve("application/identity/service/ISettingService.java")))
+                .contains("import java.io.Serializable;", "ICrudService<Setting, SettingCriteria, Serializable>");
+        assertThat(Files.readString(service.resolve("application/identity/service/SettingService.java")))
+                .contains("import java.io.Serializable;", "ILocalCrudService<Setting, SettingCriteria, Serializable>");
     }
 
     @Test

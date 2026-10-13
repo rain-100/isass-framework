@@ -8,9 +8,11 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
-import vip.isass.framework.common.security.AuthenticatedPrincipal;
+import vip.isass.framework.security.AuthenticatedPrincipal;
+import vip.isass.framework.security.PrincipalAuthorizationLoader;
 import vip.isass.framework.web.security.authentication.AbstractAuthenticationFilter;
 import vip.isass.framework.web.security.authentication.PrincipalAuthenticationToken;
 
@@ -25,7 +27,13 @@ public class ApiKeyAuthenticationFilter extends AbstractAuthenticationFilter {
     private static final String AUTHORIZATION_PREFIX = "Bearer isass_sk_";
 
     public ApiKeyAuthenticationFilter(AuthenticationManager authenticationManager) {
-        super(authenticationManager);
+        this(authenticationManager, null, false);
+    }
+
+    public ApiKeyAuthenticationFilter(AuthenticationManager authenticationManager,
+                                      PrincipalAuthorizationLoader authorizationLoader,
+                                      boolean loadRolesForLogging) {
+        super(authenticationManager, authorizationLoader, loadRolesForLogging);
     }
 
     @Override
@@ -56,9 +64,15 @@ public class ApiKeyAuthenticationFilter extends AbstractAuthenticationFilter {
             ApiKeyAuthenticationToken result = (ApiKeyAuthenticationToken) getAuthenticationManager()
                     .authenticate(new ApiKeyAuthenticationToken(apiKey));
             AuthenticatedPrincipal principal = result.getPrincipal();
-            saveAuthentication(principal, result.getAuthorities(), result.getAuthorizationContext());
-            onSuccessfulAuthentication(request, response, result);
+            PrincipalAuthenticationToken authentication = saveAuthentication(principal, result.getAuthorizationContext());
+            onSuccessfulAuthentication(request, response, authentication);
+        } catch (AuthenticationServiceException failed) {
+            SecurityContextHolder.clearContext();
+            onUnsuccessfulAuthentication(request, response, failed);
+            response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE, "API Key 认证服务暂时不可用");
+            return;
         } catch (AuthenticationException failed) {
+            SecurityContextHolder.clearContext();
             onUnsuccessfulAuthentication(request, response, failed);
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "API Key 错误或已过期");
             return;

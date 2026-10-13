@@ -1,5 +1,7 @@
 <#assign buildInColumns = ["id", "parent_id", "delete_flag", "tenant_id", "create_user_id", "create_user_name", "create_time", "modify_user_id", "modify_user_name", "modify_time", "version"]>
 <#------------ BEGIN IdEntity ------------>
+<#assign isIdEntity = false>
+<#assign idEntityPropertyType = "Serializable">
 <#list table.fields as field>
 <#if field.keyFlag>
 <#assign isIdEntity = true>
@@ -22,7 +24,7 @@
 <#------------ END LogicDeleteEntity ------------>
 <#------------ BEGIN ParentIdEntity ------------>
 <#list table.fields as field>
-    <#if field.name?lower_case == "parent_id" && field.propertyType == idEntityPropertyType>
+    <#if isIdEntity && field.name?lower_case == "parent_id" && field.propertyType == idEntityPropertyType>
         <#assign isParentIdEntity = true>
         <#assign parentIdEntityPropertyType = field.propertyType>
         <#break>
@@ -41,6 +43,16 @@
 </#list>
 <#------------ END TenantEntity ------------>
 <#------------ BEGIN TraceEntity ------------>
+<#assign traceEntityPropertyType = idEntityPropertyType>
+<#if !isIdEntity>
+<#assign traceEntityPropertyType = "Long">
+<#list table.fields as field>
+<#if field.name?lower_case == "create_user_id" || field.name?lower_case == "modify_user_id">
+<#assign traceEntityPropertyType = field.propertyType>
+<#break>
+</#if>
+</#list>
+</#if>
 <#list table.fields as field>
 <#if field.name?lower_case == "create_user_id"
 || field.name?lower_case == "create_user_name"

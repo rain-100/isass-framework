@@ -24,7 +24,7 @@ import vip.isass.framework.common.criteria.impl.type.Condition;
 import vip.isass.framework.common.criteria.impl.type.FullTypeCriteria;
 import vip.isass.framework.common.entity.EntityAssociation;
 import vip.isass.framework.common.entity.IIdEntity;
-import vip.isass.framework.common.security.data.DataReadContext;
+import vip.isass.framework.security.data.DataReadContext;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import javax.sql.DataSource;

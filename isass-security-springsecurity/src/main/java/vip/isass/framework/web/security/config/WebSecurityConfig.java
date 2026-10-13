@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -25,6 +26,7 @@ import vip.isass.framework.web.security.authorization.BusinessOrInternalAuthenti
 import vip.isass.framework.web.security.authentication.internal.InternalHmacAuthenticationFilter;
 import vip.isass.framework.entrypoint.authorization.UrlAccessSecurityStrategy;
 import vip.isass.framework.web.security.EntrypointAuthenticatedUrlProvider;
+import vip.isass.framework.security.PrincipalAuthorizationLoader;
 
 import java.util.Collection;
 import java.util.List;
@@ -56,9 +58,11 @@ public class WebSecurityConfig {
     public SecurityFilterChain filterChain(
             HttpSecurity http,
             AuthenticationManager authenticationManager,
+            PrincipalAuthorizationLoader authorizationLoader,
             ObjectProvider<EntrypointAuthenticatedUrlProvider> authenticatedUrlProvider) throws Exception {
         UrlAccessSecurityStrategy urlAccessSecurityStrategy = securityProperties.getUrlAccessSecurityStrategy();
         log.info("urlAccessSecurityStrategy: {}", urlAccessSecurityStrategy);
+        boolean loadRolesForLogging = securityProperties.getAuthentication().isLoadRolesForLogging();
 
         Collection<String> permitUrls = permitUrlConfiguration.getPermitUrls();
         EntrypointAuthenticatedUrlProvider entrypointAuthenticatedUrls = authenticatedUrlProvider.getIfAvailable();
@@ -76,6 +80,11 @@ public class WebSecurityConfig {
                 // 基于jwt，无需session
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
+                .exceptionHandling(exceptions -> exceptions.authenticationEntryPoint((request, response, failure) ->
+                        response.sendError(failure instanceof AuthenticationServiceException
+                                ? 503 : 401, failure instanceof AuthenticationServiceException
+                                ? "授权服务暂时不可用" : "需要有效认证凭证")))
+
                 // 禁用缓存
                 .headers(headers -> headers.cacheControl(HeadersConfigurer.CacheControlConfig::disable)
                         .frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
@@ -83,10 +92,11 @@ public class WebSecurityConfig {
                 // HSTS is now handled via ServerHttpSecurity or configuration properties in SB4
 
                 // jwt 校验过滤器
-                .addFilter(new JwtAuthenticationFilter(authenticationManager, shouldOfflineChecker))
+                .addFilter(new JwtAuthenticationFilter(
+                        authenticationManager, shouldOfflineChecker, authorizationLoader, loadRolesForLogging))
 
                 // API Key 应用主体认证过滤器
-                .addFilter(new ApiKeyAuthenticationFilter(authenticationManager))
+                .addFilter(new ApiKeyAuthenticationFilter(authenticationManager, authorizationLoader, loadRolesForLogging))
 
                 // 内部 HMAC 服务主体认证过滤器；保留已经解析的 JWT/API Key 业务主体
                 .addFilterBefore(new InternalHmacAuthenticationFilter(securityProperties), AuthorizationFilter.class)

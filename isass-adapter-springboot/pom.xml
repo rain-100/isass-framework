@@ -18,6 +18,10 @@
     <dependencies>
         <dependency>
             <groupId>vip.isass</groupId>
+            <artifactId>isass-security-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>vip.isass</groupId>
             <artifactId>isass-core-common</artifactId>
         </dependency>
 

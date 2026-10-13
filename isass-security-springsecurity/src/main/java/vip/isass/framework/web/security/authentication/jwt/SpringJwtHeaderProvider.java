@@ -9,7 +9,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
-import vip.isass.framework.common.security.PrincipalType;
+import vip.isass.framework.security.PrincipalType;
 import vip.isass.framework.common.web.header.AdditionalRequestHeaderProvider;
 import vip.isass.framework.web.security.authentication.PrincipalAuthenticationToken;
 import vip.isass.framework.web.security.authentication.apikey.InternalServiceEndpointMatcher;

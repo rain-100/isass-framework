@@ -24,6 +24,15 @@ class EntityRelationValidatorTest {
     }
 
     @Test
+    void validatesFixedPredicateFieldsAndReadOnlyDeclarations() {
+        assertDoesNotThrow(() -> validate(List.of(relation().where("id", "1").readOnly())));
+        assertThatThrownBy(() -> validate(List.of(relation().where("missing", "0"))))
+                .hasMessageContaining("固定条件");
+        assertThatThrownBy(() -> validate(List.of(relation().where("userId", "0"))))
+                .hasMessageContaining("关联键");
+    }
+
+    @Test
     void rejectsMissingTargetOrKeysBeforeAnyGeneratedFilesAreOverwritten() {
         assertThatThrownBy(() -> validate(List.of(EntityRelationDefinition.one(
                 "User", "detail", "Missing", "id", "userId"))))

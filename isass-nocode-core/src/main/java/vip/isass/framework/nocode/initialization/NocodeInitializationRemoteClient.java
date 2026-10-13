@@ -46,8 +46,10 @@ public final class NocodeInitializationRemoteClient {
                 .contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
                 .body(serializedBody).retrieve().body(JsonNode.class);
         if (response == null || !response.path("success").asBoolean()) {
-            String message = response == null ? "无响应" : response.path("detailMessage").asText();
-            if (message.isBlank() && response != null) message = response.path("message").asText();
+            String message = response == null ? "无响应" : response.path("detailMessage").asString();
+            if (message.isBlank()) {
+                message = response.path("message").asString();
+            }
             throw new IllegalStateException("远程初始化失败 " + serviceName + ": " + message);
         }
         return JsonUtil.convertValue(response.path("data"),

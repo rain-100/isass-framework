@@ -8,6 +8,9 @@ import ${cfg.criteriaPackageName}.${entity}Criteria;
 import ${cfg.entityPackageName}.${entity};
 import vip.isass.framework.entrypoint.annotation.EntrypointInfo;
 import vip.isass.framework.nocode.service.ICrudService;
+<#if !isIdEntity>
+import java.io.Serializable;
+</#if>
 <#if isParentIdEntity>
 import vip.isass.framework.nocode.service.ITreeQueryService;
 </#if>

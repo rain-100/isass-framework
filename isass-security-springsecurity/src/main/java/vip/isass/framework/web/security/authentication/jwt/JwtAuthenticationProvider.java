@@ -11,11 +11,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Component;
 import vip.isass.framework.common.exception.UnifiedException;
-import vip.isass.framework.common.security.jwt.JwtInfo;
-import vip.isass.framework.common.security.jwt.JwtUtil;
+import vip.isass.framework.security.jwt.JwtInfo;
+import vip.isass.framework.security.jwt.JwtUtil;
 import vip.isass.framework.web.security.exception.SecurityCoreStatusEnum;
-
-import java.util.Collections;
 
 /**
  * @author Rain
@@ -43,7 +41,7 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
             throw new BadCredentialsException(e.getMessage());
         }
 
-        return new JwtAuthenticationToken(token, jwtInfo, Collections.emptyList());
+        return new JwtAuthenticationToken(token, jwtInfo);
     }
 
     @Override

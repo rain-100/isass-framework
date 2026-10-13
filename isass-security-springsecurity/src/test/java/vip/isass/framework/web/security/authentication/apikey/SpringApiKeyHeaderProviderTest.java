@@ -10,11 +10,9 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
-import vip.isass.framework.common.security.DefaultAuthenticatedPrincipal;
-import vip.isass.framework.common.security.PrincipalType;
+import vip.isass.framework.security.DefaultAuthenticatedPrincipal;
+import vip.isass.framework.security.PrincipalType;
 import vip.isass.framework.web.security.authentication.PrincipalAuthenticationToken;
-
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -57,6 +55,6 @@ class SpringApiKeyHeaderProviderTest {
     private PrincipalAuthenticationToken applicationToken() {
         DefaultAuthenticatedPrincipal principal = new DefaultAuthenticatedPrincipal()
                 .setPrincipalType(PrincipalType.APPLICATION).setPrincipalId(1L);
-        return new PrincipalAuthenticationToken(principal, List.of());
+        return new PrincipalAuthenticationToken(principal);
     }
 }

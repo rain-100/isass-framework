@@ -331,6 +331,7 @@ class AssociationCoordinatorTest {
             this.id = id;
             this.parentId = parentId;
             this.name = name;
+            markPresentProperty("name");
         }
         @Override public Long getId() { return id; }
         @Override public void setId(Long id) { this.id = id; }
@@ -357,6 +358,7 @@ class AssociationCoordinatorTest {
         Detail(Long id, String name) {
             this.id = id;
             this.name = name;
+            markPresentProperty("name");
         }
         @Override public Long getId() { return id; }
         @Override public void setId(Long id) { this.id = id; }
@@ -395,6 +397,9 @@ class AssociationCoordinatorTest {
 
     static final class ParentRepository implements IRepository<Parent, ParentCriteria> {
         private final Map<Long, Parent> rows = new LinkedHashMap<>();
+        @Override public Parent getEntityByIdForUpdate(Serializable id) {
+            return Objects.equals(id, 1L) ? new Parent(1L) : null;
+        }
         @Override public boolean isPresentByCriteria(ICriteria<Parent, ParentCriteria> criteria) {
             return Objects.equals(((ParentCriteria) criteria).getId(), 1L);
         }

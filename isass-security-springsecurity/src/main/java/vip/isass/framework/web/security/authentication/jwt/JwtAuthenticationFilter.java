@@ -5,12 +5,15 @@ package vip.isass.framework.web.security.authentication.jwt;
 import cn.hutool.core.util.StrUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
-import vip.isass.framework.common.security.DefaultAuthenticatedPrincipal;
-import vip.isass.framework.common.security.PrincipalType;
-import vip.isass.framework.common.security.jwt.JwtInfo;
+import vip.isass.framework.security.DefaultAuthenticatedPrincipal;
+import vip.isass.framework.security.PrincipalAuthorizationLoader;
+import vip.isass.framework.security.PrincipalType;
+import vip.isass.framework.security.jwt.JwtInfo;
 import vip.isass.framework.web.security.authentication.AbstractAuthenticationFilter;
+import vip.isass.framework.web.security.authentication.PrincipalAuthenticationToken;
 import vip.isass.framework.web.security.authentication.multilogin.ShouldOfflineChecker;
 
 import jakarta.servlet.FilterChain;
@@ -25,11 +28,18 @@ import java.io.IOException;
 @Slf4j
 public class JwtAuthenticationFilter extends AbstractAuthenticationFilter {
 
-    private ShouldOfflineChecker shouldOfflineChecker;
+    private final ShouldOfflineChecker shouldOfflineChecker;
 
     public JwtAuthenticationFilter(AuthenticationManager authenticationManager,
                                    ShouldOfflineChecker shouldOfflineChecker) {
-        super(authenticationManager);
+        this(authenticationManager, shouldOfflineChecker, null, false);
+    }
+
+    public JwtAuthenticationFilter(AuthenticationManager authenticationManager,
+                                   ShouldOfflineChecker shouldOfflineChecker,
+                                   PrincipalAuthorizationLoader authorizationLoader,
+                                   boolean loadRolesForLogging) {
+        super(authenticationManager, authorizationLoader, loadRolesForLogging);
         this.shouldOfflineChecker = shouldOfflineChecker;
     }
 
@@ -59,7 +69,7 @@ public class JwtAuthenticationFilter extends AbstractAuthenticationFilter {
         }
 
         if (SecurityContextHolder.getContext().getAuthentication()
-                instanceof vip.isass.framework.web.security.authentication.PrincipalAuthenticationToken existing
+                instanceof PrincipalAuthenticationToken existing
                 && existing.hasBusinessPrincipal()) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "同一请求不能同时携带多个 ISASS 认证凭证");
             return;
@@ -85,12 +95,18 @@ public class JwtAuthenticationFilter extends AbstractAuthenticationFilter {
             // 处理多端登录
             shouldOfflineChecker.checkShouldOffline(principal);
 
-            // 保存已验证的权限信息
-            saveAuthentication(principal, authResult.getAuthorities());
+            // 只保存已认证身份；角色和功能权限由授权或业务执行入口按需装载。
+            PrincipalAuthenticationToken authentication = saveAuthentication(principal, null);
 
             // 权限认证成功方法
-            onSuccessfulAuthentication(request, response, authResult);
+            onSuccessfulAuthentication(request, response, authentication);
+        } catch (AuthenticationServiceException failed) {
+            SecurityContextHolder.clearContext();
+            onUnsuccessfulAuthentication(request, response, failed);
+            response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE, "授权服务暂时不可用");
+            return;
         } catch (AuthenticationException failed) {
+            SecurityContextHolder.clearContext();
             onUnsuccessfulAuthentication(request, response, failed);
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "token错误或过期");
             return;
@@ -98,6 +114,5 @@ public class JwtAuthenticationFilter extends AbstractAuthenticationFilter {
 
         chain.doFilter(request, response);
     }
-
 
 }

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: LGPL-3.0-only
 package vip.isass.framework.nocode.query;
 
+import org.springframework.beans.BeanUtils;
 import org.springframework.core.ResolvableType;
 import tools.jackson.databind.JsonNode;
 import vip.isass.framework.common.support.JsonUtil;
@@ -100,8 +101,8 @@ public final class CriteriaQueryParamConverter implements QueryParamConverter {
 
     private static Method setter(Class<?> type, String property) {
         if (property.isEmpty()) return null;
-        String name = "set" + Character.toUpperCase(property.charAt(0)) + property.substring(1);
-        return Arrays.stream(type.getMethods()).filter(method -> method.getName().equals(name)
-                && method.getParameterCount() == 1).findFirst().orElse(null);
+        // 与属性 getter 匹配，不能把 lambda/varargs 等便捷重载当成 QUERY 属性类型。
+        var descriptor = BeanUtils.getPropertyDescriptor(type, property);
+        return descriptor == null ? null : descriptor.getWriteMethod();
     }
 }

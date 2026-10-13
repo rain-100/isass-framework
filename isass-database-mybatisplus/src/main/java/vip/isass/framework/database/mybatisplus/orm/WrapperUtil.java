@@ -54,7 +54,9 @@ import vip.isass.framework.common.entity.IEntity;
 import vip.isass.framework.common.entity.SensitiveDataProperty;
 import vip.isass.framework.common.support.BeanProviderUtil;
 import vip.isass.framework.common.support.JsonUtil;
-import vip.isass.framework.common.security.data.DataReadContext;
+import vip.isass.framework.security.data.DataReadContext;
+import vip.isass.framework.security.data.TenantReadContext;
+import vip.isass.framework.security.data.TrustedReadContext;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -147,6 +149,7 @@ public class WrapperUtil {
         enterQueryPath(criteria, activePath);
         try {
             validateQueryUsage(criteria, usage);
+            List<WhereCondition> trusted = TrustedReadContext.conditions(criteria);
             if (DataReadContext.current() != null && criteria instanceof IWhereConditionCriteria<?, ?> where) {
                 Set<Object> inputs = Collections.newSetFromMap(new IdentityHashMap<>());
                 for (WhereCondition node : where.getWhereConditions()) {
@@ -162,11 +165,32 @@ public class WrapperUtil {
 
             // WHERE：消费条件树，遇到目标 Criteria 时递归构建相关子查询。
             if (criteria instanceof IWhereConditionCriteria<?, ?> where) {
-                if (DataReadContext.current() != null && !where.getWhereConditions().isEmpty()) {
+                if ((DataReadContext.current() != null || TenantReadContext.current() != null || !trusted.isEmpty())
+                        && !where.getWhereConditions().isEmpty()) {
                     wrapper.nested(group -> processWhereConditions((MpjWrapper<?>) group,
                             where.getWhereConditions(), Condition.Logical.AND, outer, activePath));
                 } else {
                     processWhereConditions(wrapper, where.getWhereConditions(), Condition.Logical.AND, outer, activePath);
+                }
+            }
+            if (!trusted.isEmpty()) {
+                // 只有服务器构造的约束跳过字段输入校验；客户端条件与固定租户边界不受影响。
+                DataReadContext.metadata(() -> {
+                    wrapper.and(group -> processWhereConditions((MpjWrapper<?>) group,
+                            trusted, Condition.Logical.AND, null, activePath));
+                    return null;
+                });
+            }
+            if (TenantReadContext.current() != null) {
+                List<WhereCondition> restrictions = TenantReadContext.current().conditions(wrapper.getEntityClass());
+                if (!restrictions.isEmpty()) {
+                    // 固定边界的关联谓词是框架受信任输入，不依赖调用者对成员表的角色授权。
+                    // 仅暂停角色策略；租户边界仍作用于谓词内部的每个表实例。
+                    DataReadContext.metadata(() -> {
+                        wrapper.and(group -> processWhereConditions((MpjWrapper<?>) group,
+                                restrictions, Condition.Logical.AND, null, activePath));
+                        return null;
+                    });
                 }
             }
             if (DataReadContext.current() != null) {
@@ -452,6 +476,7 @@ public class WrapperUtil {
         BaseColumn<?> table = BaseColumnFactory.create(type);
         boolean derived = hasDerivedTableConditions(target)
                 || TableInfoHelper.getTableInfo(type).isWithLogicDelete()
+                || TenantReadContext.current() != null && !TenantReadContext.current().conditions(type).isEmpty()
                 || DataReadContext.current() != null && !DataReadContext.current().conditions(type).isEmpty();
         String inputSql;
         MpjWrapper<?> input;

@@ -2,7 +2,7 @@
 
 package vip.isass.framework.web.security.authentication.onlineuser;
 
-import vip.isass.framework.common.security.AuthenticatedPrincipal;
+import vip.isass.framework.security.AuthenticatedPrincipal;
 
 import java.util.List;
 

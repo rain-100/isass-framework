@@ -7,8 +7,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.core.context.SecurityContextHolder;
-import vip.isass.framework.common.security.DefaultAuthenticatedPrincipal;
-import vip.isass.framework.common.security.PrincipalType;
+import vip.isass.framework.security.DefaultAuthenticatedPrincipal;
+import vip.isass.framework.security.PrincipalType;
+import vip.isass.framework.security.PrincipalAuthorizationContext;
 import vip.isass.framework.web.security.authentication.PrincipalAuthenticationToken;
 import vip.isass.framework.web.security.config.SecurityProperties;
 
@@ -18,6 +19,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -35,8 +37,10 @@ class InternalHmacAuthenticationFilterTest {
     void authenticatesInternalServicePreservesBodyAndMergesBusinessPrincipal() throws Exception {
         DefaultAuthenticatedPrincipal businessPrincipal = new DefaultAuthenticatedPrincipal()
                 .setPrincipalType(PrincipalType.USER).setPrincipalId(1L).setTenantId(2L).setAppId(3L);
+        PrincipalAuthorizationContext authorizationContext = new PrincipalAuthorizationContext(
+                List.of("ROLE_LOGIN"), List.of("demo.view"), 1L, null);
         SecurityContextHolder.getContext().setAuthentication(
-                new PrincipalAuthenticationToken(businessPrincipal, List.of()));
+                new PrincipalAuthenticationToken(businessPrincipal, authorizationContext));
 
         byte[] body = "{\"value\":1}".getBytes(StandardCharsets.UTF_8);
         MockHttpServletRequest request = request(body);
@@ -50,6 +54,8 @@ class InternalHmacAuthenticationFilterTest {
             PrincipalAuthenticationToken token = (PrincipalAuthenticationToken)
                     SecurityContextHolder.getContext().getAuthentication();
             assertEquals(businessPrincipal, token.getPrincipal());
+            assertSame(authorizationContext, token.getAuthorizationContext());
+            assertEquals("ROLE_LOGIN", token.getAuthorities().iterator().next().getAuthority());
             assertNotNull(token.getInternalServicePrincipal());
             assertEquals("asset-service", token.getInternalServicePrincipal().serviceName());
             assertEquals("request-1", token.getInternalServicePrincipal().requestId());

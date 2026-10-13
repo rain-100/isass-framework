@@ -4,13 +4,12 @@ package vip.isass.framework.web.security.authentication.jwt;
 
 import lombok.Getter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
-import org.springframework.security.core.GrantedAuthority;
-import vip.isass.framework.common.security.jwt.JwtInfo;
+import vip.isass.framework.security.jwt.JwtInfo;
 
-import java.util.Collection;
+import java.util.List;
 
 /**
- * @author Rain
+ * JWT 校验的临时凭证；请求主体及授权结果统一保存在 PrincipalAuthenticationToken。
  */
 public class JwtAuthenticationToken extends AbstractAuthenticationToken {
 
@@ -20,13 +19,13 @@ public class JwtAuthenticationToken extends AbstractAuthenticationToken {
     private JwtInfo jwtClaim;
 
     public JwtAuthenticationToken(String token) {
-        super(java.util.Collections.emptyList());
+        super(List.of());
         this.token = token;
         super.setAuthenticated(false);
     }
 
-    public JwtAuthenticationToken(String token, JwtInfo jwtClaim, Collection<? extends GrantedAuthority> authorities) {
-        super((Collection<GrantedAuthority>) authorities);
+    public JwtAuthenticationToken(String token, JwtInfo jwtClaim) {
+        super(List.of());
         this.token = token;
         this.jwtClaim = jwtClaim;
         super.setAuthenticated(true);
@@ -46,7 +45,7 @@ public class JwtAuthenticationToken extends AbstractAuthenticationToken {
     public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {
         if (isAuthenticated) {
             throw new IllegalArgumentException(
-                "Cannot set this token to trusted - use constructor which takes a GrantedAuthority list instead");
+                "Cannot set this token to trusted - use the verified JWT constructor instead");
         }
 
         super.setAuthenticated(false);

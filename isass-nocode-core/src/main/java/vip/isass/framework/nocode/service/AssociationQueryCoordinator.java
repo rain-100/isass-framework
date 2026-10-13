@@ -15,7 +15,6 @@ import vip.isass.framework.common.criteria.impl.type.Condition;
 import vip.isass.framework.common.criteria.type.IPageCriteria;
 import vip.isass.framework.common.criteria.type.IReturnFieldCriteria;
 import vip.isass.framework.common.criteria.type.IOrderByCriteria;
-import vip.isass.framework.common.entity.IIdEntity;
 import vip.isass.framework.common.page.Page;
 import vip.isass.framework.common.criteria.type.IWhereConditionCriteria;
 import vip.isass.framework.common.entity.EntityAssociation;
@@ -78,6 +77,7 @@ public final class AssociationQueryCoordinator {
             if (!properties.add(condition.getProperty())) throw new IllegalArgumentException("重复 loadRelated 属性: " + condition.getProperty());
             validateNestedPage(condition.getCriteria());
             EntityAssociation relation = requireAssociation(entityType, condition);
+            CrudIdSupport.requireIdEntityType(relation.targetType(), "loadRelated 目标去重和分页");
             if (criteria instanceof IReturnFieldCriteria<?, ?> selected && !selected.getReturnFields().isEmpty()) {
                 selected.addReturnField(relation.localField());
             }
@@ -155,6 +155,7 @@ public final class AssociationQueryCoordinator {
     private void populate(List<?> sources, EntityAssociation association, RelatedCondition related) {
         ILocalCrudService targetService = services.get(association.targetType());
         if (targetService == null) throw new IllegalStateException("关联目标没有本地 ILocalCrudService: " + association.targetType().getName());
+        CrudIdSupport.requireIdEntity(targetService, "loadRelated 目标去重和分页");
         Set<Object> keys = new LinkedHashSet<>();
         sources.forEach(source -> {
             Object value = read(source, association.localField());
@@ -185,6 +186,10 @@ public final class AssociationQueryCoordinator {
             if (!original.isEmpty()) conditions.add(businessGroup);
             WhereCondition relationIn = new WhereCondition(association.targetField(), Condition.Membership.IN, null);
             conditions.add(relationIn);
+            List<WhereCondition> fixedConditions = AssociationSupport.fixedValues(association).entrySet().stream()
+                    .map(entry -> new WhereCondition(entry.getKey(), Condition.Compare.EQUAL, entry.getValue()))
+                    .toList();
+            conditions.addAll(fixedConditions);
             where.setWhereConditions(conditions);
             try {
                 for (int offset = 0; offset < keyList.size(); offset += BATCH_SIZE) {
@@ -197,7 +202,7 @@ public final class AssociationQueryCoordinator {
                         Page<?> result = targetService.page(criteria);
                         List<?> targets = result.getRecords();
                         for (Object target : targets) {
-                            Object id = ((IIdEntity<?, ?>) target).getId();
+                            Object id = CrudIdSupport.requireIdEntity(target, "loadRelated").getId();
                             if (id == null) throw new IllegalStateException("loadRelated 目标缺少 id: " + association.property());
                             grouped.computeIfAbsent(read(target, association.targetField()), ignored -> new LinkedHashMap<>()).putIfAbsent(id, target);
                         }
@@ -208,7 +213,7 @@ public final class AssociationQueryCoordinator {
                 }
             } finally {
                 // 临时批次条件仅在本次加载期间有效；其余生命周期修改不回滚。
-                conditions.removeIf(condition -> condition == relationIn);
+                conditions.removeIf(condition -> condition == relationIn || fixedConditions.contains(condition));
                 if (where.getWhereConditions() == conditions && (conditions.isEmpty()
                         || conditions.size() == 1 && conditions.getFirst() == businessGroup)) {
                     where.setWhereConditions(original);

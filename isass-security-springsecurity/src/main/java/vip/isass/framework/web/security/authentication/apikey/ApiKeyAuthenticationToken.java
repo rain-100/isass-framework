@@ -4,10 +4,11 @@ package vip.isass.framework.web.security.authentication.apikey;
 
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
-import vip.isass.framework.common.security.AuthenticatedPrincipal;
-import vip.isass.framework.web.security.authorization.PrincipalAuthorizationContext;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import vip.isass.framework.security.AuthenticatedPrincipal;
+import vip.isass.framework.security.PrincipalAuthorizationContext;
 
-import java.util.Collection;
+import java.util.List;
 
 /**
  * API Key 认证请求和认证结果。
@@ -19,7 +20,7 @@ public class ApiKeyAuthenticationToken extends AbstractAuthenticationToken {
     private final PrincipalAuthorizationContext authorizationContext;
 
     public ApiKeyAuthenticationToken(String apiKey) {
-        super(java.util.Collections.emptyList());
+        super(List.of());
         this.apiKey = apiKey;
         this.principal = null;
         this.authorizationContext = null;
@@ -27,9 +28,11 @@ public class ApiKeyAuthenticationToken extends AbstractAuthenticationToken {
     }
 
     public ApiKeyAuthenticationToken(AuthenticatedPrincipal principal,
-                                     Collection<? extends GrantedAuthority> authorities,
                                      PrincipalAuthorizationContext authorizationContext) {
-        super(authorities);
+        super(authorizationContext == null ? List.of() : authorizationContext.roleCodes().stream()
+                .distinct()
+                .<GrantedAuthority>map(SimpleGrantedAuthority::new)
+                .toList());
         this.principal = principal;
         this.authorizationContext = authorizationContext;
         this.apiKey = null;

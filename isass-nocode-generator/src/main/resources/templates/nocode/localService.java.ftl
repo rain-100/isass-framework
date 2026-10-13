@@ -10,6 +10,9 @@ import ${cfg.criteriaPackageName}.${entity}Criteria;
 import ${cfg.entityPackageName}.${entity};
 import ${cfg.repositoryPackageName}.I${entity}Repository;
 import vip.isass.framework.nocode.service.ILocalCrudService;
+<#if !isIdEntity>
+import java.io.Serializable;
+</#if>
 <#if isParentIdEntity>
 import vip.isass.framework.nocode.service.ILocalTreeQueryService;
 </#if>

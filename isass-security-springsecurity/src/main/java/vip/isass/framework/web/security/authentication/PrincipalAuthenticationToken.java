@@ -4,11 +4,13 @@ package vip.isass.framework.web.security.authentication;
 
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
-import vip.isass.framework.common.security.AuthenticatedPrincipal;
-import vip.isass.framework.common.security.InternalServicePrincipal;
-import vip.isass.framework.web.security.authorization.PrincipalAuthorizationContext;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import vip.isass.framework.security.AuthenticatedPrincipal;
+import vip.isass.framework.security.InternalServicePrincipal;
+import vip.isass.framework.security.PrincipalAuthorizationContext;
 
 import java.util.Collection;
+import java.util.List;
 
 /**
  * Spring Security 中唯一的已认证主体包装。
@@ -17,30 +19,27 @@ public class PrincipalAuthenticationToken extends AbstractAuthenticationToken {
 
     private final AuthenticatedPrincipal principal;
     private final InternalServicePrincipal internalServicePrincipal;
-    private volatile PrincipalAuthorizationContext authorizationContext;
+    private volatile PrincipalAuthorizationContext principalAuthorizationContext;
 
-    public PrincipalAuthenticationToken(AuthenticatedPrincipal principal,
-                                        Collection<? extends GrantedAuthority> authorities) {
-        this(principal, null, authorities, null);
+    public PrincipalAuthenticationToken(AuthenticatedPrincipal principal) {
+        this(principal, null, null);
     }
 
     public PrincipalAuthenticationToken(AuthenticatedPrincipal principal,
-                                        Collection<? extends GrantedAuthority> authorities,
-                                        PrincipalAuthorizationContext authorizationContext) {
-        this(principal, null, authorities, authorizationContext);
+                                        PrincipalAuthorizationContext principalAuthorizationContext) {
+        this(principal, null, principalAuthorizationContext);
     }
 
     public PrincipalAuthenticationToken(AuthenticatedPrincipal principal,
                                         InternalServicePrincipal internalServicePrincipal,
-                                        Collection<? extends GrantedAuthority> authorities,
-                                        PrincipalAuthorizationContext authorizationContext) {
-        super(authorities);
+                                        PrincipalAuthorizationContext principalAuthorizationContext) {
+        super(List.of());
         if (principal == null && internalServicePrincipal == null) {
             throw new IllegalArgumentException("业务主体和内部服务主体不能同时为空");
         }
         this.principal = principal;
         this.internalServicePrincipal = internalServicePrincipal;
-        this.authorizationContext = authorizationContext;
+        this.principalAuthorizationContext = principalAuthorizationContext;
         super.setAuthenticated(true);
     }
 
@@ -57,11 +56,23 @@ public class PrincipalAuthenticationToken extends AbstractAuthenticationToken {
     }
 
     public PrincipalAuthorizationContext getAuthorizationContext() {
-        return authorizationContext;
+        return principalAuthorizationContext;
     }
 
-    public void setAuthorizationContext(PrincipalAuthorizationContext authorizationContext) {
-        this.authorizationContext = authorizationContext;
+    public void setAuthorizationContext(PrincipalAuthorizationContext principalAuthorizationContext) {
+        this.principalAuthorizationContext = principalAuthorizationContext;
+    }
+
+    @Override
+    public Collection<GrantedAuthority> getAuthorities() {
+        PrincipalAuthorizationContext context = principalAuthorizationContext;
+        if (context == null) {
+            return List.of();
+        }
+        return context.roleCodes().stream()
+                .distinct()
+                .<GrantedAuthority>map(SimpleGrantedAuthority::new)
+                .toList();
     }
 
     @Override

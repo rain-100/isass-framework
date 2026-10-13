@@ -27,7 +27,7 @@ class CrudWriteExecutorTest {
         Criteria updateCriteria = new Criteria().lessThan(Entity::getId, 100L)
                 .setMatchFields(List.of("name"));
         Criteria deleteCriteria = new Criteria().setName("obsolete");
-        SuperCudReq<Entity, Criteria> request = new SuperCudReq<>(
+        SuperCudReq<Entity, Criteria, Long> request = new SuperCudReq<>(
                 List.of(new Entity(2L, "conditional")),
                 List.of("name"),
                 List.of(new Entity(4L, "scoped")),
@@ -51,7 +51,7 @@ class CrudWriteExecutorTest {
     void validatesTheWholeChangeSetBeforeWriting() {
         RecordingRepository repository = new RecordingRepository();
         LocalService service = new LocalService(repository);
-        SuperCudReq<Entity, Criteria> request = new SuperCudReq<>(
+        SuperCudReq<Entity, Criteria, Long> request = new SuperCudReq<>(
                 List.of(new Entity(1L, "add")), null,
                 List.of(new Entity(null, "update")), null,
                 null, null);
@@ -82,7 +82,7 @@ class CrudWriteExecutorTest {
 
         var result = new CrudWriteExecutor().superCud(
                 new LocalService(repository),
-                SuperCudReq.<Entity, Criteria>builder()
+                SuperCudReq.<Entity, Criteria, Long>builder()
                         .addEntity(new Entity(12L, "new"))
                         .addByFields(Entity::getName)
                         .build());

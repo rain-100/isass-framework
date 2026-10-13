@@ -163,7 +163,7 @@ public class ${entity} implements
         ILogicDeleteEntity<${entity}>,
 </#if>
 <#if isTraceEntity>
-        ITraceEntity<${idEntityPropertyType}, ${entity}>,
+        ITraceEntity<${traceEntityPropertyType}, ${entity}>,
 </#if>
         IEntity<${entity}> {
 
@@ -320,7 +320,7 @@ public class ${entity} implements
         return List.of(
 <#list associations as association>
                 EntityAssociation.${(association.kind()?string == "MANY")?then("many", "one")}("${association.property()}", ${association.targetEntity()}.class,
-                        "${association.localKey()}", "${association.targetKey()}", ${association.cascadeDelete()?c})<#if association_has_next || isParentIdEntity>,</#if>
+                        "${association.localKey()}", "${association.targetKey()}", ${association.cascadeDelete()?c})${association.modifiers()}<#if association_has_next || isParentIdEntity>,</#if>
 </#list>
 <#if isParentIdEntity>
                 EntityAssociation.one("parent", ${entity}.class, "parentId", "id", false),

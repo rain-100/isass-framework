@@ -6,14 +6,17 @@ import org.junit.jupiter.api.Test;
 import vip.isass.framework.common.criteria.JoinCondition;
 import vip.isass.framework.common.criteria.WhereCondition;
 import vip.isass.framework.common.criteria.impl.type.Condition;
-import vip.isass.framework.common.security.data.DataReadContext;
-import vip.isass.framework.common.security.data.DataReadPolicy;
+import vip.isass.framework.security.data.DataReadContext;
+import vip.isass.framework.security.data.DataReadPolicy;
+import vip.isass.framework.security.data.TenantReadContext;
+import vip.isass.framework.security.data.TrustedReadContext;
 import vip.isass.framework.database.mybatisplus.orm.MybatisPlusExistsTest.Probe;
 import vip.isass.framework.database.mybatisplus.orm.MybatisPlusExistsTest.ProbeCriteria;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -23,6 +26,95 @@ class DataReadPolicySqlTest {
     @BeforeAll
     static void metadata() {
         MybatisPlusExistsTest.initializeMetadata();
+    }
+
+    @Test
+    void serverRestrictionsCanUseProtectedFieldsWithoutChangingClientPrivilegesOrOtherBoundaries() {
+        ProbeCriteria criteria = new ProbeCriteria().setReturnField("id");
+        DataReadPolicy policy = new DataReadPolicy() {
+            @Override
+            public List<WhereCondition> conditions(Class<?> type) {
+                return List.of(WhereCondition.eq("id", 7L));
+            }
+
+            @Override
+            public void requireQueryable(Class<?> type, String property) {
+                if ("label".equals(property)) {
+                    throw new IllegalArgumentException("protected field");
+                }
+            }
+        };
+        try (var role = DataReadContext.open(policy);
+             var tenant = TenantReadContext.open(type -> List.of(WhereCondition.eq("id", 9L)));
+             var trusted = TrustedReadContext.open(criteria, List.of(WhereCondition.eq("label", "server-only")))) {
+            for (MpjWrapper<?> wrapper : List.of((MpjWrapper<?>) WrapperUtil.getQueryWrapper(criteria),
+                    (MpjWrapper<?>) WrapperUtil.getCountQueryWrapper(criteria))) {
+                wrapper.querySql();
+                assertTrue(wrapper.getParamNameValuePairs().values().containsAll(List.of(7L, 9L, "server-only")));
+            }
+            assertEquals(List.of("id"), criteria.getReturnFields());
+            assertTrue(criteria.getWhereConditions().isEmpty());
+            assertThrows(IllegalArgumentException.class,
+                    () -> WrapperUtil.getQueryWrapper(criteria.equals("label", "client-secret")));
+            assertThrows(IllegalArgumentException.class,
+                    () -> WrapperUtil.getCountQueryWrapper(criteria));
+        }
+        assertTrue(TrustedReadContext.conditions(criteria).isEmpty());
+    }
+
+    @Test
+    void clientOrCannotEscapeServerRestrictionsEvenWithoutOtherPolicies() {
+        ProbeCriteria criteria = new ProbeCriteria().setWhereConditions(List.of(
+                WhereCondition.eq("label", "a"), new WhereCondition().setCondition(Condition.Logical.OR),
+                WhereCondition.eq("label", "b")));
+        try (var ignored = TrustedReadContext.open(criteria, List.of(WhereCondition.eq("id", 7L)))) {
+            MpjWrapper<?> wrapper = (MpjWrapper<?>) WrapperUtil.getQueryWrapper(criteria);
+            assertTrue(wrapper.getSqlSegment().contains(") AND ("), wrapper.getSqlSegment());
+            assertTrue(wrapper.getParamNameValuePairs().containsValue(7L));
+            MpjWrapper<?> other = (MpjWrapper<?>) WrapperUtil.getQueryWrapper(new ProbeCriteria());
+            other.getSqlSegment();
+            assertFalse(other.getParamNameValuePairs().containsValue(7L));
+        }
+    }
+
+    @Test
+    void fixedBoundarySurvivesAllRoleAndMetadataScopesAcrossEverySqlTableInstance() {
+        ProbeCriteria criteria = new ProbeCriteria()
+                .setFromCriteria(new ProbeCriteria())
+                .leftJoin(new JoinCondition()
+                        .setTargetCriteria(new ProbeCriteria())
+                        .setSourceProperty("id")
+                        .setCondition(Condition.Compare.EQUAL)
+                        .setTargetProperty("id")
+                        .setResultProperty("related"))
+                .exists(new ProbeCriteria())
+                .in("id", new ProbeCriteria().setReturnField("id"));
+        try (var tenant = TenantReadContext.open(type -> List.of(WhereCondition.eq("id", 7L)));
+             var role = DataReadContext.open(type -> List.of())) {
+            DataReadContext.metadata(() -> {
+                MpjWrapper<?> query = (MpjWrapper<?>) WrapperUtil.getQueryWrapper(criteria);
+                String sql = query.querySql().replaceAll("\\s+", " ");
+                assertTrue(sql.contains("JOIN (SELECT") || sql.contains("JOIN ( SELECT"), sql);
+                assertEquals(5, query.getParamNameValuePairs().values().stream().filter(value -> value.equals(7L)).count());
+                MpjWrapper<?> count = (MpjWrapper<?>) WrapperUtil.getCountQueryWrapper(criteria);
+                count.querySql();
+                assertEquals(5, count.getParamNameValuePairs().values().stream().filter(value -> value.equals(7L)).count());
+                return null;
+            });
+        }
+        assertNull(TenantReadContext.current());
+    }
+
+    @Test
+    void clientOrCannotEscapeFixedIsolationWithoutAnyRoleDataPolicy() {
+        ProbeCriteria criteria = new ProbeCriteria().setWhereConditions(List.of(
+                WhereCondition.eq("label", "a"), new WhereCondition().setCondition(Condition.Logical.OR),
+                WhereCondition.eq("label", "b")));
+        try (var tenant = TenantReadContext.open(type -> List.of(WhereCondition.eq("id", 7L)))) {
+            MpjWrapper<?> wrapper = (MpjWrapper<?>) WrapperUtil.getQueryWrapper(criteria);
+            assertTrue(wrapper.getSqlSegment().contains(") AND ("), wrapper.getSqlSegment());
+            assertTrue(wrapper.getParamNameValuePairs().containsValue(7L));
+        }
     }
 
     @Test

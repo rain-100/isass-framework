@@ -32,6 +32,7 @@ Java 25 共享框架，提供服务入口、NoCode、数据库、消息、网络
 - [isass-net-proxy-upstream](isass-net-proxy-upstream/README.md)：网络代理上游接入。
 - [isass-net-socketio](isass-net-socketio/README.md)：Socket.IO 协议实现。
 - [isass-net-websocket](isass-net-websocket/README.md)：WebSocket 协议实现。
+- [isass-security-core](isass-security-core/README.md)：通用主体、授权策略与安全 SPI。
 - [isass-security-springsecurity](isass-security-springsecurity/README.md)：Spring Security 集成。
 - [isass-encryption](isass-encryption/README.md)：文本加解密工具。
 - [isass-serialization-protobuf](isass-serialization-protobuf/README.md)：Protobuf 序列化支持。

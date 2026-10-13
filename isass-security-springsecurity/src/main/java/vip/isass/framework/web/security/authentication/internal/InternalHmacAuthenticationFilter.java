@@ -13,7 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
-import vip.isass.framework.common.security.InternalServicePrincipal;
+import vip.isass.framework.security.InternalServicePrincipal;
 import vip.isass.framework.web.security.authentication.PrincipalAuthenticationToken;
 import vip.isass.framework.web.security.config.SecurityProperties;
 
@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.Collections;
 
 /** 校验内部微服务 HMAC，并把调用服务主体合并到当前请求认证上下文。 */
 @Slf4j
@@ -86,11 +85,11 @@ public final class InternalHmacAuthenticationFilter extends OncePerRequestFilter
                 throw new SecurityException("同一请求不能重复携带内部服务身份");
             }
             SecurityContextHolder.getContext().setAuthentication(new PrincipalAuthenticationToken(
-                    token.getPrincipal(), internalPrincipal, token.getAuthorities(), token.getAuthorizationContext()));
+                    token.getPrincipal(), internalPrincipal, token.getAuthorizationContext()));
             return;
         }
         SecurityContextHolder.getContext().setAuthentication(new PrincipalAuthenticationToken(
-                null, internalPrincipal, Collections.emptyList(), null));
+                null, internalPrincipal, null));
     }
 
     private boolean hasAnyInternalHeader(HttpServletRequest request) {

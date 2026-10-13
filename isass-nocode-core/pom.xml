@@ -23,6 +23,10 @@
 
     <dependencies>
         <dependency>
+            <groupId>vip.isass</groupId>
+            <artifactId>isass-security-core</artifactId>
+        </dependency>
+        <dependency>
             <groupId>jakarta.servlet</groupId>
             <artifactId>jakarta.servlet-api</artifactId>
             <scope>test</scope>

@@ -2,7 +2,9 @@
 
 package vip.isass.framework.common.support;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.JacksonException;
 import tools.jackson.core.type.TypeReference;
 import vip.isass.framework.common.criteria.WhereCondition;
 import vip.isass.framework.common.support.json.LocalDateTimeToLongConvert;
@@ -20,8 +22,19 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class JsonUtilTest {
+
+    @Test
+    void rejectsLossyFloatingPointToIntegerConversionForBothJacksonVersions() throws Exception {
+        assertEquals(2087700000000000020L, JsonUtil.readValue("\"2087700000000000020\"", Long.class));
+        assertThrows(JacksonException.class, () -> JsonUtil.readValue("100.5", Long.class));
+        assertThrows(JacksonException.class, () -> JsonUtil.NOT_NULL_INSTANCE.readValue("100.5", Long.class));
+        assertThrows(JsonProcessingException.class,
+                () -> JsonUtil.LEGACY_MAPPER.readValue("100.5", Long.class));
+        assertEquals(100.5D, JsonUtil.readValue("100.5", Double.class));
+    }
 
     @Test
     void readsGenericJsonFromBytesAndStreams() {

@@ -24,13 +24,15 @@
 - 框架稳定前，docs 只保留 `60.changelog/ChangeLog4.x.md` 和 `70.roadmap/roadmap.md`，不新增长篇设计、计划或使用文档。
 - 各模块 `README.md` 简述职责、入口和关键边界；具体行为以实现和有效测试为准。AGENTS 只保留执行摘要与项目专有约束，不复制模块说明。
 - `isass-nocode-generator` 负责生成 model、Criteria、mapper 及契约约定。应修改 `isass-nocode-generator/src/main/resources/templates/` 下的模板并重新生成使用方；不要把手工维护生成产物作为长期修复方案。
-- 业务实体关系以 Java `EntityRelationDefinition` 清单为唯一手写来源，生成器输出类型化成员及共享关系元数据；声明和升级方式见生成器使用文档，不再从 DDL 关联标记生成关系。
+- 业务实体关系以 Java `EntityRelationDefinition` 清单为唯一手写来源，生成器输出类型化成员及共享关系元数据（含只读及固定条件）；声明与升级见模块 README，不再从 DDL 关联标记生成关系。嵌套增改删独立授权并经过生命周期，同一事务失败回滚。
 - 实体领域归属、枚举、Java 类型覆盖和租户隔离开关由 `EntityModelDefinition` / `EntityFieldDefinition` 声明；DDL 保留物理结构与可读说明。两类声明各司其职，不扩展关系类承担模型配置。
 - 面向应用的字段和 Criteria 使用 Java camelCase 属性及 lambda 引用。数据库列名属于 ORM 的职责范围；只有自动属性到列的映射确实存在歧义时，才添加显式元数据。
 - NoCode 支持高级响应投影、关联查询与关联写入。其公开 Query 参数应保持 camelCase，新增行为简要更新所属模块 README。
 - 共享 Redis key 使用 `<microservice>:<domain>:<feature>[:<id>]`。避免使用框架全局 key 前缀，也不要清理无关 key。
 - 框架配置使用 `isass.<module>.<feature>...` 层级。新增可复用配置时，不得引入一次性的根前缀。
 - 不要在框架模块中放置特定服务的初始化数据或业务规则。
+- 通用主体、授权上下文和安全 SPI 位于 security-core，单向依赖 core-common；JWT 默认仅认证身份，角色及功能授权显式按需加载并复用请求结果，getter 不执行 I/O；角色调试日志可显式提前加载角色，不触发完整权限加载。上下文 null/permissionCodes null 分别表示未加载/仅角色，空权限集合表示已加载无权限。Spring 角色从上下文派生；BSP 契约由 bsp-api 适配，不放入框架安全模块。
+- 固定租户读取边界使用 TenantReadPolicyProvider 扩展，不混入可由管理员配置的角色数据过滤；读取与写入边界分别验证。生命周期通过 addReadRestriction 追加服务端读取约束，不写入客户端 Criteria，也不放开客户端字段输入校验。
 
 ## 统一规则入口
 
@@ -40,6 +42,7 @@
 - NoCode、生命周期、关联与初始化：`isass-nocode-core/README.md`
 - 查询与 ORM：`isass-database-mybatisplus/README.md`
 - 服务入口与调用：`isass-entrypoint-registry/README.md`
+- 通用身份与授权：`isass-security-core/README.md`
 - 内部微服务 HMAC：`isass-security-springsecurity/README.md`
 
 修改前阅读所属模块 README 和当前源码；实现变化时简要更新 README 和 ChangeLog。测试应覆盖安全、隔离、事务、并发、协议或历史缺陷，不维护全量入口/类名快照。业务微服务只引用入口并记录服务专有差异。

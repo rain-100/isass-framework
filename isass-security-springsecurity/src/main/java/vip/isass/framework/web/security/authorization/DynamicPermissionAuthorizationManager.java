@@ -9,9 +9,10 @@ import org.springframework.security.authorization.AuthorizationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.access.intercept.RequestAuthorizationContext;
 import org.springframework.stereotype.Component;
-import vip.isass.framework.common.security.PrincipalType;
 import vip.isass.framework.entrypoint.authorization.EntrypointPermissionResolver;
-import vip.isass.framework.web.security.SecurityConst;
+import vip.isass.framework.security.PrincipalAuthorizationContext;
+import vip.isass.framework.security.PrincipalAuthorizationLoader;
+import vip.isass.framework.security.SecurityConst;
 import vip.isass.framework.web.security.authentication.PrincipalAuthenticationToken;
 import vip.isass.framework.web.security.authorization.internal.InternalAccessRegistry;
 
@@ -27,15 +28,15 @@ import java.util.function.Supplier;
 public class DynamicPermissionAuthorizationManager
         implements AuthorizationManager<RequestAuthorizationContext> {
 
-    private final IAuthorizationService authorizationService;
+    private final PrincipalAuthorizationLoader authorizationLoader;
     private final Collection<EntrypointPermissionResolver> permissionResolvers;
     private final InternalAccessRegistry internalAccessRegistry;
 
     public DynamicPermissionAuthorizationManager(
-            IAuthorizationService authorizationService,
+            PrincipalAuthorizationLoader authorizationLoader,
             ObjectProvider<EntrypointPermissionResolver> permissionResolvers,
             InternalAccessRegistry internalAccessRegistry) {
-        this.authorizationService = authorizationService;
+        this.authorizationLoader = authorizationLoader;
         this.permissionResolvers = permissionResolvers.orderedStream().toList();
         this.internalAccessRegistry = internalAccessRegistry;
     }
@@ -55,7 +56,7 @@ public class DynamicPermissionAuthorizationManager
         if (!token.hasBusinessPrincipal()) {
             return new AuthorizationDecision(false);
         }
-        PrincipalAuthorizationContext authorizationContext = context(token);
+        PrincipalAuthorizationContext authorizationContext = PrincipalAuthorizationContextResolver.roles(token, authorizationLoader);
         Set<String> roles = new LinkedHashSet<>(authorizationContext.roleCodes());
         if (roles.contains(SecurityConst.ROLE_SUPER_DEV)) {
             return new AuthorizationDecision(true);
@@ -65,29 +66,9 @@ public class DynamicPermissionAuthorizationManager
         if (required.isEmpty()) {
             return new AuthorizationDecision(false);
         }
-        Set<String> granted = new LinkedHashSet<>(authorizationContext.permissionCodes());
+        Set<String> granted = new LinkedHashSet<>(
+                PrincipalAuthorizationContextResolver.permissions(token, authorizationLoader).permissionCodes());
         return new AuthorizationDecision(required.stream().anyMatch(granted::contains));
-    }
-
-    private PrincipalAuthorizationContext context(PrincipalAuthenticationToken token) {
-        PrincipalAuthorizationContext context = token.getAuthorizationContext();
-        if (context != null) {
-            return context;
-        }
-        synchronized (token) {
-            context = token.getAuthorizationContext();
-            if (context == null) {
-                if (token.getPrincipal() == null
-                        || token.getPrincipal().getPrincipalType() != PrincipalType.USER) {
-                    context = PrincipalAuthorizationContext.empty();
-                } else {
-                    context = authorizationService.jwtContext();
-                    if (context == null) context = PrincipalAuthorizationContext.empty();
-                }
-                token.setAuthorizationContext(context);
-            }
-            return context;
-        }
     }
 
     private Set<String> requiredPermissions(String method, String path) {

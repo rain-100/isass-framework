@@ -7,21 +7,22 @@ import vip.isass.framework.nocode.entity.SuperCudResult;
 import vip.isass.framework.nocode.service.CrudServiceTypeResolver;
 import vip.isass.framework.nocode.service.ILocalCrudService;
 
+import java.io.Serializable;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
  * Strongly typed lifecycle context for the canonical {@code superCud} write operation.
  */
-public final class CrudWriteLifecycleContext<E, C> {
+public final class CrudWriteLifecycleContext<E, C, PK extends Serializable> {
 
     private final ILocalCrudService<?, ?, ?> service;
-    private final SuperCudReq<E, C> request;
+    private final SuperCudReq<E, C, PK> request;
     private final Map<String, Object> attributes = new LinkedHashMap<>();
     private SuperCudResult result;
     private Throwable failure;
 
-    public CrudWriteLifecycleContext(ILocalCrudService<?, ?, ?> service, SuperCudReq<E, C> request) {
+    public CrudWriteLifecycleContext(ILocalCrudService<?, ?, ?> service, SuperCudReq<E, C, PK> request) {
         this.service = service;
         this.request = request;
     }
@@ -34,7 +35,7 @@ public final class CrudWriteLifecycleContext<E, C> {
         return CrudServiceTypeResolver.resolveEntityClass(service.getClass());
     }
 
-    public SuperCudReq<E, C> request() {
+    public SuperCudReq<E, C, PK> request() {
         return request;
     }
 

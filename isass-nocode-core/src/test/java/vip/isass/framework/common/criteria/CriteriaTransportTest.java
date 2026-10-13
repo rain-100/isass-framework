@@ -25,10 +25,13 @@ import vip.isass.framework.entrypoint.metadata.HttpMethod;
 import vip.isass.framework.entrypoint.registry.DefaultServiceDefinitionRegistry;
 import vip.isass.framework.common.criteria.impl.type.FullTypeCriteria;
 import vip.isass.framework.common.entity.IIdEntity;
+import vip.isass.framework.common.property.PropertyGetter;
 import vip.isass.framework.nocode.query.CriteriaQueryParamConverter;
 
 import java.net.URI;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
@@ -38,6 +41,35 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
  * HTTP 使用真实 MVC 绑定链，gRPC 使用随机本机端口；不访问业务数据库、不改变鉴权配置。
  */
 class CriteriaTransportTest {
+    @Test
+    void subclassFieldReferenceOverloadDoesNotChangeTheProjectionQueryType() {
+        var converter = new CriteriaQueryParamConverter();
+        var criteria = (OverloadedProjectionCriteria) converter.fromQueryParams(
+                Map.of("returnFields", "id,name"), OverloadedProjectionCriteria.class);
+
+        assertEquals(List.of("id", "name"), List.copyOf(criteria.getReturnFields()));
+    }
+
+    @Test
+    void bindsCsvProjectionUsingTheCollectionSetterInsteadOfConvenienceOverloads() {
+        var converter = new CriteriaQueryParamConverter();
+        for (String fields : List.of("id", "id,name")) {
+            var criteria = (TransportItemCriteria) converter.fromQueryParams(Map.of(
+                    "returnFields", fields,
+                    "idIn", "2087700000000000010,2087700000000000012",
+                    "pageNum", "1",
+                    "pageSize", "2",
+                    "searchCountFlag", "false"), TransportItemCriteria.class);
+
+            assertEquals(List.of(fields.split(",")), List.copyOf(criteria.getReturnFields()));
+            assertEquals(List.of(2087700000000000010L, 2087700000000000012L),
+                    criteria.getWhereConditions().getFirst().getValue());
+            assertEquals(1L, criteria.getPageNum());
+            assertEquals(2L, criteria.getPageSize());
+            assertEquals(false, criteria.getSearchCountFlag());
+        }
+    }
+
     @Test
     void preservesTheSameCriteriaTreeAcrossHttpAndGrpc() throws Exception {
         CriteriaEntityTypes.register(TransportItemCriteria.class);
@@ -50,7 +82,8 @@ class CriteriaTransportTest {
                 .exists(child, TransportItem::getId, TransportItem::getId)
                 .in(TransportItem::getId, child, TransportItem::getId)
                 .loadRelated("items", child)
-                .setFromCriteria(new TransportItemCriteria().setId(7L));
+                .setFromCriteria(new TransportItemCriteria().setId(7L))
+                .setReturnFields(List.of("id", "name"));
         var expected = JsonUtil.valueToTree(query);
 
         var converter = new CriteriaQueryParamConverter();
@@ -115,6 +148,17 @@ class CriteriaTransportTest {
     public static class TransportItemCriteria extends FullTypeCriteria<TransportItem, TransportItemCriteria> {
         public TransportItemCriteria setId(Long id) {
             return equals("id", id);
+        }
+
+        public TransportItemCriteria setIdIn(Collection<Long> ids) {
+            return in("id", ids);
+        }
+    }
+
+    public static class OverloadedProjectionCriteria extends TransportItemCriteria {
+        @Override
+        public TransportItemCriteria setReturnFields(PropertyGetter<TransportItem, ?> first) {
+            return super.setReturnFields(first);
         }
     }
 }

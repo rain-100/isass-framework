@@ -13,11 +13,10 @@ import vip.isass.framework.entrypoint.metadata.HttpMethod;
 import vip.isass.framework.common.criteria.ICriteria;
 import vip.isass.framework.common.criteria.IUpdateCriteria;
 import vip.isass.framework.common.criteria.NullValueMode;
-import vip.isass.framework.common.criteria.field.IIdCriteria;
 import vip.isass.framework.common.criteria.type.IOrderByCriteria;
 import vip.isass.framework.common.criteria.type.IPageCriteria;
 import vip.isass.framework.nocode.entity.CursorPage;
-import vip.isass.framework.common.entity.IIdEntity;
+import vip.isass.framework.common.entity.IEntity;
 import vip.isass.framework.nocode.entity.SuperCudReq;
 import vip.isass.framework.nocode.entity.SuperCudResult;
 import vip.isass.framework.common.property.PropertyGetter;
@@ -28,12 +27,11 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * NoCode standard CRUD application entrypoint.
+ * NoCode standard CRUD application entrypoint. ID helpers require IIdEntity at runtime.
  */
 public interface ICrudService<
-        E extends IIdEntity<PK, E>,
+        E extends IEntity<E>,
         C extends ICriteria<E, C>
-                & IIdCriteria<PK, E, C>
                 & IUpdateCriteria<C>
                 & IPageCriteria<E, C>
                 & IOrderByCriteria<E, C>,
@@ -45,7 +43,7 @@ public interface ICrudService<
     // region create
 
     default E create(E entity) {
-        superCud(SuperCudReq.<E, C>add(entity));
+        superCud(SuperCudReq.<E, C, PK>add(entity));
         return entity;
     }
 
@@ -55,7 +53,7 @@ public interface ICrudService<
         if (entities == null || entities.isEmpty()) {
             throw new IllegalArgumentException("createBatch.entities 不能为空");
         }
-        return superCud(SuperCudReq.<E, C>addAll(entities)).addedCount();
+        return superCud(SuperCudReq.<E, C, PK>addAll(entities)).addedCount();
     }
 
     default boolean createIfAbsent(
@@ -80,7 +78,7 @@ public interface ICrudService<
         String[] fields = new String[remainingFields.length + 1];
         fields[0] = firstField;
         System.arraycopy(remainingFields, 0, fields, 1, remainingFields.length);
-        return superCud(SuperCudReq.<E, C>builder()
+        return superCud(SuperCudReq.<E, C, PK>builder()
                 .addEntity(entity)
                 .addByFields(fields)
                 .build()).addedCount() == 1;
@@ -88,7 +86,7 @@ public interface ICrudService<
 
     default boolean createIfAbsent(
             E entity, PropertyGetter<E, ?> firstField, PropertyGetter<E, ?>... remainingFields) {
-        return superCud(SuperCudReq.<E, C>builder()
+        return superCud(SuperCudReq.<E, C, PK>builder()
                 .addEntity(entity)
                 .addByFields(firstField, remainingFields)
                 .build()).addedCount() == 1;
@@ -121,7 +119,7 @@ public interface ICrudService<
     boolean exists(@QueryParam C criteria);
 
     default E getById(PK id) {
-        return getOne(newCriteria().setId(id));
+        return getOne(CrudIdSupport.equalsId(this, newCriteria(), id));
     }
 
     default E getOne(C criteria) {
@@ -147,7 +145,7 @@ public interface ICrudService<
     }
 
     default boolean existsById(PK id) {
-        return exists(newCriteria().setId(id));
+        return exists(CrudIdSupport.equalsId(this, newCriteria(), id));
     }
 
     default void requireExists(C criteria) {
@@ -167,7 +165,9 @@ public interface ICrudService<
     // region update
 
     default boolean update(E entity) {
-        return superCud(SuperCudReq.<E, C>update(entity)).updatedCount() > 0;
+        CrudIdSupport.requireIdEntity(this, "update(entity)");
+        CrudIdSupport.requireId(entity, "update(entity)");
+        return superCud(SuperCudReq.<E, C, PK>update(entity)).updatedCount() > 0;
     }
 
     default long update(E entity, C criteria) {
@@ -181,7 +181,7 @@ public interface ICrudService<
         if (entities == null || entities.isEmpty()) {
             throw new IllegalArgumentException("update.entities 不能为空");
         }
-        return superCud(SuperCudReq.<E, C>updateByCriteria(entities, criteria)).updatedCount();
+        return superCud(SuperCudReq.<E, C, PK>updateByCriteria(entities, criteria)).updatedCount();
     }
 
     default long requireUpdate(E entity, C criteria) {
@@ -197,14 +197,18 @@ public interface ICrudService<
     // region delete
 
     default boolean delete(PK id) {
-        return superCud(SuperCudReq.<E, C>delete(id)).deletedCount() == 1;
+        CrudIdSupport.requireIdEntity(this, "delete(id)");
+        CrudIdSupport.requireIdValue(id, "delete(id)");
+        return superCud(SuperCudReq.<E, C, PK>delete(id)).deletedCount() == 1;
     }
 
     default boolean deleteIds(Collection<PK> ids) {
-        return delete(newCriteria().setIdIn(ids)) > 0;
+        return delete(CrudIdSupport.inIds(this, newCriteria(), ids)) > 0;
     }
 
     default long updateAllColumns(E entity) {
+        CrudIdSupport.requireIdEntity(this, "updateAllColumns");
+        CrudIdSupport.requireId(entity, "updateAllColumns");
         entity.markAllPresentProperties();
         return update(entity, newCriteria().setNullValueMode(NullValueMode.WRITE_NULL));
     }
@@ -213,7 +217,7 @@ public interface ICrudService<
             description = "根据查询条件批量删除数据", displayOrder = 401,
             httpMethod = HttpMethod.DELETE)
     default Long delete(@QueryParam C criteria) {
-        return superCud(SuperCudReq.<E, C>deleteByCriteria(criteria)).deletedCount();
+        return superCud(SuperCudReq.<E, C, PK>deleteByCriteria(criteria)).deletedCount();
     }
 
     // endregion
@@ -221,6 +225,6 @@ public interface ICrudService<
     @EntrypointOperation(operationName = "superCud", displayName = "超级增删改",
             description = "在一个事务中执行多种新增、修改和删除操作", displayOrder = 202,
             httpMethod = HttpMethod.POST)
-    SuperCudResult superCud(@BodyParam SuperCudReq<E, C> request);
+    SuperCudResult superCud(@BodyParam SuperCudReq<E, C, PK> request);
 
 }

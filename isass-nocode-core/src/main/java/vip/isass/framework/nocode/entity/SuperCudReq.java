@@ -14,13 +14,15 @@ import java.util.List;
 /**
  * A composable create/update/delete change set executed by {@code superCud} in one transaction.
  * Every group is optional and multiple groups may be submitted together.
+ * PK describes ID-based deletion and is resolved before JSON deserialization.
+ * The entity payload is not required to expose a primary key.
  */
-public record SuperCudReq<E, C>(
+public record SuperCudReq<E, C, PK extends Serializable>(
         List<E> addEntities,
         List<String> addByFields,
         List<E> updateEntities,
         C updateCriteria,
-        List<Serializable> deleteIds,
+        List<PK> deleteIds,
         List<C> deleteCriteria
 ) {
 
@@ -32,53 +34,53 @@ public record SuperCudReq<E, C>(
         deleteCriteria = immutableList(deleteCriteria);
     }
 
-    public static <E, C> SuperCudReq<E, C> empty() {
+    public static <E, C, PK extends Serializable> SuperCudReq<E, C, PK> empty() {
         return new SuperCudReq<>(null, null, null, null, null, null);
     }
 
-    public static <E, C> SuperCudReq<E, C> add(E entity) {
+    public static <E, C, PK extends Serializable> SuperCudReq<E, C, PK> add(E entity) {
         return new SuperCudReq<>(List.of(entity), null, null, null, null, null);
     }
 
-    public static <E, C> SuperCudReq<E, C> addAll(Collection<E> entities) {
+    public static <E, C, PK extends Serializable> SuperCudReq<E, C, PK> addAll(Collection<E> entities) {
         return new SuperCudReq<>(copyOf(entities), null, null, null, null, null);
     }
 
-    public static <E, C> SuperCudReq<E, C> addIfAbsent(E entity, String... fields) {
+    public static <E, C, PK extends Serializable> SuperCudReq<E, C, PK> addIfAbsent(E entity, String... fields) {
         return new SuperCudReq<>(List.of(entity), List.of(fields), null, null, null, null);
     }
 
     @SafeVarargs
-    public static <E, C extends IUpdateCriteria<C>> SuperCudReq<E, C> addIfAbsent(
+    public static <E, C extends IUpdateCriteria<C>, PK extends Serializable> SuperCudReq<E, C, PK> addIfAbsent(
             E entity, PropertyGetter<E, ?> first, PropertyGetter<E, ?>... remaining) {
-        return SuperCudReq.<E, C>builder().addEntity(entity).addByFields(first, remaining).build();
+        return SuperCudReq.<E, C, PK>builder().addEntity(entity).addByFields(first, remaining).build();
     }
 
-    public static <E, C> SuperCudReq<E, C> update(E entity) {
+    public static <E, C, PK extends Serializable> SuperCudReq<E, C, PK> update(E entity) {
         return new SuperCudReq<>(null, null, List.of(entity), null, null, null);
     }
 
-    public static <E, C> SuperCudReq<E, C> updateAll(Collection<E> entities) {
+    public static <E, C, PK extends Serializable> SuperCudReq<E, C, PK> updateAll(Collection<E> entities) {
         return new SuperCudReq<>(null, null, copyOf(entities), null, null, null);
     }
 
-    public static <E, C> SuperCudReq<E, C> updateByCriteria(Collection<E> entities, C criteria) {
+    public static <E, C, PK extends Serializable> SuperCudReq<E, C, PK> updateByCriteria(Collection<E> entities, C criteria) {
         return new SuperCudReq<>(null, null, copyOf(entities), criteria, null, null);
     }
 
-    public static <E, C> SuperCudReq<E, C> delete(Serializable id) {
+    public static <E, C, PK extends Serializable> SuperCudReq<E, C, PK> delete(PK id) {
         return new SuperCudReq<>(null, null, null, null, List.of(id), null);
     }
 
-    public static <E, C> SuperCudReq<E, C> deleteAll(Collection<? extends Serializable> ids) {
+    public static <E, C, PK extends Serializable> SuperCudReq<E, C, PK> deleteAll(Collection<? extends PK> ids) {
         return new SuperCudReq<>(null, null, null, null, copyOf(ids), null);
     }
 
-    public static <E, C> SuperCudReq<E, C> deleteByCriteria(C criteria) {
+    public static <E, C, PK extends Serializable> SuperCudReq<E, C, PK> deleteByCriteria(C criteria) {
         return new SuperCudReq<>(null, null, null, null, null, List.of(criteria));
     }
 
-    public static <E, C extends IUpdateCriteria<C>> Builder<E, C> builder() {
+    public static <E, C extends IUpdateCriteria<C>, PK extends Serializable> Builder<E, C, PK> builder() {
         return new Builder<>();
     }
 
@@ -108,79 +110,79 @@ public record SuperCudReq<E, C>(
                 .toList();
     }
 
-    public static final class Builder<E, C extends IUpdateCriteria<C>> {
+    public static final class Builder<E, C extends IUpdateCriteria<C>, PK extends Serializable> {
 
         private final List<E> addEntities = new ArrayList<>();
         private final List<E> updateEntities = new ArrayList<>();
-        private final List<Serializable> deleteIds = new ArrayList<>();
+        private final List<PK> deleteIds = new ArrayList<>();
         private final List<C> deleteCriteria = new ArrayList<>();
         private List<String> addByFields = List.of();
         private C updateCriteria;
 
-        public Builder<E, C> addEntity(E entity) {
+        public Builder<E, C, PK> addEntity(E entity) {
             addEntities.add(entity);
             return this;
         }
 
-        public Builder<E, C> addEntities(Collection<? extends E> entities) {
+        public Builder<E, C, PK> addEntities(Collection<? extends E> entities) {
             if (entities != null) addEntities.addAll(entities);
             return this;
         }
 
-        public Builder<E, C> addByFields(String... fields) {
+        public Builder<E, C, PK> addByFields(String... fields) {
             addByFields = normalizedFields(fields == null ? null : List.of(fields));
             return this;
         }
 
         @SafeVarargs
-        public final Builder<E, C> addByFields(
+        public final Builder<E, C, PK> addByFields(
                 PropertyGetter<E, ?> first, PropertyGetter<E, ?>... remaining) {
             addByFields = propertyNames(first, remaining);
             return this;
         }
 
-        public Builder<E, C> updateEntity(E entity) {
+        public Builder<E, C, PK> updateEntity(E entity) {
             updateEntities.add(entity);
             return this;
         }
 
-        public Builder<E, C> updateEntities(Collection<? extends E> entities) {
+        public Builder<E, C, PK> updateEntities(Collection<? extends E> entities) {
             if (entities != null) updateEntities.addAll(entities);
             return this;
         }
 
-        public Builder<E, C> updateCriteria(C criteria) {
+        public Builder<E, C, PK> updateCriteria(C criteria) {
             updateCriteria = criteria;
             return this;
         }
 
-        public Builder<E, C> updateByCriteria(C criteria) {
+        public Builder<E, C, PK> updateByCriteria(C criteria) {
             return updateCriteria(criteria);
         }
 
         @SafeVarargs
-        public final Builder<E, C> updateByCriteria(
+        public final Builder<E, C, PK> updateByCriteria(
                 C criteria, PropertyGetter<E, ?> first, PropertyGetter<E, ?>... remaining) {
             criteria.setMatchFields(propertyNames(first, remaining));
             return updateCriteria(criteria);
         }
 
-        public Builder<E, C> deleteId(Serializable id) {
+        public Builder<E, C, PK> deleteId(PK id) {
             deleteIds.add(id);
             return this;
         }
 
-        public Builder<E, C> deleteIds(Collection<? extends Serializable> ids) {
+        public Builder<E, C, PK> deleteIds(Collection<? extends PK> ids) {
             if (ids != null) deleteIds.addAll(ids);
             return this;
         }
 
-        public Builder<E, C> deleteByCriteria(C criteria) {
+        public Builder<E, C, PK> deleteByCriteria(C criteria) {
             deleteCriteria.add(criteria);
             return this;
         }
 
-        public SuperCudReq<E, C> build() {
+        public SuperCudReq<E, C, PK> build() {
             return new SuperCudReq<>(addEntities, addByFields, updateEntities,
                     updateCriteria, deleteIds, deleteCriteria);
         }

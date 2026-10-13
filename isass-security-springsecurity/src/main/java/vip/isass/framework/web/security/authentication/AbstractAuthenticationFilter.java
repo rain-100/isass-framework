@@ -9,13 +9,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
-import vip.isass.framework.common.security.AuthenticatedPrincipal;
-import vip.isass.framework.web.security.authorization.PrincipalAuthorizationContext;
+import vip.isass.framework.security.AuthenticatedPrincipal;
+import vip.isass.framework.security.InternalServicePrincipal;
+import vip.isass.framework.security.PrincipalAuthorizationContext;
+import vip.isass.framework.security.PrincipalAuthorizationLoader;
+import vip.isass.framework.web.security.authorization.PrincipalAuthorizationContextResolver;
 
-import java.util.Collection;
+import java.util.Objects;
 
 /**
  * @author Rain
@@ -23,26 +25,35 @@ import java.util.Collection;
 @Slf4j
 public abstract class AbstractAuthenticationFilter extends BasicAuthenticationFilter {
 
+    private final PrincipalAuthorizationLoader authorizationLoader;
+    private final boolean loadRolesForLogging;
+
     public AbstractAuthenticationFilter(AuthenticationManager authenticationManager) {
+        this(authenticationManager, null, false);
+    }
+
+    public AbstractAuthenticationFilter(AuthenticationManager authenticationManager,
+                                        PrincipalAuthorizationLoader authorizationLoader,
+                                        boolean loadRolesForLogging) {
         super(authenticationManager);
+        this.authorizationLoader = loadRolesForLogging
+                ? Objects.requireNonNull(authorizationLoader, "角色调试日志需要授权加载器") : authorizationLoader;
+        this.loadRolesForLogging = loadRolesForLogging;
     }
 
-    protected void saveAuthentication(AuthenticatedPrincipal principal, Collection<GrantedAuthority> authorities) {
-        saveAuthentication(principal, authorities, null);
-    }
-
-    protected void saveAuthentication(AuthenticatedPrincipal principal,
-                                      Collection<GrantedAuthority> authorities,
-                                      PrincipalAuthorizationContext authorizationContext) {
+    protected PrincipalAuthenticationToken saveAuthentication(
+            AuthenticatedPrincipal principal, PrincipalAuthorizationContext principalAuthorizationContext) {
         Authentication current = SecurityContextHolder.getContext().getAuthentication();
         if (current instanceof PrincipalAuthenticationToken token && token.hasBusinessPrincipal()) {
             throw new IllegalStateException("不允许同时使用多种 ISASS 认证凭证");
         }
-        vip.isass.framework.common.security.InternalServicePrincipal internalPrincipal =
+        InternalServicePrincipal internalPrincipal =
                 current instanceof PrincipalAuthenticationToken token
                         ? token.getInternalServicePrincipal() : null;
-        SecurityContextHolder.getContext().setAuthentication(
-                new PrincipalAuthenticationToken(principal, internalPrincipal, authorities, authorizationContext));
+        PrincipalAuthenticationToken authentication = new PrincipalAuthenticationToken(
+                principal, internalPrincipal, principalAuthorizationContext);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        return authentication;
     }
 
     @Override
@@ -51,13 +62,25 @@ public abstract class AbstractAuthenticationFilter extends BasicAuthenticationFi
         if (authentication instanceof PrincipalAuthenticationToken principalAuthenticationToken) {
             AuthenticatedPrincipal principal = principalAuthenticationToken.getPrincipal();
             if (principal == null) return;
-            log.debug("认证成功[{}], 正在访问[{} {}], userId[{}], name[{}], 拥有角色{}, 源ip[{}]",
+            if (loadRolesForLogging) {
+                PrincipalAuthorizationContext context = PrincipalAuthorizationContextResolver.roles(
+                        principalAuthenticationToken, authorizationLoader);
+                log.debug("认证成功[{}], 正在访问[{} {}], userId[{}], name[{}], 拥有角色{}, 源ip[{}]",
+                        this.getClass().getSimpleName(),
+                        request.getMethod(),
+                        request.getRequestURL(),
+                        principal.getPrincipalId(),
+                        principal.getPrincipalName(),
+                        context.roleCodes(),
+                        JakartaServletUtil.getClientIP(request));
+                return;
+            }
+            log.debug("认证成功[{}], 正在访问[{} {}], userId[{}], name[{}], 源ip[{}]",
                     this.getClass().getSimpleName(),
                     request.getMethod(),
                     request.getRequestURL(),
                     principal.getPrincipalId(),
                     principal.getPrincipalName(),
-                    authentication.getAuthorities(),
                     JakartaServletUtil.getClientIP(request));
         }
     }

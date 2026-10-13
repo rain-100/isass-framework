@@ -26,8 +26,8 @@ import tools.jackson.databind.ser.jdk.NumberSerializer;
 import tools.jackson.databind.ser.std.StdConvertingSerializer;
 import vip.isass.framework.common.map.MultiKeyMultiValueBiMap;
 import vip.isass.framework.common.map.MultiValueBiMap;
-import vip.isass.framework.common.security.data.DataFieldSerializerModifier;
-import vip.isass.framework.common.security.data.LegacyDataFieldSerializerModifier;
+import vip.isass.framework.common.serialization.DataFieldSerializerModifier;
+import vip.isass.framework.common.serialization.LegacyDataFieldSerializerModifier;
 import vip.isass.framework.common.support.json.LocalDateTimeToLongConvert;
 import vip.isass.framework.common.support.json.LocalDateToLongConvert;
 import vip.isass.framework.common.support.json.LocalTimeToLongConvert;
@@ -114,6 +114,9 @@ public class JsonUtil {
                 // 当实体类中不含有 json 字符串的某些字段时，不抛出异常
                 .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
 
+                // 整数类型禁止由小数截断转换，避免主键等值发生有损转换
+                .disable(DeserializationFeature.ACCEPT_FLOAT_AS_INT)
+
                 // 非 bean 对象不抛异常
                 .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
 
@@ -145,6 +148,7 @@ public class JsonUtil {
         LEGACY_MAPPER = new com.fasterxml.jackson.databind.ObjectMapper()
                 .setSerializationInclusion(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL);
         LEGACY_MAPPER.configure(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        LEGACY_MAPPER.configure(com.fasterxml.jackson.databind.DeserializationFeature.ACCEPT_FLOAT_AS_INT, false);
         LEGACY_MAPPER.configure(com.fasterxml.jackson.databind.SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
         LEGACY_MAPPER.configure(com.fasterxml.jackson.databind.DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS, true);
         LEGACY_MAPPER.configure(com.fasterxml.jackson.databind.MapperFeature.PROPAGATE_TRANSIENT_MARKER, true);

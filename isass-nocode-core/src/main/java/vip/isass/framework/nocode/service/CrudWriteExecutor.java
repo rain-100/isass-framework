@@ -13,15 +13,15 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.transaction.support.TransactionTemplate;
 import vip.isass.framework.common.exception.AbsentException;
 import vip.isass.framework.common.criteria.ICriteria;
+import vip.isass.framework.common.criteria.CriteriaMetadata;
 import vip.isass.framework.common.criteria.IUpdateCriteria;
 import vip.isass.framework.common.criteria.WhereCondition;
 import vip.isass.framework.common.criteria.impl.type.Condition;
-import vip.isass.framework.common.criteria.field.IIdCriteria;
 import vip.isass.framework.common.criteria.type.IOrderByCriteria;
 import vip.isass.framework.common.criteria.type.IPageCriteria;
 import vip.isass.framework.common.criteria.type.IReturnFieldCriteria;
 import vip.isass.framework.common.criteria.type.IWhereConditionCriteria;
-import vip.isass.framework.common.entity.IIdEntity;
+import vip.isass.framework.common.entity.IEntity;
 import vip.isass.framework.common.entity.EntityAssociation;
 import vip.isass.framework.nocode.entity.SuperCudReq;
 import vip.isass.framework.nocode.entity.SuperCudResult;
@@ -41,6 +41,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * Executes every standard nocode write through one validation and transaction boundary.
@@ -82,25 +83,47 @@ public class CrudWriteExecutor {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public <PK extends Serializable, E extends IIdEntity<PK, E>,
-            C extends ICriteria<E, C> & IIdCriteria<PK, E, C> & IUpdateCriteria<C>
+    public <PK extends Serializable, E extends IEntity<E>,
+            C extends ICriteria<E, C> & IUpdateCriteria<C>
                     & IPageCriteria<E, C> & IOrderByCriteria<E, C>> SuperCudResult superCud(ILocalCrudService<E, C, PK> service,
-                                                                                            SuperCudReq<E, C> request
+                                                                                            SuperCudReq<E, C, PK> request
     ) {
         Objects.requireNonNull(service, "service");
         Objects.requireNonNull(request, "request");
         Set<Object> active = ACTIVE_SERVICES.get();
-        if (!active.add(service)) {
+        boolean firstInvocation = active.add(service);
+        if (!firstInvocation && (associations == null || !associations.nestedInvocation())) {
             validate(request);
+            validateCapabilities(service, request);
             return execute(service, request);
         }
         try {
-            CrudWriteLifecycleContext<E, C> context = new CrudWriteLifecycleContext<>(service, request);
+            CrudWriteLifecycleContext<E, C, PK> context = new CrudWriteLifecycleContext<>(service, request);
             List<CrudWriteLifecycleListener> supported = listeners.stream()
                     .filter(listener -> listener.supports(context)).toList();
             boolean transactionCallbacks = registerTransactionCallbacks(supported, context);
             try {
                 validate(request);
+                validateCapabilities(service, request);
+                if (associations != null) {
+                    request.addEntities().forEach(entity -> associations.authorizeGraph(entity, null, true, null));
+                    for (E entity : request.updateEntities()) {
+                        C criteria = effectiveUpdateCriteria(service, request.updateCriteria(), entity);
+                        PK rootId = validateAndResolveRelatedUpdateRootId(entity, criteria);
+                        if (rootId != null && repositoryLock(service, rootId) == null) {
+                            throw new AbsentException("关联更新的主实体不存在: " + rootId);
+                        }
+                        associations.authorizeGraph(entity, criteria, false, rootId);
+                    }
+                    // 外键指向的新增对象先在当前事务内保存、回填 ID，再执行依赖其存在性的业务校验。
+                    if (request.addByFields().isEmpty()) {
+                        request.addEntities().forEach(entity -> associations.beforeSave(entity, true));
+                    }
+                    for (E entity : request.updateEntities()) {
+                        C criteria = effectiveUpdateCriteria(service, request.updateCriteria(), entity);
+                        associations.beforeSave(entity, false, validateAndResolveRelatedUpdateRootId(entity, criteria), criteria);
+                    }
+                }
                 supported.forEach(listener -> listener.beforeExecute(context));
                 context.setResult(execute(service, request));
                 supported.forEach(listener -> listener.afterExecute(context));
@@ -112,13 +135,13 @@ public class CrudWriteExecutor {
                 throw error;
             }
         } finally {
-            active.remove(service);
+            if (firstInvocation) active.remove(service);
             if (active.isEmpty()) ACTIVE_SERVICES.remove();
         }
     }
 
     private boolean registerTransactionCallbacks(List<CrudWriteLifecycleListener> supported,
-                                                 CrudWriteLifecycleContext<?, ?> context) {
+                                                 CrudWriteLifecycleContext<?, ?, ?> context) {
         if (!TransactionSynchronizationManager.isActualTransactionActive()
                 || !TransactionSynchronizationManager.isSynchronizationActive()) {
             return false;
@@ -137,7 +160,7 @@ public class CrudWriteExecutor {
     }
 
     private void notifyAfterCommit(List<CrudWriteLifecycleListener> supported,
-                                   CrudWriteLifecycleContext<?, ?> context) {
+                                   CrudWriteLifecycleContext<?, ?, ?> context) {
         for (CrudWriteLifecycleListener listener : supported) {
             try {
                 listener.afterCommit(context);
@@ -148,7 +171,7 @@ public class CrudWriteExecutor {
     }
 
     private void notifyAfterRollback(List<CrudWriteLifecycleListener> supported,
-                                     CrudWriteLifecycleContext<?, ?> context,
+                                     CrudWriteLifecycleContext<?, ?, ?> context,
                                      Throwable error) {
         for (CrudWriteLifecycleListener listener : supported) {
             try {
@@ -161,11 +184,11 @@ public class CrudWriteExecutor {
         }
     }
 
-    private <PK extends Serializable, E extends IIdEntity<PK, E>,
-            C extends ICriteria<E, C> & IIdCriteria<PK, E, C> & IUpdateCriteria<C>
+    private <PK extends Serializable, E extends IEntity<E>,
+            C extends ICriteria<E, C> & IUpdateCriteria<C>
                     & IPageCriteria<E, C> & IOrderByCriteria<E, C>> SuperCudResult execute(
             ILocalCrudService<E, C, PK> service,
-            SuperCudReq<E, C> request
+            SuperCudReq<E, C, PK> request
     ) {
         if (request.isEmpty()) {
             return SuperCudResult.empty();
@@ -238,19 +261,23 @@ public class CrudWriteExecutor {
         }
 
         for (C criteria : request.deleteCriteria()) {
-            LinkedHashSet<PK> rootIds = new LinkedHashSet<>();
+            if (!CrudIdSupport.supportsId(service)) {
+                deletedCount += repository.deleteCountByCriteria(criteria);
+                continue;
+            }
+            LinkedHashSet<Serializable> rootIds = new LinkedHashSet<>();
             C selection = criteria.copy();
             if (selection instanceof IReturnFieldCriteria<?, ?> columns) {
                 columns.setReturnField("id");
             }
             for (E deleting : repository.findByCriteria(selection)) {
-                PK rootId = deleting.getId();
+                Serializable rootId = CrudIdSupport.requireIdEntity(deleting, "按条件固定 ID 删除").getId();
                 if (rootId != null) rootIds.add(rootId);
             }
             if (rootIds.isEmpty()) continue;
-            List<PK> fixedIds = List.copyOf(rootIds);
+            List<Serializable> fixedIds = List.copyOf(rootIds);
             for (int offset = 0; offset < fixedIds.size(); offset += 500) {
-                List<PK> batch = fixedIds.subList(offset, Math.min(offset + 500, fixedIds.size()));
+                List<Serializable> batch = fixedIds.subList(offset, Math.min(offset + 500, fixedIds.size()));
                 if (associations != null && associations.active()) associations.beforeDelete(service, batch);
                 deletedCount += repository.deleteCountByIds(batch);
             }
@@ -259,7 +286,7 @@ public class CrudWriteExecutor {
         return new SuperCudResult(addedCount, updatedCount, deletedCount);
     }
 
-    private <E extends vip.isass.framework.common.entity.IEntity<E>, C extends ICriteria<E, C>>
+    private <E extends IEntity<E>, C extends ICriteria<E, C>>
     boolean insertIfAbsent(IRepository<E, C> repository, E entity, C criteria) {
         if (repository.isPresentByCriteria(criteria)) {
             return false;
@@ -278,7 +305,7 @@ public class CrudWriteExecutor {
         }
     }
 
-    private <E, C> void validate(SuperCudReq<E, C> request) {
+    private void validate(SuperCudReq<?, ?, ?> request) {
         requireNoNulls(request.addEntities(), "addEntities");
         requireNoNulls(request.updateEntities(), "updateEntities");
         requireNoNulls(request.deleteIds(), "deleteIds");
@@ -303,7 +330,7 @@ public class CrudWriteExecutor {
                     updateCriteria.resolveMatchFields(), "updateCriteria.matchFields");
         }
         if (!request.updateEntities().isEmpty() && request.updateCriteria() == null) {
-            request.updateEntities().forEach(entity -> requireUsableId(idOfOrNull(entity), "updateEntities"));
+            request.updateEntities().forEach(entity -> CrudIdSupport.requireId(entity, "updateEntities"));
         }
         if (!request.updateEntities().isEmpty() && request.updateCriteria() != null) {
             validateWriteOptions(request.updateCriteria());
@@ -311,13 +338,35 @@ public class CrudWriteExecutor {
                     request.updateCriteria(), "updateCriteria");
             List<String> matchFields = ((IUpdateCriteria<?>) request.updateCriteria()).resolveMatchFields();
             if (!whereCriteria.hasConditions() && matchFields.isEmpty()) {
-                request.updateEntities().forEach(entity -> requireUsableId(idOfOrNull(entity), "updateEntities"));
+                request.updateEntities().forEach(entity -> CrudIdSupport.requireId(entity, "updateEntities"));
             }
         }
         request.deleteCriteria().forEach(criteria -> {
             validateWriteOptions(criteria);
             requireCriteria(criteria, "deleteCriteria");
         });
+    }
+
+    private <PK extends Serializable, E extends IEntity<E>,
+            C extends ICriteria<E, C> & IUpdateCriteria<C>
+                    & IPageCriteria<E, C> & IOrderByCriteria<E, C>> void validateCapabilities(
+            ILocalCrudService<E, C, PK> service, SuperCudReq<E, C, PK> request) {
+        if (!request.deleteIds().isEmpty()) {
+            CrudIdSupport.requireIdEntity(service, "deleteIds");
+        }
+        for (E entity : request.updateEntities()) {
+            C effective = effectiveUpdateCriteria(service, request.updateCriteria(), entity);
+            validateAndResolveRelatedUpdateRootId(entity, effective);
+        }
+        if (associations != null && associations.active()) {
+            request.addEntities().forEach(entity -> associations.validateSaveCapabilities(entity, true));
+            request.updateEntities().forEach(entity -> associations.validateSaveCapabilities(entity, false));
+        }
+        if (!request.deleteCriteria().isEmpty() && !CrudIdSupport.supportsId(service)
+                && CriteriaMetadata.associations(CrudServiceTypeResolver.resolveEntityClass(service.getClass()))
+                .stream().anyMatch(EntityAssociation::cascadeDelete)) {
+            throw new UnsupportedOperationException("级联删除要求主实体实现 IIdEntity");
+        }
     }
 
     private void validateWriteOptions(Object criteria) {
@@ -360,16 +409,7 @@ public class CrudWriteExecutor {
     }
 
     private Serializable idOf(Object entity) {
-        Serializable id = idOfOrNull(entity);
-        requireUsableId(id, "entity");
-        return id;
-    }
-
-    private Serializable idOfOrNull(Object entity) {
-        if (!(entity instanceof IIdEntity<?, ?> idEntity)) {
-            return null;
-        }
-        return idEntity.getId();
+        return CrudIdSupport.requireId(entity, "entity");
     }
 
     private void validateProperties(Object entity, List<String> fields, String fieldName) {
@@ -400,7 +440,7 @@ public class CrudWriteExecutor {
             try {
                 return List.of(Introspector.getBeanInfo(type).getPropertyDescriptors()).stream()
                         .filter(descriptor -> !"class".equals(descriptor.getName()))
-                        .collect(java.util.stream.Collectors.toUnmodifiableMap(
+                        .collect(Collectors.toUnmodifiableMap(
                                 PropertyDescriptor::getName, descriptor -> descriptor));
             } catch (IntrospectionException exception) {
                 throw new IllegalStateException("无法分析实体属性: " + type.getName(), exception);
@@ -409,8 +449,8 @@ public class CrudWriteExecutor {
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private <PK extends Serializable, E extends IIdEntity<PK, E>,
-            C extends ICriteria<E, C> & IIdCriteria<PK, E, C> & IUpdateCriteria<C>
+    private <PK extends Serializable, E extends IEntity<E>,
+            C extends ICriteria<E, C> & IUpdateCriteria<C>
                     & IPageCriteria<E, C> & IOrderByCriteria<E, C>> C criteriaWithEntityFields(
             ILocalCrudService<E, C, PK> service,
             C source,
@@ -418,7 +458,7 @@ public class CrudWriteExecutor {
             List<String> fields
     ) {
         C criteria = source == null ? service.newCriteria() : source.copy();
-        IWhereConditionCriteria whereCriteria = (IWhereConditionCriteria) criteria;
+        IWhereConditionCriteria<?, ?> whereCriteria = requireWhereCriteria(criteria, "写入 Criteria");
         for (String field : fields) {
             Object value = propertyValue(entity, field, "matchFields");
             if (value == null) whereCriteria.isNull(field);
@@ -427,8 +467,8 @@ public class CrudWriteExecutor {
         return criteria;
     }
 
-    private <PK extends Serializable, E extends IIdEntity<PK, E>,
-            C extends ICriteria<E, C> & IIdCriteria<PK, E, C> & IUpdateCriteria<C>
+    private <PK extends Serializable, E extends IEntity<E>,
+            C extends ICriteria<E, C> & IUpdateCriteria<C>
                     & IPageCriteria<E, C> & IOrderByCriteria<E, C>> C effectiveUpdateCriteria(
             ILocalCrudService<E, C, PK> service,
             C source,
@@ -439,14 +479,14 @@ public class CrudWriteExecutor {
         }
         C criteria = criteriaWithEntityFields(service, source, entity, source.resolveMatchFields());
         if (!((IWhereConditionCriteria<?, ?>) criteria).hasConditions()) {
-            ((IIdCriteria<PK, E, C>) criteria).setId((PK) idOf(entity));
+            CrudIdSupport.equalsId(service, criteria, idOf(entity));
         }
         return criteria;
     }
 
     @SuppressWarnings("unchecked")
-    private <PK extends Serializable, E extends IIdEntity<PK, E>,
-            C extends ICriteria<E, C> & IIdCriteria<PK, E, C> & IUpdateCriteria<C>
+    private <PK extends Serializable, E extends IEntity<E>,
+            C extends ICriteria<E, C> & IUpdateCriteria<C>
                     & IPageCriteria<E, C> & IOrderByCriteria<E, C>> PK validateAndResolveRelatedUpdateRootId(
             E entity, C criteria) {
         boolean submittedRelation = false;
@@ -458,6 +498,7 @@ public class CrudWriteExecutor {
             }
         }
         if (!submittedRelation) return null;
+        CrudIdSupport.requireIdEntity(entity, "更新关联对象");
         if (!(criteria instanceof IWhereConditionCriteria<?, ?> where)) {
             throw new IllegalArgumentException("更新关联对象必须以 Criteria 明确指定主实体 ID");
         }
@@ -476,30 +517,33 @@ public class CrudWriteExecutor {
             }
         }
         requireUsableId(rootId, "更新关联对象的 Criteria.id");
-        Serializable entityId = entity.getId();
+        Serializable entityId = CrudIdSupport.requireIdEntity(entity, "更新关联对象").getId();
         if (entityId != null && !String.valueOf(entityId).equals(String.valueOf(rootId))) {
             throw new IllegalArgumentException("更新实体 ID 与 Criteria 主实体 ID 不一致");
         }
         return (PK) rootId;
     }
 
-    private boolean onlySubmittedAssociation(IIdEntity<?, ?> entity) {
+    public static boolean onlySubmittedAssociation(IEntity<?> entity) {
         Set<String> relations = entity.associations().stream().map(EntityAssociation::property)
-                .collect(java.util.stream.Collectors.toSet());
+                .collect(Collectors.toSet());
         if (relations.isEmpty() || entity.presentProperties().stream().noneMatch(relations::contains)) return false;
         return entity.presentProperties().stream().allMatch(property -> "id".equals(property) || relations.contains(property));
     }
 
+    private Object repositoryLock(ILocalCrudService<?, ?, ?> service, Serializable id) {
+        return service.getRepository().getEntityByIdForUpdate(id);
+    }
+
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private <PK extends Serializable, E extends IIdEntity<PK, E>,
-            C extends ICriteria<E, C> & IIdCriteria<PK, E, C> & IUpdateCriteria<C>
+    private <PK extends Serializable, E extends IEntity<E>,
+            C extends ICriteria<E, C> & IUpdateCriteria<C>
                     & IPageCriteria<E, C> & IOrderByCriteria<E, C>> C criteriaWithId(
             ILocalCrudService<E, C, PK> service,
             C source,
             Serializable id
     ) {
         C copy = source == null ? service.newCriteria() : source.copy();
-        ((IIdCriteria) copy).setId(id);
-        return copy;
+        return CrudIdSupport.equalsId(service, copy, id);
     }
 }
