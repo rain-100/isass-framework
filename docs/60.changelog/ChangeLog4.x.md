@@ -10,7 +10,7 @@
 - NoCode：统一八个 CRUD 入口与事务执行器，服务泛型仅要求 IEntity，无主键实体支持新增、普通查询及条件修改/删除；ID 方法、游标及 ID 关联能力运行时校验，生成器同步支持无主键表。SuperCudReq<E,C,PK> 的 deleteIds 按 PK 在入口反序列化。统一查询/写生命周期，数据库副作用在事务内、缓存刷新在提交后。
 - 查询与关联：Criteria 使用 Java 属性、returnFields 和 loadRelated；Query 按属性定义绑定集合，修复便捷重载导致 returnFields 被误作 JSON。JOIN/FROM/EXISTS/IN 递归构建，ORM 解析列名并绑定参数。MPJ 负责结果装配，关联分页按根实体统计并保留集合；不支持的写入形态明确拒绝。
 - 关联写入：按出现性递归保存并回填外键；只读引用、固定条件统一读取与写入。嵌套增改删独立授权及生命周期，ID-only 不重复修改；REPLACE/级联按实际 ID 删除，根关联更新加锁，整批事务回滚。入口及嵌套权限执行器在调用时解析，避免依赖入口目录的授权组件形成启动循环，拒绝仍终止调用。
-- 模型生成：EntityModelDefinition/EntityFieldDefinition 声明领域、枚举、类型与租户开关；EntityRelationDefinition 唯一定义关系。DDL 仅保留物理结构与说明；实体、Criteria 和关系元数据由生成器输出。
+- 模型生成：EntityModelDefinition/EntityFieldDefinition 声明领域、枚举、类型与租户开关；EntityRelationDefinition 唯一定义关系。删除旧 DDL 领域解析及配置说明，统一项目模板；DDL 仅保留物理结构与说明，实体、Criteria 和关系元数据由生成器输出。
 - 数据授权底座：角色数据过滤、固定租户边界与服务端生命周期约束独立叠加，覆盖根表、关联、子查询及统计。NoCode 缺少租户时拒绝租户数据，关联边界及平台豁免由开发者 SPI 声明。addReadRestriction 不修改客户端 Criteria；输入校验与内部补键隐藏防泄漏。Repository 支持事务记录锁及授权条件判定，未适配写入时拒绝。
 - JSON 与响应：JsonUtil 为统一入口，兼容 Jackson 3 与第三方 Jackson 2，禁止浮点数有损转整数；高级响应投影不污染领域实体。统一异常映射、Resp.detailMessage、文件流响应头与错误状态。
 - 数据库与迁移：Repository/表注册下沉数据库层；Liquibase 使用服务唯一 master/history，支持开发与发布迁移边界。租户与逻辑删除保护独立保留。

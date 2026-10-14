@@ -76,8 +76,8 @@ public class MybatisPlusGenerator {
     }
 
     /**
-     * 按服务表名的第二段和表注释领域标记划分限界上下文、领域与可选子域，例如
-     * {@code bsp_auth_role} + {@code [--domain:authorization;--subdomain:role]} 对应
+     * 按服务表名的第二段确定限界上下文，按 Java 模型声明确定领域与可选子域，例如
+     * {@code bsp_auth_role} + {@code EntityModelDefinition.of("Role", "authorization", "role")} 对应
      * {@code bsp.auth.domain.authorization.role}。
      */
     private static List<MybatisPlusGeneratorMeta> generationMetas(MybatisPlusGeneratorMeta meta) throws SQLException {

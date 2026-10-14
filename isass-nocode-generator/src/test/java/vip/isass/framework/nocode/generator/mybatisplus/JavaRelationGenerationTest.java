@@ -117,6 +117,6 @@ class JavaRelationGenerationTest {
         MybatisPlusGenerator.generate(meta);
         String entity = Files.readString(output.resolve("api/src/main/java/vip/example/bsp/auth/domain/identity/domain/model/entity/User.java"));
         assertThat(entity).contains("enum Status", "DRAFT(0", "Map<String, Object> preferences")
-                .doesNotContain("ITenantEntity", "[--domain:", "[枚举--");
+                .doesNotContain("ITenantEntity", "[枚举--");
     }
 }

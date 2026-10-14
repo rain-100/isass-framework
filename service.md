@@ -13,6 +13,8 @@
 | `bsp-web-vue`          |          31011 | bsp前端管理                                                                                              |
 | `iimage-service`       |          31020 | 智图资产管理服务                                                                                         |
 | `iimage-asset-h5`      |          31025 | 智图资产管理前端                                                                                         |
+| `muse-service`         |          31030 | 妙思后端服务                                                                                             |
+| `muse-web-vue`         |          31035 | 妙思前端管理                                                                                             |
 
 ## 不再作为 V4 独立部署服务的历史工程
 

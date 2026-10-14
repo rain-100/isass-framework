@@ -5,8 +5,6 @@ package vip.isass.framework.nocode.generator.association;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class TableAssociationParserTest {
 
@@ -17,39 +15,14 @@ class TableAssociationParserTest {
     }
 
     @Test
-    void parsesDomainAndRemovesItFromTheHumanDescription() {
-        String comment = "平台账户 [--domain:identity] [关联表-列表-Role]";
-
-        assertEquals("identity", TableAssociationParser.domain(comment));
-        assertNull(TableAssociationParser.subdomain(comment));
-        assertEquals("平台账户", TableAssociationParser.description(comment));
+    void preservesHumanDescriptionsAndOrdinaryBrackets() {
+        assertEquals("平台账户 [全局身份]", TableAssociationParser.description("  平台账户 [全局身份]  "));
+        assertEquals("角色", TableAssociationParser.description("角色"));
     }
 
     @Test
-    void parsesOptionalSubdomainAndRemovesTheWholeMarkerFromDescription() {
-        String comment = "角色 [--domain:authorization;--subdomain:role]";
-
-        var metadata = TableAssociationParser.domainMetadata(comment);
-
-        assertEquals("authorization", metadata.domain());
-        assertEquals("role", metadata.subdomain());
-        assertEquals("角色", TableAssociationParser.description(comment));
-    }
-
-    @Test
-    void rejectsInvalidOrDuplicateDomains() {
-        assertThrows(IllegalArgumentException.class,
-                () -> TableAssociationParser.domain("用户 [--domain:Identity]"));
-        assertThrows(IllegalArgumentException.class,
-                () -> TableAssociationParser.domain("用户 [--domain:identity] [--domain:account]"));
-        assertThrows(IllegalArgumentException.class,
-                () -> TableAssociationParser.domainMetadata(
-                        "角色 [--domain:authorization;--subdomain:Role]"));
-        assertThrows(IllegalArgumentException.class,
-                () -> TableAssociationParser.domainMetadata(
-                        "角色 [--domain:authorization;--subdomain:role;--subdomain:permission]"));
-        assertThrows(IllegalArgumentException.class,
-                () -> TableAssociationParser.domainMetadata(
-                        "角色 [--domain:authorization;--subdomain:application]"));
+    void normalizesMissingOrBlankDescriptions() {
+        assertEquals("", TableAssociationParser.description(null));
+        assertEquals("", TableAssociationParser.description(" \t\n "));
     }
 }
