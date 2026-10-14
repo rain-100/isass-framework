@@ -9,5 +9,6 @@ MyBatis-Plus / MPJ 适配。注册实体表元数据，将 Criteria 转为 Wrapp
 - 固定 TenantReadContext 覆盖根表、JOIN/FROM、EXISTS/IN、计数与存在性查询；JOIN 目标先过滤再关联。编译开发者固定条件时仅暂停角色授权校验，租户上下文继续生效；客户端条件与子查询不享有此豁免。
 - TrustedReadContext 的生命周期约束按 Criteria 对象身份独立 AND 叠加，可使用不输出的字段；仅约束自身跳过字段输入校验，客户端 WHERE/ORDER/JOIN 仍校验，内部列不因此获得输出权限。exists 内部去除排序的 Criteria 副本显式继承原查询约束，其他查询不自动继承。
 - 关联分页按根实体计数并保留集合；需要窗口函数。MySQL 不支持 FULL JOIN，SQL Server 授权写锁未适配；不安全或不支持的形态明确拒绝。
+- 测试不使用 H2；已移除对应内存库集成测试和依赖。
 
 [返回模块目录](../README.md)

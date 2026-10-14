@@ -21,11 +21,6 @@
             <artifactId>isass-security-core</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>vip.isass</groupId>
             <artifactId>isass-core-common</artifactId>
         </dependency>

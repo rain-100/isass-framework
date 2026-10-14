@@ -18,6 +18,7 @@ import ${associationImport};
 <#list table.fields as field>
 <#if isEnum(field)>
 import cn.hutool.core.util.RandomUtil;
+// Jackson 3 沿用 jackson-annotations 2.x；基础注解保留 com.fasterxml.jackson.annotation 包名。
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 <#break>
@@ -233,7 +234,7 @@ public class ${entity} implements
             return code;
         }
 
-        @JsonCreator
+        @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
         public static ${field.propertyName?cap_first} parseFromCode(Integer code) {
             for (${field.propertyName?cap_first} ${field.propertyName} : ${field.propertyName?cap_first}.values()) {
                 if (${field.propertyName}.code.equals(code)) {
