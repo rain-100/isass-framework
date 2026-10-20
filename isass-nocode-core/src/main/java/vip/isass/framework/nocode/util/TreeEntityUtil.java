@@ -12,7 +12,6 @@ import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
-import vip.isass.framework.common.entity.IParentIdEntity;
 
 import java.io.Serializable;
 import java.util.ArrayDeque;
@@ -87,7 +86,7 @@ public final class TreeEntityUtil {
         List<E> roots = new ArrayList<>();
         for (E entity : entities) {
             Object parentId = parentIdGetter.apply(entity);
-            E parent = isTopParentId(parentId) ? null : entitiesById.get(parentId);
+            E parent = parentId == null ? null : entitiesById.get(parentId);
             if (parent == null) {
                 roots.add(entity);
             } else {
@@ -176,20 +175,13 @@ public final class TreeEntityUtil {
         }
         states.put(id, VisitState.VISITING);
         Object parentId = parentIdGetter.apply(entity);
-        if (!isTopParentId(parentId)) {
+        if (parentId != null) {
             E parent = entitiesById.get(parentId);
             if (parent != null) {
                 validateNoCycle(parent, idGetter, parentIdGetter, entitiesById, states);
             }
         }
         states.put(id, VisitState.VISITED);
-    }
-
-    private static boolean isTopParentId(Object parentId) {
-        return parentId == null
-                || IParentIdEntity.TOP_ID_STRING_VALUE.equals(parentId)
-                || IParentIdEntity.TOP_ID_INTEGER_VALUE.equals(parentId)
-                || IParentIdEntity.TOP_ID_LONG_VALUE.equals(parentId);
     }
 
     private enum VisitState {
@@ -217,43 +209,8 @@ public final class TreeEntityUtil {
             Function<E, PK> parentIdGetter,
             Function<E, List<E>> childrenGetter,
             BiConsumer<E, List<E>> childrenSetter) {
-        if (CollUtil.isEmpty(entities)) {
-            return Collections.emptyList();
-        }
-
-        Map<PK, E> entityMap = MapUtil.newHashMap(entities.size());
-        List<E> roots = new ArrayList<>();
-        List<E> orphans = new ArrayList<>();
-
-        for (E entity : entities) {
-            PK id = idGetter.apply(entity);
-            Assert.notNull(id, "存在主键为空的实体");
-            entityMap.put(id, entity);
-
-            PK parentId = parentIdGetter.apply(entity);
-            if (parentId == null || parentId.equals(id)) {
-                roots.add(entity);
-            } else {
-                E parent = entityMap.get(parentId);
-                if (parent == null) {
-                    orphans.add(entity);
-                } else {
-                    mergeChild(parent, childrenGetter, childrenSetter, entity);
-                }
-            }
-        }
-
-        for (E entity : orphans) {
-            PK parentId = parentIdGetter.apply(entity);
-            E parent = entityMap.get(parentId);
-            if (parent == null) {
-                roots.add(entity);
-            } else {
-                mergeChild(parent, childrenGetter, childrenSetter, entity);
-            }
-        }
-
-        return roots;
+        return toEntityTree(entities, idGetter, parentIdGetter, (entity, parent) -> { },
+                childrenGetter, childrenSetter);
     }
 
     // ==================== toTree: 反射 ====================

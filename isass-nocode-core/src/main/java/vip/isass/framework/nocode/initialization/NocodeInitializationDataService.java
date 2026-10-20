@@ -10,6 +10,7 @@ import vip.isass.framework.common.criteria.ICriteria;
 import vip.isass.framework.common.criteria.field.IIdCriteria;
 import vip.isass.framework.common.entity.IEntity;
 import vip.isass.framework.common.entity.IIdEntity;
+import vip.isass.framework.database.core.repository.IRepository;
 import vip.isass.framework.nocode.service.ICrudService;
 import vip.isass.framework.nocode.service.ILocalCrudService;
 
@@ -22,11 +23,13 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 /** Imports and exports local NoCode entities without replaying interactive CRUD lifecycles. */
-public final class NocodeInitializationDataService {
+public final class NocodeInitializationDataService implements INocodeInitializationService {
 
     private static final int EXISTING_ID_BATCH_SIZE = 100;
     private static final TypeReference<LinkedHashMap<String, List<Map<String, Object>>>> DOCUMENT_TYPE =
@@ -45,7 +48,7 @@ public final class NocodeInitializationDataService {
                 throw new IllegalStateException("无法解析初始化实体类型: " + serviceInterface.getName());
             }
             LocalEntity previous = resolved.putIfAbsent(info.resourceName(),
-                    new LocalEntity(info.serviceName(), entityClass, service));
+                    new LocalEntity(info.serviceName(), info.contextName(), entityClass, service));
             if (previous != null) {
                 throw new IllegalStateException("初始化资源名称重复: " + info.resourceName());
             }
@@ -57,6 +60,36 @@ public final class NocodeInitializationDataService {
         return JsonUtil.readValue(input, DOCUMENT_TYPE);
     }
 
+    /**
+     * Reads initialization JSON, Excel or CSV using local entity metadata.
+     */
+    public Map<String, List<Map<String, Object>>> readDocument(InputStream input, String filename)
+            throws IOException {
+        return readDocument(input, filename, this::localEntityType);
+    }
+
+    Map<String, List<Map<String, Object>>> readDocument(InputStream input, String filename,
+                                                      Function<String, Class<?>> entityTypes) throws IOException {
+        if (!supportsDocument(filename)) {
+            throw new IllegalArgumentException("初始化文件仅支持 .json、.xlsx 或 .csv: " + filename);
+        }
+        if (filename.toLowerCase(Locale.ROOT).endsWith(".xlsx")) {
+            return NocodeInitializationExcelReader.read(input, entityTypes);
+        }
+        if (filename.toLowerCase(Locale.ROOT).endsWith(".csv")) {
+            return NocodeInitializationCsv.read(input, filename, entityTypes);
+        }
+        return readDocument(input);
+    }
+
+    static boolean supportsDocument(String filename) {
+        if (filename == null || filename.startsWith("~$")) {
+            return false;
+        }
+        String normalized = filename.toLowerCase(Locale.ROOT);
+        return normalized.endsWith(".json") || normalized.endsWith(".xlsx") || normalized.endsWith(".csv");
+    }
+
     public boolean hasLocalService(String serviceName) {
         return entities.values().stream().anyMatch(entity -> entity.serviceName().equals(serviceName));
     }
@@ -66,22 +99,25 @@ public final class NocodeInitializationDataService {
         return entity == null ? null : entity.serviceName();
     }
 
-    public ImportResult importData(String serviceName, Map<String, ? extends Collection<?>> document) {
-        return importData(serviceName, document, true);
+    Class<?> localEntityType(String entityName) {
+        LocalEntity entity = entities.get(entityName);
+        return entity == null ? null : entity.entityClass();
     }
 
     public ImportResult importDataWithFailures(String serviceName,
                                                Map<String, ? extends Collection<?>> document) {
-        return importData(serviceName, document, false);
+        return importData(serviceName, document);
     }
 
     public List<EntityInfo> entities(String serviceName) {
         return entities.entrySet().stream()
-                .filter(entry -> entry.getValue().serviceName().equals(serviceName))
-                .map(entry -> new EntityInfo(entry.getKey(), entityComment(entry.getValue().entityClass())))
+                .filter(entry -> serviceName == null || entry.getValue().serviceName().equals(serviceName))
+                .map(entry -> new EntityInfo(entry.getValue().serviceName(), entry.getValue().contextName(),
+                        entry.getKey(), entityComment(entry.getValue().entityClass())))
                 .toList();
     }
 
+    @Override
     public Map<String, List<?>> exportData(String serviceName, Collection<String> entityNames) {
         Map<String, List<?>> result = new LinkedHashMap<>();
         for (String entityName : entityNames) {
@@ -91,15 +127,17 @@ public final class NocodeInitializationDataService {
         return result;
     }
 
-    private ImportResult importData(String serviceName, Map<String, ? extends Collection<?>> document,
-                                    boolean failFast) {
+    @Override
+    public ImportResult importData(String serviceName, Map<String, ? extends Collection<?>> document) {
         ImportSummary summary = new ImportSummary();
-        if (document == null) return summary.result();
+        if (document == null) {
+            return summary.result();
+        }
         document.forEach((entityName, rows) -> {
+            summary.total += rows == null ? 0 : rows.size();
             try {
                 importRows(require(serviceName, entityName), rows, summary);
             } catch (RuntimeException exception) {
-                if (failFast) throw exception;
                 summary.failures.put(entityName, message(exception));
             }
         });
@@ -110,7 +148,6 @@ public final class NocodeInitializationDataService {
         if (rows == null) return;
         List<IEntity<?>> converted = new ArrayList<>(rows.size());
         for (Object row : rows) {
-            summary.total++;
             converted.add((IEntity<?>) JsonUtil.convertValue(row, resolved.entityClass()));
         }
         Set<Serializable> existingIds = findExistingIds(resolved.service(), converted);
@@ -156,7 +193,7 @@ public final class NocodeInitializationDataService {
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private vip.isass.framework.database.core.repository.IRepository repository(ILocalCrudService service) {
+    private IRepository repository(ILocalCrudService service) {
         return service.getRepository();
     }
 
@@ -171,7 +208,7 @@ public final class NocodeInitializationDataService {
         return serviceInterface(type.getSuperclass());
     }
 
-    private String entityComment(Class<?> entityClass) {
+    static String entityComment(Class<?> entityClass) {
         try {
             Field field = entityClass.getField("COMMENT");
             Object value = field.get(null);
@@ -193,7 +230,7 @@ public final class NocodeInitializationDataService {
                 ? current.getClass().getSimpleName() : current.getMessage();
     }
 
-    private record LocalEntity(String serviceName, Class<?> entityClass,
+    private record LocalEntity(String serviceName, String contextName, Class<?> entityClass,
                                ILocalCrudService<?, ?, ?> service) { }
 
     private static final class ImportSummary {
@@ -206,6 +243,6 @@ public final class NocodeInitializationDataService {
         }
     }
 
-    public record EntityInfo(String entity, String comment) { }
+    public record EntityInfo(String serviceName, String contextName, String entity, String comment) { }
     public record ImportResult(int total, int inserted, int skipped, Map<String, String> failures) { }
 }

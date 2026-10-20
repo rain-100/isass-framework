@@ -77,9 +77,6 @@ public final class AssociationWriteCoordinator {
                 if (!submitted(source, association, value, creating)) {
                     continue;
                 }
-                if (!association.writable()) {
-                    throw new IllegalArgumentException("只读关联不能提交写入: " + association.property());
-                }
                 CrudIdSupport.requireIdEntity(source, "关联写入");
                 CrudIdSupport.requireIdEntityType(association.targetType(), "关联写入目标");
                 Set<Serializable> ids = new LinkedHashSet<>();
@@ -154,13 +151,13 @@ public final class AssociationWriteCoordinator {
         Serializable sourceId = updateRootId == null ? id(source) : updateRootId;
         if (sourceId == null) return;
         Object parentId = parentEntity.getParentId();
-        if (parentId == null || "0".equals(String.valueOf(parentId))) return;
+        if (parentId == null) return;
         if (sourceId.equals(parentId)) throw new IllegalArgumentException("节点不能把自己设为父节点");
         ILocalCrudService service = services.get(source.getClass());
         if (service == null) return;
         Set<Object> visited = new LinkedHashSet<>();
         Object cursor = parentId;
-        for (int depth = 0; cursor != null && !"0".equals(String.valueOf(cursor)); depth++) {
+        for (int depth = 0; cursor != null; depth++) {
             if (depth > 1000 || !visited.add(cursor)) {
                 throw new IllegalStateException("树形父链存在循环或超过最大深度");
             }

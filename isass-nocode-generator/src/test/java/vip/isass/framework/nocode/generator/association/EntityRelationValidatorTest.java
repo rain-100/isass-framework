@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 class EntityRelationValidatorTest {
@@ -24,12 +25,28 @@ class EntityRelationValidatorTest {
     }
 
     @Test
-    void validatesFixedPredicateFieldsAndReadOnlyDeclarations() {
-        assertDoesNotThrow(() -> validate(List.of(relation().where("id", "1").readOnly())));
+    void validatesFixedPredicateFields() {
+        assertDoesNotThrow(() -> validate(List.of(relation().where("id", "1"))));
         assertThatThrownBy(() -> validate(List.of(relation().where("missing", "0"))))
                 .hasMessageContaining("固定条件");
         assertThatThrownBy(() -> validate(List.of(relation().where("userId", "0"))))
                 .hasMessageContaining("关联键");
+    }
+
+    @Test
+    void preservesAssociationStructureAndEscapesFixedPredicatesWithoutWriteOptions() {
+        EntityRelationDefinition definition = EntityRelationDefinition.many(
+                "User", "details", "UserDetail", "id", "userId", true).where("id", "1");
+
+        GeneratorAssociation association = definition.association();
+
+        assertEquals("details", association.property());
+        assertEquals(GeneratorAssociation.Kind.MANY, association.kind());
+        assertEquals(true, association.cascadeDelete());
+        assertEquals(".where(\"id\", \"1\")", association.modifiers());
+        assertEquals("", relation().association().modifiers());
+        assertEquals(".where(\"id\", \"line\\n\\\"value\\\"\")",
+                relation().where("id", "line\n\"value\"").association().modifiers());
     }
 
     @Test

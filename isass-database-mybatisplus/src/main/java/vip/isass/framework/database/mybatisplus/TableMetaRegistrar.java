@@ -236,7 +236,32 @@ public class TableMetaRegistrar
             fields.removeIf(field -> meta.associationFields().contains(field.getProperty()));
             setTableInfoField(tableInfo, "fieldList", fields);
         }
+        initializeJsonResultMap(tableInfo);
         return tableInfo;
+    }
+
+    /**
+     * BaseMapper 直读也须使用字段级 JSON 泛型映射，不能退回全局原始 List/Map 处理器。
+     */
+    private static void initializeJsonResultMap(TableInfo tableInfo) {
+        if (tableInfo.getResultMap() != null || tableInfo.getFieldList().stream()
+                .noneMatch(field -> isJsonValue(field.getField()))) {
+            return;
+        }
+        // MP 已在 postTableInfo 前尝试初始化；无 ORM 注解的模型需在剔除关联字段后补建。
+        setTableInfoField(tableInfo, "autoInitResultMap", Boolean.TRUE);
+        try {
+            Method initialize = TableInfo.class.getDeclaredMethod("initResultMapIfNeed");
+            initialize.setAccessible(true);
+            initialize.invoke(tableInfo);
+        } catch (ReflectiveOperationException exception) {
+            throw new IllegalStateException("Cannot initialize JSON result mapping for "
+                    + tableInfo.getEntityType().getName(), exception);
+        }
+        if (tableInfo.getResultMap() == null) {
+            throw new IllegalStateException("Missing typed JSON result mapping for "
+                    + tableInfo.getEntityType().getName());
+        }
     }
 
     /**

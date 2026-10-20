@@ -128,6 +128,7 @@
         <!--<elasticsearch.version>7.2.0</elasticsearch.version>-->
 
         <poi-ooxml.version>5.4.1</poi-ooxml.version>
+        <commons-csv.version>1.14.1</commons-csv.version>
         <xerces.version>2.12.2</xerces.version>
 
         <klock.version>1.7-RELEASE</klock.version>
@@ -646,6 +647,12 @@
                 <groupId>org.apache.poi</groupId>
                 <artifactId>poi-ooxml</artifactId>
                 <version>${poi-ooxml.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-csv</artifactId>
+                <version>${commons-csv.version}</version>
             </dependency>
 
             <dependency>

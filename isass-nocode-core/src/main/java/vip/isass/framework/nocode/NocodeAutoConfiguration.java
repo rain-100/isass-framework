@@ -20,6 +20,7 @@ import vip.isass.framework.entrypoint.registry.EntrypointInvocationAuthorizer;
 import vip.isass.framework.entrypoint.registry.ServiceDefinitionRegistry;
 import vip.isass.framework.nocode.initialization.NocodeInitializationController;
 import vip.isass.framework.nocode.initialization.NocodeInitializationDataService;
+import vip.isass.framework.nocode.initialization.NocodeInitializationImporter;
 import vip.isass.framework.nocode.initialization.NocodeInitializationProperties;
 import vip.isass.framework.nocode.initialization.NocodeInitializationRemoteClient;
 import vip.isass.framework.nocode.initialization.NocodeInitializationRunner;
@@ -150,20 +151,32 @@ public class NocodeAutoConfiguration {
     }
 
     @Bean
+    public NocodeInitializationRemoteClient nocodeInitializationRemoteClient(
+            HttpEndpointResolver endpoints,
+            ObjectProvider<AdditionalRequestHeaderProvider> headers) {
+        return new NocodeInitializationRemoteClient(endpoints, headers.orderedStream().toList());
+    }
+
+    @Bean
+    public NocodeInitializationImporter nocodeInitializationImporter(
+            NocodeInitializationDataService dataService,
+            NocodeInitializationRemoteClient remoteClient,
+            ServiceDefinitionRegistry definitions) {
+        return new NocodeInitializationImporter(dataService, remoteClient, definitions);
+    }
+
+    @Bean
     public NocodeInitializationController nocodeInitializationController(
-            NocodeInitializationDataService dataService) {
-        return new NocodeInitializationController(dataService);
+            NocodeInitializationDataService dataService,
+            NocodeInitializationImporter importer) {
+        return new NocodeInitializationController(dataService, importer);
     }
 
     @Bean
     public ApplicationRunner nocodeInitializationRunner(
             NocodeInitializationDataService dataService,
-            HttpEndpointResolver endpoints,
-            ObjectProvider<AdditionalRequestHeaderProvider> headers,
-            NocodeInitializationProperties properties,
-            ServiceDefinitionRegistry definitions) {
-        var remote = new NocodeInitializationRemoteClient(
-                endpoints, headers.orderedStream().toList());
-        return new NocodeInitializationRunner(dataService, remote, properties, definitions).runner();
+            NocodeInitializationImporter importer,
+            NocodeInitializationProperties properties) {
+        return new NocodeInitializationRunner(dataService, importer, properties).runner();
     }
 }

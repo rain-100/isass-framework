@@ -4,5 +4,6 @@
 
 - 更新版本时验证受影响模块，避免业务项目重复锁定框架已管理的版本。
 - 安全核心和 Spring Security 适配分别管理，使用通用主体/策略的模块显式依赖 isass-security-core。
+- NoCode 表格初始化的 Apache POI 与 Apache Commons CSV 版本统一在本模块管理。
 
 [返回模块目录](../README.md)

@@ -5,15 +5,47 @@ package ${cfg.entityPackageName};
 <#list associationImports as associationImport>
 import ${associationImport};
 </#list>
+<#assign modelTypeImports = []>
+<#list table.fields as field>
+<#if modelFields[field.propertyName]?? && modelFields[field.propertyName].javaType()??>
+<#list modelFields[field.propertyName].javaType()?matches(r"[a-z]\w*(?:\.[a-z]\w*)+\.[A-Z]\w*") as qualifiedType>
+<#assign simpleType = qualifiedType?keep_after_last(".")>
+<#assign collision = simpleType == entity>
+<#list associationImports + modelTypeImports as existingImport>
+<#if existingImport?keep_after_last(".") == simpleType && existingImport != qualifiedType>
+<#assign collision = true>
+</#if>
+</#list>
+<#if !collision && !(associationImports + modelTypeImports)?seq_contains(qualifiedType)>
+<#assign modelTypeImports = modelTypeImports + [qualifiedType]>
+import ${qualifiedType};
+</#if>
+</#list>
+</#if>
+</#list>
 <#function javaType field>
 <#if modelFields[field.propertyName]?? && modelFields[field.propertyName].javaType()??>
-    <#return modelFields[field.propertyName].javaType()>
+    <#assign value = modelFields[field.propertyName].javaType()>
+    <#list associationImports + modelTypeImports as importedType>
+        <#assign value = value?replace(importedType, importedType?keep_after_last("."))>
+    </#list>
+    <#return value>
 </#if>
 <#return field.propertyType>
 </#function>
 <#function isEnum field>
 <#return modelFields[field.propertyName]?? && modelFields[field.propertyName].enumValues()?has_content>
 </#function>
+<#function isSecret field>
+<#return modelFields[field.propertyName]?? && modelFields[field.propertyName].secret()>
+</#function>
+
+<#list table.fields as field>
+<#if isSecret(field)>
+import com.fasterxml.jackson.annotation.JsonProperty;
+<#break>
+</#if>
+</#list>
 
 <#list table.fields as field>
 <#if isEnum(field)>
@@ -30,9 +62,10 @@ import tools.jackson.databind.JsonNode;
 <#break>
 </#if>
 </#list>
+<#assign needsListImport = associations?has_content || isParentIdEntity>
 <#list table.fields as field>
 <#if javaType(field)?starts_with("List<")>
-import java.util.List;
+<#assign needsListImport = true>
 <#break>
 </#if>
 </#list>
@@ -121,14 +154,14 @@ import java.time.LocalTime;
 </#if>
 </#list>
 <#list associations as association>
-<#if association.kind()?string == "MANY">
+<#if association.javaType()?starts_with("Collection<")>
 <#assign needsCollectionImport = true>
 </#if>
 </#list>
 <#if needsCollectionImport>
 import java.util.Collection;
 </#if>
-<#if associations?has_content || isParentIdEntity>
+<#if needsListImport>
 import java.util.List;
 </#if>
 
@@ -189,17 +222,17 @@ public class ${entity} implements
      */<#if field.propertyName!?ends_with("Id") && field.propertyType == "Long">
     @JsonSerialize(using = ToStringSerializer.class)</#if>
     @ApiDoc(description = "<#if field.comment?trim?length gt 0>${field.comment?trim?j_string}<#else>${field.propertyName?j_string}</#if>")
+<#if isSecret(field)>
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    @ToString.Exclude
+</#if>
     private <#if field.propertyName == "deleteFlag">Boolean<#elseif isEnum(field)>${field.propertyName?cap_first}<#elseif (javaType(field) != field.propertyType)>${javaType(field)}<#elseif field.propertyType == "JsonNode">JsonNode<#else>${field.propertyType}</#if> ${field.propertyName};
 
 </#list>
 <#---------- END 定义字段 ---------->
 <#---------- BEGIN 定义关联字段 ---------->
 <#list associations as association>
-<#if association.kind()?string == "MANY">
-    private Collection<${association.targetEntity()}> ${association.property()};
-<#else>
-    private ${association.targetEntity()} ${association.property()};
-</#if>
+    private ${association.javaType()} ${association.property()};
 
 </#list>
 <#if isParentIdEntity>
@@ -270,17 +303,10 @@ public class ${entity} implements
 
 </#list>
 <#list associations as association>
-<#if association.kind()?string == "MANY">
-    public void set${association.property()?cap_first}(Collection<${association.targetEntity()}> ${association.property()}) {
+    public void set${association.property()?cap_first}(${association.javaType()} ${association.property()}) {
         this.${association.property()} = ${association.property()};
         markPresentProperty("${association.property()}");
     }
-<#else>
-    public void set${association.property()?cap_first}(${association.targetEntity()} ${association.property()}) {
-        this.${association.property()} = ${association.property()};
-        markPresentProperty("${association.property()}");
-    }
-</#if>
 
 </#list>
 <#if isParentIdEntity>
@@ -320,6 +346,7 @@ public class ${entity} implements
     public List<EntityAssociation> associations() {
         return List.of(
 <#list associations as association>
+<#-- 关联只描述结构和固定条件；嵌套操作权限由运行时授权组件校验。 -->
                 EntityAssociation.${(association.kind()?string == "MANY")?then("many", "one")}("${association.property()}", ${association.targetEntity()}.class,
                         "${association.localKey()}", "${association.targetKey()}", ${association.cascadeDelete()?c})${association.modifiers()}<#if association_has_next || isParentIdEntity>,</#if>
 </#list>
@@ -364,6 +391,7 @@ public class ${entity} implements
     <#if field.keyFlag><#continue></#if>
     <#if field.propertyType?ends_with("[]")><#continue></#if>
     <#if field.propertyType == "JsonNode"><#continue></#if>
+    <#if javaType(field) != field.propertyType && !isEnum(field)><#continue></#if>
     <#if field.propertyType == "Collection<String>"><#continue></#if>
     <#if buildInColumns?seq_contains(field.name?lower_case)><#continue></#if>
     <#if field.propertyType == "LocalTime">

@@ -68,6 +68,107 @@ class AssociationCoordinatorTest {
     }
 
     @Test
+    void associationWritesAreAllowedByTargetOperationAuthorization() {
+        ChildRepository children = new ChildRepository();
+        children.rows.put(10L, new Child(10L, 1L, "old"));
+        ChildService childService = new ChildService(children);
+        List<String> operations = new ArrayList<>();
+        AssociationWriteCoordinator coordinator = new AssociationWriteCoordinator(
+                List.of(childService), (service, request) -> {
+                    assertSame(childService, service);
+                    if (!request.addEntities().isEmpty()) {
+                        operations.add("create");
+                    }
+                    if (!request.updateEntities().isEmpty()) {
+                        operations.add("update");
+                    }
+                });
+        Parent parent = new Parent(1L);
+        parent.setChildren(List.of(new Child(null, null, "new"), new Child(10L, null, "updated")));
+
+        coordinator.validateSaveCapabilities(parent, false);
+        coordinator.authorizeGraph(parent, null, false, null);
+        coordinator.afterSave(parent, null, false);
+
+        assertTrue(operations.containsAll(List.of("create", "update")));
+        assertEquals(2, children.rows.size());
+        assertEquals("updated", children.rows.get(10L).getName());
+    }
+
+    @Test
+    void deniedTargetCreateOrUpdatePreventsAllSubmittedGraphWrites() {
+        for (boolean denyCreate : List.of(true, false)) {
+            ParentRepository parents = new ParentRepository();
+            ChildRepository children = new ChildRepository();
+            children.rows.put(10L, new Child(10L, 1L, "old"));
+            ParentService parentService = new ParentService(parents);
+            AssociationWriteCoordinator coordinator = new AssociationWriteCoordinator(
+                    List.of(parentService, new ChildService(children)), (service, request) -> {
+                        if (denyCreate && !request.addEntities().isEmpty()
+                                || !denyCreate && !request.updateEntities().isEmpty()) {
+                            throw new SecurityException("target operation denied");
+                        }
+                    });
+            Parent parent = new Parent(1L);
+            parent.setChildren(List.of(new Child(null, null, "new"), new Child(10L, null, "updated")));
+
+            assertThrows(SecurityException.class, () -> new CrudWriteExecutor(coordinator)
+                    .superCud(parentService, SuperCudReq.update(parent)));
+
+            assertTrue(parents.rows.isEmpty());
+            assertEquals(List.of(10L), new ArrayList<>(children.rows.keySet()));
+            assertEquals("old", children.rows.get(10L).getName());
+        }
+    }
+
+    @Test
+    void replaceAndCascadeDeletionRequireTargetDeleteAuthorization() {
+        ParentRepository parents = new ParentRepository();
+        parents.rows.put(1L, new Parent(1L));
+        ChildRepository children = new ChildRepository();
+        children.rows.put(10L, new Child(10L, 1L, "retained"));
+        children.rows.put(11L, new Child(11L, 1L, "removed"));
+        ParentService parentService = new ParentService(parents);
+        AssociationWriteCoordinator coordinator = new AssociationWriteCoordinator(
+                List.of(parentService, new ChildService(children)), (service, request) -> {
+                    if (!request.deleteIds().isEmpty()) {
+                        throw new SecurityException("target delete denied");
+                    }
+                });
+        Parent parent = new Parent(1L);
+        parent.setChildren(List.of(new Child(10L, 1L, "updated")));
+
+        assertThrows(SecurityException.class, () -> new CrudWriteExecutor(coordinator)
+                .superCud(parentService, SuperCudReq.updateByCriteria(List.of(parent),
+                        new ParentCriteria().setId(1L).setUpdateMode(UpdateMode.REPLACE))));
+        assertEquals("retained", children.rows.get(10L).getName());
+        assertThrows(SecurityException.class, () -> coordinator.beforeDelete(parentService, List.of(1L)));
+        assertEquals(List.of(10L, 11L), new ArrayList<>(children.rows.keySet()));
+    }
+
+    @Test
+    void idOnlyReferenceDoesNotRequireTargetMutationPermission() {
+        DetailRepository details = new DetailRepository();
+        Detail stored = new Detail(100L, "unchanged");
+        stored.setParentId(1L);
+        details.rows.put(100L, stored);
+        AssociationWriteCoordinator coordinator = new AssociationWriteCoordinator(
+                List.of(new DetailService(details)), (service, request) -> {
+                    throw new SecurityException("no target mutation permission");
+                });
+        Detail reference = new Detail();
+        reference.setId(100L);
+        Parent parent = new Parent(1L);
+        parent.setProfile(reference);
+
+        coordinator.validateSaveCapabilities(parent, false);
+        coordinator.authorizeGraph(parent, null, false, null);
+        coordinator.afterSave(parent, null, false);
+
+        assertSame(stored, details.rows.get(100L));
+    }
+
+    @Test
     void updatesExistingOneToOneAssociationByRelationKeyWhenIdIsOmitted() {
         ParentRepository parents = new ParentRepository();
         DetailRepository details = new DetailRepository();

@@ -5,6 +5,9 @@ package vip.isass.framework.database.mybatisplus;
 import com.baomidou.mybatisplus.core.config.GlobalConfig;
 import com.baomidou.mybatisplus.core.metadata.TableFieldInfo;
 import com.baomidou.mybatisplus.core.metadata.TableInfo;
+import com.baomidou.mybatisplus.extension.handlers.Jackson3TypeHandler;
+import org.apache.ibatis.mapping.ResultMap;
+import org.apache.ibatis.mapping.ResultMapping;
 import org.apache.ibatis.reflection.Reflector;
 import org.apache.ibatis.session.Configuration;
 import org.junit.jupiter.api.Test;
@@ -18,9 +21,11 @@ import vip.isass.framework.common.entity.ILogicDeleteEntity;
 import vip.isass.framework.common.entity.IParentIdEntity;
 import vip.isass.framework.common.entity.ITenantEntity;
 import vip.isass.framework.database.core.repository.IRepository;
+import vip.isass.framework.common.support.JsonUtil;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +34,10 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class TableMetaRegistrarTest {
 
@@ -109,6 +118,86 @@ class TableMetaRegistrarTest {
         new TableMetaRegistrar().postProcessBeanDefinitionRegistry(registry);
 
         assertNull(tableMetas().get(ServiceEntity.class));
+    }
+
+    @Test
+    void directResultMapRestoresNestedJsonGenericsAndExcludesAssociations() throws Exception {
+        Jackson3TypeHandler.setObjectMapper(JsonUtil.DEFAULT_INSTANCE);
+        Configuration configuration = new Configuration();
+        TableInfo tableInfo = jsonTable(configuration);
+        new TableMetaRegistrar().postTableInfo(tableInfo, configuration);
+        ResultMap resultMap = configuration.getResultMap(tableInfo.getResultMap());
+        assertFalse(resultMap.getMappedProperties().contains("related"));
+        ResultSet resultSet = mock(ResultSet.class);
+        when(resultSet.getString("selected_path")).thenReturn("""
+                [{"id":"root","remark":"用户说明","children":[{"id":"leaf","remark":""}]}]
+                """);
+        ResultMapping selectedPath = resultMap.getResultMappings().stream()
+                .filter(mapping -> mapping.getProperty().equals("selectedPath"))
+                .findFirst()
+                .orElseThrow();
+        List<?> values = (List<?>) selectedPath.getTypeHandler().getResult(resultSet, "selected_path");
+        JsonSnapshot root = assertInstanceOf(JsonSnapshot.class, values.getFirst());
+        assertEquals("用户说明", root.remark);
+        assertEquals("leaf", root.children.getFirst().id);
+        assertEquals("", root.children.getFirst().remark);
+        when(resultSet.getString("selected_path")).thenReturn("[]");
+        assertEquals(List.of(), selectedPath.getTypeHandler().getResult(resultSet, "selected_path"));
+        when(resultSet.getString("selected_path")).thenReturn(null);
+        assertNull(selectedPath.getTypeHandler().getResult(resultSet, "selected_path"));
+
+        when(resultSet.getString("named_paths")).thenReturn("{\"primary\":[{\"id\":\"leaf\",\"remark\":null}]}");
+        ResultMapping namedPaths = resultMap.getResultMappings().stream()
+                .filter(mapping -> mapping.getProperty().equals("namedPaths"))
+                .findFirst()
+                .orElseThrow();
+        Map<?, ?> paths = (Map<?, ?>) namedPaths.getTypeHandler().getResult(resultSet, "named_paths");
+        JsonSnapshot leaf = assertInstanceOf(JsonSnapshot.class, ((List<?>) paths.get("primary")).getFirst());
+        assertEquals("leaf", leaf.id);
+        assertNull(leaf.remark);
+    }
+
+    @Test
+    void keepsAnExplicitResultMapInsteadOfReplacingIt() throws Exception {
+        Configuration configuration = new Configuration();
+        TableInfo tableInfo = jsonTable(configuration);
+        String id = "explicit-json-map";
+        configuration.addResultMap(new ResultMap.Builder(configuration, id, JsonEntity.class, List.of()).build());
+        setField(tableInfo, "resultMap", id);
+        new TableMetaRegistrar().postTableInfo(tableInfo, configuration);
+        assertEquals(id, tableInfo.getResultMap());
+    }
+
+    private static TableInfo jsonTable(Configuration configuration) throws Exception {
+        TableInfo tableInfo = new TableInfo(configuration, JsonEntity.class);
+        tableMetas().put(JsonEntity.class, new TableMeta().tableName("json_entity")
+                .associationFields(Set.of("related")));
+        List<TableFieldInfo> fields = new ArrayList<>();
+        var registrar = new TableMetaRegistrar();
+        for (String name : List.of("selectedPath", "namedPaths", "related")) {
+            TableFieldInfo field = new TableFieldInfo(new GlobalConfig().setDbConfig(new GlobalConfig.DbConfig()),
+                    tableInfo, JsonEntity.class.getDeclaredField(name), new Reflector(JsonEntity.class), false, false);
+            fields.add(registrar.postFieldInfo(field, configuration));
+        }
+        setField(tableInfo, "fieldList", fields);
+        return tableInfo;
+    }
+
+    public static class JsonSnapshot {
+        public String id;
+        public String remark;
+        public List<JsonSnapshot> children;
+    }
+
+    static class JsonEntity implements IEntity<JsonEntity> {
+        private List<JsonSnapshot> selectedPath;
+        private Map<String, List<JsonSnapshot>> namedPaths;
+        private List<JsonSnapshot> related;
+
+        @Override
+        public JsonEntity randomEntity() {
+            return this;
+        }
     }
 
     @SuppressWarnings("unchecked")

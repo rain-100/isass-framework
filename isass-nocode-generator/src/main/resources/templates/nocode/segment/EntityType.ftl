@@ -43,16 +43,17 @@
 </#list>
 <#------------ END TenantEntity ------------>
 <#------------ BEGIN TraceEntity ------------>
-<#assign traceEntityPropertyType = idEntityPropertyType>
-<#if !isIdEntity>
 <#assign traceEntityPropertyType = "Long">
+<#assign traceUserTypeFound = false>
 <#list table.fields as field>
 <#if field.name?lower_case == "create_user_id" || field.name?lower_case == "modify_user_id">
+<#if traceUserTypeFound && traceEntityPropertyType != field.propertyType>
+<#stop "create_user_id 与 modify_user_id 的 Java 类型必须一致">
+</#if>
 <#assign traceEntityPropertyType = field.propertyType>
-<#break>
+<#assign traceUserTypeFound = true>
 </#if>
 </#list>
-</#if>
 <#list table.fields as field>
 <#if field.name?lower_case == "create_user_id"
 || field.name?lower_case == "create_user_name"

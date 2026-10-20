@@ -6,7 +6,12 @@ import java.util.List;
 /**
  * Java 属性的生成语义；列名仍由数据库元数据解析。
  */
-public record EntityFieldDefinition(String propertyName, String javaType, List<EnumValue> enumValues) {
+public record EntityFieldDefinition(String propertyName, String javaType, List<EnumValue> enumValues,
+                                    boolean secret) {
+    public EntityFieldDefinition(String propertyName, String javaType, List<EnumValue> enumValues) {
+        this(propertyName, javaType, enumValues, false);
+    }
+
     public EntityFieldDefinition {
         if (propertyName == null || !propertyName.matches("[a-zA-Z_$][a-zA-Z0-9_$]*")) {
             throw new IllegalArgumentException("非法属性名: " + propertyName);
@@ -26,6 +31,14 @@ public record EntityFieldDefinition(String propertyName, String javaType, List<E
 
     public static EntityFieldDefinition type(String property, String javaType) {
         return new EntityFieldDefinition(property, javaType, List.of());
+    }
+
+    /**
+     * 密钥字段允许 JSON 写入，但不序列化输出，也不进入实体的 toString。
+     * 仅声明输出保护，不提供加密存储或字段查询授权。
+     */
+    public static EntityFieldDefinition secret(String property) {
+        return new EntityFieldDefinition(property, null, List.of(), true);
     }
 
     public static EntityFieldDefinition enumeration(String property, EnumValue... values) {

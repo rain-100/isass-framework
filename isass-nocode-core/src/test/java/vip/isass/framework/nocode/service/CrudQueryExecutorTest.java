@@ -219,6 +219,40 @@ class CrudQueryExecutorTest {
     }
 
     @Test
+    void zeroIsARealParentAndFilteredRootsKeepTheirParentId() {
+        IRepository<TreeEntity, TreeCriteria> repository = mock(IRepository.class);
+        TreeEntity zero = new TreeEntity(0L, null);
+        TreeEntity child = new TreeEntity(1L, 0L);
+        TreeEntity orphan = new TreeEntity(2L, 99L);
+        when(repository.findByCriteria(any())).thenReturn(List.of(zero, child, orphan));
+        List<TreeEntity> roots = new CrudQueryExecutor().query(
+                new TreeLocalService(repository), CrudQueryReq.tree(new TreeCriteria())).tree();
+        assertEquals(List.of(zero, orphan), roots);
+        assertEquals(List.of(child), zero.getChildren());
+        assertEquals(99L, orphan.getParentId());
+        child.markAsTopEntity();
+        assertEquals(null, child.getParentId());
+    }
+
+    @Test
+    void zeroDoesNotHideATreeCycle() {
+        IRepository<TreeEntity, TreeCriteria> repository = mock(IRepository.class);
+        when(repository.findByCriteria(any())).thenReturn(List.of(
+                new TreeEntity(0L, 1L), new TreeEntity(1L, 0L)));
+        assertThrows(IllegalStateException.class, () -> new CrudQueryExecutor().query(
+                new TreeLocalService(repository), CrudQueryReq.tree(new TreeCriteria())));
+    }
+
+    @Test
+    void ancestorValidationFollowsZeroInsteadOfTreatingItAsARoot() {
+        IRepository<TreeEntity, TreeCriteria> repository = mock(IRepository.class);
+        when(repository.getEntityById(0L)).thenReturn(new TreeEntity(0L, 1L));
+        AssociationWriteCoordinator coordinator = new AssociationWriteCoordinator(List.of(new TreeLocalService(repository)));
+        assertThrows(IllegalArgumentException.class, () -> coordinator.beforeSave(new TreeEntity(1L, 0L), false));
+        assertThrows(IllegalArgumentException.class, () -> coordinator.beforeSave(new TreeEntity(0L, 0L), true));
+    }
+
+    @Test
     void rejectsCyclesInTreeResults() {
         IRepository<TreeEntity, TreeCriteria> repository = mock(IRepository.class);
         when(repository.findByCriteria(org.mockito.ArgumentMatchers.any())).thenReturn(List.of(
