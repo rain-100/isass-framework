@@ -5,10 +5,13 @@ package vip.isass.framework.entrypoint.http;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
+import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponentsBuilder;
 import tools.jackson.databind.JsonNode;
 import vip.isass.framework.common.support.JsonUtil;
@@ -23,13 +26,17 @@ import vip.isass.framework.entrypoint.metadata.ServiceDefinition;
 import vip.isass.framework.entrypoint.transport.EntrypointRemoteBusinessException;
 import vip.isass.framework.entrypoint.transport.EntrypointTransport;
 import vip.isass.framework.entrypoint.transport.EntrypointTransportException;
+import vip.isass.framework.entrypoint.stream.FileStream;
 
 import java.io.InputStream;
+import java.io.IOException;
 import java.lang.reflect.Array;
 import java.net.URI;
+import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 public final class EntrypointHttpTransport implements EntrypointTransport {
@@ -123,10 +130,15 @@ public final class EntrypointHttpTransport implements EntrypointTransport {
         }
         try {
             RestClient.RequestBodySpec request = restClient.method(
-                            org.springframework.http.HttpMethod.valueOf(operation.httpMethod().name()))
-                    .uri(uri).headers(target -> target.addAll(headers)).accept(MediaType.APPLICATION_JSON);
+                            HttpMethod.valueOf(operation.httpMethod().name()))
+                    .uri(uri).headers(target -> target.addAll(headers))
+                    .accept(operation.returnType() == FileStream.class ? MediaType.ALL : MediaType.APPLICATION_JSON);
             if (multipart) request.contentType(MediaType.MULTIPART_FORM_DATA).body(form);
             else if (body != null) request.contentType(MediaType.APPLICATION_JSON).body(serializedBody);
+            if (operation.returnType() == FileStream.class) {
+                // 不让 RestClient 在返回文件流前关闭响应；由 FileStream 消费/关闭时释放连接。
+                return request.exchange((outgoing, response) -> fileResponse(response), false);
+            }
             JsonNode response = request.retrieve().body(JsonNode.class);
             if (response == null) return null;
             if (response.has("success") && !response.path("success").asBoolean()) {
@@ -144,8 +156,38 @@ public final class EntrypointHttpTransport implements EntrypointTransport {
         }
     }
 
+    private FileStream fileResponse(ClientHttpResponse response) throws IOException {
+        try {
+            HttpHeaders headers = response.getHeaders();
+            MediaType contentType = headers.getContentType();
+            var disposition = headers.getContentDisposition();
+            if (response.getStatusCode().isError()) {
+                throw new EntrypointTransportException("文件 HTTP 调用失败，状态码 " + response.getStatusCode().value(), false);
+            }
+            if (contentType != null && MediaType.APPLICATION_JSON.isCompatibleWith(contentType)
+                    && disposition.getFilename() == null) {
+                byte[] bytes = response.getBody().readNBytes(1024 * 1024 + 1);
+                if (bytes.length > 1024 * 1024) {
+                    throw new EntrypointTransportException("文件接口返回的 JSON 错误响应过长", false);
+                }
+                JsonNode json = JsonUtil.readTree(bytes);
+                if (json != null && json.has("success") && !json.path("success").asBoolean()) {
+                    throw new EntrypointRemoteBusinessException(json.path("message").asString("远程文件读取失败"));
+                }
+                throw new EntrypointTransportException("文件接口未返回文件响应", false);
+            }
+            long length = headers.getContentLength();
+            return new FileStream(disposition.getFilename(), contentType == null ? null : contentType.toString(),
+                    length < 0 ? null : length, disposition.isAttachment(),
+                    output -> response.getBody().transferTo(output), response::close);
+        } catch (IOException | RuntimeException | Error failure) {
+            response.close();
+            throw failure;
+        }
+    }
+
     private Object formResource(String name, Object value) {
-        if (value instanceof org.springframework.web.multipart.MultipartFile file) {
+        if (value instanceof MultipartFile file) {
             return file.getResource();
         }
         if (value instanceof byte[] bytes) {
@@ -225,7 +267,7 @@ public final class EntrypointHttpTransport implements EntrypointTransport {
     private boolean isSimple(Class<?> type) {
         return type.isPrimitive() || type.isEnum() || Number.class.isAssignableFrom(type)
                 || CharSequence.class.isAssignableFrom(type) || Boolean.class == type
-                || Character.class == type || java.time.temporal.Temporal.class.isAssignableFrom(type)
-                || java.util.UUID.class == type;
+                || Character.class == type || Temporal.class.isAssignableFrom(type)
+                || UUID.class == type;
     }
 }

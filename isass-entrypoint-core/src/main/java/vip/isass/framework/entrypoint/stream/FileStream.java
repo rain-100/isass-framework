@@ -19,7 +19,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * 消费源流。每个实例只能消费一次：调用方必须在 {@link #writeTo(OutputStream)} 与
  * {@link #openInputStream()} 中二选一。</p>
  */
-public final class FileStream {
+public final class FileStream implements AutoCloseable {
 
     private static final int INPUT_STREAM_PIPE_BUFFER_SIZE = 64 * 1024;
 
@@ -28,6 +28,8 @@ public final class FileStream {
     private final Long contentLength;
     private final boolean download;
     private final StreamBody body;
+    private final AutoCloseable source;
+    private final AtomicBoolean sourceClosed = new AtomicBoolean();
     private final AtomicReference<Consumption> consumption = new AtomicReference<>(Consumption.NEW);
 
     public FileStream(
@@ -37,11 +39,21 @@ public final class FileStream {
             boolean download,
             StreamBody body
     ) {
+        this(fileName, contentType, contentLength, download, body, () -> {
+        });
+    }
+
+    /**
+     * 有资源所有权的文件流；消费完成、读取中断或显式关闭时释放上游连接。
+     */
+    public FileStream(String fileName, String contentType, Long contentLength, boolean download,
+                      StreamBody body, AutoCloseable source) {
         this.fileName = fileName == null ? "file" : fileName;
         this.contentType = contentType == null ? "application/octet-stream" : contentType;
         this.contentLength = contentLength;
         this.download = download;
         this.body = Objects.requireNonNull(body, "body");
+        this.source = Objects.requireNonNull(source, "source");
     }
 
     public String fileName() {
@@ -66,10 +78,8 @@ public final class FileStream {
     public void writeTo(OutputStream output) throws IOException {
         Objects.requireNonNull(output, "output");
         claim(Consumption.WRITING);
-        try {
+        try (this) {
             body.writeTo(output);
-        } finally {
-            consumption.set(Consumption.CLOSED);
         }
     }
 
@@ -88,18 +98,51 @@ public final class FileStream {
             AtomicReference<Throwable> failure = new AtomicReference<>();
             AtomicBoolean cancelled = new AtomicBoolean();
             Thread.startVirtualThread(() -> {
-                try (output) {
+                try {
                     body.writeTo(output);
                 } catch (Throwable exception) {
                     if (!cancelled.get()) {
                         failure.compareAndSet(null, exception);
                     }
+                } finally {
+                    try {
+                        close();
+                    } catch (IOException exception) {
+                        if (!cancelled.get()) {
+                            failure.compareAndSet(null, exception);
+                        }
+                    }
+                    try {
+                        output.close();
+                    } catch (IOException exception) {
+                        if (!cancelled.get()) {
+                            failure.compareAndSet(null, exception);
+                        }
+                    }
                 }
             });
-            return new StreamInput(input, failure, cancelled, () -> consumption.set(Consumption.CLOSED));
+            return new StreamInput(input, failure, cancelled, this::close);
         } catch (IOException exception) {
-            consumption.set(Consumption.CLOSED);
+            try {
+                close();
+            } catch (IOException closeFailure) {
+                exception.addSuppressed(closeFailure);
+            }
             throw new IllegalStateException("无法创建  文件读取流", exception);
+        }
+    }
+
+    @Override
+    public void close() throws IOException {
+        consumption.set(Consumption.CLOSED);
+        if (sourceClosed.compareAndSet(false, true)) {
+            try {
+                source.close();
+            } catch (IOException exception) {
+                throw exception;
+            } catch (Exception exception) {
+                throw new IOException("文件源关闭失败", exception);
+            }
         }
     }
 
@@ -120,14 +163,14 @@ public final class FileStream {
 
         private final AtomicReference<Throwable> failure;
         private final AtomicBoolean cancelled;
-        private final Runnable closeAction;
+        private final CloseAction closeAction;
         private boolean closed;
 
         private StreamInput(
                 InputStream input,
                 AtomicReference<Throwable> failure,
                 AtomicBoolean cancelled,
-                Runnable closeAction
+                CloseAction closeAction
         ) {
             super(input);
             this.failure = failure;
@@ -160,7 +203,7 @@ public final class FileStream {
             try {
                 super.close();
             } finally {
-                closeAction.run();
+                closeAction.close();
             }
         }
 
@@ -168,12 +211,17 @@ public final class FileStream {
             if (count >= 0) {
                 return count;
             }
-            closeAction.run();
+            closeAction.close();
             Throwable exception = failure.get();
             if (exception == null) {
                 return -1;
             }
             throw new IOException(" 文件流读取失败", exception);
         }
+    }
+
+    @FunctionalInterface
+    private interface CloseAction {
+        void close() throws IOException;
     }
 }
