@@ -5,6 +5,7 @@
 - JSON 统一使用 JsonUtil；serialization 包的 HiddenDataFields 和 Jackson 2/3 适配器负责省略隐藏字段，查询内部补键不得暴露到响应。
 - Jackson 2/3 统一禁止浮点数截断为整数；整数类型仍支持整数字符串，避免主键等值发生有损转换。
 - EntityAssociation 描述类型化关系及固定属性条件，不包含可写/只读开关；业务声明由生成器转换，查询与写入组件共用同一元数据，写入权限由授权组件校验。
+- NullValueMode 默认 IGNORE_NULL；WRITE_PRESENT_NULL 仅更新 presentProperties 明确提交的业务属性，显式 null 可清空，省略不变；WRITE_NULL 仍为全部可写业务字段置空语义。生成 setter 与 JSON 绑定维护属性存在性，本地自定义实体须显式标记。
 
 [返回模块目录](../README.md)
 

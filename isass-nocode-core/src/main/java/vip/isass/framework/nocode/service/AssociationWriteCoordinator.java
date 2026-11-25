@@ -204,7 +204,9 @@ public final class AssociationWriteCoordinator {
                         throw new IllegalArgumentException("关联对象不存在或不属于当前实体: " + targetId);
                     }
                     if (changed((IEntity<?>) target, existing)) {
-                        updateExistingTarget(targetService, target, targetId, null);
+                        updateExistingTarget(targetService, target, targetId,
+                                criteria != null && criteria.resolveNullValueMode() == NullValueMode.WRITE_PRESENT_NULL
+                                        ? criteria : null);
                     }
                     submittedIds.add(targetId);
                 }
@@ -229,8 +231,10 @@ public final class AssociationWriteCoordinator {
             return;
         }
         Object targetCriteria = targetService.newCriteria();
-        ((IWhereConditionCriteria) targetCriteria).equals("id", targetId);
-        ((IUpdateCriteria) targetCriteria).setNullValueMode(NullValueMode.WRITE_NULL);
+        if (sourceCriteria.resolveNullValueMode() != NullValueMode.WRITE_PRESENT_NULL) {
+            ((IWhereConditionCriteria) targetCriteria).equals("id", targetId);
+        }
+        ((IUpdateCriteria) targetCriteria).setNullValueMode(sourceCriteria.resolveNullValueMode());
         nested(() -> targetService.update((IIdEntity) target,
                 (ICriteria) targetCriteria));
     }

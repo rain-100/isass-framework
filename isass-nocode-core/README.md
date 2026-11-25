@@ -3,6 +3,7 @@
 标准 CRUD 与统一执行。提供 createBatch/update/delete/superCud、page/cursorPage/count/exists，以及可选树查询。
 
 - 写入经 CrudWriteExecutor 事务与生命周期；查询经 CrudQueryExecutor。关联只按声明处理，MERGE 保留旧项、REPLACE 移除未提交项。
+- 清空单字段使用 updateCriteria.nullValueMode=WRITE_PRESENT_NULL，并明确提交该属性为 null；省略字段不改，默认 IGNORE_NULL 不变。嵌套修改保留此模式且各自鉴权；WRITE_NULL 仍为全业务字段置空，不能用于规避字段权限。
 - 关联可递归保存；外键目标在依赖方生命周期前保存并回填真实 ID。嵌套增改删分别经过功能授权与生命周期，ID-only 引用不重复修改。REPLACE/级联先解析实际子记录 ID，再按 ID 删除；根关联更新加事务记录锁，失败整批回滚。
 - EntityAssociation 只描述关联结构，不提供可写/只读开关；关联对象的新增、修改、删除分别校验目标操作权限，不继承主对象权限。where(field,value) 为关联读取、写入归属和删除增加不可覆盖的固定条件（按目标 Java 属性类型转换）。共享目标不声明 cascadeDelete，不随绑定移除而删除。
 - ICrudService/ILocalCrudService 的 E 仅要求 IEntity，Criteria 不强制 IIdCriteria。无主键实体支持新增、普通查询/分页/统计，以及带有效条件或 matchFields 的修改、带有效条件的删除；不允许无条件写入。

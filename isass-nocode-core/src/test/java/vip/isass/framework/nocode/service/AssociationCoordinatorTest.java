@@ -11,6 +11,7 @@ import vip.isass.framework.common.criteria.WhereCondition;
 import vip.isass.framework.common.criteria.impl.type.Condition;
 import java.util.Objects;
 import vip.isass.framework.common.criteria.UpdateMode;
+import vip.isass.framework.common.criteria.NullValueMode;
 import vip.isass.framework.common.criteria.field.IIdCriteria;
 import vip.isass.framework.common.criteria.impl.type.FullTypeCriteria;
 import vip.isass.framework.common.entity.EntityAssociation;
@@ -39,6 +40,23 @@ import static org.mockito.Mockito.when;
 
 class AssociationCoordinatorTest {
     private CrudQueryExecutorProvider queryProvider;
+
+    @Test
+    void directAssociationKeepsExplicitNullModeInsteadOfDroppingOrWideningIt() {
+        ChildRepository children = new ChildRepository();
+        children.rows.put(10L, new Child(10L, 1L, "old"));
+        var coordinator = new AssociationWriteCoordinator(List.of(new ChildService(children)));
+        Parent parent = new Parent(1L);
+        Child clear = new Child(10L, 1L, null);
+        clear.markPresentProperty("name");
+        parent.setChildren(List.of(clear));
+
+        coordinator.afterSave(parent, new ParentCriteria()
+                .setNullValueMode(NullValueMode.WRITE_PRESENT_NULL), false);
+
+        assertEquals(NullValueMode.WRITE_PRESENT_NULL, children.lastUpdateCriteria.resolveNullValueMode());
+        assertEquals(1, children.rows.size());
+    }
 
     @AfterEach
     void releaseQueryProvider() { if (queryProvider != null) queryProvider.destroy(); }
@@ -514,6 +532,7 @@ class AssociationCoordinatorTest {
     static final class ChildRepository implements IRepository<Child, ChildCriteria> {
         private final Map<Long, Child> rows = new LinkedHashMap<>();
         private int queryCount;
+        private ChildCriteria lastUpdateCriteria;
 
         @Override public boolean add(Child entity) {
             if (entity.getId() == null) entity.setId(rows.keySet().stream().mapToLong(Long::longValue)
@@ -529,6 +548,7 @@ class AssociationCoordinatorTest {
         }
 
         @Override public int updateCountByCriteria(Child entity, ICriteria<Child, ChildCriteria> criteria) {
+            lastUpdateCriteria = (ChildCriteria) criteria;
             return updateById(entity) ? 1 : 0;
         }
 

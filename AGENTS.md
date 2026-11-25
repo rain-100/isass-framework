@@ -28,6 +28,7 @@
 - 实体领域归属、枚举、Java 类型覆盖和租户隔离开关由 `EntityModelDefinition` / `EntityFieldDefinition` 声明；DDL 保留物理结构与可读说明，不再解析表备注中的领域元数据。两类声明各司其职，不扩展关系类承担模型配置。
 - 面向应用的字段和 Criteria 使用 Java camelCase 属性及 lambda 引用。数据库列名属于 ORM 的职责范围；只有自动属性到列的映射确实存在歧义时，才添加显式元数据。
 - NoCode 支持高级响应投影、关联查询与关联写入。其公开 Query 参数应保持 camelCase，新增行为简要更新所属模块 README。
+- 单字段清空使用 NullValueMode.WRITE_PRESENT_NULL，只处理明确提交的业务属性，省略字段不变；保留 WRITE_NULL 的全字段语义及授权限制。生成 setter/JSON 绑定的 presentProperties 是存在性事实，不以 null 推断字段已提交。
 - 共享 Redis key 使用 `<microservice>:<domain>:<feature>[:<id>]`。避免使用框架全局 key 前缀，也不要清理无关 key。
 - 框架配置使用 `isass.<module>.<feature>...` 层级。新增可复用配置时，不得引入一次性的根前缀。
 - 不要在框架模块中放置特定服务的初始化数据或业务规则。

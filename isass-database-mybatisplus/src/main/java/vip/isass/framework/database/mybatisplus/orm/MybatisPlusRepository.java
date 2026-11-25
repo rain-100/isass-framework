@@ -253,12 +253,19 @@ public abstract class MybatisPlusRepository<E extends IEntity<E>, C extends ICri
         Map<String, Object> values = BeanUtil.beanToMap(entity);
         List<TableFieldInfo> businessFields = WrapperUtil.resolveWritableBusinessColumns(currentEntityClass());
         if (businessFields.isEmpty()) throw new IllegalArgumentException("实体没有可更新的业务字段");
-        boolean writeNull = criteria instanceof IUpdateCriteria<?> updateCriteria
-                && updateCriteria.resolveNullValueMode() == NullValueMode.WRITE_NULL;
+        NullValueMode nullMode = criteria instanceof IUpdateCriteria<?> updateCriteria
+                ? updateCriteria.resolveNullValueMode() : NullValueMode.IGNORE_NULL;
+        if (nullMode == NullValueMode.WRITE_PRESENT_NULL) {
+            businessFields = businessFields.stream()
+                    .filter(field -> entity.isPropertyPresent(field.getProperty()))
+                    .toList();
+            Assert.notEmpty(businessFields, "WRITE_PRESENT_NULL 必须明确提交可写业务字段");
+        }
+        boolean writeNull = nullMode != NullValueMode.IGNORE_NULL;
         boolean tracked = !entity.presentProperties().isEmpty();
         boolean rootSubmitted = businessFields.stream().anyMatch(field -> writeNull && tracked
                 ? entity.isPropertyPresent(field.getProperty()) : values.get(field.getProperty()) != null);
-        if (writeNull && !rootSubmitted) {
+        if (nullMode == NullValueMode.WRITE_NULL && !rootSubmitted) {
             boolean associationSubmitted = entity.associations().stream().anyMatch(association ->
                     tracked && entity.isPropertyPresent(association.property())
                             && values.get(association.property()) != null);

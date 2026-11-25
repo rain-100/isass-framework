@@ -34,6 +34,7 @@ Socket.IO、WebSocket 协议节点和动态 gRPC Server 当前均为遗留预研
 | MySQL                        | 30030                              |
 | Nacos                        | 30040                              |
 | PostgreSQL                   | 30060                              |
+| openlist                     | http:30070/s3:30071                |
 | 达梦 / KingBase 等目标数据库 | 由集成环境分配；不应假定开发机端口 |
 | Prometheus                   | 30210                              |
 | Alertmanager                 | 30211                              |

@@ -11,5 +11,6 @@ MyBatis-Plus / MPJ 适配。注册实体表元数据，将 Criteria 转为 Wrapp
 - 关联分页按根实体计数并保留集合；需要窗口函数。MySQL 不支持 FULL JOIN，SQL Server 授权写锁未适配；不安全或不支持的形态明确拒绝。
 - 持久化 Collection/Map 字段使用完整 Java 泛型还原 JSON；无 ORM 注解的实体自动补建字段级 resultMap，Repository 直读与服务查询均保留嵌套元素类型。关联集合不作为 JSON 列，显式 resultMap 不被覆盖。
 - 测试不使用 H2；已移除对应内存库集成测试和依赖。
+- WRITE_PRESENT_NULL 按属性存在性筛选业务列，在普通和 JOIN 更新中只清空明确提交的 null；无明确可写业务字段则拒绝。自动填充、逻辑删除、版本列不作业务置空，版本仍参与乐观锁。WRITE_NULL 保留全字段语义，不扩大 BSP 授权。
 
 [返回模块目录](../README.md)
